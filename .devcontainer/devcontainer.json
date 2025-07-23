@@ -1,14 +1,18 @@
 {
-  "name": "NARADDON Homepage (React + Node.js)",
+  "name": "NARADDON Homepage (React + Node.js + MongoDB)",
   "dockerComposeFile": "docker-compose.yml",
-  "service": "app",
+  "service": "app", // docker-compose.yml의 'app' 서비스에 연결
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 
-  "features": {
-    "ghcr.io/devcontainers/features/node:1": { // Node.js Feature는 그대로 여기에 둡니다.
-      "version": "18"
-    }
-  },
+  // devcontainer.json의 image와 features는 이제 여기에 필요 없습니다.
+  // Docker Compose 파일의 'app' 서비스 정의에서 이미지와 Node.js Feature를 가져올 것입니다.
+  // "image": "mcr.microsoft.com/devcontainers/universal:linux",
+  // "features": {
+  //   "ghcr.io/devcontainers/features/node:1": {
+  //     "version": "18"
+  //   }
+  // },
+
   "customizations": {
     "vscode": {
       "extensions": [
@@ -18,7 +22,7 @@
       ]
     }
   },
-  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y iputils-ping dnsutils net-tools curl && echo 'Basic tools installed.'",
+  "postStartCommand": "sudo apt-get update && sudo apt-get install -y iputils-ping dnsutils net-tools curl && echo 'Basic tools installed.' && docker compose up -d", // 컨테이너가 완전히 시작된 후 실행
   "forwardPorts": [3000, 5000, 27017],
-  "remoteUser": "codespace"
+  "remoteUser": "codespace" // codespace 유저로 통일
 }
