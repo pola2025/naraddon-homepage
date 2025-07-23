@@ -5,8 +5,8 @@ services:
     image: mcr.microsoft.com/devcontainers/universal:linux # 앱 컨테이너의 기본 이미지
     volumes:
       - ..:/workspaces:cached # 현재 워크스페이스를 이 컨테이너의 /workspaces에 마운트
-    # 'user: codespace'는 여기에 명시하지 않습니다. devcontainer.json의 "remoteUser"가 처리합니다.
-    command: /bin/sh -c "while sleep 1000; do :; done" # 컨테이너가 종료되지 않고 계속 실행되도록 유지
+    # user: codespace는 devcontainer.json의 "remoteUser"가 처리하므로 여기에 명시하지 않습니다.
+    command: sleep infinity # 컨테이너가 종료되지 않고 계속 실행되도록 유지하는 가장 간단한 방법
     ports:
       - "3000:3000"
       - "5000:5000"
