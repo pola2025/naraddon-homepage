@@ -1,17 +1,15 @@
 {
   "name": "NARADDON Homepage (React + Node.js + MongoDB)",
-  "dockerComposeFile": "docker-compose.yml",
-  "service": "app", // docker-compose.yml의 'app' 서비스에 연결
-  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "dockerComposeFile": "docker-compose.yml", // Docker Compose 파일 지정
+  "service": "app", // docker-compose.yml에서 'app' 서비스를 메인 개발 컨테이너로 사용
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}", // 워크스페이스 경로
 
-  // devcontainer.json의 image와 features는 이제 여기에 필요 없습니다.
-  // Docker Compose 파일의 'app' 서비스 정의에서 이미지와 Node.js Feature를 가져올 것입니다.
-  // "image": "mcr.microsoft.com/devcontainers/universal:linux",
-  // "features": {
-  //   "ghcr.io/devcontainers/features/node:1": {
-  //     "version": "18"
-  //   }
-  // },
+  // 아래 "features"는 'app' 서비스 컨테이너에 적용됩니다.
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "18"
+    }
+  },
 
   "customizations": {
     "vscode": {
@@ -22,7 +20,9 @@
       ]
     }
   },
-  "postStartCommand": "sudo apt-get update && sudo apt-get install -y iputils-ping dnsutils net-tools curl && echo 'Basic tools installed.' && docker compose up -d", // 컨테이너가 완전히 시작된 후 실행
-  "forwardPorts": [3000, 5000, 27017],
-  "remoteUser": "codespace" // codespace 유저로 통일
+  // postCreateCommand는 Docker Compose 서비스들이 성공적으로 시작된 후에 실행됩니다.
+  // 여기서는 별도로 docker compose up을 실행할 필요 없습니다. Codespaces가 알아서 처리합니다.
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y iputils-ping dnsutils net-tools curl && echo 'Basic tools installed.'",
+  "forwardPorts": [3000, 5000, 27017], // 포트 포워딩
+  "remoteUser": "codespace" // Codespace의 기본 사용자. 'app' 서비스에 적용됩니다.
 }
