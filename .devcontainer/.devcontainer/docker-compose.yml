@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/universal:linux # 앱 컨테이너는 Universal 이미지 사용
+    volumes:
+      - ..:/workspaces:cached # 현재 워크스페이스를 마운트
+    # 'app' 서비스에 Node.js Feature를 적용
+    features:
+      ghcr.io/devcontainers/features/node:1:
+        version: "18"
+    command: /bin/sh -c "while sleep 1000; do :; done" # 컨테이너가 계속 실행되도록 더미 명령어
+    ports:
+      - "3000:3000"
+      - "5000:5000"
+
+  db:
+    image: mongo:6.0 # MongoDB 6.0 공식 이미지 사용
+    restart: unless-stopped # 컨테이너 중지 시 재시작
+    volumes:
+      - dbdata:/data/db # 데이터 영속성을 위한 볼륨 마운트
+    ports:
+      - "27017:27017" # MongoDB 기본 포트
+
+volumes:
+  dbdata: # MongoDB 데이터 저장을 위한 볼륨 정의

@@ -1,11 +1,14 @@
 {
-  "name": "NARADDON Homepage (React + Node.js + MongoDB)",
-  "image": "mcr.microsoft.com/devcontainers/universal:linux",
+  "name": "NARADDON Homepage (React + Node.js)", // MongoDB는 이제 별도 서비스로 실행
+  "dockerComposeFile": "docker-compose.yml", // Docker Compose 파일 지정
+  "service": "app", // Docker Compose 파일에서 사용할 서비스 이름
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}", // 워크스페이스 경로
+
   "features": {
-    "ghcr.io/devcontainers/features/node:1": {
+    "ghcr.io/devcontainers/features/node:1": { // Node.js Feature는 그대로 사용
       "version": "18"
     }
-    // MongoDB Feature는 계속 제거된 상태여야 합니다.
+    // MongoDB Feature 및 수동 설치 postCreateCommand는 모두 제거되었습니다.
   },
   "customizations": {
     "vscode": {
@@ -16,13 +19,6 @@
       ]
     }
   },
-  "postCreateCommand": [
-    "sudo apt-get update && sudo apt-get install -y mongodb-clients", // MongoDB 클라이언트만 설치 (mongosh 포함)
-    "sudo mkdir -p /data/db", // MongoDB 기본 데이터 디렉토리 생성
-    "sudo chown -R codespace:codespace /data/db", // 현재 사용자에게 권한 부여
-    "nohup mongod --dbpath /data/db --port 27017 > mongod.log 2>&1 &", // 백그라운드에서 MongoDB 서버 직접 실행
-    "echo 'MongoDB server started manually.'"
-  ],
-  "forwardPorts": [3000, 5000, 27017],
-  "remoteUser": "codespace"
+  "forwardPorts": [3000, 5000, 27017], // React 개발 서버, Express 백엔드, MongoDB 기본 포트
+  "remoteUser": "node" // Node.js 이미지를 사용하므로 remoteUser를 "node"로 설정
 }
