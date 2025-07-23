@@ -5,7 +5,7 @@
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 
   "features": {
-    "ghcr.io/devcontainers/features/node:1": {
+    "ghcr.io/devcontainers/features/node:1": { // Node.js Feature는 그대로 여기에 둡니다.
       "version": "18"
     }
   },
@@ -18,7 +18,7 @@
       ]
     }
   },
-  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y iputils-ping dnsutils net-tools curl && echo 'Basic tools installed.'", // 기본적인 네트워크 도구 설치
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y iputils-ping dnsutils net-tools curl && echo 'Basic tools installed.'",
   "forwardPorts": [3000, 5000, 27017],
-  "remoteUser": "codespace" // 다시 codespace 유저로 통일
+  "remoteUser": "codespace"
 }
