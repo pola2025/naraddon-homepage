@@ -1,0 +1,19 @@
+{
+  "name": "NARADDON Homepage (React + Node.js + MongoDB)",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:18", // Node.js 18 버전 기반
+  "features": {
+    "ghcr.io/devcontainers/features/mongodb:1": {} // MongoDB 설치 (클라이언트 및 서버)
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-azuretools.vscode-docker" // Docker 관련 작업 시 유용
+      ]
+    }
+  },
+  "postCreateCommand": "npm install -g yarn && sudo apt-get update && sudo apt-get install -y mongodb-org-tools && mongod --fork --logpath /var/log/mongodb/mongod.log --dbpath /var/lib/mongodb && echo 'MongoDB started.'",
+  "forwardPorts": [3000, 5000, 27017], // React 개발 서버, Express 백엔드, MongoDB 기본 포트
+  "remoteUser": "node"
+}
