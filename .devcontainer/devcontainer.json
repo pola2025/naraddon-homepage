@@ -1,14 +1,12 @@
 {
   "name": "NARADDON Homepage (React + Node.js + MongoDB)",
-  "dockerComposeFile": "docker-compose.yml", // Docker Compose 파일 지정
-  "service": "app", // docker-compose.yml에서 'app' 서비스를 메인 개발 컨테이너로 사용
-  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}", // 워크스페이스 경로
+  "image": "mcr.microsoft.com/devcontainers/universal:linux", // Node.js 및 기본 도구가 포함된 안정적인 범용 이미지
 
-  // 아래 "features"는 'app' 서비스 컨테이너에 적용됩니다.
   "features": {
-    "ghcr.io/devcontainers/features/node:1": {
+    "ghcr.io/devcontainers/features/node:1": { // Node.js 18 버전 설치 (Feature 사용)
       "version": "18"
     }
+    // MongoDB Features는 여기서 완전히 제거되어야 합니다! (이전 시도처럼 오류 유발 방지)
   },
 
   "customizations": {
@@ -20,9 +18,18 @@
       ]
     }
   },
-  // postCreateCommand는 Docker Compose 서비스들이 성공적으로 시작된 후에 실행됩니다.
-  // 여기서는 별도로 docker compose up을 실행할 필요 없습니다. Codespaces가 알아서 처리합니다.
-  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y iputils-ping dnsutils net-tools curl && echo 'Basic tools installed.'",
-  "forwardPorts": [3000, 5000, 27017], // 포트 포워딩
-  "remoteUser": "codespace" // Codespace의 기본 사용자. 'app' 서비스에 적용됩니다.
+
+  "postCreateCommand": [
+    "sudo apt-get update",
+    "sudo apt-get install -y gnupg curl",
+    "curl -fsSL https://www.mongodb.com/static/pgp/server-6.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-archive-keyring.gpg --dearmor",
+    "echo 'deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-archive-keyring.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org-6.0 multiverse' | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list",
+    "sudo apt-get update",
+    "sudo apt-get install -y mongodb-org-server mongodb-org-shell mongodb-org-tools", // MongoDB 서버, 셸, 도구 모두 설치
+    "mkdir -p ~/data/db", // 사용자 홈 디렉토리 내에 데이터 폴더 생성 (권한 문제 방지)
+    "nohup mongod --dbpath ~/data/db --port 27017 > ~/mongod.log 2>&1 &", // 백그라운드에서 실행, 로그는 홈 디렉토리에
+    "echo 'MongoDB server started manually in background.'"
+  ],
+  "forwardPorts": [3000, 5000, 27017],
+  "remoteUser": "codespace" // 코드스페이스 기본 사용자
 }
