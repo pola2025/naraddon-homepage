@@ -1,12 +1,11 @@
 {
   "name": "NARADDON Homepage (React + Node.js + MongoDB)",
-  "image": "mcr.microsoft.com/devcontainers/universal:linux", // 범용 개발자 이미지로 변경
+  "image": "mcr.microsoft.com/devcontainers/universal:linux",
   "features": {
-    "ghcr.io/devcontainers/features/node:1": { // Node.js Feature는 그대로 사용
+    "ghcr.io/devcontainers/features/node:1": {
       "version": "18"
     }
-    // 여기에 "ghcr.io/devcontainers/features/mongodb:1" 라인은 없습니다. 완전히 제거되었습니다.
-    // 이전 내용에서 이 줄을 포함하고 있었다면, 반드시 삭제해야 합니다.
+    // MongoDB Feature는 계속 제거된 상태여야 합니다.
   },
   "customizations": {
     "vscode": {
@@ -17,18 +16,13 @@
       ]
     }
   },
-  "postCreateCommand": [ // MongoDB 수동 설치 명령어 배열로 추가
-    "sudo apt-get update",
-    "sudo apt-get install -y gnupg curl",
-    "curl -fsSL https://www.mongodb.com/static/pgp/server-6.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-archive-keyring.gpg --dearmor",
-    "echo 'deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-archive-keyring.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse' | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list",
-    "sudo apt-get update",
-    "sudo apt-get install -y mongodb-org",
-    "sudo mkdir -p /var/lib/mongodb",
-    "sudo chown -R mongodb:mongodb /var/lib/mongodb",
-    "sudo service mongod start",
-    "echo 'MongoDB setup complete and started.'"
+  "postCreateCommand": [
+    "sudo apt-get update && sudo apt-get install -y mongodb-clients", // MongoDB 클라이언트만 설치 (mongosh 포함)
+    "sudo mkdir -p /data/db", // MongoDB 기본 데이터 디렉토리 생성
+    "sudo chown -R codespace:codespace /data/db", // 현재 사용자에게 권한 부여
+    "nohup mongod --dbpath /data/db --port 27017 > mongod.log 2>&1 &", // 백그라운드에서 MongoDB 서버 직접 실행
+    "echo 'MongoDB server started manually.'"
   ],
   "forwardPorts": [3000, 5000, 27017],
-  "remoteUser": "codespace" // 기본 유저로 변경
+  "remoteUser": "codespace"
 }
