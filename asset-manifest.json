@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/naraddon-homepage/static/css/main.079e46b0.css",
-    "main.js": "/naraddon-homepage/static/js/main.8392a2da.js",
+    "main.js": "/naraddon-homepage/static/js/main.a77ec157.js",
     "static/js/453.670e15c7.chunk.js": "/naraddon-homepage/static/js/453.670e15c7.chunk.js",
     "index.html": "/naraddon-homepage/index.html",
     "main.079e46b0.css.map": "/naraddon-homepage/static/css/main.079e46b0.css.map",
-    "main.8392a2da.js.map": "/naraddon-homepage/static/js/main.8392a2da.js.map",
+    "main.a77ec157.js.map": "/naraddon-homepage/static/js/main.a77ec157.js.map",
     "453.670e15c7.chunk.js.map": "/naraddon-homepage/static/js/453.670e15c7.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.079e46b0.css",
-    "static/js/main.8392a2da.js"
+    "static/js/main.a77ec157.js"
   ]
 }
