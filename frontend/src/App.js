@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import './App.css';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -34,7 +34,7 @@ function App() {
               <div className="header-left">
                 <Link to="/" className="logo-section">
                   <div className="logo-wrapper">
-                    <img src="/images/Logo.png" alt="NARADDON" className="logo" />
+                    <img src={`${process.env.PUBLIC_URL}/images/Logo.png`} alt="NARADDON" className="logo" />
                     <h1 data-text="NARADDON">NARADDON</h1>
                   </div>
                 </Link>

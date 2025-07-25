@@ -167,7 +167,7 @@ function Home() {
       <section className="hero-section">
         {/* 배경 비디오 */}
         <video className="hero-video" autoPlay muted loop playsInline>
-          <source src="/videos/naraddon_background_low.mp4" type="video/mp4" />
+          <source src={`${process.env.PUBLIC_URL}/videos/naraddon_background_low.mp4`} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
         {/* 검정색 반투명 오버레이 */}
@@ -315,7 +315,7 @@ function Home() {
           <div className="examiner-grid">
             <div className="examiner-card">
               <div className="examiner-image">
-                <img src="/images/examiner1.jpg" alt="박OO대표" />
+                <img src={`${process.env.PUBLIC_URL}/images/examiner1.jpg`} alt="박OO대표" />
                 <span className="rating">★★★★★</span>
               </div>
               <h4>박OO대표</h4>
@@ -329,7 +329,7 @@ function Home() {
             </div>
             <div className="examiner-card">
               <div className="examiner-image">
-                <img src="/images/examiner2.jpg" alt="박OO대표" />
+                <img src={`${process.env.PUBLIC_URL}/images/examiner2.jpg`} alt="박OO대표" />
                 <span className="rating">★★★★☆</span>
               </div>
               <h4>박OO대표</h4>
@@ -343,7 +343,7 @@ function Home() {
             </div>
             <div className="examiner-card">
               <div className="examiner-image">
-                <img src="/images/examiner3.jpg" alt="박OO대표" />
+                <img src={`${process.env.PUBLIC_URL}/images/examiner3.jpg`} alt="박OO대표" />
                 <span className="rating">★★★★★</span>
               </div>
               <h4>박OO대표</h4>
@@ -357,7 +357,7 @@ function Home() {
             </div>
             <div className="examiner-card">
               <div className="examiner-image">
-                <img src="/images/examiner4.jpg" alt="박OO대표" />
+                <img src={`${process.env.PUBLIC_URL}/images/examiner4.jpg`} alt="박OO대표" />
                 <span className="rating">★★★★☆</span>
               </div>
               <h4>박OO대표</h4>
@@ -371,7 +371,7 @@ function Home() {
             </div>
             <div className="examiner-card">
               <div className="examiner-image">
-                <img src="/images/examiner5.jpg" alt="박OO대표" />
+                <img src={`${process.env.PUBLIC_URL}/images/examiner5.jpg`} alt="박OO대표" />
                 <span className="rating">★★★★★</span>
               </div>
               <h4>박OO대표</h4>
