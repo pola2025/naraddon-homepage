@@ -1,15 +1,16 @@
 {
   "files": {
-    "main.css": "/naraddon-homepage/static/css/main.079e46b0.css",
-    "main.js": "/naraddon-homepage/static/js/main.a77ec157.js",
-    "static/js/453.670e15c7.chunk.js": "/naraddon-homepage/static/js/453.670e15c7.chunk.js",
-    "index.html": "/naraddon-homepage/index.html",
-    "main.079e46b0.css.map": "/naraddon-homepage/static/css/main.079e46b0.css.map",
-    "main.a77ec157.js.map": "/naraddon-homepage/static/js/main.a77ec157.js.map",
-    "453.670e15c7.chunk.js.map": "/naraddon-homepage/static/js/453.670e15c7.chunk.js.map"
+    "main.css": "/static/css/main.1c66d7d9.css",
+    "main.js": "/static/js/main.0660628e.js",
+    "static/js/453.670e15c7.chunk.js": "/static/js/453.670e15c7.chunk.js",
+    "static/media/Naraddon_main_2nd.mp4": "/static/media/Naraddon_main_2nd.d7d69e1de16696bd753f.mp4",
+    "index.html": "/index.html",
+    "main.1c66d7d9.css.map": "/static/css/main.1c66d7d9.css.map",
+    "main.0660628e.js.map": "/static/js/main.0660628e.js.map",
+    "453.670e15c7.chunk.js.map": "/static/js/453.670e15c7.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.079e46b0.css",
-    "static/js/main.a77ec157.js"
+    "static/css/main.1c66d7d9.css",
+    "static/js/main.0660628e.js"
   ]
 }
