@@ -167,7 +167,7 @@ function Home() {
       <section className="hero-section">
         {/* 배경 비디오 */}
         <video className="hero-video" autoPlay muted loop playsInline>
-          <source src={`${process.env.PUBLIC_URL}/videos/naraddon_background_low.mp4`} type="video/mp4" />
+          <source src={`${process.env.PUBLIC_URL}/videos/naraddon_background_low.mp4?v=${Date.now()}`} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
         {/* 검정색 반투명 오버레이 */}
