@@ -28,7 +28,7 @@ git push origin main
 
 echo.
 echo [3/3] Deploying to GitHub Pages...
-cd frontend
+cd /d E:\Naraddon\naraddon-homepage\frontend
 call npm run deploy
 
 echo.

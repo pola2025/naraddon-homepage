@@ -1,0 +1,189 @@
+/* 정책분석 페이지 스타일 */
+.policy-analysis-page {
+  min-height: 100vh;
+  padding-top: 100px;
+  background: #f8f9fa;
+}
+
+.page-header {
+  text-align: center;
+  padding: 60px 20px;
+  background: linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 100%);
+  margin-bottom: 60px;
+}
+
+.page-header h1 {
+  font-size: 48px;
+  font-weight: 800;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.page-header p {
+  font-size: 20px;
+  color: #666;
+}
+
+.policy-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px 60px;
+}
+
+.policy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  margin-bottom: 80px;
+}
+
+.policy-card {
+  background: white;
+  border-radius: 16px;
+  padding: 40px 30px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.policy-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #4CAF50 0%, #81C784 100%);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+  transform-origin: left;
+}
+
+.policy-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.policy-card:hover::before {
+  transform: scaleX(1);
+}
+
+.policy-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  background: linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  color: #4CAF50;
+}
+
+.policy-card h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.policy-card p {
+  font-size: 16px;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.policy-link {
+  color: #4CAF50;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.policy-link:hover {
+  color: #45A049;
+}
+
+.policy-cta {
+  text-align: center;
+  background: white;
+  border-radius: 24px;
+  padding: 60px 40px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.policy-cta h2 {
+  font-size: 36px;
+  font-weight: 800;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.policy-cta p {
+  font-size: 18px;
+  color: #666;
+  margin-bottom: 32px;
+}
+
+.policy-cta .cta-button {
+  display: inline-block;
+  padding: 18px 40px;
+  background: linear-gradient(135deg, #4CAF50 0%, #45A049 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 18px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
+}
+
+.policy-cta .cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(76, 175, 80, 0.4);
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .policy-analysis-page {
+    padding-top: 80px;
+  }
+
+  .page-header {
+    padding: 40px 20px;
+  }
+
+  .page-header h1 {
+    font-size: 36px;
+  }
+
+  .page-header p {
+    font-size: 18px;
+  }
+
+  .policy-grid {
+    gap: 20px;
+  }
+
+  .policy-card {
+    padding: 30px 20px;
+  }
+
+  .policy-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 28px;
+  }
+
+  .policy-cta {
+    padding: 40px 20px;
+  }
+
+  .policy-cta h2 {
+    font-size: 28px;
+  }
+}

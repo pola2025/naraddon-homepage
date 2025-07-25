@@ -1,29 +1,107 @@
+/* CSS 변수 import */
+@import './styles/variables.css';
+
 /* 전역 리셋 */
-* {
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* 컬러 변수 정의 */
-:root {
-  --accent-color: #ffa218;
-  --primary-color: #49a84d;
-  --secondary-color: #eaf6e9;
-  --basic-color: #ffffff;
-  --cta-gradient: linear-gradient(135deg, #49a84d 0%, #58b55c 100%);
-  --dark-overlay: rgba(0, 0, 0, 0.85);
-  --neon-glow-primary: 0 0 20px rgba(73, 168, 77, 0.8);
-  --neon-glow-accent: 0 0 20px rgba(255, 162, 24, 0.8);
+/* 로그인 버튼 스타일 */
+.header-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
+.login-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  background: transparent;
+  color: #333;
+  text-decoration: none;
+  border: 1px solid #4CAF50;
+  border-radius: 18px;
+  font-weight: 400;
+  transition: all 0.3s ease;
+  font-size: 13px;
+  height: 32px;
+}
+
+.login-button:hover {
+  background: #4CAF50;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.login-button i {
+  font-size: 13px;
+}
+
+.login-button span {
+  font-size: 13px;
+}
+
+/* 스크롤 시 로그인 버튼 스타일 */
+.App-header.scrolled .login-button {
+  border-color: #4CAF50;
+}
+
+.App-header.scrolled .login-button:hover {
+  background: #4CAF50;
+  color: white;
+}
+
+/* 모바일에서 로그인 버튼 */
+@media (max-width: 768px) {
+  .header-right {
+    display: none;
+  }
+}
+
+/* 스크롤바 커스터마이징 */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C4C4C4;
+  border-radius: var(--border-radius-full);
+  transition: var(--transition-base);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #A0A0A0;
+}
+
+/* 텍스트 선택 스타일 */
+::selection {
+  background: var(--primary-green);
+  color: var(--text-white);
+}
+
+/* 기본 타이포그래피 */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 
+    'Helvetica Neue', Arial, sans-serif;
+  font-size: var(--font-base);
+  font-weight: var(--font-normal);
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--bg-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #f5f5f5;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 /* 앱 컨테이너 */
@@ -31,532 +109,495 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
-/* 태그라인 배너 */
+/* 태그라인 배너 제거 */
 .tagline-banner {
-  background: #49A84D;
-  text-align: center;
-  padding: 0.5rem 0;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1001;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.tagline-banner p {
-  margin: 0;
-  color: white;
-  font-size: 0.9rem;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-}
-
-/* 헤더 스타일 - 더 부드러운 그라데이션 */
-.App-header {
-  background: linear-gradient(180deg, 
-    rgba(73, 168, 77, 0.85) 0%, 
-    rgba(73, 168, 77, 0.75) 100%);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.1) inset;
-  position: sticky;
-  top: 38px; /* 태그라인 배너 높이만큼 내림 */
-  z-index: 1000;
-  width: 100%;
-  border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
-}
-
-/* 비디오 배경이 있는 페이지에서의 헤더 */
-.App-header.transparent {
-  position: fixed;
-  background: transparent;
-  backdrop-filter: blur(0px);
-  box-shadow: none;
-}
-
-.App-header.transparent.scrolled {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-}
-
-.header-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  gap: 2rem;
-}
-
-/* 헤더 왼쪽 영역 (로고) */
-.header-left {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-/* 헤더 중앙 영역 (메뉴) */
-.header-center {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-}
-
-/* 로고 섹션 */
-.logo-section {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.3rem;
-  text-decoration: none;
-  color: var(--basic-color);
-  transition: all 0.3s ease;
-  padding: 0.5rem 1rem;
-  border-radius: 10px;
-}
-
-.logo-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-/* 로고 금빛 그라데이션 효과 */
-.logo {
-  height: 50px;
-  width: auto;
-  object-fit: contain;
-  transition: all 0.3s ease;
-  filter: brightness(1.1) sepia(0.3) hue-rotate(15deg) saturate(1.3);
-  position: relative;
-}
-
-/* 로고 쉬머 효과 */
-.logo::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 215, 0, 0.2) 50%,
-    transparent 100%
-  );
-  animation: goldShimmer 3s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes goldShimmer {
-  0% { left: -100%; }
-  100% { left: 100%; }
-}
-
-/* NARADDON 텍스트 금빛 그라데이션 */
-.logo-section h1 {
-  margin: 0;
-  font-size: 1.8rem;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  background: linear-gradient(
-    135deg,
-    #b8860b 0%,
-    #ffd700 25%,
-    #fff8dc 50%,
-    #ffd700 75%,
-    #b8860b 100%
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-fill-color: transparent;
-  text-shadow: none;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-/* 텍스트 쉬머 애니메이션 */
-.logo-section h1::before {
-  content: attr(data-text);
-  position: absolute;
-  top: 0;
-  left: 0;
-  background: linear-gradient(
-    135deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.4) 50%,
-    transparent 100%
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-fill-color: transparent;
-  background-size: 200% 200%;
-  animation: textShimmer 4s ease-in-out infinite;
-}
-
-@keyframes textShimmer {
-  0% { background-position: 200% center; }
-  100% { background-position: -200% center; }
-}
-
-
-
-/* 로고 호버 효과 - 이전 효과로 복원 */
-.logo-section:hover {
-  transform: scale(1.02);
-}
-
-.logo-section:hover .logo {
-  filter: brightness(1.1) sepia(0.3) hue-rotate(15deg) saturate(1.3) drop-shadow(0 0 12px rgba(255, 162, 24, 0.5));
-  animation: pulse 2s infinite;
-}
-
-.logo-section:hover h1 {
-  filter: drop-shadow(0 0 20px rgba(255, 162, 24, 0.5));
-}
-
-.logo-section:hover .logo-tagline {
-  color: rgba(255, 255, 255, 1);
-  text-shadow: 0 0 10px rgba(255, 162, 24, 0.3);
-}
-
-.App-header.transparent .logo-section {
-  color: white;
-}
-
-.App-header.transparent.scrolled .logo-section {
-  color: #333;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
-
-
-
-/* 메인 네비게이션 */
-.main-nav ul {
-  display: flex;
-  list-style: none;
-  gap: 1rem;
-  align-items: center;
-  margin: 0;
-  padding: 0;
-}
-
-.main-nav a {
-  text-decoration: none;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
-  font-size: 0.95rem;
-  position: relative;
-  transition: all 0.2s ease;
-  padding: 0.6rem 1.4rem;
-  border-radius: 12px;
-  overflow: hidden;
-  
-  /* 메뉴에 강조 효과 적용 */
-  background: linear-gradient(135deg, #49a84d 0%, #58b55c 100%);
-  box-shadow: 
-    0 1px 2px rgba(0, 0, 0, 0.1),
-    0 4px 8px -2px rgba(73, 168, 77, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-/* 메뉴 쉬머 효과 - 호버시에만 */
-.main-nav a::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -150%;
-  width: 150%;
-  height: 100%;
-  background: linear-gradient(
-    105deg,
-    transparent 0%,
-    transparent 40%,
-    rgba(255, 255, 255, 0.08) 45%,
-    rgba(255, 255, 255, 0.15) 50%,
-    rgba(255, 255, 255, 0.08) 55%,
-    transparent 60%,
-    transparent 100%
-  );
-  transition: left 0.6s ease;
-}
-
-/* 메뉴 호버 시 쉬머 이동 */
-.main-nav a:hover::before {
-  left: 150%;
-}
-
-.App-header.transparent .main-nav a {
-  color: white;
-}
-
-.App-header.transparent.scrolled .main-nav a {
-  color: #333;
-}
-
-.main-nav a:hover {
-  color: rgba(255, 255, 255, 1);
-  background: linear-gradient(135deg, #58b55c 0%, #67c56f 100%);
-  transform: translateY(-1px);
-  
-  /* 호버 시 강화된 글로우 */
-  box-shadow: 
-    0 1px 2px rgba(0, 0, 0, 0.1),
-    0 0 20px rgba(73, 168, 77, 0.4),
-    0 0 40px rgba(73, 168, 77, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
-}
-
-/* 메뉴 글로우 보더 효과 */
-.main-nav a::after {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: 12px;
-  padding: 2px;
-  background: linear-gradient(135deg, 
-    rgba(73, 168, 77, 0.6),
-    rgba(88, 181, 92, 0.6),
-    rgba(73, 168, 77, 0.6));
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: exclude;
-  -webkit-mask-composite: xor;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: -1;
-}
-
-.main-nav a:hover::after {
-  opacity: 0.8;
-}
-
-
-
-/* 헤더 오른쪽 영역 (로그인) */
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-shrink: 0;
-}
-
-/* 로그인 버튼 - 심플한 스타일 */
-.login-btn {
-  background: transparent;
-  color: rgba(255, 255, 255, 0.8) !important;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  font-weight: 500;
-  font-size: 0.9rem;
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-/* 로그인 아이콘 */
-.login-btn i {
-  font-size: 0.9rem;
-  opacity: 0.8;
-}
-
-/* 로그인 버튼 상단 반사광 */
-.login-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 50%;
-  background: linear-gradient(180deg, 
-    rgba(255, 255, 255, 0.3) 0%, 
-    transparent 100%);
-  border-radius: 15px 15px 0 0;
-  pointer-events: none;
-}
-
-.App-header.transparent .login-btn {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(10px);
-}
-
-.App-header.transparent.scrolled .login-btn {
-  background: #007bff;
-  border-color: #007bff;
-}
-
-.login-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 1) !important;
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-/* 로그인 버튼 효과 제거 */
-.login-btn::before,
-.login-btn::after {
   display: none;
 }
 
-.App-header.transparent .login-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+/* 헤더 스타일 - 아임웹 스타일 그대로 적용 */
+.App-header {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  background-color: #FFFFFF !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08) !important;
+  z-index: 1000 !important;
+  transition: all 0.3s ease !important;
+  border-bottom: 1px solid #E5E5E5 !important;
 }
 
-.login-btn::after {
+.header-container {
+  max-width: 1400px !important;
+  margin: 0 auto !important;
+  padding: 0 20px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  height: 80px !important;
+  position: relative !important;
+}
+
+/* 로고 스타일 */
+.logo-wrapper {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex: 0 0 auto !important;
+}
+
+.logo-section {
+  display: flex !important;
+  align-items: center !important;
+  text-decoration: none !important;
+  gap: 12px !important;
+}
+
+.logo {
+  height: 50px !important;
+  width: auto !important;
+  transition: transform 0.3s ease !important;
+}
+
+.logo-section h1 {
+  font-family: 'Pretendard', sans-serif !important;
+  font-size: 22px !important;
+  font-weight: 600 !important;
+  color: #333333 !important;
+  letter-spacing: 1px !important;
+  transition: color 0.3s ease !important;
+  margin: 0 !important;
+}
+
+.logo-section:hover .logo {
+  transform: scale(1.05) !important;
+}
+
+.logo-section:hover h1 {
+  color: #4CAF50 !important;
+}
+
+/* 네비게이션 메뉴 스타일 - PC */
+.header-center {
+  position: absolute !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+}
+
+.main-nav ul {
+  display: flex !important;
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 40px !important;
+}
+
+.main-nav li {
+  position: relative !important;
+}
+
+.main-nav a {
+  color: #333333 !important;
+  text-decoration: none !important;
+  font-size: 22px !important;
+  font-weight: 500 !important;
+  font-family: 'Pretendard', sans-serif !important;
+  padding: 10px 0 !important;
+  position: relative !important;
+  transition: all 0.3s ease !important;
+}
+
+.main-nav a::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: -5px !important;
+  left: 0 !important;
+  width: 0 !important;
+  height: 3px !important;
+  background-color: #4CAF50 !important;
+  transition: width 0.3s ease !important;
+}
+
+.main-nav a:hover {
+  color: #4CAF50 !important;
+}
+
+.main-nav a:hover::after {
+  width: 100% !important;
+}
+
+/* PC 메뉴 active 상태 스타일 */
+.main-nav a.active {
+  color: #4CAF50 !important;
+  font-weight: 600 !important;
+}
+
+.main-nav a.active::after {
+  width: 100% !important;
+}
+
+/* 우측 공간 확보 */
+.header-right {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  padding-right: 20px !important;
+}
+
+/* 모바일 블록 네비게이션 */
+.mobile-block-nav {
   display: none !important;
+  position: fixed !important;
+  top: 60px !important;
+  left: 0 !important;
+  right: 0 !important;
+  background: #FFFFFF !important;
+  border-bottom: 1px solid #E5E5E5 !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08) !important;
+  z-index: 999 !important;
 }
 
-/* 메인 콘텐츠 */
+.mobile-nav-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 8px !important;
+  padding: 10px !important;
+}
+
+.mobile-nav-block {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 10px 6px !important;
+  background: #F8F8F8 !important;
+  border: 1px solid #E5E5E5 !important;
+  border-radius: 12px !important;
+  text-decoration: none !important;
+  color: #666666 !important;
+  font-weight: 500 !important;
+  font-size: 12px !important;
+  font-family: 'Pretendard', sans-serif !important;
+  transition: all 0.3s ease !important;
+  text-align: center !important;
+  min-height: 60px !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.mobile-nav-block::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.2) 100%) !important;
+  opacity: 0 !important;
+  transition: opacity 0.3s ease !important;
+}
+
+.mobile-nav-block i {
+  font-size: 20px !important;
+  color: #666666 !important;
+  transition: all 0.3s ease !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.mobile-nav-block span {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.mobile-nav-block:hover::before {
+  opacity: 1 !important;
+}
+
+.mobile-nav-block:hover {
+  background: #4CAF50 !important;
+  color: white !important;
+  border-color: transparent !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3) !important;
+}
+
+.mobile-nav-block:hover i {
+  color: white !important;
+}
+
+.mobile-nav-block.active {
+  background: #4CAF50 !important;
+  color: white !important;
+  border-color: transparent !important;
+  font-weight: 600 !important;
+}
+
+.mobile-nav-block.active i {
+  color: white !important;
+}
+
+/* 메인 콘텐츠 - 헤더 높이만큼 여백 */
 main {
   flex: 1;
-  min-height: calc(100vh - 200px);
+  min-height: calc(100vh - 80px);
+  padding-top: 80px;
+  background: var(--bg-primary);
 }
 
 /* 기본 페이지 스타일 */
 .page-container {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: var(--spacing-3xl) var(--spacing-xl);
 }
 
 /* Footer */
 footer {
-  background: #222;
-  color: white;
-  padding: 2rem;
-  text-align: center;
+  background: rgba(248, 249, 250, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: var(--text-secondary);
+  padding: var(--spacing-3xl) 0 var(--spacing-xl);
   margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+  z-index: 4;
 }
 
-/* 반응형 */
-@media (max-width: 768px) {
-  .App-header {
-    background: linear-gradient(180deg, 
-      rgba(73, 168, 77, 0.95) 0%, 
-      rgba(73, 168, 77, 0.90) 100%);
-  }
-  
-  .header-container {
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;  /* 모바일에서는 일반 패딩 */
-  }
-  
-  .header-left {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .header-center {
-    width: 100%;
-  }
-  
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-xl);
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: var(--spacing-3xl);
+  margin-bottom: var(--spacing-xl);
+}
+
+.footer-section h3,
+.footer-section h4 {
+  margin-bottom: var(--spacing-lg);
+  color: var(--text-primary);
+  font-weight: var(--font-semibold);
+  font-size: var(--font-lg);
+}
+
+.footer-section p {
+  color: var(--text-tertiary);
+  line-height: 1.8;
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-sm);
+}
+
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-section ul li {
+  margin-bottom: var(--spacing-sm);
+}
+
+.footer-section ul li a {
+  color: var(--text-tertiary);
+  text-decoration: none;
+  font-size: var(--font-sm);
+  transition: var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.footer-section ul li a:hover {
+  color: var(--primary-green);
+}
+
+.footer-bottom {
+  text-align: center;
+  padding: var(--spacing-lg) 0 0;
+  border-top: 1px solid var(--border-light);
+  color: var(--text-light);
+  font-size: var(--font-sm);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1024px) {
   .main-nav ul {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem;
-    width: 100%;
+    gap: 25px !important;
   }
-  
+
   .main-nav a {
-    padding: 0.6rem 1.2rem;
-    font-size: 0.85rem;
+    font-size: 16px !important;
   }
-  
-  .logo-section h1 {
-    font-size: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .header-container {
+    height: 60px !important;
+    justify-content: center !important;
   }
-  
+
   .logo {
-    height: 40px;
+    height: 40px !important;
   }
-  
-  
-  /* 태그라인 배너 모바일 */
-  .tagline-banner {
-    padding: 0.4rem 0;
+
+  .logo-section h1 {
+    font-size: 18px !important;
   }
-  
-  .tagline-banner p {
-    font-size: 0.8rem;
+
+  .main-nav {
+    display: none !important;
   }
-  
-  /* 헤더 위치 조정 */
-  .App-header {
-    top: 32px;
+
+  .header-center {
+    display: none !important;
   }
-  
+
   .header-right {
-    width: 100%;
-    justify-content: center;
+    display: none !important;
   }
-  
-  .login-btn {
-    padding: 0.7rem 1.5rem;
-    font-size: 0.9rem;
-    width: auto;
+
+  /* 모바일에서 블록 네비게이션 표시 */
+  .mobile-block-nav {
+    display: block !important;
+  }
+
+  /* 페이지 콘텐츠가 가려지지 않도록 여백 추가 */
+  main {
+    padding-top: 140px !important;
   }
 }
 
-/* 메뉴 리스트 아이템 위치 설정 */
-.main-nav li {
-  position: relative;
-  z-index: 1;
+@media (max-width: 576px) {
+  .header-container {
+    padding: 0 15px !important;
+  }
+
+  .logo {
+    height: 36px !important;
+  }
+
+  .logo-section h1 {
+    font-size: 16px !important;
+  }
+
+  .mobile-nav-grid {
+    padding: 8px !important;
+    gap: 6px !important;
+  }
+
+  .mobile-nav-block {
+    font-size: 11px !important;
+    padding: 8px 4px !important;
+    min-height: 52px !important;
+    gap: 4px !important;
+  }
+
+  .mobile-nav-block i {
+    font-size: 18px !important;
+  }
 }
 
-/* 메뉴 링크 기본 스타일 */
-.main-nav a {
-  display: block;
-  position: relative;
-  z-index: 2;
+@media (max-width: 380px) {
+  .logo {
+    height: 32px !important;
+  }
+
+  .logo-section h1 {
+    display: none !important;
+  }
+
+  .mobile-nav-block {
+    font-size: 10px !important;
+  }
 }
 
-/* 폰트 및 애니메이션 최적화 */
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 
-    'Helvetica Neue', Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background: #f5f5f5;
+/* 스크롤 시 헤더 축소 효과 */
+.App-header.scrolled .header-container {
+  height: 65px !important;
 }
 
-/* 애니메이션 성능 최적화 */
+.App-header.scrolled .logo {
+  height: 40px !important;
+}
+
+.App-header.scrolled .logo-section h1 {
+  font-size: 20px !important;
+}
+
+/* 애니메이션 정의 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* 유틸리티 클래스 */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.mt-1 { margin-top: var(--spacing-sm); }
+.mt-2 { margin-top: var(--spacing-md); }
+.mt-3 { margin-top: var(--spacing-lg); }
+.mt-4 { margin-top: var(--spacing-xl); }
+
+.mb-1 { margin-bottom: var(--spacing-sm); }
+.mb-2 { margin-bottom: var(--spacing-md); }
+.mb-3 { margin-bottom: var(--spacing-lg); }
+.mb-4 { margin-bottom: var(--spacing-xl); }
+
+.p-1 { padding: var(--spacing-sm); }
+.p-2 { padding: var(--spacing-md); }
+.p-3 { padding: var(--spacing-lg); }
+.p-4 { padding: var(--spacing-xl); }
+
+/* 성능 최적화 */
 .main-nav a,
-.login-btn {
-  will-change: opacity, box-shadow;
+.mobile-nav-block {
+  will-change: transform;
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
 }
 
-/* 헤더 배경에 미묘한 애니메이션 */
-.App-header::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at 50% 0%, 
-    rgba(255, 255, 255, 0.1) 0%, 
-    transparent 70%);
-  pointer-events: none;
-  opacity: 0.5;
+/* 프린트 스타일 */
+@media print {
+  .App-header,
+  .mobile-block-nav,
+  footer {
+    display: none !important;
+  }
+  
+  main {
+    padding-top: 0 !important;
+  }
 }
