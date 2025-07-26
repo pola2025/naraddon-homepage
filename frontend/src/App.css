@@ -192,7 +192,7 @@ body {
   list-style: none !important;
   margin: 0 !important;
   padding: 0 !important;
-  gap: 40px !important;
+  gap: 30px !important;
 }
 
 .main-nav li {
@@ -202,7 +202,7 @@ body {
 .main-nav a {
   color: #333333 !important;
   text-decoration: none !important;
-  font-size: 22px !important;
+  font-size: 16px !important;
   font-weight: 500 !important;
   font-family: 'Pretendard', sans-serif !important;
   padding: 10px 0 !important;
@@ -429,11 +429,11 @@ footer {
 /* 반응형 디자인 */
 @media (max-width: 1024px) {
   .main-nav ul {
-    gap: 25px !important;
+    gap: 20px !important;
   }
 
   .main-nav a {
-    font-size: 16px !important;
+    font-size: 15px !important;
   }
 }
 

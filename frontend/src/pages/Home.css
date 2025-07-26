@@ -559,7 +559,6 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;
-  animation: pulse 2s ease-in-out infinite;
 }
 
 .start-button {
@@ -800,11 +799,11 @@
   transform-style: preserve-3d !important;
 }
 
-/* 컨테이너 - 1600px */
+/* 컨테이너 - 1200px */
 .icon-menu-section .container {
-  max-width: 1600px !important;
+  max-width: 1200px !important;
   margin: 0 auto !important;
-  padding: 0 60px !important;
+  padding: 0 30px !important;
   position: relative !important;
   z-index: 2 !important;
   display: block !important;
@@ -818,7 +817,7 @@
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
   border-radius: 24px !important;
-  padding: 40px 60px 30px !important;
+  padding: 40px 30px 30px !important;
   box-shadow: 0 15px 50px rgba(0, 0, 0, 0.12) !important;
   position: relative !important;
   overflow: hidden !important;
@@ -868,12 +867,16 @@
   font-weight: 500 !important;
   white-space: normal !important;
   text-align: center !important;
+  display: block !important;
+  width: 100% !important;
+  margin: 0 auto !important;
 }
 
-/* 아이콘 그리드 - 박스 내부에서 양끝 정렬 */
+/* 아이콘 그리드 - 박스 내부에서 중앙 정렬 */
 .icon-menu-section .icon-menu-grid {
   display: flex !important;
-  justify-content: space-between !important;
+  justify-content: center !important;
+  gap: 30px !important;
   width: 100% !important;
 }
 
@@ -887,16 +890,16 @@
   cursor: pointer !important;
 }
 
-/* 아이콘 래퍼 - 크기 증가 */
+/* 아이콘 래퍼 - 크기 조정 */
 .icon-menu-section .icon-wrapper {
-  width: 160px !important;
-  height: 160px !important;
+  width: 120px !important;
+  height: 120px !important;
   background: #F8F8F8 !important;
-  border-radius: 32px !important;
+  border-radius: 24px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  margin-bottom: 15px !important;
+  margin-bottom: 10px !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
   border: 1px solid rgba(0, 0, 0, 0.04) !important;
   transition: all 0.3s ease !important;
@@ -904,10 +907,10 @@
   overflow: hidden !important;
 }
 
-/* 아이콘 이미지 - 크기 증가 */
+/* 아이콘 이미지 - 크기 조정 */
 .icon-menu-section .icon-wrapper img {
-  width: 95px !important;
-  height: 95px !important;
+  width: 70px !important;
+  height: 70px !important;
   object-fit: contain !important;
   transition: all 0.3s ease !important;
   position: relative !important;
@@ -928,14 +931,15 @@
   transition: all 0.5s ease !important;
 }
 
-/* 메뉴 텍스트 - 크기 증가 */
+/* 메뉴 텍스트 - 크기 조정 */
 .icon-menu-section .menu-text {
-  font-size: 42px !important;
+  font-size: 21px !important;
   font-weight: 600 !important;
   color: #333333 !important;
   font-family: 'Pretendard', sans-serif !important;
   text-align: center !important;
-  line-height: 1.3 !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
 }
 
 /* 호버 효과 */
@@ -945,8 +949,8 @@
 }
 
 .icon-menu-section .icon-menu-item:hover .icon-wrapper::before {
-  width: 160px !important;
-  height: 160px !important;
+  width: 120px !important;
+  height: 120px !important;
 }
 
 .icon-menu-section .icon-menu-item:hover .icon-wrapper img {
@@ -979,7 +983,7 @@
 .icon-menu-section .government-logos-wrapper {
   position: relative !important;
   overflow: hidden !important;
-  padding: 0 60px !important;
+  padding: 0 30px !important;
   width: 100vw !important;
   margin-left: calc(-50vw + 50%) !important;
   margin-top: 0 !important;
@@ -1497,25 +1501,26 @@
     }
   }
 
-  /* 모바일 아이콘 더 크게 */
+  /* 모바일 아이콘 크기 조정 */
   .icon-menu-section .icon-wrapper {
-    width: 220px !important;
-    height: 220px !important;
-    border-radius: 40px !important;
-    margin: 0 auto 25px !important;
+    width: 180px !important;
+    height: 180px !important;
+    border-radius: 36px !important;
+    margin: 0 auto 20px !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
   }
 
   .icon-menu-section .icon-wrapper img {
-    width: 120px !important;
-    height: 120px !important;
+    width: 100px !important;
+    height: 100px !important;
   }
 
   .icon-menu-section .menu-text {
-    font-size: 20px !important;
-    font-weight: 700 !important;
+    font-size: 23px !important;
+    font-weight: 600 !important;
     text-align: center !important;
     color: #333 !important;
+    white-space: nowrap !important;
   }
 
   .icon-menu-section .gov-logos-section {
@@ -1593,19 +1598,20 @@
   }
 
   .icon-menu-section .icon-wrapper {
-    width: 180px !important;
-    height: 180px !important;
+    width: 160px !important;
+    height: 160px !important;
     border-radius: 32px !important;
-    margin-bottom: 20px !important;
+    margin-bottom: 18px !important;
   }
 
   .icon-menu-section .icon-wrapper img {
-    width: 100px !important;
-    height: 100px !important;
+    width: 90px !important;
+    height: 90px !important;
   }
 
   .icon-menu-section .menu-text {
-    font-size: 18px !important;
+    font-size: 21px !important;
+    white-space: nowrap !important;
   }
   
   .icon-menu-section .government-logo {
@@ -1679,7 +1685,8 @@
   box-sizing: border-box !important;
   display: flex !important;
   align-items: center !important;
-  gap: 100px !important;
+  justify-content: center !important;
+  gap: 60px !important;
   min-height: 100% !important;
 }
 
@@ -1689,7 +1696,8 @@
   max-width: 600px !important;
   position: relative !important;
   z-index: 3 !important;
-  text-align: left !important;
+  text-align: center !important;
+  margin: 0 auto !important;
 }
 
 .new-hero-section .hero-content {
@@ -1737,6 +1745,7 @@
   display: flex !important;
   gap: 16px !important;
   flex-wrap: wrap !important;
+  justify-content: center !important;
 }
 
 .new-hero-section .cta-button {
@@ -2111,7 +2120,7 @@
 /* 대형 화면에서 롤링 패딩 조정 */
 @media (min-width: 1600px) {
   .icon-menu-section .government-logos-wrapper {
-    padding: 0 calc((100vw - 1600px) / 2 + 60px) !important;
+    padding: 0 calc((100vw - 1600px) / 2 + 30px) !important;
   }
 }
 
@@ -2152,6 +2161,10 @@
   .new-hero-section .hero-content-wrapper {
     max-width: 100% !important;
     text-align: center !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
   }
 
   .new-hero-section .hero-title {

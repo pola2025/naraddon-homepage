@@ -33,3 +33,8 @@ code {
 html {
   scroll-behavior: smooth;
 }
+
+/* Tailwind CSS - 새로운 컴포넌트에만 사용 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

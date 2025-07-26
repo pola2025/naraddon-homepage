@@ -2,6 +2,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import './Home.css';
 import backgroundVideo from '../assets/videos/Naraddon_main_2nd.mp4';
+import TrustSection from '../components/TrustSection';
+import CommunitySection from '../components/CommunitySection';
 
 
 function Home() {
@@ -202,11 +204,11 @@ function Home() {
     
     const handleScrollTrigger = () => {
       const scrollY = window.scrollY || window.pageYOffset;
-      console.log('현재 스크롤 위치:', scrollY, 'showStartButton:', showStartButton, 'isTriggered:', isTriggered);
+      // console.log('현재 스크롤 위치:', scrollY, 'showStartButton:', showStartButton, 'isTriggered:', isTriggered);
       
       if (showStartButton && !isTriggered && scrollY > 0) {
         isTriggered = true;
-        console.log('스크롤 감지됨! 콘텐츠를 표시합니다.');
+        // console.log('스크롤 감지됨! 콘텐츠를 표시합니다.');
         handleStartClick();
       }
     };
@@ -215,7 +217,7 @@ function Home() {
     const handleKeyDown = (e) => {
       if (showStartButton && !isTriggered && e.key !== 'Tab') {
         isTriggered = true;
-        console.log('키보드 입력 감지! 콘텐츠를 표시합니다.');
+        // console.log('키보드 입력 감지! 콘텐츠를 표시합니다.');
         handleStartClick();
       }
     };
@@ -908,9 +910,9 @@ function Home() {
             <div className="icon-menu-grid">
               <a href="#" className="icon-menu-item active">
                 <div className="icon-wrapper">
-                  <img src={`${process.env.PUBLIC_URL}/images/모니터.png`} alt="상담신청" />
+                  <img src={`${process.env.PUBLIC_URL}/images/인증기업심사관.png`} alt="인증 기업심사관" />
                 </div>
-                <span className="menu-text">상담신청</span>
+                <span className="menu-text">인증 기업심사관</span>
               </a>
 
               <a href="#" className="icon-menu-item">
@@ -922,9 +924,9 @@ function Home() {
 
               <a href="#" className="icon-menu-item">
                 <div className="icon-wrapper">
-                  <img src={`${process.env.PUBLIC_URL}/images/인증기업심사관.png`} alt="인증 기업심사관" />
+                  <img src={`${process.env.PUBLIC_URL}/images/고객센터.png`} alt="사업자 목소리" />
                 </div>
-                <span className="menu-text">인증<br />기업심사관</span>
+                <span className="menu-text">사업자 목소리</span>
               </a>
 
               <a href="#" className="icon-menu-item">
@@ -936,9 +938,9 @@ function Home() {
 
               <a href="#" className="icon-menu-item">
                 <div className="icon-wrapper">
-                  <img src={`${process.env.PUBLIC_URL}/images/고객센터.png`} alt="고객센터" />
+                  <img src={`${process.env.PUBLIC_URL}/images/모니터.png`} alt="상담신청" />
                 </div>
-                <span className="menu-text">고객센터</span>
+                <span className="menu-text">상담신청</span>
               </a>
             </div>
             
@@ -1094,6 +1096,12 @@ function Home() {
         </div> {/* video-content 닫기 */}
       </div> {/* video-section-wrapper 닫기 */}
 
+      {/* 나라똔 커뮤니티 섹션 - 히어로와 책임보증 사이 */}
+      <CommunitySection />
+
+      {/* 신뢰 보증 섹션 */}
+      <TrustSection />
+
       {/* 이미지 모달 */}
       <div id="imageModal" className="modal">
         <span className="modal-close">&times;</span>
@@ -1104,7 +1112,7 @@ function Home() {
           <i className="fas fa-chevron-right"></i>
         </div>
         <div className="modal-content">
-          <img id="modalImage" src="" alt="확대 이미지" />
+          <img id="modalImage" alt="확대 이미지" />
         </div>
       </div>
 
