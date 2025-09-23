@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import ProfileCard from '@/components/profile/ProfileCard';
 import ProfileEditModal from './ProfileEditModal';
+import ProfileCompletionModal from '@/components/profile/ProfileCompletionModal';
 import { User, UserRole, UserStatus, isProfileComplete } from '@/types/user.types';
 import { UserActivity, UserStats, ActivityType, ContentType, ReactionType } from '@/types/activity.types';
 import {
@@ -22,7 +23,10 @@ import {
   EyeIcon,
   ChartBarIcon,
   ExclamationTriangleIcon,
-  ArrowRightOnRectangleIcon
+  ArrowRightOnRectangleIcon,
+  UsersIcon,
+  ClipboardDocumentCheckIcon,
+  Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 import { signOut } from 'next-auth/react';
 
@@ -31,11 +35,12 @@ export default function MyPage() {
   const router = useRouter();
 
   const [user, setUser] = useState<User | null>(null);
-  const [activeTab, setActiveTab] = useState<'profile' | 'activity' | 'stats' | 'settings'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'activity' | 'stats' | 'settings' | 'admin'>('profile');
   const [isEditMode, setIsEditMode] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [activityFilter, setActivityFilter] = useState<'all' | ActivityType>('all');
   const [showProfileAlert, setShowProfileAlert] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [recentActivities, setRecentActivities] = useState<UserActivity[]>([]);
@@ -100,7 +105,16 @@ export default function MyPage() {
           lastLoginAt: new Date(userData.lastLoginAt)
         };
         setUser(user);
-        setShowProfileAlert(!isProfileComplete(user.profile));
+        const isComplete = isProfileComplete(user.profile);
+        setShowProfileAlert(!isComplete);
+
+        // 프로필이 미완성이고, 24시간 임시 닫기 시간이 지났으면 모달 표시
+        if (!isComplete) {
+          const dismissedUntil = localStorage.getItem('profileCompletionDismissedUntil');
+          if (!dismissedUntil || new Date().getTime() > parseInt(dismissedUntil)) {
+            setShowCompletionModal(true);
+          }
+        }
       }
 
       // 통계 및 활동 데이터 가져오기
@@ -217,7 +231,14 @@ export default function MyPage() {
 
         setUser(updatedUser);
         setIsEditModalOpen(false);
-        setShowProfileAlert(!isProfileComplete(updatedUser.profile));
+        const isComplete = isProfileComplete(updatedUser.profile);
+        setShowProfileAlert(!isComplete);
+
+        // 프로필이 완성되면 모달 닫기
+        if (isComplete) {
+          setShowCompletionModal(false);
+          localStorage.removeItem('profileCompletionDismissedUntil');
+        }
       } else {
         console.error('Failed to update profile:', data.error);
         alert('프로필 업데이트에 실패했습니다.');
@@ -251,6 +272,15 @@ export default function MyPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      {/* 프로필 완성 모달 */}
+      {user && (
+        <ProfileCompletionModal
+          isOpen={showCompletionModal}
+          onClose={() => setShowCompletionModal(false)}
+          profile={user.profile}
+          onUpdateProfile={handleProfileUpdate}
+        />
+      )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 프로필 미완성 알림 */}
         {showProfileAlert && (
@@ -328,6 +358,28 @@ export default function MyPage() {
                   <CogIcon className="h-5 w-5 mr-3" />
                   설정
                 </button>
+
+                {/* 관리자 메뉴 (admin 역할인 경우만 표시) */}
+                {(user.role === 'admin' || user.role === 'super_admin') && (
+                  <>
+                    <hr className="my-2 border-gray-200" />
+                    <div className="px-3 py-2">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">관리자 기능</p>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab('admin')}
+                      className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                        activeTab === 'admin'
+                          ? 'bg-red-50 text-red-700'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <ShieldCheckIcon className="h-5 w-5 mr-3" />
+                      관리자 대시보드
+                    </button>
+                  </>
+                )}
+
                 <hr className="my-2 border-gray-200" />
                 <button
                   onClick={handleLogout}
@@ -489,6 +541,112 @@ export default function MyPage() {
                     <div className="text-right">
                       <p className="text-sm text-gray-500">활동 점수</p>
                       <p className="text-lg font-semibold text-gray-900">{userStats.activityScore}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 관리자 탭 (승격된 관리자용) */}
+            {activeTab === 'admin' && (user.role === 'admin' || user.role === 'super_admin') && (
+              <div className="bg-white rounded-lg shadow-sm border p-6">
+                <div className="mb-6">
+                  <h2 className="text-lg font-semibold text-gray-900">관리자 대시보드</h2>
+                  <p className="mt-1 text-sm text-gray-500">
+                    관리자 권한으로 접근 가능한 기능들입니다.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* 사용자 관리 */}
+                  <a
+                    href="/admin/users"
+                    className="block p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center">
+                      <UsersIcon className="h-8 w-8 text-blue-600" />
+                      <div className="ml-4">
+                        <h3 className="text-base font-medium text-gray-900">사용자 관리</h3>
+                        <p className="text-sm text-gray-500">회원 정보 조회 및 역할 관리</p>
+                      </div>
+                    </div>
+                  </a>
+
+                  {/* 상담 관리 */}
+                  <a
+                    href="/admin/consultations"
+                    className="block p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center">
+                      <ClipboardDocumentCheckIcon className="h-8 w-8 text-green-600" />
+                      <div className="ml-4">
+                        <h3 className="text-base font-medium text-gray-900">상담 관리</h3>
+                        <p className="text-sm text-gray-500">상담 신청 내역 및 배정 관리</p>
+                      </div>
+                    </div>
+                  </a>
+
+                  {/* 고객카드 관리 */}
+                  <a
+                    href="/admin/customer-cards"
+                    className="block p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center">
+                      <DocumentTextIcon className="h-8 w-8 text-purple-600" />
+                      <div className="ml-4">
+                        <h3 className="text-base font-medium text-gray-900">고객카드 관리</h3>
+                        <p className="text-sm text-gray-500">고객 정보 카드 생성 및 관리</p>
+                      </div>
+                    </div>
+                  </a>
+
+                  {/* 시스템 설정 */}
+                  <a
+                    href="/admin/settings"
+                    className="block p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center">
+                      <Cog6ToothIcon className="h-8 w-8 text-gray-600" />
+                      <div className="ml-4">
+                        <h3 className="text-base font-medium text-gray-900">시스템 설정</h3>
+                        <p className="text-sm text-gray-500">전반적인 시스템 설정 관리</p>
+                      </div>
+                    </div>
+                  </a>
+
+                  {/* 관리자 활동 로그 - super_admin만 표시 */}
+                  {user.role === 'super_admin' && (
+                    <a
+                      href="/admin/logs"
+                      className="block p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="flex items-center">
+                        <ShieldCheckIcon className="h-8 w-8 text-red-600" />
+                        <div className="ml-4">
+                          <h3 className="text-base font-medium text-gray-900">활동 로그</h3>
+                          <p className="text-sm text-gray-500">관리자 활동 및 IP 변경 기록</p>
+                        </div>
+                      </div>
+                    </a>
+                  )}
+                </div>
+
+                {/* 관리자 정보 */}
+                <div className="mt-8 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <div className="flex">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-yellow-400 flex-shrink-0" />
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-yellow-800">관리자 권한 안내</h3>
+                      <div className="mt-2 text-sm text-yellow-700">
+                        <ul className="list-disc list-inside space-y-1">
+                          <li>귀하는 {user.role === 'super_admin' ? '최고 관리자' : '관리자'} 권한을 가지고 있습니다.</li>
+                          <li>모든 관리 활동은 기록되며 모니터링됩니다.</li>
+                          <li>민감한 정보를 다룰 때는 각별히 주의해주세요.</li>
+                          {user.role === 'admin' && (
+                            <li>일부 고급 기능은 최고 관리자만 접근 가능합니다.</li>
+                          )}
+                        </ul>
+                      </div>
                     </div>
                   </div>
                 </div>
