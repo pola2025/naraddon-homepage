@@ -89,6 +89,9 @@ export default function MyPage() {
           lastLoginAt: new Date()
         };
         setUser(sessionUser);
+        // 신규 가입자는 프로필 완성 모달 표시하지 않음
+        setShowProfileAlert(false);
+        setShowCompletionModal(false);
       } else {
         // DB에서 가져온 데이터 사용
         const user: User = {
@@ -105,14 +108,21 @@ export default function MyPage() {
           lastLoginAt: new Date(userData.lastLoginAt)
         };
         setUser(user);
-        const isComplete = isProfileComplete(user.profile);
-        setShowProfileAlert(!isComplete);
 
-        // 프로필이 미완성이고, 24시간 임시 닫기 시간이 지났으면 모달 표시
-        if (!isComplete) {
-          const dismissedUntil = localStorage.getItem('profileCompletionDismissedUntil');
-          if (!dismissedUntil || new Date().getTime() > parseInt(dismissedUntil)) {
-            setShowCompletionModal(true);
+        // 신규 가입자가 아닌 기존 사용자만 프로필 완성 체크
+        // createdAt이 5분 이상 지난 사용자만 체크
+        const isNewUser = new Date().getTime() - new Date(userData.createdAt).getTime() < 5 * 60 * 1000;
+
+        if (!isNewUser) {
+          const isComplete = isProfileComplete(user.profile);
+          setShowProfileAlert(!isComplete);
+
+          // 프로필이 미완성이고, 24시간 임시 닫기 시간이 지났으면 모달 표시
+          if (!isComplete) {
+            const dismissedUntil = localStorage.getItem('profileCompletionDismissedUntil');
+            if (!dismissedUntil || new Date().getTime() > parseInt(dismissedUntil)) {
+              setShowCompletionModal(true);
+            }
           }
         }
       }
