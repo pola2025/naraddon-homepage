@@ -12,102 +12,46 @@ import {
   PlusIcon
 } from '@heroicons/react/24/outline';
 
-// 임시 데이터
-const mockUsers: User[] = [
-  {
-    id: '1',
-    email: 'admin@naraddon.com',
-    name: '관리자',
-    role: UserRole.ADMIN,
-    status: UserStatus.ACTIVE,
-    provider: 'email' as any,
-    profile: {
-      company: '나라똔',
-      position: '시스템 관리자',
-      phone: '010-1234-5678',
-      address: {
-        zipCode: '12345',
-        address1: '서울시 강남구',
-        address2: '테헤란로 123'
-      }
-    },
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date(),
-    lastLoginAt: new Date()
-  },
-  {
-    id: '2',
-    email: 'examiner@company.com',
-    name: '김심사',
-    role: UserRole.EXAMINER,
-    status: UserStatus.ACTIVE,
-    provider: 'google' as any,
-    profile: {
-      company: '심사전문기업',
-      position: '수석 심사관',
-      phone: '010-2345-6789',
-      specialty: ['IT', '제조업', '서비스업'],
-      experience: 10
-    },
-    createdAt: new Date('2024-02-01'),
-    updatedAt: new Date(),
-    lastLoginAt: new Date()
-  },
-  {
-    id: '3',
-    email: 'expert@consulting.com',
-    name: '이전문',
-    role: UserRole.EXPERT,
-    status: UserStatus.ACTIVE,
-    provider: 'naver' as any,
-    profile: {
-      company: '전문컨설팅',
-      position: '대표 컨설턴트',
-      phone: '010-3456-7890',
-      specialty: ['경영전략', '마케팅', '재무'],
-      experience: 15,
-      rating: 4.8
-    },
-    createdAt: new Date('2024-03-01'),
-    updatedAt: new Date(),
-    lastLoginAt: new Date()
-  },
-  {
-    id: '4',
-    email: 'user@business.com',
-    name: '박기업',
-    role: UserRole.USER,
-    status: UserStatus.ACTIVE,
-    provider: 'kakao' as any,
-    profile: {
-      company: '일반기업',
-      position: '대표이사',
-      phone: '010-4567-8901',
-      businessNumber: '123-45-67890'
-    },
-    createdAt: new Date('2024-04-01'),
-    updatedAt: new Date(),
-    lastLoginAt: new Date()
-  },
-  {
-    id: '5',
-    email: 'pending@newcompany.com',
-    name: '최신규',
-    role: UserRole.USER,
-    status: UserStatus.PENDING,
-    provider: 'google' as any,
-    profile: {
-      company: '신규회사',
-      position: '팀장'
-    },
-    createdAt: new Date('2024-05-01'),
-    updatedAt: new Date()
-  }
-];
+// 빈 초기 데이터 (실제 DB에서 로드)
+const initialUsers: User[] = [];
 
 export default function UsersManagementPage() {
-  const [users, setUsers] = useState<User[]>(mockUsers);
+  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  // 실제 사용자 데이터 로드
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/admin/users');
+      if (response.ok) {
+        const data = await response.json();
+        // DB 데이터를 User 타입으로 변환
+        const formattedUsers = data.map((user: any) => ({
+          id: user._id || user.id,
+          email: user.email,
+          name: user.name || '사용자',
+          role: user.role || UserRole.USER,
+          status: user.status || UserStatus.ACTIVE,
+          provider: user.provider || 'naver',
+          profile: user.profile || {},
+          createdAt: new Date(user.createdAt),
+          updatedAt: new Date(user.updatedAt),
+          lastLoginAt: user.lastLoginAt ? new Date(user.lastLoginAt) : undefined
+        }));
+        setUsers(formattedUsers);
+      }
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const [filterRole, setFilterRole] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
