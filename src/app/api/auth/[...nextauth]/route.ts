@@ -21,14 +21,15 @@ const NaverProvider: OAuthConfig<any> = {
   clientId: process.env.NAVER_CLIENT_ID!,
   clientSecret: process.env.NAVER_CLIENT_SECRET!,
   profile: (profile: any) => {
-    // Naver 응답: { resultcode, message, response: { id, email, name, mobile, ... } }
+    // Naver 응답: { resultcode, message, response: { id, email, name, nickname, profile_image, mobile, ... } }
+    console.log('Naver Profile Response:', JSON.stringify(profile, null, 2));
     const p = profile?.response ?? {};
     return {
       id: p.id,
       name: p.name || p.nickname || '네이버 사용자',
       email: p.email || `${p.id}@naver.local`,
-      image: p.profile_image ?? null,
-      mobile: p.mobile,
+      image: p.profile_image || null,
+      mobile: p.mobile || p.mobile_e164 || null,
       provider: 'naver',
     };
   },
@@ -72,6 +73,7 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile }) {
       // 네이버 로그인 시 자동 회원가입 처리
       if (account?.provider === 'naver') {
+        console.log('SignIn - Naver Profile:', JSON.stringify(profile, null, 2));
         const naverProfile = profile as any;
         const userData = naverProfile?.response || {};
 
@@ -81,9 +83,11 @@ export const authOptions: NextAuthOptions = {
         user.image = userData.profile_image || null;
 
         // 추가 정보 저장 (mobile 등)
-        (user as any).mobile = userData.mobile;
+        (user as any).mobile = userData.mobile || userData.mobile_e164 || null;
         (user as any).provider = 'naver';
         (user as any).role = 'user';
+
+        console.log('SignIn - Updated User:', user);
       }
 
       // 카카오 로그인 시 자동 회원가입 처리
