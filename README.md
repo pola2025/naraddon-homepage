@@ -67,4 +67,4 @@ npm start
 - 이메일: mkt9834@gmail.com
 
 ## 라이센스
-© 2025 나라똔. All rights reserved.
+© 2025 나라똔. All rights reserved.// Force rebuild
