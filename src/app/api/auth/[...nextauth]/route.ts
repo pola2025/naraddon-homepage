@@ -13,7 +13,10 @@ const NaverProvider: OAuthConfig<any> = {
     url: 'https://nid.naver.com/oauth2.0/authorize',
     params: { response_type: 'code' },
   },
-  token: 'https://nid.naver.com/oauth2.0/token',
+  token: {
+    url: 'https://nid.naver.com/oauth2.0/token',
+    params: { grant_type: 'authorization_code' },
+  },
   userinfo: 'https://openapi.naver.com/v1/nid/me',
   clientId: process.env.NAVER_CLIENT_ID!,
   clientSecret: process.env.NAVER_CLIENT_SECRET!,
@@ -134,7 +137,7 @@ export const authOptions: NextAuthOptions = {
     newUser: '/mypage', // 신규 가입자도 마이페이지로 리디렉션
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === 'development',
+  debug: true, // 오류 디버깅을 위해 일시적으로 활성화
 };
 
 const handler = NextAuth(authOptions);
