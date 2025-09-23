@@ -6,17 +6,21 @@ import { api } from '@/lib/api-client';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import ReviewModal from '@/components/consultation/ReviewModal';
 
 interface Consultation {
   id: string;
   consultationType: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  status: 'pending' | 'assigned' | 'in_progress' | 'contracted' | 'completed' | 'cancelled';
+  currentPhase?: 'phone' | 'meeting' | 'contract' | 'happy_call';
   requestDate: string;
   scheduledDate?: string;
   examinerName?: string;
+  examinerEmail?: string;
   amount: string;
   companyName: string;
   description: string;
+  hasReviewed?: boolean;
 }
 
 export default function MyConsultationsPage() {
@@ -24,8 +28,10 @@ export default function MyConsultationsPage() {
   const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<
-    'all' | 'pending' | 'in_progress' | 'completed' | 'cancelled'
+    'all' | 'pending' | 'assigned' | 'in_progress' | 'contracted' | 'completed' | 'cancelled'
   >('all');
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [selectedConsultation, setSelectedConsultation] = useState<Consultation | null>(null);
 
   useEffect(() => {
     fetchConsultations();
@@ -45,12 +51,15 @@ export default function MyConsultationsPage() {
           id: item._id || item.id,
           consultationType: item.consultationType,
           status: item.status,
+          currentPhase: item.currentPhase,
           requestDate: new Date(item.createdAt).toLocaleDateString(),
           scheduledDate: item.preferredDate ? new Date(item.preferredDate).toLocaleString() : undefined,
           examinerName: item.assignedStaffName || '배정 대기',
-          amount: item.amount || '-',
+          examinerEmail: item.assignedStaffId,
+          amount: item.contractInfo?.contractAmount || '-',
           companyName: item.companyName || '-',
           description: item.message || '',
+          hasReviewed: item.hasReviewed || false,
         }));
 
         setConsultations(formattedConsultations);
@@ -67,16 +76,20 @@ export default function MyConsultationsPage() {
   const getStatusBadge = (status: string) => {
     const statusStyles = {
       pending: 'bg-yellow-100 text-yellow-800',
-      in_progress: 'bg-blue-100 text-blue-800',
+      assigned: 'bg-blue-100 text-blue-800',
+      in_progress: 'bg-indigo-100 text-indigo-800',
+      contracted: 'bg-purple-100 text-purple-800',
       completed: 'bg-green-100 text-green-800',
       cancelled: 'bg-red-100 text-red-800',
     };
 
     const statusLabels = {
-      pending: '대기중',
-      in_progress: '진행중',
-      completed: '완료',
-      cancelled: '취소됨',
+      pending: '접수 대기',
+      assigned: '담당자 배정',
+      in_progress: '상담 진행중',
+      contracted: '계약 완료',
+      completed: '종료',
+      cancelled: '취소',
     };
 
     return (
@@ -91,6 +104,39 @@ export default function MyConsultationsPage() {
   const filteredConsultations =
     filter === 'all' ? consultations : consultations.filter((c) => c.status === filter);
 
+  const handleOpenReview = (consultation: Consultation) => {
+    setSelectedConsultation(consultation);
+    setReviewModalOpen(true);
+  };
+
+  const handleSubmitReview = async (review: any) => {
+    if (!selectedConsultation) return;
+
+    try {
+      const response = await fetch(`/api/consultations/${selectedConsultation.id}/review`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(review)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('리뷰가 성공적으로 등록되었습니다.');
+        setReviewModalOpen(false);
+        // 리뷰 제출 후 hasReviewed 업데이트
+        setConsultations(prev => prev.map(c =>
+          c.id === selectedConsultation.id ? { ...c, hasReviewed: true } : c
+        ));
+      } else {
+        alert(data.error || '리뷰 제출에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Review submission error:', error);
+      alert('리뷰 제출 중 오류가 발생했습니다.');
+    }
+  };
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50 py-8">
@@ -104,14 +150,16 @@ export default function MyConsultationsPage() {
           {/* 필터 탭 */}
           <div className="mb-6 border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
-              {(['all', 'pending', 'in_progress', 'completed', 'cancelled'] as const).map(
+              {(['all', 'pending', 'assigned', 'in_progress', 'contracted', 'completed', 'cancelled'] as const).map(
                 (status) => {
                   const labels = {
                     all: '전체',
-                    pending: '대기중',
-                    in_progress: '진행중',
-                    completed: '완료',
-                    cancelled: '취소됨',
+                    pending: '접수 대기',
+                    assigned: '담당자 배정',
+                    in_progress: '상담 진행',
+                    contracted: '계약 완료',
+                    completed: '종료',
+                    cancelled: '취소',
                   };
 
                   const count =
@@ -196,22 +244,39 @@ export default function MyConsultationsPage() {
                   <div className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center">
-                          <h3 className="text-lg font-medium text-gray-900">
-                            {consultation.consultationType}
-                          </h3>
-                          <div className="ml-3">{getStatusBadge(consultation.status)}</div>
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center">
+                            <h3 className="text-lg font-medium text-gray-900">
+                              {consultation.consultationType}
+                            </h3>
+                            <div className="ml-3">{getStatusBadge(consultation.status)}</div>
+                          </div>
+                          {/* 진행률 표시 */}
+                          {consultation.currentPhase && (
+                            <div className="flex items-center space-x-1">
+                              <div className={`w-2 h-2 rounded-full ${consultation.currentPhase === 'phone' || consultation.currentPhase === 'meeting' || consultation.currentPhase === 'contract' || consultation.currentPhase === 'happy_call' ? 'bg-green-500' : 'bg-gray-300'}`} />
+                              <div className={`w-2 h-2 rounded-full ${consultation.currentPhase === 'meeting' || consultation.currentPhase === 'contract' || consultation.currentPhase === 'happy_call' ? 'bg-green-500' : 'bg-gray-300'}`} />
+                              <div className={`w-2 h-2 rounded-full ${consultation.currentPhase === 'contract' || consultation.currentPhase === 'happy_call' ? 'bg-green-500' : 'bg-gray-300'}`} />
+                              <div className={`w-2 h-2 rounded-full ${consultation.currentPhase === 'happy_call' ? 'bg-green-500' : 'bg-gray-300'}`} />
+                            </div>
+                          )}
                         </div>
 
                         <div className="mt-2 space-y-1">
                           <p className="text-sm text-gray-600">
                             <span className="font-medium">회사명:</span> {consultation.companyName}
                           </p>
+                          {consultation.currentPhase && (
+                            <p className="text-sm text-gray-600">
+                              <span className="font-medium">진행 단계:</span>
+                              {consultation.currentPhase === 'phone' && ' 📞 통화 상담'}
+                              {consultation.currentPhase === 'meeting' && ' 🤝 대면 상담'}
+                              {consultation.currentPhase === 'contract' && ' 📝 계약 체결'}
+                              {consultation.currentPhase === 'happy_call' && ' ✅ 해피콜'}
+                            </p>
+                          )}
                           <p className="text-sm text-gray-600">
-                            <span className="font-medium">신청 금액:</span> {consultation.amount}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            <span className="font-medium">내용:</span> {consultation.description}
+                            <span className="font-medium">상담 내용:</span> {consultation.description}
                           </p>
                         </div>
 
@@ -272,20 +337,26 @@ export default function MyConsultationsPage() {
                       </div>
 
                       <div className="ml-6 flex flex-col space-y-2">
-                        <Link
-                          href={`/consultation/${consultation.id}`}
+                        <button
+                          onClick={() => alert('상담 진행 상황은 담당자가 업데이트하면 자동으로 반영됩니다.')}
                           className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                         >
-                          상세보기
-                        </Link>
+                          진행상황
+                        </button>
                         {consultation.status === 'pending' && (
-                          <button className="inline-flex items-center px-3 py-1.5 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50">
-                            취소하기
+                          <button
+                            onClick={() => alert('상담 취소를 원하시면 고객센터로 연락주세요.')}
+                            className="inline-flex items-center px-3 py-1.5 border border-yellow-300 text-sm font-medium rounded-md text-yellow-700 bg-white hover:bg-yellow-50"
+                          >
+                            문의하기
                           </button>
                         )}
-                        {consultation.status === 'completed' && (
-                          <button className="inline-flex items-center px-3 py-1.5 border border-blue-300 text-sm font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50">
-                            리뷰 작성
+                        {consultation.status === 'contracted' && !consultation.hasReviewed && (
+                          <button
+                            onClick={() => handleOpenReview(consultation)}
+                            className="inline-flex items-center px-3 py-1.5 border border-blue-300 text-sm font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50"
+                          >
+                            평가하기
                           </button>
                         )}
                       </div>
@@ -314,6 +385,17 @@ export default function MyConsultationsPage() {
                 새 상담 신청하기
               </Link>
             </div>
+          )}
+
+          {/* 리뷰 모달 */}
+          {reviewModalOpen && selectedConsultation && (
+            <ReviewModal
+              isOpen={reviewModalOpen}
+              onClose={() => setReviewModalOpen(false)}
+              consultationId={selectedConsultation.id}
+              auditorName={selectedConsultation.examinerName || '담당자'}
+              onSubmit={handleSubmitReview}
+            />
           )}
         </div>
       </div>
