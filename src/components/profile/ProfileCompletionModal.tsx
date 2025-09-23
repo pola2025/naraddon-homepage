@@ -149,7 +149,7 @@ export default function ProfileCompletionModal({
           </div>
 
           <div className="p-6">
-            <p className="text-sm text-gray-600 mb-6">
+            <p className="text-sm text-gray-700 mb-6 font-medium">
               나라똔 서비스를 원활하게 이용하시려면 필수 정보를 모두 입력해주세요.
               사업자 번호는 반드시 검증이 필요합니다.
             </p>
@@ -164,7 +164,7 @@ export default function ProfileCompletionModal({
                   type="text"
                   value={formData.nickname}
                   onChange={(e) => setFormData(prev => ({ ...prev, nickname: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 placeholder:text-gray-500"
                   placeholder="활동할 닉네임을 입력하세요"
                 />
               </div>
@@ -178,7 +178,7 @@ export default function ProfileCompletionModal({
                   type="text"
                   value={formData.company}
                   onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 placeholder:text-gray-500"
                   placeholder="회사명을 입력하세요"
                 />
               </div>
@@ -196,7 +196,7 @@ export default function ProfileCompletionModal({
                       ...prev,
                       businessNumber: formatBusinessNumber(e.target.value)
                     }))}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 placeholder:text-gray-500"
                     placeholder="000-00-00000"
                     maxLength={12}
                   />
@@ -234,7 +234,7 @@ export default function ProfileCompletionModal({
                   type="text"
                   value={formData.businessAddress}
                   onChange={(e) => setFormData(prev => ({ ...prev, businessAddress: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 placeholder:text-gray-500"
                   placeholder="사업장 주소를 입력하세요"
                 />
               </div>
@@ -248,30 +248,30 @@ export default function ProfileCompletionModal({
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 placeholder:text-gray-500"
                   placeholder="010-0000-0000"
                 />
               </div>
             </div>
 
             {/* 진행 상태 표시 */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">필수 입력 항목</h3>
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h3 className="text-sm font-semibold text-gray-800 mb-2">필수 입력 항목</h3>
               <div className="space-y-1 text-sm">
-                <div className="flex items-center">
-                  <span className={`inline-block w-4 h-4 mr-2 rounded-full ${formData.nickname ? 'bg-green-500' : 'bg-gray-300'}`} />
+                <div className="flex items-center text-gray-700">
+                  <span className={`inline-block w-4 h-4 mr-2 rounded-full ${formData.nickname ? 'bg-green-500' : 'bg-gray-400'}`} />
                   닉네임
                 </div>
-                <div className="flex items-center">
-                  <span className={`inline-block w-4 h-4 mr-2 rounded-full ${formData.company ? 'bg-green-500' : 'bg-gray-300'}`} />
+                <div className="flex items-center text-gray-700">
+                  <span className={`inline-block w-4 h-4 mr-2 rounded-full ${formData.company ? 'bg-green-500' : 'bg-gray-400'}`} />
                   회사명
                 </div>
-                <div className="flex items-center">
-                  <span className={`inline-block w-4 h-4 mr-2 rounded-full ${formData.businessNumber && verificationResult?.valid ? 'bg-green-500' : 'bg-gray-300'}`} />
+                <div className="flex items-center text-gray-700">
+                  <span className={`inline-block w-4 h-4 mr-2 rounded-full ${formData.businessNumber && verificationResult?.valid ? 'bg-green-500' : 'bg-gray-400'}`} />
                   사업자 번호 (검증 필수)
                 </div>
-                <div className="flex items-center">
-                  <span className={`inline-block w-4 h-4 mr-2 rounded-full ${formData.businessAddress ? 'bg-green-500' : 'bg-gray-300'}`} />
+                <div className="flex items-center text-gray-700">
+                  <span className={`inline-block w-4 h-4 mr-2 rounded-full ${formData.businessAddress ? 'bg-green-500' : 'bg-gray-400'}`} />
                   사업장 주소
                 </div>
               </div>

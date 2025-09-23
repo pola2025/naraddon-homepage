@@ -65,8 +65,9 @@ export default function MyPage() {
   // 사용자 데이터 가져오기
   const fetchUserData = async (userId: string) => {
     try {
-      // 사용자 정보 가져오기
-      const userResponse = await fetch(`/api/users/${userId}`);
+      // 사용자 정보 가져오기 - URL 인코딩 적용
+      const encodedUserId = encodeURIComponent(userId);
+      const userResponse = await fetch(`/api/users/${encodedUserId}`);
       const userData = await userResponse.json();
 
       if (userData.error) {
