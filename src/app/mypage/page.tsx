@@ -197,7 +197,8 @@ export default function MyPage() {
   // 사용자 활동 데이터 가져오기
   const fetchUserActivities = async (userId: string) => {
     try {
-      const response = await fetch(`/api/users/${userId}/activities`);
+      const encodedUserId = encodeURIComponent(userId);
+      const response = await fetch(`/api/users/${encodedUserId}/activities`);
       const data = await response.json();
 
       if (!data.error) {
@@ -217,7 +218,8 @@ export default function MyPage() {
     if (!user) return;
 
     try {
-      const response = await fetch(`/api/users/${user.email}`, {
+      const encodedEmail = encodeURIComponent(user.email);
+      const response = await fetch(`/api/users/${encodedEmail}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedProfile)

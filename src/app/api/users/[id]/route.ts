@@ -87,7 +87,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userId = params.id;
+    // URL 디코딩 적용
+    const userId = decodeURIComponent(params.id);
     const data = await request.json();
 
     // 자기 정보만 수정 가능

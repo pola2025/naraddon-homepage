@@ -16,7 +16,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userId = params.id;
+    // URL 디코딩 적용
+    const userId = decodeURIComponent(params.id);
 
     // MongoDB 연결
     const client = await clientPromise;
