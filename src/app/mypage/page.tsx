@@ -50,44 +50,82 @@ export default function MyPage() {
     }
 
     if (status === 'authenticated' && session?.user) {
-      // 세션에서 사용자 정보 가져오기
-      const sessionUser: User = {
-        id: (session.user as any).id || session.user.email || '',
-        email: session.user.email || '',
-        name: session.user.name || '사용자',
-        image: session.user.image || undefined,
-        role: (session.user as any).role || UserRole.USER,
-        status: UserStatus.ACTIVE,
-        provider: (session.user as any).provider || 'naver',
-        profile: {
-          phone: (session.user as any).mobile || '',
-          // 추후 DB에서 가져올 추가 정보
-        },
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastLoginAt: new Date()
-      };
+      const userId = session.user.email || '';
 
-      setUser(sessionUser);
-      setShowProfileAlert(!isProfileComplete(sessionUser.profile));
-
-      // 실제 사용자 통계 데이터 가져오기 (API 호출 예정)
-      fetchUserStats(sessionUser.id);
-      fetchUserActivities(sessionUser.id);
-
-      setIsLoading(false);
+      // DB에서 사용자 정보 가져오기
+      fetchUserData(userId);
     }
   }, [status, session, router]);
+
+  // 사용자 데이터 가져오기
+  const fetchUserData = async (userId: string) => {
+    try {
+      // 사용자 정보 가져오기
+      const userResponse = await fetch(`/api/users/${userId}`);
+      const userData = await userResponse.json();
+
+      if (userData.error) {
+        // 에러 처리
+        console.error('Failed to fetch user data:', userData.error);
+        // 세션 정보로 fallback
+        const sessionUser: User = {
+          id: session?.user?.email || '',
+          email: session?.user?.email || '',
+          name: session?.user?.name || '사용자',
+          image: session?.user?.image || undefined,
+          role: (session?.user as any)?.role || UserRole.USER,
+          status: UserStatus.ACTIVE,
+          provider: (session?.user as any)?.provider || 'naver',
+          profile: {
+            phone: (session?.user as any)?.mobile || '',
+          },
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          lastLoginAt: new Date()
+        };
+        setUser(sessionUser);
+      } else {
+        // DB에서 가져온 데이터 사용
+        const user: User = {
+          id: userData._id || userData.email,
+          email: userData.email,
+          name: userData.name || '사용자',
+          image: userData.image,
+          role: userData.role || UserRole.USER,
+          status: UserStatus.ACTIVE,
+          provider: userData.provider || 'naver',
+          profile: userData.profile || {},
+          createdAt: new Date(userData.createdAt),
+          updatedAt: new Date(userData.updatedAt),
+          lastLoginAt: new Date(userData.lastLoginAt)
+        };
+        setUser(user);
+        setShowProfileAlert(!isProfileComplete(user.profile));
+      }
+
+      // 통계 및 활동 데이터 가져오기
+      fetchUserStats(userId);
+      fetchUserActivities(userId);
+
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Failed to fetch user data:', error);
+      setIsLoading(false);
+    }
+  };
 
   // 사용자 통계 데이터 가져오기
   const fetchUserStats = async (userId: string) => {
     try {
-      // TODO: 실제 API 호출로 대체
-      // const response = await fetch(`/api/users/${userId}/stats`);
-      // const data = await response.json();
-      // setUserStats(data);
+      const response = await fetch(`/api/users/${userId}/stats`);
+      const data = await response.json();
 
-      // 임시 기본값
+      if (!data.error) {
+        setUserStats(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch user stats:', error);
+      // 에러 시 기본값 설정
       setUserStats({
         totalPosts: 0,
         totalComments: 0,
@@ -128,23 +166,21 @@ export default function MyPage() {
         level: 1,
         nextLevelProgress: 0
       });
-    } catch (error) {
-      console.error('Failed to fetch user stats:', error);
     }
   };
 
   // 사용자 활동 데이터 가져오기
   const fetchUserActivities = async (userId: string) => {
     try {
-      // TODO: 실제 API 호출로 대체
-      // const response = await fetch(`/api/users/${userId}/activities`);
-      // const data = await response.json();
-      // setRecentActivities(data);
+      const response = await fetch(`/api/users/${userId}/activities`);
+      const data = await response.json();
 
-      // 임시 빈 배열
-      setRecentActivities([]);
+      if (!data.error) {
+        setRecentActivities(data);
+      }
     } catch (error) {
       console.error('Failed to fetch user activities:', error);
+      setRecentActivities([]);
     }
   };
 
@@ -156,27 +192,39 @@ export default function MyPage() {
     if (!user) return;
 
     try {
-      // TODO: 실제 API 호출로 대체
-      // const response = await fetch(`/api/users/${user.id}`, {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(updatedProfile)
-      // });
+      const response = await fetch(`/api/users/${user.email}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedProfile)
+      });
 
-      const updatedUser = {
-        ...user,
-        ...updatedProfile,
-        profile: {
-          ...user.profile,
-          ...updatedProfile.profile
-        }
-      };
+      const data = await response.json();
 
-      setUser(updatedUser);
-      setIsEditModalOpen(false);
-      setShowProfileAlert(!isProfileComplete(updatedUser.profile));
+      if (!data.error) {
+        const updatedUser: User = {
+          id: data._id || data.email,
+          email: data.email,
+          name: data.name || '사용자',
+          image: data.image,
+          role: data.role || UserRole.USER,
+          status: UserStatus.ACTIVE,
+          provider: data.provider || 'naver',
+          profile: data.profile || {},
+          createdAt: new Date(data.createdAt),
+          updatedAt: new Date(data.updatedAt),
+          lastLoginAt: new Date(data.lastLoginAt)
+        };
+
+        setUser(updatedUser);
+        setIsEditModalOpen(false);
+        setShowProfileAlert(!isProfileComplete(updatedUser.profile));
+      } else {
+        console.error('Failed to update profile:', data.error);
+        alert('프로필 업데이트에 실패했습니다.');
+      }
     } catch (error) {
       console.error('Failed to update profile:', error);
+      alert('프로필 업데이트 중 오류가 발생했습니다.');
     }
   };
 
