@@ -35,8 +35,9 @@ export async function GET(
         image: session.user?.image,
         provider: (session.user as any)?.provider || 'naver',
         role: (session.user as any)?.role || 'user',
+        mobile: (session.user as any)?.mobile || '',  // 네이버 로그인에서 받은 전화번호
         profile: {
-          phone: (session.user as any)?.mobile || '',
+          phone: (session.user as any)?.mobile || '',  // profile.phone에도 저장
           company: '',
           position: '',
           businessNumber: '',
@@ -59,11 +60,26 @@ export async function GET(
       return NextResponse.json(newUser);
     }
 
-    // 마지막 로그인 시간 업데이트
+    // 마지막 로그인 시간 업데이트 및 mobile 필드 동기화
     await db.collection('users').updateOne(
       { email: userId },
       { $set: { lastLoginAt: new Date() } }
     );
+
+    // mobile 필드가 있고 profile.phone이 없으면 동기화
+    if (user.mobile && (!user.profile || !user.profile.phone)) {
+      await db.collection('users').updateOne(
+        { email: userId },
+        {
+          $set: {
+            'profile.phone': user.mobile
+          }
+        }
+      );
+      // 응답에도 반영
+      if (!user.profile) user.profile = {};
+      user.profile.phone = user.mobile;
+    }
 
     return NextResponse.json(user);
   } catch (error) {
