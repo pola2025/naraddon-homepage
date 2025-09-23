@@ -743,10 +743,26 @@ function QuickConsultForm() {
     dispatch({ type: 'SET_SUBMITTING', value: true });
 
     try {
-      const response = await fetch('/api/consultation/quick-submit', {
+      // 기업심사관 상담 신청용 API로 변경
+      const consultationData = {
+        userName: form.name,
+        userPhone: form.phone,
+        userEmail: form.email,
+        companyName: form.region, // region을 회사명으로 사용 또는 별도 필드 추가 필요
+        businessNumber: form.businessNumber,
+        consultationType: form.consultType || '기업심사관 상담',
+        message: form.message,
+        preferredTime: form.preferredTime,
+        annualRevenue: form.annualRevenue,
+        employeeCount: form.employeeCount,
+        desiredTime: form.desiredTime,
+        isAuditorConsultation: true // 기업심사관 상담 표시
+      };
+
+      const response = await fetch('/api/consultations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(consultationData),
       });
 
       if (!response.ok) {

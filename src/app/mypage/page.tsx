@@ -532,10 +532,15 @@ export default function MyPage() {
                   <div className="pt-6 border-t">
                     <h3 className="text-sm font-medium text-gray-700 mb-3">계정 관리</h3>
                     <div className="space-y-3">
-                      <button className="text-sm text-gray-600 hover:text-gray-900">
-                        비밀번호 변경
-                      </button>
-                      <div className="text-sm text-red-600">
+                      <div className="text-sm text-gray-500">
+                        <p className="mb-2">
+                          소셜 로그인으로 연결된 계정입니다.
+                        </p>
+                        <p>
+                          비밀번호는 {user?.provider === 'naver' ? '네이버' : user?.provider === 'kakao' ? '카카오' : user?.provider}에서 관리됩니다.
+                        </p>
+                      </div>
+                      <div className="text-sm text-red-600 mt-4">
                         <button className="hover:text-red-700">계정 탈퇴</button>
                       </div>
                     </div>

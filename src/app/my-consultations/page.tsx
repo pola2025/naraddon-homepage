@@ -34,44 +34,29 @@ export default function MyConsultationsPage() {
   const fetchConsultations = async () => {
     try {
       setLoading(true);
-      // 실제 API 호출로 교체 필요
-      // const data = await api.get<Consultation[]>('/user/consultations')
-      // setConsultations(data)
 
-      // 임시 더미 데이터
-      setConsultations([
-        {
-          id: '1',
-          consultationType: 'R&D 자금 상담',
-          status: 'completed',
-          requestDate: '2024-01-10',
-          scheduledDate: '2024-01-15 14:00',
-          examinerName: '김심사관',
-          amount: '5억원',
-          companyName: '(주)테크이노베이션',
-          description: 'AI 기반 헬스케어 플랫폼 개발 프로젝트',
-        },
-        {
-          id: '2',
-          consultationType: '수출바우처 상담',
-          status: 'in_progress',
-          requestDate: '2024-01-18',
-          scheduledDate: '2024-01-22 10:00',
-          examinerName: '이심사관',
-          amount: '3억원',
-          companyName: '글로벌트레이드',
-          description: '동남아시아 시장 진출을 위한 수출 지원',
-        },
-        {
-          id: '3',
-          consultationType: '창업지원금 상담',
-          status: 'pending',
-          requestDate: '2024-01-20',
-          amount: '1억원',
-          companyName: '스타트업허브',
-          description: '핀테크 스타트업 초기 자금 지원',
-        },
-      ]);
+      // 실제 API 호출
+      const response = await fetch('/api/consultations');
+      const data = await response.json();
+
+      if (response.ok && Array.isArray(data)) {
+        // API 데이터를 페이지 형식에 맞게 변환
+        const formattedConsultations = data.map((item: any) => ({
+          id: item._id || item.id,
+          consultationType: item.consultationType,
+          status: item.status,
+          requestDate: new Date(item.createdAt).toLocaleDateString(),
+          scheduledDate: item.preferredDate ? new Date(item.preferredDate).toLocaleString() : undefined,
+          examinerName: item.assignedStaffName || '배정 대기',
+          amount: item.amount || '-',
+          companyName: item.companyName || '-',
+          description: item.message || '',
+        }));
+
+        setConsultations(formattedConsultations);
+      } else {
+        setConsultations([]);
+      }
     } catch (error) {
       console.error('Consultations fetch error:', error);
     } finally {

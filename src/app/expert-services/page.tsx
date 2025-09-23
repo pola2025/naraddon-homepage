@@ -322,7 +322,7 @@ export default function ExpertServicesPage() {
     setAgreePrivacy(false);
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!form.name.trim() || !form.phone.trim() || !form.email.trim() || !form.companyName.trim()) {
@@ -350,8 +350,37 @@ export default function ExpertServicesPage() {
       return;
     }
 
-    window.alert(successMessage);
-    resetForm();
+    try {
+      // API 호출로 상담 신청
+      const response = await fetch('/api/consultations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userName: form.name,
+          userPhone: form.phone,
+          userEmail: form.email,
+          companyName: form.companyName,
+          businessNumber: form.businessNumber,
+          consultationType: selectedField,
+          message: form.content,
+          preferredTime: selectedTiming,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        window.alert(result.message || successMessage);
+        resetForm();
+      } else {
+        window.alert(result.error || '상담 신청 중 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('상담 신청 실패:', error);
+      window.alert('상담 신청 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    }
   };
 
   const charCount = form.content.length;
