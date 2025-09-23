@@ -302,7 +302,7 @@ export default function Header() {
                   </div>
 
                   <div className={styles.profileList}>
-                    <Link href="/profile" className={styles.profileLink}>
+                    <Link href="/mypage" className={styles.profileLink}>
                       프로필 관리
                     </Link>
                     <CanAccess role="admin" key="admin-mobile">
@@ -413,7 +413,7 @@ export default function Header() {
 
         {isAuthenticated && (
           <div className={styles.mobileFooter}>
-            <Link href="/profile" className={styles.mobileFooterLink} onClick={closeMobileMenu}>
+            <Link href="/mypage" className={styles.mobileFooterLink} onClick={closeMobileMenu}>
               프로필 관리
             </Link>
             <Link href="/my-consultations" className={styles.mobileFooterLink} onClick={closeMobileMenu}>
