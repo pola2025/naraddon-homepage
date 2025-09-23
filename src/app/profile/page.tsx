@@ -266,15 +266,6 @@ export default function ProfilePage() {
             <div className="p-6">
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-900">비밀번호 변경</h4>
-                  <p className="mt-1 text-sm text-gray-500">
-                    소셜 로그인을 사용하는 경우 해당 서비스에서 변경해주세요.
-                  </p>
-                  <button className="mt-2 px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50">
-                    비밀번호 변경
-                  </button>
-                </div>
-                <div>
                   <h4 className="text-sm font-medium text-gray-900">계정 삭제</h4>
                   <p className="mt-1 text-sm text-gray-500">
                     계정을 삭제하면 모든 데이터가 영구적으로 삭제됩니다.

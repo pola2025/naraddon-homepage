@@ -82,7 +82,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const [modalProvider, setModalProvider] = useState<SocialProvider | null>(null);
   const [legalModal, setLegalModal] = useState<LegalModalType | null>(null);
-  const redirect = searchParams.get('redirect') || '/';
+  const redirect = searchParams.get('redirect') || '/mypage';
   const legalModalSections: LegalSection[] = legalModal
     ? legalModal === 'terms'
       ? TERMS_SECTIONS
