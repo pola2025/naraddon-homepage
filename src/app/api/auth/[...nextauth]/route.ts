@@ -71,38 +71,103 @@ export const authOptions: NextAuthOptions = {
   session: { strategy: 'jwt' },
   callbacks: {
     async signIn({ user, account, profile }) {
-      // 네이버 로그인 시 자동 회원가입 처리
-      if (account?.provider === 'naver') {
-        console.log('SignIn - Naver Profile:', JSON.stringify(profile, null, 2));
-        const naverProfile = profile as any;
-        const userData = naverProfile?.response || {};
+      try {
+        // MongoDB 클라이언트 가져오기
+        const client = await clientPromise;
+        const db = client.db('naraddon');
+        const usersCollection = db.collection('users');
 
-        // 사용자 정보 자동 저장 (추가 입력 없음)
-        user.name = userData.name || userData.nickname || '네이버 사용자';
-        user.email = userData.email || `${userData.id}@naver.local`;
-        user.image = userData.profile_image || null;
+        // 네이버 로그인 시 자동 회원가입 처리
+        if (account?.provider === 'naver') {
+          console.log('SignIn - Naver Profile:', JSON.stringify(profile, null, 2));
+          const naverProfile = profile as any;
+          const userData = naverProfile?.response || {};
 
-        // 추가 정보 저장 (mobile 등)
-        (user as any).mobile = userData.mobile || userData.mobile_e164 || null;
-        (user as any).provider = 'naver';
-        (user as any).role = 'user';
+          // 사용자 정보 자동 저장 (추가 입력 없음)
+          user.name = userData.name || userData.nickname || '네이버 사용자';
+          user.email = userData.email || `${userData.id}@naver.local`;
+          user.image = userData.profile_image || null;
 
-        console.log('SignIn - Updated User:', user);
+          // 추가 정보 저장 (mobile 등)
+          (user as any).mobile = userData.mobile || userData.mobile_e164 || null;
+          (user as any).provider = 'naver';
+          (user as any).role = 'user';
+
+          // DB에서 기존 사용자 확인
+          const existingUser = await usersCollection.findOne({ email: user.email });
+
+          if (!existingUser) {
+            // 신규 사용자인 경우 createdAt 추가
+            await usersCollection.insertOne({
+              email: user.email,
+              name: user.name,
+              image: user.image,
+              provider: 'naver',
+              role: 'user',
+              mobile: (user as any).mobile,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              lastLoginAt: new Date()
+            });
+          } else {
+            // 기존 사용자는 lastLoginAt만 업데이트
+            await usersCollection.updateOne(
+              { email: user.email },
+              {
+                $set: {
+                  lastLoginAt: new Date(),
+                  updatedAt: new Date()
+                }
+              }
+            );
+          }
+
+          console.log('SignIn - Updated User:', user);
+        }
+
+        // 카카오 로그인 시 자동 회원가입 처리
+        if (account?.provider === 'kakao') {
+          const kakaoProfile = profile as any;
+          const acc = kakaoProfile?.kakao_account || {};
+          const prof = acc.profile || {};
+
+          user.name = prof.nickname || '카카오 사용자';
+          user.email = acc.email || `${kakaoProfile.id}@kakao.local`;
+          user.image = prof.profile_image_url || null;
+          (user as any).provider = 'kakao';
+          (user as any).role = 'user';
+
+          // DB에서 기존 사용자 확인
+          const existingUser = await usersCollection.findOne({ email: user.email });
+
+          if (!existingUser) {
+            // 신규 사용자인 경우 createdAt 추가
+            await usersCollection.insertOne({
+              email: user.email,
+              name: user.name,
+              image: user.image,
+              provider: 'kakao',
+              role: 'user',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              lastLoginAt: new Date()
+            });
+          } else {
+            // 기존 사용자는 lastLoginAt만 업데이트
+            await usersCollection.updateOne(
+              { email: user.email },
+              {
+                $set: {
+                  lastLoginAt: new Date(),
+                  updatedAt: new Date()
+                }
+              }
+            );
+          }
+        }
+      } catch (error) {
+        console.error('SignIn callback error:', error);
       }
-
-      // 카카오 로그인 시 자동 회원가입 처리
-      if (account?.provider === 'kakao') {
-        const kakaoProfile = profile as any;
-        const acc = kakaoProfile?.kakao_account || {};
-        const prof = acc.profile || {};
-
-        user.name = prof.nickname || '카카오 사용자';
-        user.email = acc.email || `${kakaoProfile.id}@kakao.local`;
-        user.image = prof.profile_image_url || null;
-        (user as any).provider = 'kakao';
-        (user as any).role = 'user';
-      }
-
 
       return true; // 자동으로 로그인 승인
     },
