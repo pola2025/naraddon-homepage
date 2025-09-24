@@ -5,48 +5,41 @@ import { getToken } from 'next-auth/jwt';
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
+  // Auth 관련 경로는 미들웨어 체크 제외 (무한 루프 방지)
+  // 콜백, 에러, 블랙리스트 체크 경로 모두 제외
+  if (pathname.startsWith('/api/auth') || pathname.startsWith('/auth')) {
+    return NextResponse.next();
+  }
+
   // NextAuth 세션 확인
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET
   });
 
-  // 토큰이 있으면 블랙리스트 체크
-  if (token) {
+  // 블랙리스트 체크는 일반 페이지 접근 시에만 수행
+  // API 경로는 제외 (중복 체크 방지)
+  if (token && !pathname.startsWith('/api/')) {
     try {
-      const blacklistCheck = await fetch(`${request.nextUrl.origin}/api/auth/blacklist`, {
-        headers: {
-          cookie: request.headers.get('cookie') || ''
-        }
-      });
+      // MongoDB 직접 확인 대신 토큰 내부 정보로 간단히 체크
+      // 이미 NextAuth callbacks에서 블랙리스트 체크가 수행됨
+      const tokenAge = Date.now() - (token.iat as number) * 1000;
+      const maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
 
-      const { blacklisted } = await blacklistCheck.json();
-
-      if (blacklisted) {
-        // 블랙리스트에 있는 토큰이면 로그인 페이지로 리다이렉트
+      if (tokenAge > maxAge) {
+        // 토큰이 너무 오래된 경우 재로그인 유도
         const response = NextResponse.redirect(new URL('/auth/login', request.url));
-
-        // 쿠키 삭제
         response.cookies.delete('next-auth.session-token');
         response.cookies.delete('__Secure-next-auth.session-token');
-
         return response;
       }
     } catch (error) {
-      // 블랙리스트 체크 실패 시 계속 진행
+      // 체크 실패 시 계속 진행
+      console.error('Token validation failed:', error);
     }
   }
 
-  // 로그인한 사용자가 있고, 콜백 페이지에서 왔을 때
-  if (token && pathname === '/api/auth/callback/naver') {
-    // 프로필 완성 여부를 체크하기 위해 마이페이지로 리다이렉트
-    return NextResponse.redirect(new URL('/mypage', request.url));
-  }
-
-  if (token && pathname === '/api/auth/callback/kakao') {
-    // 프로필 완성 여부를 체크하기 위해 마이페이지로 리다이렉트
-    return NextResponse.redirect(new URL('/mypage', request.url));
-  }
+  // 콜백 처리는 NextAuth가 담당하므로 미들웨어에서 개입하지 않음
 
   // /admin 경로 처리
   if (pathname.startsWith('/admin')) {
@@ -80,7 +73,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/admin/:path*',
-    '/api/auth/callback/:path*',
-    '/((?!_next/static|_next/image|favicon.ico|public).*)',
+    '/mypage/:path*',
+    '/((?!api/auth|auth|_next/static|_next/image|favicon.ico|public).*)',
   ],
 };

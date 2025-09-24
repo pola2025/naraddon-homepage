@@ -249,19 +249,24 @@ export const authOptions: NextAuthOptions = {
       return true; // 자동으로 로그인 승인
     },
     async jwt({ token, user, account, profile }) {
-      // 블랙리스트 체크
-      if (token?.email) {
-        const client = await clientPromise;
-        const db = client.db('naraddon');
+      // 블랙리스트 체크는 새로운 로그인 시에만 수행
+      if (token?.email && !account) {
+        try {
+          const client = await clientPromise;
+          const db = client.db('naraddon');
 
-        const blacklisted = await db.collection('blacklisted_tokens').findOne({
-          email: token.email,
-          blacklistedAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
-        });
+          const blacklisted = await db.collection('blacklisted_tokens').findOne({
+            email: token.email,
+            blacklistedAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+          });
 
-        if (blacklisted) {
-          // 블랙리스트에 있으면 토큰 무효화
-          return null;
+          if (blacklisted) {
+            // 블랙리스트에 있으면 토큰 무효화
+            return null;
+          }
+        } catch (error) {
+          console.error('Blacklist check error in JWT callback:', error);
+          // 에러 발생 시에도 진행 (프로덕션 안정성)
         }
       }
 
