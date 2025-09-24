@@ -6,7 +6,10 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider>
+    <SessionProvider
+      refetchInterval={0}
+      refetchOnWindowFocus={false}
+    >
       <AuthProvider>
         <ErrorBoundary>{children}</ErrorBoundary>
       </AuthProvider>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import PolicyNewsPost from '@/models/PolicyNewsPost';
+import { validateAdminSession } from '@/lib/auth/admin-auth';
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,17 +30,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: Request) {
   try {
-    const adminPassword = process.env.POLICY_NEWS_PASSWORD;
-    if (!adminPassword) {
-      return NextResponse.json({ message: '게시글 비밀번호가 설정되지 않았습니다.' }, { status: 500 });
+    // 관리자 세션 확인
+    const isAdmin = await validateAdminSession();
+    if (!isAdmin) {
+      return NextResponse.json({ message: '관리자 권한이 필요합니다.' }, { status: 401 });
     }
 
     const body = await request.json();
-    const { password, title, content, category, excerpt, thumbnail, tags, isMain, isPinned, badge } = body;
-
-    if (!password || password !== adminPassword) {
-      return NextResponse.json({ message: '비밀번호가 올바르지 않습니다.' }, { status: 401 });
-    }
+    const { title, content, category, excerpt, thumbnail, tags, isMain, isPinned, badge } = body;
 
     if (!title || !title.trim() || !content || !content.trim()) {
       return NextResponse.json({ message: '제목과 내용을 입력해주세요.' }, { status: 400 });

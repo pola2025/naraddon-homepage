@@ -58,8 +58,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   ]);
 
   const quickActions = [
-    { name: '새 영상 등록', href: '/admin/naraddon-tube/new' },
-    { name: '정책소식 작성', href: '/admin/policy-news/new' },
+    { name: '새 영상 등록', href: '/admin/naraddon-tube' },
+    { name: '정책소식 작성', href: '/policy-news/write' },
     { name: '사용자 검색', href: '/admin/users' },
     { name: '백업 실행', href: '/admin/settings/backup' }
   ];

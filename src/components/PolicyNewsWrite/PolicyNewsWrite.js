@@ -30,28 +30,21 @@ const defaultFormData = {
 
 const PolicyNewsWrite = () => {
   const router = useRouter();
-  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(true); // 관리자 세션으로 인증되어 있다고 가정
   const [formData, setFormData] = useState(defaultFormData);
   const [imagePreview, setImagePreview] = useState(null);
   const [errors, setErrors] = useState({});
-  const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [verifyError, setVerifyError] = useState('');
   const [posts, setPosts] = useState([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const fileInputRef = useRef(null);
 
 
+  // 관리자 세션은 관리자 대시보드에서 이미 확인됨
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-    const cached = sessionStorage.getItem('policyNewsAuthorized');
-    if (cached === 'true') {
-      setIsAuthorized(true);
-    }
+    // 바로 인증된 상태로 설정
+    setIsAuthorized(true);
   }, []);
 
   useEffect(() => {
@@ -90,14 +83,14 @@ const PolicyNewsWrite = () => {
   };
 
   const handleDeletePost = async (postId, postTitle) => {
-    const confirmPassword = window.prompt(`"${postTitle}" 게시글을 삭제하시겠습니까?\n\n비밀번호를 입력하세요:`);
-    if (!confirmPassword) return;
+    if (!window.confirm(`"${postTitle}" 게시글을 삭제하시겠습니까?`)) {
+      return;
+    }
 
     try {
       const response = await fetch(`/api/policy-news/${postId}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: confirmPassword })
+        headers: { 'Content-Type': 'application/json' }
       });
 
       if (!response.ok) {
@@ -134,18 +127,6 @@ const PolicyNewsWrite = () => {
     }
   };
 
-  const handlePasswordChange = (event) => {
-    setPassword(event.target.value);
-    setVerifyError('');
-
-    if (errors.password) {
-      setErrors((prev) => {
-        const nextErrors = { ...prev };
-        delete nextErrors.password;
-        return nextErrors;
-      });
-    }
-  };
 
   const handleImageUrlChange = (event) => {
     const url = event.target.value;
@@ -188,21 +169,12 @@ const PolicyNewsWrite = () => {
       return;
     }
 
-    // 비밀번호 체크
-    if (!password) {
-      alert('이미지를 업로드하려면 먼저 비밀번호를 입력해주세요.');
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-      return;
-    }
 
     setIsUploadingImage(true);
 
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('password', password);
 
       const response = await fetch('/api/policy-news/upload-image', {
         method: 'POST',
@@ -262,41 +234,6 @@ const PolicyNewsWrite = () => {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const verifyPassword = async (event) => {
-    event.preventDefault();
-    if (!password.trim()) {
-      setVerifyError('비밀번호를 입력해주세요.');
-      return;
-    }
-
-    try {
-      setIsVerifying(true);
-      setVerifyError('');
-      const response = await fetch('/api/policy-news/verify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ password }),
-      });
-
-      if (!response.ok) {
-        const result = await response.json().catch(() => ({}));
-        setVerifyError(result?.message || '비밀번호가 올바르지 않습니다.');
-        return;
-      }
-
-      setIsAuthorized(true);
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('policyNewsAuthorized', 'true');
-      }
-    } catch (error) {
-      console.error('비밀번호 검증 실패', error);
-      setVerifyError('비밀번호 검증 중 오류가 발생했습니다.');
-    } finally {
-      setIsVerifying(false);
-    }
-  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -306,10 +243,7 @@ const PolicyNewsWrite = () => {
       return;
     }
 
-    if (!password.trim()) {
-      setErrors((prev) => ({ ...prev, password: '게시글 비밀번호를 입력해주세요.' }));
-      return;
-    }
+    // 비밀번호 확인 삭제 - 관리자 세션으로 확인
 
     const tagsArray = formData.tags
       .split(',')
@@ -324,7 +258,7 @@ const PolicyNewsWrite = () => {
       thumbnail: formData.thumbnail,
       tags: tagsArray,
       isMain: formData.isMainNews,
-      password,
+      // password 제거 - 세션으로 인증
     };
 
     try {
@@ -379,30 +313,6 @@ const PolicyNewsWrite = () => {
     }
   };
 
-  if (!isAuthorized) {
-    return (
-      <div className="policy-news-write">
-        <div className="write-header">
-          <h1>정책소식 작성</h1>
-          <p>비밀번호를 입력하세요.</p>
-        </div>
-        <form className="password-verify-form" onSubmit={verifyPassword}>
-          <label htmlFor="verify-password">게시글 비밀번호</label>
-          <input
-            type="password"
-            id="verify-password"
-            value={password}
-            onChange={handlePasswordChange}
-            placeholder="비밀번호를 입력하세요"
-          />
-          {verifyError && <span className="error-message">{verifyError}</span>}
-          <button type="submit" className="btn-submit" disabled={isVerifying}>
-            <i className="fas fa-lock"></i> {isVerifying ? '확인 중...' : '확인'}
-          </button>
-        </form>
-      </div>
-    );
-  }
 
   return (
     <div className="policy-news-write">
@@ -448,7 +358,7 @@ const PolicyNewsWrite = () => {
           zIndex: 1,
         }}>
           <h1 style={{ color: imagePreview ? '#fff' : '#1e293b', marginBottom: '1rem' }}>정책소식 작성</h1>
-          <p style={{ color: imagePreview ? '#fff' : '#64748b' }}>비밀번호를 입력하면 게시글을 등록할 수 있습니다.</p>
+          <p style={{ color: imagePreview ? '#fff' : '#64748b' }}>관리자 세션으로 인증되었습니다.</p>
         </div>
       </div>
 
@@ -640,21 +550,6 @@ const PolicyNewsWrite = () => {
           </div>
         </div>
 
-        <div className="form-group password-group">
-          <label htmlFor="post-password">
-            게시글 비밀번호 <span className="required">*</span>
-          </label>
-          <input
-            type="password"
-            id="post-password"
-            name="post-password"
-            value={password}
-            onChange={handlePasswordChange}
-            placeholder="비밀번호를 입력하세요"
-            className={errors.password ? 'error' : ''}
-          />
-          {errors.password && <span className="error-message">{errors.password}</span>}
-        </div>
 
         <div className="form-actions">
           <div className="left-actions">

@@ -335,12 +335,7 @@ const PolicyNewsSection = () => {
                 <p className="policy-news__section-subtitle">최신 정책 동향과 정부 지원사업을 가장 빠르게 안내드립니다.</p>
                 <p className="policy-news__section-caption">나라똔에서 최신 정부정책 소식을 전달합니다.</p>
               </div>
-              <div className="policy-news__section-actions">
-                <button className="policy-news__write-button" onClick={handleWriteClick}>
-                  <i className="fas fa-pen"></i>
-                  <span>정책소식 작성</span>
-                </button>
-              </div>
+              {/* 정책소식 작성 버튼 삭제 - 관리자 대시보드에서만 가능 */}
             </div>
           </div>
         </div>
@@ -362,12 +357,7 @@ const PolicyNewsSection = () => {
               나라똔에서 최신 정부정책 소식을 전달합니다.
             </p>
           </div>
-          <div className="policy-news__section-actions">
-            <button className="policy-news__write-button" onClick={handleWriteClick}>
-              <i className="fas fa-pen"></i>
-              <span>정책소식 작성</span>
-            </button>
-          </div>
+          {/* 정책소식 작성 버튼 삭제 - 관리자 대시보드에서만 가능 */}
         </div>
 
         <div className="news-content-wrapper">
