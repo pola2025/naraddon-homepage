@@ -8,6 +8,21 @@ import { UserRole } from '@/types/user.types';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
+// Validate environment variables
+const requiredEnvVars = {
+  NAVER_CLIENT_ID: process.env.NAVER_CLIENT_ID,
+  NAVER_CLIENT_SECRET: process.env.NAVER_CLIENT_SECRET,
+  NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+  NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+};
+
+// Check and log missing environment variables
+Object.entries(requiredEnvVars).forEach(([key, value]) => {
+  if (!value || value.trim() === '') {
+    console.error(`Missing or empty environment variable: ${key}`);
+  }
+});
+
 const getMongoAdapter = async () => {
   try {
     const client = await clientPromise;
@@ -24,8 +39,8 @@ export const authOptions: NextAuthOptions = {
   adapter: process.env.MONGODB_URI ? MongoDBAdapter(clientPromise) : undefined,
   providers: [
     NaverProvider({
-      clientId: process.env.NAVER_CLIENT_ID!,
-      clientSecret: process.env.NAVER_CLIENT_SECRET!,
+      clientId: process.env.NAVER_CLIENT_ID || 'missing_client_id',
+      clientSecret: process.env.NAVER_CLIENT_SECRET || 'missing_client_secret',
       profile(profile) {
         return {
           id: profile.response.id,
