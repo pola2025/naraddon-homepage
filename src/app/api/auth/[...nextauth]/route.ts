@@ -305,11 +305,8 @@ export const authOptions: NextAuthOptions = {
   debug: false, // 프로덕션에서는 비활성화
 };
 
-// 매 요청마다 새로운 NextAuth 핸들러 생성 (캐싱 방지)
-export async function GET(request: Request) {
-  return await NextAuth(authOptions);
-}
+// NextAuth 핸들러 생성
+const handler = NextAuth(authOptions);
 
-export async function POST(request: Request) {
-  return await NextAuth(authOptions);
-}
+// GET과 POST 모두 동일한 핸들러 사용
+export { handler as GET, handler as POST };
