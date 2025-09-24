@@ -320,36 +320,41 @@ export const authOptions: NextAuthOptions = {
 };
 
 // NextAuth 핸들러 생성 - 안전한 방식으로
-const createHandler = () => {
+async function handler(req: NextRequest, context: any) {
   try {
-    return NextAuth(authOptions);
-  } catch (error: any) {
-    console.error('NextAuth initialization error:', error);
-
-    // 에러 핸들러 반환
-    return async (req: NextRequest) => {
-      const isDevelopment = process.env.NODE_ENV !== 'production';
-
+    // 환경변수 체크 (프로덕션에서 중요)
+    if (!process.env.NEXTAUTH_SECRET) {
+      console.error('CRITICAL: NEXTAUTH_SECRET is not set!');
       return NextResponse.json(
-        {
-          error: 'Authentication service error',
-          message: isDevelopment ? error?.message : undefined,
-          details: isDevelopment ? error?.stack : undefined,
-          missingEnvVars: isDevelopment ? missingVars : undefined,
-        },
-        {
-          status: 500,
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
+        { error: 'Authentication configuration error' },
+        { status: 500 }
       );
-    };
-  }
-};
+    }
 
-// 핸들러 생성
-const handler = createHandler();
+    // NextAuth 핸들러 실행
+    const authHandler = NextAuth(authOptions);
+    return await authHandler(req, context);
+  } catch (error: any) {
+    console.error('NextAuth runtime error:', error);
+
+    // 프로덕션에서는 상세 에러 숨김
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+
+    return NextResponse.json(
+      {
+        error: 'Authentication service error',
+        message: isDevelopment ? error?.message : 'Internal server error',
+        missingVars: isDevelopment ? missingVars : undefined,
+      },
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      }
+    );
+  }
+}
 
 // GET과 POST 모두 동일한 핸들러 사용
 export { handler as GET, handler as POST };
