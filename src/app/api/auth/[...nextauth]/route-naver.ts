@@ -1,8 +1,8 @@
 import NextAuth from 'next-auth';
 import type { NextAuthOptions } from 'next-auth';
 
-// authOptions export 추가 (다른 파일에서 사용)
-export const authOptions: NextAuthOptions = {
+// 네이버 OAuth 전용 설정
+const authOptions: NextAuthOptions = {
   providers: [
     {
       id: 'naver',
@@ -49,8 +49,8 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
   },
-  // 프로덕션에서는 디버깅 비활성화
-  debug: false,
+  // 디버깅 활성화
+  debug: true,
 };
 
 const handler = NextAuth(authOptions);
