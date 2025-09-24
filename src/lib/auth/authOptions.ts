@@ -6,25 +6,51 @@ import GoogleProvider from 'next-auth/providers/google';
 import KakaoProvider from 'next-auth/providers/kakao';
 import { UserRole } from '@/types/user.types';
 
+const isProduction = process.env.NODE_ENV === 'production';
+
+const getMongoAdapter = async () => {
+  try {
+    const client = await clientPromise;
+    if (client && client.db) {
+      return MongoDBAdapter(clientPromise);
+    }
+  } catch (error) {
+    console.error('MongoDB connection failed:', error);
+  }
+  return undefined;
+};
+
 export const authOptions: NextAuthOptions = {
-  adapter: MongoDBAdapter(clientPromise),
+  adapter: process.env.MONGODB_URI ? MongoDBAdapter(clientPromise) : undefined,
   providers: [
     NaverProvider({
       clientId: process.env.NAVER_CLIENT_ID!,
       clientSecret: process.env.NAVER_CLIENT_SECRET!,
       authorization: {
+        url: 'https://nid.naver.com/oauth2.0/authorize',
         params: {
-          grant_type: 'authorization_code',
+          response_type: 'code',
+          client_id: process.env.NAVER_CLIENT_ID!,
+          redirect_uri: isProduction
+            ? 'https://naraddon.com/api/auth/callback/naver'
+            : undefined,
+          state: undefined,
         },
+      },
+      token: {
+        url: 'https://nid.naver.com/oauth2.0/token',
+      },
+      userinfo: {
+        url: 'https://openapi.naver.com/v1/nid/me',
       },
       profile(profile) {
         return {
           id: profile.response.id,
-          name: profile.response.name,
-          email: profile.response.email,
+          name: profile.response.name || profile.response.nickname || 'Unknown',
+          email: profile.response.email || `${profile.response.id}@naver.local`,
           image: profile.response.profile_image,
           role: UserRole.USER,
-          mobile: profile.response.mobile,
+          mobile: profile.response.mobile?.replace(/-/g, ''),
         };
       },
     }),
@@ -48,30 +74,62 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user, account }) {
-      if (user) {
-        token.id = user.id;
-        token.role = user.role || UserRole.USER;
-        token.mobile = user.mobile;
+      try {
+        if (user) {
+          token.id = user.id;
+          token.role = user.role || UserRole.USER;
+          token.mobile = user.mobile;
+        }
+        if (account) {
+          token.provider = account.provider;
+        }
+        return token;
+      } catch (error) {
+        console.error('JWT callback error:', error);
+        return token;
       }
-      if (account) {
-        token.provider = account.provider;
-      }
-      return token;
     },
     async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as UserRole;
-        session.user.mobile = token.mobile as string;
-        session.user.provider = token.provider as string;
+      try {
+        if (session.user) {
+          session.user.id = token.id as string;
+          session.user.role = token.role as UserRole;
+          session.user.mobile = token.mobile as string;
+          session.user.provider = token.provider as string;
+        }
+        return session;
+      } catch (error) {
+        console.error('Session callback error:', error);
+        return session;
       }
-      return session;
     },
     async signIn({ user, account, profile }) {
-      // 여기서 추가 검증이나 사용자 정보 업데이트 가능
-      return true;
+      try {
+        if (!account || !profile) {
+          console.error('SignIn error: Missing account or profile');
+          return false;
+        }
+
+        if (account.provider === 'naver') {
+          const naverProfile = profile as any;
+          if (!naverProfile.response?.id) {
+            console.error('Invalid Naver profile data');
+            return false;
+          }
+        }
+
+        return true;
+      } catch (error) {
+        console.error('SignIn callback error:', error);
+        return false;
+      }
+    },
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      else if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === 'development',
+  debug: false,
 };
