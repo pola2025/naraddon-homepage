@@ -31,17 +31,8 @@ export const authOptions: NextAuthOptions = {
         params: {
           response_type: 'code',
           client_id: process.env.NAVER_CLIENT_ID!,
-          redirect_uri: isProduction
-            ? 'https://naraddon.com/api/auth/callback/naver'
-            : undefined,
-          state: undefined,
+          redirect_uri: 'https://naraddon.com/api/auth/callback/naver',
         },
-      },
-      token: {
-        url: 'https://nid.naver.com/oauth2.0/token',
-      },
-      userinfo: {
-        url: 'https://openapi.naver.com/v1/nid/me',
       },
       profile(profile) {
         return {
