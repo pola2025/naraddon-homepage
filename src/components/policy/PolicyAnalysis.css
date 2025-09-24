@@ -668,22 +668,7 @@
     display: none;
   }
 
-  /* 더보기 버튼 모바일 최적화 */
-  .load-more-btn {
-    padding: 14px;
-    font-size: 14px;
-    margin-top: 16px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    font-weight: 600;
-    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
-  }
-
-  .load-more-btn:active {
-    transform: scale(0.98);
-  }
+  /* 더보기 버튼 모바일 최적화 - 삭제 (기본 스타일 사용) */
 }
 /* TOP 2-7 그리드 - 2열 3행 구조 */
 .top-grid {
@@ -990,28 +975,34 @@
 }
 
 /* 더보기 버튼 */
+/* ========== 더보기 버튼 통합 스타일 ========== */
 .load-more-btn {
   width: 100%;
-  padding: 12px 50px;
-  margin-top: 20px;
-  background: #f8f9fa;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  color: #666;
-  font-size: 14px;
-  font-weight: 500;
+  padding: 16px 24px;
+  margin-top: 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
 }
 
 .load-more-btn:hover {
-  background: #3b82f6;
-  border-color: #3b82f6;
-  color: white;
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35);
+}
+
+.load-more-btn:active {
+  transform: translateY(0) scale(0.98);
 }
 
 /* CTA 섹션 */
@@ -1653,10 +1644,11 @@
   }
 
   /* 버튼 모바일 */
+  /* 더보기 버튼 모바일 조정 */
   .load-more-btn {
-    padding: 10px;
-    font-size: 13px;
-    border-radius: 8px;
+    padding: 14px 20px;
+    font-size: 14px;
+    margin-top: 20px;
   }
 
   /* 모달 모바일 */
