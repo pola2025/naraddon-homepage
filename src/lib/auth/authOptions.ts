@@ -53,11 +53,13 @@ export const authOptions: NextAuthOptions = {
         token: "https://nid.naver.com/oauth2.0/token",
         userinfo: "https://openapi.naver.com/v1/nid/me",
         profile(profile) {
+          console.log('Naver profile data:', JSON.stringify(profile, null, 2));
           return {
             id: profile.response?.id,
             name: profile.response?.name || profile.response?.nickname,
             email: profile.response?.email,
             image: profile.response?.profile_image,
+            mobile: profile.response?.mobile || profile.response?.mobile_e164,
           }
         },
       })
@@ -81,7 +83,7 @@ export const authOptions: NextAuthOptions = {
     maxAge: 24 * 60 * 60, // 24 hours
   },
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, profile }) {
       try {
         if (user) {
           token.id = user.id;
@@ -90,6 +92,11 @@ export const authOptions: NextAuthOptions = {
         }
         if (account) {
           token.provider = account.provider;
+        }
+        // Naver profile에서 전화번호 추가
+        if (account?.provider === 'naver' && profile) {
+          const naverProfile = profile as any;
+          token.mobile = naverProfile.response?.mobile || naverProfile.response?.mobile_e164;
         }
         return token;
       } catch (error) {
