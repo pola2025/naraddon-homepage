@@ -11,16 +11,25 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.NAVER_CLIENT_ID!,
       clientSecret: process.env.NAVER_CLIENT_SECRET!,
       // 네이버 OAuth URL 설정
-      authorization: 'https://nid.naver.com/oauth2.0/authorize',
+      authorization: {
+        url: 'https://nid.naver.com/oauth2.0/authorize',
+        params: {
+          response_type: 'code',
+          state: 'STATE_STRING',
+        },
+      },
       token: 'https://nid.naver.com/oauth2.0/token',
       userinfo: 'https://openapi.naver.com/v1/nid/me',
       // 프로필 매핑
       profile(profile: any) {
+        console.log('[Naver Profile Response]:', profile);
         return {
           id: profile.response?.id,
-          name: profile.response?.name,
+          name: profile.response?.name || profile.response?.nickname,
           email: profile.response?.email,
           image: profile.response?.profile_image,
+          // 추가 필드 매핑
+          mobile: profile.response?.mobile,
         };
       },
     },
@@ -49,8 +58,8 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
   },
-  // 프로덕션에서는 디버깅 비활성화
-  debug: false,
+  // 디버깅 활성화 (문제 해결 후 비활성화)
+  debug: true,
 };
 
 const handler = NextAuth(authOptions);
