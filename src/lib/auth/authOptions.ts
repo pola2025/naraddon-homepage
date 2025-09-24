@@ -41,18 +41,8 @@ export const authOptions: NextAuthOptions = {
   adapter: process.env.MONGODB_URI ? MongoDBAdapter(clientPromise) : undefined,
   providers: [
     NaverProvider({
-      clientId: process.env.NAVER_CLIENT_ID!,
-      clientSecret: process.env.NAVER_CLIENT_SECRET!,
-      profile(profile) {
-        return {
-          id: profile.response.id,
-          name: profile.response.name || profile.response.nickname || 'Unknown',
-          email: profile.response.email || `${profile.response.id}@naver.local`,
-          image: profile.response.profile_image,
-          role: UserRole.USER,
-          mobile: profile.response.mobile?.replace(/-/g, ''),
-        };
-      },
+      clientId: process.env.NAVER_CLIENT_ID || '',
+      clientSecret: process.env.NAVER_CLIENT_SECRET || '',
     }),
     // Google과 Kakao는 나중에 설정
     // GoogleProvider({
@@ -104,35 +94,8 @@ export const authOptions: NextAuthOptions = {
       }
     },
     async signIn({ user, account, profile }) {
-      try {
-        console.log('SignIn attempt:', {
-          provider: account?.provider,
-          hasAccount: !!account,
-          hasProfile: !!profile,
-          hasUser: !!user
-        });
-
-        if (!account || !profile) {
-          console.error('SignIn error: Missing account or profile');
-          return false;
-        }
-
-        if (account.provider === 'naver') {
-          const naverProfile = profile as any;
-          console.log('Naver profile structure:', JSON.stringify(naverProfile, null, 2));
-
-          if (!naverProfile.response?.id) {
-            console.error('Invalid Naver profile data - missing response.id');
-            return false;
-          }
-        }
-
-        console.log('SignIn successful for:', account.provider);
-        return true;
-      } catch (error) {
-        console.error('SignIn callback error:', error);
-        return false;
-      }
+      console.log('SignIn attempt:', account?.provider);
+      return true;
     },
     async redirect({ url, baseUrl }) {
       if (url.startsWith("/")) return `${baseUrl}${url}`;
@@ -141,5 +104,5 @@ export const authOptions: NextAuthOptions = {
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: true,
+  debug: process.env.NODE_ENV !== 'production',
 };
