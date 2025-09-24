@@ -56,26 +56,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 공공데이터포털 API 호출
-    const apiUrl = 'https://api.odcloud.kr/api/nts-businessman/v1/validate';
-    
+    // 공공데이터포털 사업자등록정보 진위확인 API
+    // API 문서: https://www.data.go.kr/data/15081808/openapi.do
+    const apiUrl = 'https://api.odcloud.kr/api/nts-businessman/v1/status';
+
+    // API 요청 본문 - 최대 100개까지 가능하지만 단일 요청
     const requestBody = {
-      businesses: [
-        {
-          b_no: cleanedNumber,
-          start_dt: openDate?.replace(/-/g, '') || '',
-          p_nm: representativeName || ''
-        }
-      ]
+      b_no: [cleanedNumber]  // 사업자번호 배열로 전송
     };
 
-    console.log('사업자 번호 검증 요청:', cleanedNumber);
+    console.log('사업자 번호 검증 요청:', {
+      url: apiUrl,
+      businessNumber: cleanedNumber,
+      apiKey: API_KEY ? 'Set' : 'Not set'
+    });
 
-    const response = await fetch(apiUrl, {
+    const response = await fetch(`${apiUrl}?serviceKey=${encodeURIComponent(API_KEY)}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${API_KEY}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
       body: JSON.stringify(requestBody)
     });
@@ -102,9 +102,10 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
-    const result = data.data?.[0];
+    console.log('API 응답:', JSON.stringify(data, null, 2));
 
-    if (!result) {
+    // API 응답 구조: { status_code, data: [...] }
+    if (data.status_code !== 'OK' || !data.data?.[0]) {
       return NextResponse.json({
         valid: false,
         businessNumber: businessNumber,
@@ -112,21 +113,33 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // valid: "01" = 계속사업자, "02" = 휴폐업자, "03" = 폐업자
-    const isValid = result.valid === '01';
+    const result = data.data[0];
+
+    // b_stt: "01" = 계속사업자, "02" = 휴업자, "03" = 폐업자
+    const isValid = result.b_stt === '01';
     const statusMap: Record<string, string> = {
       '01': '계속사업자',
       '02': '휴업자',
       '03': '폐업자'
     };
 
+    // tax_type: "01" = 부가가치세 일반과세자, "02" = 면세사업자, "03" = 간이과세자 등
+    const taxTypeMap: Record<string, string> = {
+      '01': '부가가치세 일반과세자',
+      '02': '부가가치세 면세사업자',
+      '03': '부가가치세 간이과세자',
+      '04': '부가가치세 비과세자',
+      '05': '미등록(일반)',
+      '06': '미등록(간이)'
+    };
+
     return NextResponse.json({
       valid: isValid,
       businessNumber: businessNumber,
-      companyName: result.tax_type_nm || '',
-      representativeName: representativeName,
-      businessStatus: statusMap[result.valid] || '알 수 없음',
-      message: isValid ? '유효한 사업자 번호입니다.' : '유효하지 않은 사업자 번호입니다.'
+      businessStatus: statusMap[result.b_stt] || '알 수 없음',
+      taxType: taxTypeMap[result.tax_type] || '알 수 없음',
+      closeDate: result.end_dt || null,
+      message: isValid ? '유효한 사업자 번호입니다.' : `사업자 상태: ${statusMap[result.b_stt] || '확인 불가'}`
     });
 
   } catch (error) {
