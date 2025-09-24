@@ -55,9 +55,13 @@ export async function GET(
       };
 
       // 새 사용자 생성
-      await db.collection('users').insertOne(newUser);
+      const result = await db.collection('users').insertOne(newUser);
 
-      return NextResponse.json(newUser);
+      // insertOne이 반환한 _id를 포함하여 반환
+      return NextResponse.json({
+        ...newUser,
+        _id: result.insertedId
+      });
     }
 
     // 마지막 로그인 시간 업데이트 및 mobile 필드 동기화
@@ -81,7 +85,15 @@ export async function GET(
       user.profile.phone = user.mobile;
     }
 
-    return NextResponse.json(user);
+    // 날짜 필드를 ISO 문자열로 변환하여 반환
+    const userResponse = {
+      ...user,
+      createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : new Date().toISOString(),
+      updatedAt: user.updatedAt ? new Date(user.updatedAt).toISOString() : new Date().toISOString(),
+      lastLoginAt: user.lastLoginAt ? new Date(user.lastLoginAt).toISOString() : new Date().toISOString()
+    };
+
+    return NextResponse.json(userResponse);
   } catch (error) {
     console.error('Failed to fetch user:', error);
     return NextResponse.json(

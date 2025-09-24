@@ -71,14 +71,29 @@ export async function POST(request: NextRequest) {
       apiKey: API_KEY ? 'Set' : 'Not set'
     });
 
-    const response = await fetch(`${apiUrl}?serviceKey=${encodeURIComponent(API_KEY)}`, {
+    // 두 가지 방식으로 시도 (Bearer 토큰 방식이 실제로 작동할 수 있음)
+    let response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${API_KEY}`,
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
       body: JSON.stringify(requestBody)
     });
+
+    // 첫 번째 방식 실패 시 쿼리 파라미터 방식 시도
+    if (!response.ok && response.status === 401) {
+      console.log('Bearer 인증 실패, serviceKey 방식 시도');
+      response = await fetch(`${apiUrl}?serviceKey=${encodeURIComponent(API_KEY)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      });
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
