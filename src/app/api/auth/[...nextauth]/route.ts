@@ -2,6 +2,7 @@ import NextAuth, { NextAuthOptions } from 'next-auth';
 import type { OAuthConfig } from 'next-auth/providers';
 import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
 import clientPromise from '@/lib/mongodb-client';
+import crypto from 'crypto';
 
 // --- Naver Provider (Custom OAuth2) ---
 const NaverProvider: OAuthConfig<any> = {
@@ -248,18 +249,37 @@ export const authOptions: NextAuthOptions = {
       return true; // 자동으로 로그인 승인
     },
     async jwt({ token, user, account, profile }) {
+      // 블랙리스트 체크
+      if (token?.email) {
+        const client = await clientPromise;
+        const db = client.db('naraddon');
+
+        const blacklisted = await db.collection('blacklisted_tokens').findOne({
+          email: token.email,
+          blacklistedAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+        });
+
+        if (blacklisted) {
+          // 블랙리스트에 있으면 토큰 무효화
+          return null;
+        }
+      }
+
       // 최초 로그인 시 provider 정보 보강
-      if (account) {
-        token.provider = account.provider;
-        token.providerId = account.providerAccountId;
+      if (account && user) {
+        // 새로운 로그인 시 완전히 새로운 토큰 생성
+        token = {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          provider: account.provider,
+          providerId: account.providerAccountId,
+          role: (user as any).role || 'user',
+          mobile: (user as any).mobile,
+          sessionId: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+        };
       }
-      if (user) {
-        token.id = user.id;
-        token.email = user.email;
-        token.name = user.name;
-        token.role = (user as any).role || 'user';
-        token.mobile = (user as any).mobile;
-      }
+
       return token;
     },
     async session({ session, token }) {
@@ -285,5 +305,11 @@ export const authOptions: NextAuthOptions = {
   debug: false, // 프로덕션에서는 비활성화
 };
 
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+// 매 요청마다 새로운 NextAuth 핸들러 생성 (캐싱 방지)
+export async function GET(request: Request) {
+  return await NextAuth(authOptions);
+}
+
+export async function POST(request: Request) {
+  return await NextAuth(authOptions);
+}

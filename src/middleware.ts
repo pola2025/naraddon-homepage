@@ -11,6 +11,32 @@ export async function middleware(request: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET
   });
 
+  // 토큰이 있으면 블랙리스트 체크
+  if (token) {
+    try {
+      const blacklistCheck = await fetch(`${request.nextUrl.origin}/api/auth/blacklist`, {
+        headers: {
+          cookie: request.headers.get('cookie') || ''
+        }
+      });
+
+      const { blacklisted } = await blacklistCheck.json();
+
+      if (blacklisted) {
+        // 블랙리스트에 있는 토큰이면 로그인 페이지로 리다이렉트
+        const response = NextResponse.redirect(new URL('/auth/login', request.url));
+
+        // 쿠키 삭제
+        response.cookies.delete('next-auth.session-token');
+        response.cookies.delete('__Secure-next-auth.session-token');
+
+        return response;
+      }
+    } catch (error) {
+      // 블랙리스트 체크 실패 시 계속 진행
+    }
+  }
+
   // 로그인한 사용자가 있고, 콜백 페이지에서 왔을 때
   if (token && pathname === '/api/auth/callback/naver') {
     // 프로필 완성 여부를 체크하기 위해 마이페이지로 리다이렉트

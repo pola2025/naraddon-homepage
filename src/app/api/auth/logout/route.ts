@@ -1,18 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { getToken } from 'next-auth/jwt';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import clientPromise from '@/lib/mongodb-client';
 
 export async function POST(request: NextRequest) {
   try {
-    // 현재 세션 가져오기
+    // 현재 세션과 토큰 가져오기
     const session = await getServerSession(authOptions);
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET
+    });
+
+    const client = await clientPromise;
+    const db = client.db('naraddon');
 
     if (session?.user?.email) {
       // MongoDB에서 마지막 로그아웃 시간 기록
-      const client = await clientPromise;
-      const db = client.db('naraddon');
-
       await db.collection('users').updateOne(
         { email: session.user.email },
         {
@@ -22,6 +27,16 @@ export async function POST(request: NextRequest) {
           }
         }
       );
+    }
+
+    // 토큰을 블랙리스트에 추가
+    if (token) {
+      await db.collection('blacklisted_tokens').insertOne({
+        jti: (token as any).sessionId || `${token.email}-${Date.now()}`,
+        email: token.email,
+        blacklistedAt: new Date(),
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      });
     }
 
     // 모든 쿠키 삭제
