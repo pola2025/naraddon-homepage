@@ -1,0 +1,612 @@
+.ttontok-detail-container {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 40px 20px;
+}
+
+.ttontok-detail-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.ttontok-detail-loading,
+.ttontok-detail-error {
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.loading-spinner {
+  font-size: 18px;
+  color: #666;
+}
+
+.back-to-list {
+  padding: 10px 20px;
+  background: #2196F3;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+
+.back-to-list:hover {
+  background: #1976D2;
+}
+
+/* 헤더 */
+.detail-header {
+  padding: 30px;
+  border-bottom: 1px solid #eee;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.category-badge {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+}
+
+.category-funding { background: #ff6b6b; }
+.category-tax { background: #4ecdc4; }
+.category-hr { background: #45b7d1; }
+.category-marketing { background: #96ceb4; }
+.category-strategy { background: #daa520; }
+.category-tech { background: #7b68ee; }
+.category-legal { background: #ff69b4; }
+.category-etc { background: #95a5a6; }
+
+.pinned-badge {
+  font-size: 14px;
+  color: #ff9800;
+}
+
+.detail-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #212529;
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
+.detail-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  color: #666;
+  font-size: 14px;
+}
+
+.meta-left,
+.meta-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.author {
+  font-weight: 600;
+  color: #333;
+}
+
+.date::before,
+.views::before,
+.likes::before,
+.replies::before {
+  content: '|';
+  margin-right: 15px;
+  color: #ddd;
+}
+
+.meta-left span:first-child::before,
+.meta-right span:first-child::before {
+  display: none;
+}
+
+.detail-tags {
+  margin-top: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  padding: 4px 10px;
+  background: #e3f2fd;
+  color: #2196F3;
+  border-radius: 15px;
+  font-size: 12px;
+}
+
+/* 본문 */
+.detail-content {
+  padding: 30px;
+  min-height: 300px;
+}
+
+.content-text {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #333;
+}
+
+.content-text p {
+  margin-bottom: 16px;
+}
+
+.content-text h2 {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 24px 0 16px;
+}
+
+.content-text h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 20px 0 12px;
+}
+
+.content-text ul,
+.content-text ol {
+  margin: 16px 0;
+  padding-left: 24px;
+}
+
+.content-text li {
+  margin-bottom: 8px;
+}
+
+/* 액션 버튼 */
+.detail-actions {
+  padding: 20px 30px;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  gap: 10px;
+}
+
+.like-btn,
+.share-btn {
+  padding: 10px 20px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.like-btn:hover:not(:disabled),
+.share-btn:hover {
+  background: #f5f5f5;
+}
+
+.like-btn.liked {
+  background: #e3f2fd;
+  color: #2196F3;
+  border-color: #2196F3;
+}
+
+.like-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* 댓글 섹션 */
+.replies-section {
+  padding: 30px;
+  background: #fafbfc;
+  border-top: 1px solid #e8eaed;
+}
+
+.replies-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: #202124;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.replies-title::before {
+  content: '';
+  width: 4px;
+  height: 20px;
+  background: linear-gradient(180deg, #1565C0 0%, #6A1B9A 100%);
+  border-radius: 2px;
+}
+
+/* 댓글 작성 폼 */
+.reply-form {
+  background: #ffffff;
+  border: 1px solid #e8eaed;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.reply-form-header {
+  margin-bottom: 15px;
+}
+
+.reply-inputs-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.reply-nickname-input,
+.reply-company-input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  flex: 1;
+  min-width: 120px;
+}
+
+.reply-nickname-input {
+  max-width: 180px;
+}
+
+.reply-company-input {
+  max-width: 200px;
+}
+
+.reply-role-select {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  min-width: 100px;
+}
+
+.reply-textarea {
+  width: calc(100% - 24px);
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  resize: vertical;
+  margin-bottom: 15px;
+}
+
+.reply-submit-btn {
+  padding: 10px 24px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.reply-submit-btn:hover {
+  background: #45a049;
+}
+
+/* 댓글 목록 */
+.replies-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* 전문가/검증자 답변 하이라이트 컨테이너 */
+.reply-item.reply-examiner + .reply-item:not(.reply-examiner):not(.reply-expert),
+.reply-item.reply-expert + .reply-item:not(.reply-examiner):not(.reply-expert) {
+  margin-top: 24px;
+}
+
+.reply-item:not(.reply-examiner):not(.reply-expert) + .reply-item.reply-examiner,
+.reply-item:not(.reply-examiner):not(.reply-expert) + .reply-item.reply-expert {
+  margin-top: 24px;
+}
+
+.reply-item {
+  padding: 18px 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e8eaed;
+  margin-bottom: 16px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.reply-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* 검증자 스타일 - 프리미엄 비즈니스 */
+.reply-item.reply-examiner {
+  background: #ffffff;
+  border-left: 4px solid #1565C0;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(21, 101, 192, 0.08);
+  margin-left: 0;
+  padding: 20px 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.reply-item.reply-examiner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #1565C0 0%, #42A5F5 100%);
+}
+
+.reply-item.reply-examiner::after {
+  content: '나라똔 인증기업심사관';
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  background: #1565C0;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* 전문가 스타일 - 프리미엄 비즈니스 */
+.reply-item.reply-expert {
+  background: #ffffff;
+  border-left: 4px solid #6A1B9A;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(106, 27, 154, 0.08);
+  margin-left: 0;
+  padding: 20px 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.reply-item.reply-expert::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #6A1B9A 0%, #AB47BC 100%);
+}
+
+.reply-item.reply-expert::after {
+  content: '나라똔 전문가';
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  background: #6A1B9A;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.reply-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
+  position: relative;
+  min-height: 24px;
+}
+
+.reply-author {
+  display: flex;
+  align-items: flex-start;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.reply-author-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reply-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.4;
+}
+
+.reply-company {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  background: #f0f4ff;
+  color: #1a2b6b;
+  line-height: 1.3;
+  border: 1px solid rgba(26, 43, 107, 0.2);
+  max-width: fit-content;
+}
+
+.reply-item.reply-examiner .reply-company {
+  background: rgba(21, 101, 192, 0.15);
+  color: #0d47a1;
+  border-color: rgba(21, 101, 192, 0.4);
+  font-weight: 700;
+}
+
+.reply-item.reply-expert .reply-company {
+  background: rgba(106, 27, 154, 0.15);
+  color: #6a1b9a;
+  border-color: rgba(106, 27, 154, 0.4);
+  font-weight: 700;
+}
+
+.reply-item.reply-examiner .reply-name {
+  color: #1565C0;
+  font-size: 16px;
+}
+
+.reply-item.reply-expert .reply-name {
+  color: #6A1B9A;
+  font-size: 16px;
+}
+
+.reply-date {
+  font-size: 12px;
+  color: #9aa0a6;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: auto;
+  align-self: flex-start;
+}
+
+.reply-content {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #5f6368;
+  margin-top: 12px;
+}
+
+.reply-item.reply-examiner .reply-content,
+.reply-item.reply-expert .reply-content {
+  color: #202124;
+  font-size: 15px;
+  line-height: 1.8;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #f1f3f4;
+}
+
+/* 푸터 */
+.detail-footer {
+  padding: 20px 30px;
+  border-top: 1px solid #eee;
+  text-align: center;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: #6c757d;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+
+.back-btn:hover {
+  background: #5a6268;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .ttontok-detail-container {
+    padding: 20px 10px;
+  }
+
+  .detail-header {
+    padding: 20px;
+  }
+
+  .detail-title {
+    font-size: 22px;
+  }
+
+  .detail-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .meta-right {
+    width: 100%;
+  }
+
+  .detail-content {
+    padding: 20px;
+  }
+
+  .content-text {
+    font-size: 15px;
+  }
+
+  .detail-actions {
+    padding: 15px 20px;
+  }
+
+  .replies-section {
+    padding: 20px;
+  }
+
+  .reply-inputs-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .reply-nickname-input,
+  .reply-company-input,
+  .reply-role-select {
+    width: 100%;
+    max-width: none;
+  }
+
+  .reply-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .reply-author {
+    width: 100%;
+  }
+
+  .reply-author-info {
+    gap: 6px;
+  }
+
+  .reply-name {
+    font-size: 14px;
+  }
+
+  .reply-company {
+    font-size: 12px;
+    padding: 2px 10px;
+  }
+  .reply-date {
+    margin-left: 0;
+    margin-top: -2px;
+  }
+}
