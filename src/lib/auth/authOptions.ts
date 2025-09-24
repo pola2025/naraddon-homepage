@@ -9,21 +9,18 @@ import { UserRole } from '@/types/user.types';
 const isProduction = process.env.NODE_ENV === 'production';
 
 // Validate environment variables
-const requiredEnvVars = {
-  NAVER_CLIENT_ID: process.env.NAVER_CLIENT_ID,
-  NAVER_CLIENT_SECRET: process.env.NAVER_CLIENT_SECRET,
-  NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
-  NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-};
+const NAVER_CLIENT_ID = process.env.NAVER_CLIENT_ID?.trim();
+const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET?.trim();
 
-// Check and log missing environment variables
-Object.entries(requiredEnvVars).forEach(([key, value]) => {
-  if (!value || (typeof value === 'string' && value.trim() === '')) {
-    console.error(`Missing or empty environment variable: ${key}`);
-  } else {
-    console.log(`Environment variable ${key}: Set (${key.includes('SECRET') ? 'hidden' : value?.substring(0, 5) + '...'})`);
-  }
-});
+if (!NAVER_CLIENT_ID || !NAVER_CLIENT_SECRET) {
+  console.error('❌ Naver OAuth configuration error:');
+  console.error('NAVER_CLIENT_ID:', NAVER_CLIENT_ID ? 'Set' : 'MISSING');
+  console.error('NAVER_CLIENT_SECRET:', NAVER_CLIENT_SECRET ? 'Set' : 'MISSING');
+  console.error('Please check Vercel environment variables');
+} else {
+  console.log('✅ Naver OAuth configured successfully');
+  console.log('NAVER_CLIENT_ID:', NAVER_CLIENT_ID.substring(0, 5) + '...');
+}
 
 const getMongoAdapter = async () => {
   try {
@@ -40,10 +37,31 @@ const getMongoAdapter = async () => {
 export const authOptions: NextAuthOptions = {
   adapter: process.env.MONGODB_URI ? MongoDBAdapter(clientPromise) : undefined,
   providers: [
-    NaverProvider({
-      clientId: process.env.NAVER_CLIENT_ID || '',
-      clientSecret: process.env.NAVER_CLIENT_SECRET || '',
-    }),
+    ...(NAVER_CLIENT_ID && NAVER_CLIENT_SECRET ? [
+      NaverProvider({
+        clientId: NAVER_CLIENT_ID,
+        clientSecret: NAVER_CLIENT_SECRET,
+        authorization: {
+          url: "https://nid.naver.com/oauth2.0/authorize",
+          params: {
+            response_type: "code",
+            client_id: NAVER_CLIENT_ID,
+            redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/naver`,
+            state: "{state}",
+          }
+        },
+        token: "https://nid.naver.com/oauth2.0/token",
+        userinfo: "https://openapi.naver.com/v1/nid/me",
+        profile(profile) {
+          return {
+            id: profile.response?.id,
+            name: profile.response?.name || profile.response?.nickname,
+            email: profile.response?.email,
+            image: profile.response?.profile_image,
+          }
+        },
+      })
+    ] : []),
     // Google과 Kakao는 나중에 설정
     // GoogleProvider({
     //   clientId: process.env.GOOGLE_CLIENT_ID!,
