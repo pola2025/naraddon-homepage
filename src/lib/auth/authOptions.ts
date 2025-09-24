@@ -26,14 +26,6 @@ export const authOptions: NextAuthOptions = {
     NaverProvider({
       clientId: process.env.NAVER_CLIENT_ID!,
       clientSecret: process.env.NAVER_CLIENT_SECRET!,
-      authorization: {
-        url: 'https://nid.naver.com/oauth2.0/authorize',
-        params: {
-          response_type: 'code',
-          client_id: process.env.NAVER_CLIENT_ID!,
-          redirect_uri: 'https://naraddon.com/api/auth/callback/naver',
-        },
-      },
       profile(profile) {
         return {
           id: profile.response.id,
@@ -122,5 +114,5 @@ export const authOptions: NextAuthOptions = {
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: false,
+  debug: true,
 };
