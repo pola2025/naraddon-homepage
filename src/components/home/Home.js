@@ -28,15 +28,42 @@ const SectionLoader = () => (
 );
 
 function Home() {
+  // 초기값은 false로 설정 (서버/클라이언트 일치)
+  const [showIntro, setShowIntro] = useState(false);
+
   useEffect(() => {
     document.body.classList.add('page-home');
 
     // 정책소식 데이터 미리 로드
     prefetchPolicyNews();
 
+    // 클라이언트 사이드에서만 실행
+    if (typeof window !== 'undefined') {
+      // URL 파라미터 확인 (로고 클릭시 ?intro=true)
+      const urlParams = new URLSearchParams(window.location.search);
+      const shouldShowIntro = urlParams.get('intro') === 'true';
+
+      // 세션 스토리지 확인 (최초 접속인지)
+      const hasVisited = sessionStorage.getItem('hasVisited');
+
+      // 인트로 표시 조건:
+      // 1. 로고 클릭으로 접근 (?intro=true)
+      // 2. 최초 방문 (!hasVisited)
+      if (shouldShowIntro || !hasVisited) {
+        setShowIntro(true);
+        // 방문 기록 저장
+        sessionStorage.setItem('hasVisited', 'true');
+      }
+
+      // URL 파라미터 정리 (깔끔한 URL 유지)
+      if (shouldShowIntro) {
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      }
+    }
+
     return () => document.body.classList.remove('page-home');
   }, []);
-  const [showIntro, setShowIntro] = useState(true);
   const [showStartButton, setShowStartButton] = useState(true);
   const [showGreenOverlay, setShowGreenOverlay] = useState(false);
   const [videoError, setVideoError] = useState(false);

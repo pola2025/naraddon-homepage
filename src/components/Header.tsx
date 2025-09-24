@@ -25,7 +25,7 @@ type NavItem = {
 type Viewport = "desktop" | "tablet" | "mobile";
 
 const PRIMARY_NAV: NavItem[] = [
-  { href: "/", label: "나라똔" },
+  { href: "/", label: "나라똔" }, // 메인 페이지는 인트로 없이 바로 접근
   { href: "/policy-analysis", label: "정책분석" },
   { href: "/business-voice", label: "사업자 목소리" },
   { href: "/certified-examiners", label: "인증 기업심사관" },
@@ -203,7 +203,7 @@ export default function Header() {
           </button>
 
           <div className={styles.brand}>
-            <Link href="/" className={styles.brandLink}>
+            <Link href="/?intro=true" className={styles.brandLink}>
               {!logoError ? (
                 <img
                   src={LOGO_URL}
@@ -359,7 +359,7 @@ export default function Header() {
         aria-hidden={!isMobileMenuOpen}
       >
         <div className={styles.mobileDrawerHeader}>
-          <Link href="/" className={styles.mobileBrandLink} onClick={closeMobileMenu}>
+          <Link href="/?intro=true" className={styles.mobileBrandLink} onClick={closeMobileMenu}>
             {!logoError ? (
               <img src={LOGO_URL} alt="나라똔 로고" className={styles.logo} />
             ) : (
