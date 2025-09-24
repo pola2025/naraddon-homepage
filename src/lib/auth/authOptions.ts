@@ -18,8 +18,10 @@ const requiredEnvVars = {
 
 // Check and log missing environment variables
 Object.entries(requiredEnvVars).forEach(([key, value]) => {
-  if (!value || value.trim() === '') {
+  if (!value || (typeof value === 'string' && value.trim() === '')) {
     console.error(`Missing or empty environment variable: ${key}`);
+  } else {
+    console.log(`Environment variable ${key}: Set (${key.includes('SECRET') ? 'hidden' : value?.substring(0, 5) + '...'})`);
   }
 });
 
@@ -39,8 +41,8 @@ export const authOptions: NextAuthOptions = {
   adapter: process.env.MONGODB_URI ? MongoDBAdapter(clientPromise) : undefined,
   providers: [
     NaverProvider({
-      clientId: process.env.NAVER_CLIENT_ID || 'missing_client_id',
-      clientSecret: process.env.NAVER_CLIENT_SECRET || 'missing_client_secret',
+      clientId: process.env.NAVER_CLIENT_ID!,
+      clientSecret: process.env.NAVER_CLIENT_SECRET!,
       profile(profile) {
         return {
           id: profile.response.id,
