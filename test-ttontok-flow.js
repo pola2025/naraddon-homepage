@@ -1,7 +1,7 @@
 // 똔톡 기능 테스트 스크립트
 
 const API_BASE_URL = 'http://localhost:3005/api/business-voice/ttontok';
-const TTONTOK_WRITE_PASSWORD = 'vhffkvhffk2@';
+const TTONTOK_WRITE_PASSWORD = process.env.TTONTOK_WRITE_PASSWORD;
 
 async function simulateUserFlow() {
   console.log('🚀 똔톡 사용자 시뮬레이션 테스트 시작\n');

@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
-const MONGODB_URI = 'mongodb+srv://mkt9834:vhffkvhffkvhffk@naraddon-cluster.cicap0i.mongodb.net/naraddon?retryWrites=true&w=majority&appName=naraddon-cluster';
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error('MONGODB_URI environment variable is not set');
+  process.exit(1);
+}
 
 async function checkUserData() {
   try {
