@@ -22,7 +22,7 @@ const NaverProvider: OAuthConfig<any> = {
   clientSecret: process.env.NAVER_CLIENT_SECRET!,
   profile: (profile: any) => {
     // Naver 응답: { resultcode, message, response: { id, email, name, nickname, profile_image, mobile, ... } }
-    console.log('Naver Profile Response:', JSON.stringify(profile, null, 2));
+    // 프로필 정보 로깅 제거 (보안상 민감정보 노출 방지)
     const p = profile?.response ?? {};
     return {
       id: p.id,
@@ -68,7 +68,42 @@ export const authOptions: NextAuthOptions = {
     NaverProvider,
     KakaoProvider,
   ],
-  session: { strategy: 'jwt' },
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // 24 hours
+  },
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+    callbackUrl: {
+      name: `next-auth.callback-url`,
+      options: {
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+    csrfToken: {
+      name: `next-auth.csrf-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+  },
   callbacks: {
     async signIn({ user, account, profile }) {
       try {
@@ -79,11 +114,35 @@ export const authOptions: NextAuthOptions = {
 
         // 네이버 로그인 시 자동 회원가입 처리
         if (account?.provider === 'naver') {
-          console.log('SignIn - Naver Profile:', JSON.stringify(profile, null, 2));
+          // 보안상 민감한 정보는 로깅하지 않음
           const naverProfile = profile as any;
           const userData = naverProfile?.response || {};
 
+          // 네이버 고유 ID 확인 (중요!)
+          if (!userData.id) {
+            console.error('Naver ID is missing from profile');
+            return false;
+          }
+
+          // 동시 로그인 방지 - findOneAndUpdate로 atomic 처리
+          const previousSession = await usersCollection.findOneAndUpdate(
+            { providerId: userData.id },
+            {
+              $set: {
+                isLoggedIn: false,
+                lastLogoutAt: new Date()
+              }
+            },
+            { returnDocument: 'before' }
+          );
+
+          // 다른 이메일로 이미 로그인되어 있었다면 경고 (로깅 없이)
+          if (previousSession && previousSession.email !== userData.email) {
+            // 이전 세션이 무효화됨
+          }
+
           // 사용자 정보 자동 저장 (추가 입력 없음)
+          user.id = userData.id; // 네이버 고유 ID 사용
           user.name = userData.name || userData.nickname || '네이버 사용자';
           user.email = userData.email || `${userData.id}@naver.local`;
           user.image = userData.profile_image || null;
@@ -91,10 +150,16 @@ export const authOptions: NextAuthOptions = {
           // 추가 정보 저장 (mobile 등)
           (user as any).mobile = userData.mobile || userData.mobile_e164 || null;
           (user as any).provider = 'naver';
+          (user as any).providerId = userData.id;
           (user as any).role = 'user';
 
-          // DB에서 기존 사용자 확인
-          const existingUser = await usersCollection.findOne({ email: user.email });
+          // DB에서 기존 사용자 확인 - providerId로 검색
+          const existingUser = await usersCollection.findOne({
+            $or: [
+              { email: user.email },
+              { providerId: userData.id }
+            ]
+          });
 
           if (!existingUser) {
             // 신규 사용자인 경우 createdAt 추가
@@ -103,26 +168,37 @@ export const authOptions: NextAuthOptions = {
               name: user.name,
               image: user.image,
               provider: 'naver',
+              providerId: userData.id,
               role: 'user',
               mobile: (user as any).mobile,
               createdAt: new Date(),
               updatedAt: new Date(),
-              lastLoginAt: new Date()
+              lastLoginAt: new Date(),
+              isLoggedIn: true // 신규 가입 시 로그인 상태
             });
           } else {
-            // 기존 사용자는 lastLoginAt만 업데이트
+            // 기존 사용자는 정보 업데이트
             await usersCollection.updateOne(
-              { email: user.email },
+              {
+                $or: [
+                  { email: user.email },
+                  { providerId: userData.id }
+                ]
+              },
               {
                 $set: {
                   lastLoginAt: new Date(),
-                  updatedAt: new Date()
+                  updatedAt: new Date(),
+                  providerId: userData.id, // providerId 업데이트
+                  name: user.name,
+                  image: user.image,
+                  isLoggedIn: true // 로그인 상태 설정
                 }
               }
             );
           }
 
-          console.log('SignIn - Updated User:', user);
+          // 사용자 정보 로깅 제거 (보안)
         }
 
         // 카카오 로그인 시 자동 회원가입 처리
@@ -206,7 +282,7 @@ export const authOptions: NextAuthOptions = {
     newUser: '/mypage', // 신규 가입자도 마이페이지로 리디렉션
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: true, // 오류 디버깅을 위해 일시적으로 활성화
+  debug: false, // 프로덕션에서는 비활성화
 };
 
 const handler = NextAuth(authOptions);

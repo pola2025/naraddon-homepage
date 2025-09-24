@@ -149,7 +149,27 @@ export default function Header() {
         : "일반 회원";
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: "/" });
+    // 먼저 서버에 로그아웃 요청을 보내 세션 정리
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (error) {
+      console.error('Logout cleanup error:', error);
+    }
+
+    // NextAuth signOut 실행
+    await signOut({
+      callbackUrl: "/",
+      redirect: true
+    });
+
+    // 로컬 스토리지 정리
+    if (typeof window !== 'undefined') {
+      localStorage.clear();
+      sessionStorage.clear();
+    }
   };
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
