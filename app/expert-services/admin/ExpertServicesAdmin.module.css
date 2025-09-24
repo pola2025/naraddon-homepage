@@ -1,0 +1,182 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.loginBox {
+  max-width: 400px;
+  margin: 5rem auto;
+  padding: 2rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.loginBox h1 {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.passwordInput {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.loginButton {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.loginButton:hover {
+  background-color: #0056b3;
+}
+
+.formSection {
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.formSection h2 {
+  margin-bottom: 1.5rem;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.formGroup input[type="text"],
+.formGroup input[type="number"] {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.formGroup input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.buttonGroup button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.buttonGroup button[type="submit"] {
+  background-color: #28a745;
+  color: white;
+}
+
+.buttonGroup button[type="submit"]:hover {
+  background-color: #218838;
+}
+
+.buttonGroup button[type="submit"]:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.buttonGroup button[type="button"] {
+  background-color: #6c757d;
+  color: white;
+}
+
+.buttonGroup button[type="button"]:hover {
+  background-color: #5a6268;
+}
+
+.listSection h2 {
+  margin-bottom: 1.5rem;
+}
+
+.expertList {
+  display: grid;
+  gap: 1rem;
+}
+
+.expertCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.expertInfo h3 {
+  margin-bottom: 0.5rem;
+}
+
+.expertInfo p {
+  margin-bottom: 0.25rem;
+  color: #666;
+}
+
+.specialties {
+  font-style: italic;
+}
+
+.meta {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #999;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actions button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.actions button:first-child {
+  background-color: #007bff;
+  color: white;
+}
+
+.actions button:first-child:hover {
+  background-color: #0056b3;
+}
+
+.actions button:last-child {
+  background-color: #dc3545;
+  color: white;
+}
+
+.actions button:last-child:hover {
+  background-color: #c82333;
+}

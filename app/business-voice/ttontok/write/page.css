@@ -1,0 +1,273 @@
+.ttontok-write-container {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 40px 20px;
+}
+
+.ttontok-write-wrapper {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+/* 헤더 */
+.write-header {
+  padding: 30px 30px 20px;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+}
+
+.write-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #212529;
+  margin-bottom: 8px;
+}
+
+.write-subtitle {
+  font-size: 16px;
+  color: #666;
+  margin: 0;
+}
+
+/* 폼 */
+.write-form {
+  padding: 30px;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-label {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.required {
+  color: #e74c3c;
+}
+
+.optional {
+  color: #999;
+  font-weight: 400;
+}
+
+/* 입력 필드 */
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 15px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  box-sizing: border-box;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.form-input.error,
+.form-select.error,
+.form-textarea.error {
+  border-color: #e74c3c;
+}
+
+.form-input:disabled,
+.form-select:disabled,
+.form-textarea:disabled {
+  background: #f8f9fa;
+  cursor: not-allowed;
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.6;
+}
+
+.form-select {
+  cursor: pointer;
+  background-color: white;
+}
+
+/* 글자수 카운터 */
+.char-count {
+  font-size: 12px;
+  color: #999;
+  text-align: right;
+  margin-top: 4px;
+}
+
+/* 폼 힌트 */
+.form-hint {
+  font-size: 13px;
+  color: #666;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+/* 오류 메시지 */
+.error-message {
+  font-size: 13px;
+  color: #e74c3c;
+  margin-top: 6px;
+}
+
+/* 버튼 영역 */
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.cancel-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #6c757d;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.cancel-btn:hover {
+  background: #5a6268;
+}
+
+.submit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 32px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: #45a049;
+}
+
+.submit-btn:disabled {
+  background: #95a5a6;
+  cursor: not-allowed;
+}
+
+.submit-btn .fa-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .ttontok-write-container {
+    padding: 20px 10px;
+  }
+
+  .write-header {
+    padding: 20px 20px 15px;
+  }
+
+  .write-title {
+    font-size: 24px;
+  }
+
+  .write-subtitle {
+    font-size: 14px;
+  }
+
+  .write-form {
+    padding: 20px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-label {
+    font-size: 15px;
+  }
+
+  .form-input,
+  .form-select,
+  .form-textarea {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 30px;
+  }
+
+  .cancel-btn,
+  .submit-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 24px;
+  }
+
+  .submit-btn {
+    order: -1;
+  }
+}
+
+/* 접근성 개선 */
+@media (prefers-reduced-motion: reduce) {
+  .form-input,
+  .form-select,
+  .form-textarea,
+  .cancel-btn,
+  .submit-btn {
+    transition: none;
+  }
+
+  .submit-btn .fa-spinner {
+    animation: none;
+  }
+}
+
+/* 고대비 모드 지원 */
+@media (prefers-contrast: high) {
+  .form-input,
+  .form-select,
+  .form-textarea {
+    border-width: 2px;
+  }
+
+  .form-input:focus,
+  .form-select:focus,
+  .form-textarea:focus {
+    border-width: 3px;
+  }
+}

@@ -1,0 +1,166 @@
+.admin-container {
+  padding: 2.5rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.admin-login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+}
+
+.admin-login-form {
+  width: min(360px, 100%);
+  padding: 2rem;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.admin-login-form h1 {
+  margin: 0;
+  font-size: 1.45rem;
+  font-weight: 600;
+  text-align: center;
+  color: #0f172a;
+}
+
+.admin-login-form p {
+  margin: 0;
+  text-align: center;
+  color: #4b5563;
+  font-size: 0.95rem;
+}
+
+.admin-login-form input {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.95rem;
+}
+
+.admin-login-form input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+.admin-login-form button {
+  padding: 0.85rem;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.admin-login-form button:disabled {
+  background: #93c5fd;
+  cursor: wait;
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-header h1 {
+  margin: 0;
+  font-size: 1.6rem;
+  color: #0f172a;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.admin-actions .btn-create,
+.admin-actions .btn-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.1rem;
+  border-radius: 10px;
+  border: none;
+  font-weight: 500;
+  background: #1d4ed8;
+  color: #fff;
+}
+
+.admin-actions .btn-refresh {
+  background: #475569;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.95rem;
+}
+
+.admin-table th {
+  background: #f1f5f9;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-edit,
+.btn-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: none;
+  background: #e2e8f0;
+  color: #1f2937;
+  cursor: pointer;
+}
+
+.btn-delete {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.error-message {
+  color: #b91c1c;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+@media (max-width: 960px) {
+  .admin-table-wrapper {
+    overflow-x: auto;
+  }
+
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
