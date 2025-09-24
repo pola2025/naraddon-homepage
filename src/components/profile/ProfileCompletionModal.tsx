@@ -149,15 +149,15 @@ export default function ProfileCompletionModal({
           </div>
 
           <div className="p-6">
-            <p className="text-sm text-gray-700 mb-6 font-medium">
+            <p className="text-sm text-gray-900 mb-6 font-semibold">
               나라똔 서비스를 원활하게 이용하시려면 필수 정보를 모두 입력해주세요.
-              사업자 번호는 반드시 검증이 필요합니다.
+              <span className="text-blue-600">사업자 번호는 반드시 검증이 필요합니다.</span>
             </p>
 
             <div className="space-y-4">
               {/* 닉네임 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-900 mb-1">
                   닉네임 <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -171,7 +171,7 @@ export default function ProfileCompletionModal({
 
               {/* 회사명 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-900 mb-1">
                   회사명 (상호명) <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -185,7 +185,7 @@ export default function ProfileCompletionModal({
 
               {/* 사업자 번호 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-900 mb-1">
                   사업자 번호 <span className="text-red-500">*</span>
                 </label>
                 <div className="flex gap-2">
@@ -227,7 +227,7 @@ export default function ProfileCompletionModal({
 
               {/* 사업장 주소 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-900 mb-1">
                   사업장 주소 <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -241,7 +241,7 @@ export default function ProfileCompletionModal({
 
               {/* 전화번호 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-900 mb-1">
                   전화번호
                 </label>
                 <input
@@ -256,21 +256,21 @@ export default function ProfileCompletionModal({
 
             {/* 진행 상태 표시 */}
             <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h3 className="text-sm font-semibold text-gray-800 mb-2">필수 입력 항목</h3>
+              <h3 className="text-sm font-bold text-blue-800 mb-2">필수 입력 항목</h3>
               <div className="space-y-1 text-sm">
-                <div className="flex items-center text-gray-700">
+                <div className="flex items-center text-gray-900 font-medium">
                   <span className={`inline-block w-4 h-4 mr-2 rounded-full ${formData.nickname ? 'bg-green-500' : 'bg-gray-400'}`} />
                   닉네임
                 </div>
-                <div className="flex items-center text-gray-700">
+                <div className="flex items-center text-gray-900 font-medium">
                   <span className={`inline-block w-4 h-4 mr-2 rounded-full ${formData.company ? 'bg-green-500' : 'bg-gray-400'}`} />
                   회사명
                 </div>
-                <div className="flex items-center text-gray-700">
+                <div className="flex items-center text-gray-900 font-medium">
                   <span className={`inline-block w-4 h-4 mr-2 rounded-full ${formData.businessNumber && verificationResult?.valid ? 'bg-green-500' : 'bg-gray-400'}`} />
                   사업자 번호 (검증 필수)
                 </div>
-                <div className="flex items-center text-gray-700">
+                <div className="flex items-center text-gray-900 font-medium">
                   <span className={`inline-block w-4 h-4 mr-2 rounded-full ${formData.businessAddress ? 'bg-green-500' : 'bg-gray-400'}`} />
                   사업장 주소
                 </div>
@@ -281,7 +281,7 @@ export default function ProfileCompletionModal({
           <div className="flex justify-between items-center p-6 border-t bg-gray-50">
             <button
               onClick={handleTemporaryDismiss}
-              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+              className="px-4 py-2 text-sm text-gray-700 font-medium hover:text-gray-900"
             >
               나중에 하기 (24시간 후 재알림)
             </button>
