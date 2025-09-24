@@ -124,11 +124,10 @@ export interface BusinessVerification {
 
 // 프로필 완성도 체크
 export function isProfileComplete(profile: UserProfile): boolean {
+  // 닉네임과 회사명만 필수
+  // 사업자 정보는 선택사항 (예비창업회원 고려)
   return Boolean(
     profile.nickname &&
-    profile.company &&
-    profile.businessNumber &&
-    profile.businessAddress &&
-    profile.businessVerified
+    profile.company
   );
 }

@@ -29,15 +29,17 @@ export default function ProfileCompletionModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [canDismiss, setCanDismiss] = useState(false);
 
-  // 필수 필드 체크
+  // 필수 필드 체크 - 사업자 정보는 선택사항
   const isComplete = () => {
-    return Boolean(
-      formData.nickname &&
-      formData.company &&
-      formData.businessNumber &&
-      formData.businessAddress &&
-      verificationResult?.valid
-    );
+    // 닉네임과 회사명만 필수
+    // 사업자 번호를 입력한 경우에만 검증 필요
+    const hasRequiredFields = Boolean(formData.nickname && formData.company);
+
+    // 사업자 번호를 입력한 경우 검증도 완료되어야 함
+    const isBusinessInfoValid = !formData.businessNumber ||
+                                (formData.businessNumber && verificationResult?.valid);
+
+    return hasRequiredFields && isBusinessInfoValid;
   };
 
   // 사업자 번호 포맷팅 (XXX-XX-XXXXX)
@@ -150,8 +152,8 @@ export default function ProfileCompletionModal({
 
           <div className="p-6">
             <p className="text-sm text-gray-900 mb-6 font-semibold">
-              나라똔 서비스를 원활하게 이용하시려면 필수 정보를 모두 입력해주세요.
-              <span className="text-blue-600">사업자 번호는 반드시 검증이 필요합니다.</span>
+              나라똔 서비스를 원활하게 이용하시려면 필수 정보를 입력해주세요.
+              <span className="text-blue-600">사업자 정보가 없으신 분은 예비창업회원으로 등록됩니다.</span>
             </p>
 
             <div className="space-y-4">
@@ -186,7 +188,7 @@ export default function ProfileCompletionModal({
               {/* 사업자 번호 */}
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-1">
-                  사업자 번호 <span className="text-red-500">*</span>
+                  사업자 번호 <span className="text-gray-500">(선택)</span>
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -228,7 +230,7 @@ export default function ProfileCompletionModal({
               {/* 사업장 주소 */}
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-1">
-                  사업장 주소 <span className="text-red-500">*</span>
+                  사업장 주소 <span className="text-gray-500">(선택)</span>
                 </label>
                 <input
                   type="text"
@@ -256,7 +258,7 @@ export default function ProfileCompletionModal({
 
             {/* 진행 상태 표시 */}
             <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h3 className="text-sm font-bold text-blue-800 mb-2">필수 입력 항목</h3>
+              <h3 className="text-sm font-bold text-blue-800 mb-2">회원 등급</h3>
               <div className="space-y-1 text-sm">
                 <div className="flex items-center text-gray-900 font-medium">
                   <span className={`inline-block w-4 h-4 mr-2 rounded-full ${formData.nickname ? 'bg-green-500' : 'bg-gray-400'}`} />
@@ -267,12 +269,8 @@ export default function ProfileCompletionModal({
                   회사명
                 </div>
                 <div className="flex items-center text-gray-900 font-medium">
-                  <span className={`inline-block w-4 h-4 mr-2 rounded-full ${formData.businessNumber && verificationResult?.valid ? 'bg-green-500' : 'bg-gray-400'}`} />
-                  사업자 번호 (검증 필수)
-                </div>
-                <div className="flex items-center text-gray-900 font-medium">
-                  <span className={`inline-block w-4 h-4 mr-2 rounded-full ${formData.businessAddress ? 'bg-green-500' : 'bg-gray-400'}`} />
-                  사업장 주소
+                  <span className={`inline-block w-4 h-4 mr-2 rounded-full ${formData.businessNumber && verificationResult?.valid ? 'bg-blue-500' : 'bg-gray-400'}`} />
+                  {formData.businessNumber && verificationResult?.valid ? '사업자 회원' : '예비창업 회원'}
                 </div>
               </div>
             </div>

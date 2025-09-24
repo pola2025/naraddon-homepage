@@ -211,7 +211,12 @@ export default function ProfileCard({
           <CalendarIcon className="h-5 w-5 text-gray-400 mr-3" />
           <span className="text-gray-600">가입일:</span>
           <span className="ml-2 text-gray-900">
-            {new Date(user.createdAt).toLocaleDateString('ko-KR')}
+            {(() => {
+              const date = new Date(user.createdAt);
+              return isNaN(date.getTime())
+                ? '날짜 정보 없음'
+                : date.toLocaleDateString('ko-KR');
+            })()}
           </span>
         </div>
 
@@ -220,7 +225,12 @@ export default function ProfileCard({
             <ArrowPathIcon className="h-5 w-5 text-gray-400 mr-3" />
             <span className="text-gray-600">최근 접속:</span>
             <span className="ml-2 text-gray-900">
-              {new Date(user.lastLoginAt).toLocaleDateString('ko-KR')}
+              {(() => {
+                const date = new Date(user.lastLoginAt);
+                return isNaN(date.getTime())
+                  ? '날짜 정보 없음'
+                  : date.toLocaleDateString('ko-KR');
+              })()}
             </span>
           </div>
         )}

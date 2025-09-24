@@ -73,7 +73,8 @@ export default function MyPage() {
       if (userData.error) {
         // 에러 처리
         console.error('Failed to fetch user data:', userData.error);
-        // 세션 정보로 fallback
+        // 세션 정보로 fallback - 현재 시간으로 설정
+        const now = new Date();
         const sessionUser: User = {
           id: session?.user?.email || '',
           email: session?.user?.email || '',
@@ -85,16 +86,22 @@ export default function MyPage() {
           profile: {
             phone: (session?.user as any)?.mobile || '',
           },
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          lastLoginAt: new Date()
+          createdAt: now,
+          updatedAt: now,
+          lastLoginAt: now
         };
         setUser(sessionUser);
         // 신규 가입자는 프로필 완성 모달 표시하지 않음
         setShowProfileAlert(false);
         setShowCompletionModal(false);
       } else {
-        // DB에서 가져온 데이터 사용
+        // DB에서 가져온 데이터 사용 - 날짜 안전하게 처리
+        const safeDate = (dateValue: any) => {
+          if (!dateValue) return new Date();
+          const parsed = new Date(dateValue);
+          return isNaN(parsed.getTime()) ? new Date() : parsed;
+        };
+
         const user: User = {
           id: userData._id || userData.email,
           email: userData.email,
@@ -104,9 +111,9 @@ export default function MyPage() {
           status: UserStatus.ACTIVE,
           provider: userData.provider || 'naver',
           profile: userData.profile || {},
-          createdAt: new Date(userData.createdAt),
-          updatedAt: new Date(userData.updatedAt),
-          lastLoginAt: new Date(userData.lastLoginAt)
+          createdAt: safeDate(userData.createdAt),
+          updatedAt: safeDate(userData.updatedAt),
+          lastLoginAt: safeDate(userData.lastLoginAt)
         };
         setUser(user);
 
