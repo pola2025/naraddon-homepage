@@ -22,13 +22,26 @@ const requiredEnvVars = {
   NAVER_CLIENT_SECRET: process.env.NAVER_CLIENT_SECRET,
 };
 
-// 프로덕션에서만 검증
-if (process.env.NODE_ENV === 'production') {
-  for (const [key, value] of Object.entries(requiredEnvVars)) {
-    if (!value) {
-      console.error(`Missing required environment variable: ${key}`);
-    }
+// 환경변수 검증 및 로깅
+const missingVars = [];
+for (const [key, value] of Object.entries(requiredEnvVars)) {
+  if (!value) {
+    missingVars.push(key);
+    console.error(`❌ Missing required environment variable: ${key}`);
+  } else {
+    // 보안을 위해 일부만 로깅
+    const maskedValue = key.includes('SECRET')
+      ? '***'
+      : value.length > 10
+        ? `${value.substring(0, 5)}...`
+        : value;
+    console.log(`✅ ${key} is set: ${maskedValue}`);
   }
+}
+
+// 필수 환경변수가 없으면 에러 throw
+if (missingVars.length > 0 && process.env.NODE_ENV === 'production') {
+  throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
 }
 
 // --- Naver Provider (Custom OAuth2) ---
@@ -356,11 +369,18 @@ export const authOptions: NextAuthOptions = {
 let handler;
 try {
   handler = NextAuth(authOptions);
-} catch (error) {
+} catch (error: any) {
   console.error('NextAuth initialization error:', error);
-  // 에러 발생 시 기본 응답 반환
+  // 에러 발생 시 자세한 에러 정보 포함
   handler = async (req: any, res: any) => {
-    return new Response(JSON.stringify({ error: 'Authentication service error' }), {
+    const errorMessage = process.env.NODE_ENV === 'production'
+      ? 'Authentication service error'
+      : `NextAuth Error: ${error?.message || 'Unknown error'}`;
+
+    return new Response(JSON.stringify({
+      error: errorMessage,
+      details: process.env.NODE_ENV === 'production' ? undefined : error?.toString()
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
