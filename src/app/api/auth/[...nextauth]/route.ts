@@ -4,6 +4,23 @@ import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
 import clientPromise from '@/lib/mongodb-client';
 import crypto from 'crypto';
 
+// 환경변수 검증
+const requiredEnvVars = {
+  NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+  NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+  NAVER_CLIENT_ID: process.env.NAVER_CLIENT_ID,
+  NAVER_CLIENT_SECRET: process.env.NAVER_CLIENT_SECRET,
+};
+
+// 프로덕션에서만 검증
+if (process.env.NODE_ENV === 'production') {
+  for (const [key, value] of Object.entries(requiredEnvVars)) {
+    if (!value) {
+      console.error(`Missing required environment variable: ${key}`);
+    }
+  }
+}
+
 // --- Naver Provider (Custom OAuth2) ---
 const NaverProvider: OAuthConfig<any> = {
   id: 'naver',
@@ -64,7 +81,8 @@ const KakaoProvider: OAuthConfig<any> = {
 };
 
 export const authOptions: NextAuthOptions = {
-  adapter: MongoDBAdapter(clientPromise),
+  // MongoDB adapter는 선택적으로 사용
+  ...(process.env.MONGODB_URI ? { adapter: MongoDBAdapter(clientPromise) } : {}),
   providers: [
     NaverProvider,
     KakaoProvider,
@@ -108,10 +126,17 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, account, profile }) {
       try {
-        // MongoDB 클라이언트 가져오기
-        const client = await clientPromise;
-        const db = client.db('naraddon');
-        const usersCollection = db.collection('users');
+        // MongoDB 연결 확인
+        let usersCollection;
+        try {
+          const client = await clientPromise;
+          const db = client.db('naraddon');
+          usersCollection = db.collection('users');
+        } catch (dbError) {
+          console.error('MongoDB connection error in signIn:', dbError);
+          // DB 연결 실패해도 로그인은 허용 (JWT 세션 사용)
+          return true;
+        }
 
         // 네이버 로그인 시 자동 회원가입 처리
         if (account?.provider === 'naver') {
@@ -250,7 +275,7 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token, user, account, profile }) {
       // 블랙리스트 체크는 새로운 로그인 시에만 수행
-      if (token?.email && !account) {
+      if (token?.email && !account && process.env.MONGODB_URI) {
         try {
           const client = await clientPromise;
           const db = client.db('naraddon');
@@ -310,8 +335,20 @@ export const authOptions: NextAuthOptions = {
   debug: false, // 프로덕션에서는 비활성화
 };
 
-// NextAuth 핸들러 생성
-const handler = NextAuth(authOptions);
+// NextAuth 핸들러 생성 - try-catch로 에러 핸들링
+let handler;
+try {
+  handler = NextAuth(authOptions);
+} catch (error) {
+  console.error('NextAuth initialization error:', error);
+  // 에러 발생 시 기본 응답 반환
+  handler = async (req: any, res: any) => {
+    return new Response(JSON.stringify({ error: 'Authentication service error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  };
+}
 
 // GET과 POST 모두 동일한 핸들러 사용
 export { handler as GET, handler as POST };
