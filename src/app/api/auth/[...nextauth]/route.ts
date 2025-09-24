@@ -1,7 +1,17 @@
 import NextAuth, { NextAuthOptions } from 'next-auth';
 import type { OAuthConfig } from 'next-auth/providers';
-import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
-import clientPromise from '@/lib/mongodb-client';
+// MongoDB adapter는 조건부로 import
+let MongoDBAdapter: any = null;
+let clientPromise: any = null;
+
+try {
+  if (process.env.MONGODB_URI) {
+    MongoDBAdapter = require('@next-auth/mongodb-adapter').MongoDBAdapter;
+    clientPromise = require('@/lib/mongodb-client').default;
+  }
+} catch (error) {
+  console.error('MongoDB setup error:', error);
+}
 import crypto from 'crypto';
 
 // 환경변수 검증
@@ -81,8 +91,8 @@ const KakaoProvider: OAuthConfig<any> = {
 };
 
 export const authOptions: NextAuthOptions = {
-  // MongoDB adapter는 선택적으로 사용
-  ...(process.env.MONGODB_URI ? { adapter: MongoDBAdapter(clientPromise) } : {}),
+  // MongoDB adapter는 조건부로 사용
+  ...(MongoDBAdapter && clientPromise ? { adapter: MongoDBAdapter(clientPromise) } : {}),
   providers: [
     NaverProvider,
     KakaoProvider,
@@ -125,6 +135,12 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ user, account, profile }) {
+      // MongoDB가 없으면 바로 로그인 허용
+      if (!clientPromise) {
+        console.log('MongoDB not configured, using JWT-only session');
+        return true;
+      }
+
       try {
         // MongoDB 연결 확인
         let usersCollection;
@@ -274,20 +290,21 @@ export const authOptions: NextAuthOptions = {
       return true; // 자동으로 로그인 승인
     },
     async jwt({ token, user, account, profile }) {
-      // 블랙리스트 체크는 새로운 로그인 시에만 수행
-      if (token?.email && !account && process.env.MONGODB_URI) {
+      // 블랙리스트 체크는 MongoDB가 있고 새로운 로그인이 아닐 때만 수행
+      if (token?.email && !account && clientPromise) {
         try {
           const client = await clientPromise;
-          const db = client.db('naraddon');
+          if (client) {
+            const db = client.db('naraddon');
+            const blacklisted = await db.collection('blacklisted_tokens').findOne({
+              email: token.email,
+              blacklistedAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+            });
 
-          const blacklisted = await db.collection('blacklisted_tokens').findOne({
-            email: token.email,
-            blacklistedAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
-          });
-
-          if (blacklisted) {
-            // 블랙리스트에 있으면 토큰 무효화
-            return null;
+            if (blacklisted) {
+              // 블랙리스트에 있으면 토큰 무효화
+              return null;
+            }
           }
         } catch (error) {
           console.error('Blacklist check error in JWT callback:', error);
