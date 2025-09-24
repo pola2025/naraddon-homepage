@@ -130,12 +130,18 @@ export async function POST(request: NextRequest) {
 
     const result = data.data[0];
 
-    // b_stt: "01" = 계속사업자, "02" = 휴업자, "03" = 폐업자
-    const isValid = result.b_stt === '01';
+    // API가 반환하는 값이 숫자 코드일 수도 있고 한글일 수도 있음
+    // b_stt: "01" 또는 "계속사업자", "02" 또는 "휴업자", "03" 또는 "폐업자"
+    const businessStatus = result.b_stt || result.b_stt_cd;
+    const isValid = businessStatus === '01' || businessStatus === '계속사업자';
+
     const statusMap: Record<string, string> = {
       '01': '계속사업자',
       '02': '휴업자',
-      '03': '폐업자'
+      '03': '폐업자',
+      '계속사업자': '계속사업자',
+      '휴업자': '휴업자',
+      '폐업자': '폐업자'
     };
 
     // tax_type: "01" = 부가가치세 일반과세자, "02" = 면세사업자, "03" = 간이과세자 등
@@ -151,10 +157,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       valid: isValid,
       businessNumber: businessNumber,
-      businessStatus: statusMap[result.b_stt] || '알 수 없음',
-      taxType: taxTypeMap[result.tax_type] || '알 수 없음',
+      businessStatus: statusMap[businessStatus] || businessStatus || '알 수 없음',
+      taxType: taxTypeMap[result.tax_type] || result.tax_type_nm || '알 수 없음',
       closeDate: result.end_dt || null,
-      message: isValid ? '유효한 사업자 번호입니다.' : `사업자 상태: ${statusMap[result.b_stt] || '확인 불가'}`
+      message: isValid ? '유효한 사업자 번호입니다.' : `사업자 상태: ${statusMap[businessStatus] || businessStatus || '확인 불가'}`
     });
 
   } catch (error) {
