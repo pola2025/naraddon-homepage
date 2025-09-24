@@ -105,6 +105,13 @@ export const authOptions: NextAuthOptions = {
     },
     async signIn({ user, account, profile }) {
       try {
+        console.log('SignIn attempt:', {
+          provider: account?.provider,
+          hasAccount: !!account,
+          hasProfile: !!profile,
+          hasUser: !!user
+        });
+
         if (!account || !profile) {
           console.error('SignIn error: Missing account or profile');
           return false;
@@ -112,12 +119,15 @@ export const authOptions: NextAuthOptions = {
 
         if (account.provider === 'naver') {
           const naverProfile = profile as any;
+          console.log('Naver profile structure:', JSON.stringify(naverProfile, null, 2));
+
           if (!naverProfile.response?.id) {
-            console.error('Invalid Naver profile data');
+            console.error('Invalid Naver profile data - missing response.id');
             return false;
           }
         }
 
+        console.log('SignIn successful for:', account.provider);
         return true;
       } catch (error) {
         console.error('SignIn callback error:', error);
