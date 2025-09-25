@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import PolicyAnalysisPost from '@/models/PolicyAnalysisPost';
-import ExaminerProfile from '@/models/ExaminerProfile';
+import ExpertExaminer from '@/models/ExpertExaminer';
 
 interface RouteParams {
   params: {
@@ -88,16 +88,16 @@ export async function PUT(request: Request, { params }: RouteParams) {
       let examiner = null;
 
       // 먼저 legacyKey로 조회 시도
-      examiner = await ExaminerProfile.findOne({ legacyKey: examinerKey }).lean();
+      examiner = await ExpertExaminer.findOne({ legacyKey: examinerKey }).lean();
 
       // legacyKey로 못찾으면 imageKey로 조회 시도
       if (!examiner) {
-        examiner = await ExaminerProfile.findOne({ imageKey: examinerKey }).lean();
+        examiner = await ExpertExaminer.findOne({ imageKey: examinerKey }).lean();
       }
 
       // imageKey로도 못찾으면 _id로 조회 시도
       if (!examiner && mongoose.Types.ObjectId.isValid(examinerKey)) {
-        examiner = await ExaminerProfile.findById(examinerKey).lean();
+        examiner = await ExpertExaminer.findById(examinerKey).lean();
       }
 
       if (!examiner) {

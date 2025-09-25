@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import PolicyAnalysisPost from '@/models/PolicyAnalysisPost';
-import ExaminerProfile from '@/models/ExaminerProfile';
-import crypto from 'crypto';
+import ExpertExaminer from '@/models/ExpertExaminer';
+import * as crypto from 'crypto';
 
 const ALLOWED_SORT_FIELDS: Record<string, Record<string, 1 | -1>> = {
   newest: { createdAt: -1 },
@@ -93,8 +93,13 @@ interface CreatePayload {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('[policy-analysis][POST] Request received');
+    console.log('[policy-analysis][POST] Headers:', request.headers.get('content-type'));
+    console.log('[policy-analysis][POST] Method:', request.method);
+
     const adminPassword = process.env.POLICY_ANALYSIS_PASSWORD;
     if (!adminPassword) {
+      console.error('[policy-analysis][POST] POLICY_ANALYSIS_PASSWORD not set');
       return NextResponse.json(
         { message: '정책분석 게시판 비밀번호가 설정되지 않았습니다.' },
         { status: 500 }
@@ -102,6 +107,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = (await request.json()) as CreatePayload;
+    console.log('[policy-analysis][POST] Body parsed:', {
+      title: body.title,
+      category: body.category,
+      examinerKey: body.examinerKey
+    });
     const {
       password,
       title,
@@ -140,23 +150,37 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: '인증된 기업심사관을 선택해주세요.' }, { status: 400 });
     }
 
+    console.log('[policy-analysis][POST] examinerKey received:', examinerKey);
+    console.log('[policy-analysis][POST] examinerKey is ObjectId valid?:', mongoose.Types.ObjectId.isValid(examinerKey));
+
     await connectDB();
 
-    // MongoDB에서 실제 examiner 조회 (legacyKey, imageKey 또는 _id로 조회)
+    // MongoDB에서 실제 examiner 조회
     let examiner = null;
 
-    // 먼저 legacyKey로 조회 시도
-    examiner = await ExaminerProfile.findOne({ legacyKey: examinerKey }).lean();
+    // 먼저 _id로 조회 시도
+    if (mongoose.Types.ObjectId.isValid(examinerKey)) {
+      try {
+        examiner = await ExpertExaminer.findById(examinerKey).lean();
+        console.log('[policy-analysis][POST] Found by _id:', examiner ? examiner.name : 'Not found');
+      } catch (error) {
+        console.log('[policy-analysis][POST] Error finding by _id:', error);
+      }
+    }
 
-    // legacyKey로 못찾으면 imageKey로 조회 시도
+    // _id가 유효하지 않거나 못찾으면 legacyKey로 조회 시도
     if (!examiner) {
-      examiner = await ExaminerProfile.findOne({ imageKey: examinerKey }).lean();
+      try {
+        examiner = await ExpertExaminer.findOne({ legacyKey: examinerKey }).lean();
+        console.log('[policy-analysis][POST] Found by legacyKey:', examiner ? examiner.name : 'Not found');
+      } catch (error) {
+        console.log('[policy-analysis][POST] Error finding by legacyKey:', error);
+      }
     }
 
-    // imageKey로도 못찾으면 _id로 조회 시도
-    if (!examiner && mongoose.Types.ObjectId.isValid(examinerKey)) {
-      examiner = await ExaminerProfile.findById(examinerKey).lean();
-    }
+    // 전체 examiner 수 확인 (디버깅용)
+    const totalExaminers = await ExpertExaminer.countDocuments();
+    console.log('[policy-analysis][POST] Total examiners in DB:', totalExaminers);
 
     if (!examiner) {
       return NextResponse.json(
@@ -202,17 +226,19 @@ export async function POST(request: NextRequest) {
       thumbnail: thumbnail?.trim() || '',
       images: normalizedImages,
       examiner: {
-        key: examiner.legacyKey || examiner.imageKey || examiner._id.toString(),
+        key: examiner.legacyKey || examiner._id.toString(),
         name: examiner.name,
         companyName: examiner.companyName || '',
       },
     });
 
+    console.log('[policy-analysis][POST] Post created successfully:', post._id);
     return NextResponse.json({ post }, { status: 201 });
   } catch (error) {
-    console.error('[policy-analysis][POST]', error);
+    console.error('[policy-analysis][POST] Error details:', error);
+    const errorMessage = error instanceof Error ? error.message : '정책분석 게시글을 저장하는 중 오류가 발생했습니다.';
     return NextResponse.json(
-      { message: '정책분석 게시글을 저장하는 중 오류가 발생했습니다.' },
+      { message: errorMessage, error: error instanceof Error ? error.stack : undefined },
       { status: 500 }
     );
   }

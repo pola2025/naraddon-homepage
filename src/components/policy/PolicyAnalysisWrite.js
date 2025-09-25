@@ -520,6 +520,95 @@ const PolicyAnalysisWrite = () => {
     return content;
   };
 
+  // 이미지 업로드 함수
+  const uploadImages = async () => {
+    const uploadedImages = [];
+
+    for (const image of formData.images) {
+      if (image.file) {
+        const formData = new FormData();
+        formData.append('file', image.file);
+        formData.append('password', password.trim());
+
+        try {
+          const response = await fetch('/api/policy-analysis/uploads', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            uploadedImages.push({
+              url: result.fileUrl,
+              name: image.name || image.file.name,
+              caption: image.caption || '',
+            });
+          } else {
+            console.error('이미지 업로드 실패:', image.name);
+            // base64 폴백
+            uploadedImages.push({
+              url: image.url,
+              name: image.name || '',
+              caption: image.caption || '',
+            });
+          }
+        } catch (error) {
+          console.error('이미지 업로드 오류:', error);
+          // base64 폴백
+          uploadedImages.push({
+            url: image.url,
+            name: image.name || '',
+            caption: image.caption || '',
+          });
+        }
+      } else {
+        // 이미 업로드된 URL
+        uploadedImages.push({
+          url: image.url,
+          name: image.name || '',
+          caption: image.caption || '',
+        });
+      }
+    }
+
+    return uploadedImages;
+  };
+
+  // 게시글 삭제 핸들러
+  const handleDeletePost = async (postId) => {
+    if (!confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
+      return;
+    }
+
+    const password = prompt('게시글 비밀번호를 입력해주세요.');
+    if (!password) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/policy-analysis/${postId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        alert(result?.message || '게시글 삭제에 실패했습니다.');
+        return;
+      }
+
+      alert('게시글이 삭제되었습니다.');
+      // 목록 새로고침
+      fetchRecentPosts();
+    } catch (error) {
+      console.error('정책분석 삭제 오류', error);
+      alert('삭제 처리 중 오류가 발생했습니다.');
+    }
+  };
+
   // 폼 제출 핸들러
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -579,28 +668,27 @@ ${missingSections.join(', ')}`);
       .trim()
       .slice(0, 140);
 
-    const imagesPayload = formData.images.map((image, index) => ({
-      url: image.url,
-      name: image.name || `image-${index + 1}`,
-      caption: image.caption || '',
-    }));
-
-    const payload = {
-      password: password.trim(),
-      title: formData.title.trim(),
-      category: formData.category,
-      excerpt,
-      content: finalContent,
-      isStructured: formData.useStructured,
-      sections: structuredSections,
-      tags,
-      thumbnail: formData.images[formData.thumbnailIndex]?.url || '',
-      images: imagesPayload,
-      examinerKey: formData.examinerKey,
-    };
-
     try {
       setIsSubmitting(true);
+
+      // 이미지 업로드
+      const uploadedImages = await uploadImages();
+      const thumbnailUrl = uploadedImages[formData.thumbnailIndex]?.url || '';
+
+      const payload = {
+        password: password.trim(),
+        title: formData.title.trim(),
+        category: formData.category,
+        excerpt,
+        content: finalContent,
+        isStructured: formData.useStructured,
+        sections: structuredSections,
+        tags,
+        thumbnail: thumbnailUrl,
+        images: uploadedImages,
+        examinerKey: formData.examinerKey,
+      };
+
       const response = await fetch('/api/policy-analysis', {
         method: 'POST',
         headers: {
@@ -897,11 +985,27 @@ ${missingSections.join(', ')}`);
                             <div className="post-actions">
                               <button
                                 type="button"
-                                className="btn-edit-post"
+                                className="btn-view-post"
                                 onClick={() => router.push(`/policy-analysis/${post._id || post.id}`)}
                                 title="보기"
                               >
                                 <i className="fas fa-eye"></i>
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-edit-post"
+                                onClick={() => router.push(`/policy-analysis/${post._id || post.id}/edit`)}
+                                title="수정"
+                              >
+                                <i className="fas fa-edit"></i>
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-delete-post"
+                                onClick={() => handleDeletePost(post._id || post.id)}
+                                title="삭제"
+                              >
+                                <i className="fas fa-trash"></i>
                               </button>
                             </div>
                           </td>

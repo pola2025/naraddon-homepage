@@ -154,9 +154,9 @@ export async function POST(request: NextRequest) {
         ContentType: file.type || 'application/octet-stream',
         CacheControl: CACHE_CONTROL_IMMUTABLE,
         Metadata: {
-          'original-name': file.name,
+          'originalname': encodeURIComponent(file.name),
           checksum,
-          'cdn-url': cdnUrl,
+          'cdnurl': cdnUrl,
         },
       })
     );
