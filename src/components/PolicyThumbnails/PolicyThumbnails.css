@@ -137,7 +137,7 @@
 .thumbnail-image-wrapper {
   position: relative;
   width: 100%;
-  height: 200px;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
   background: #f0f0f0;
 }
@@ -264,23 +264,68 @@
 }
 
 .category-tag {
-  display: inline-flex;
+  display: inline-flex !important;
   align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  background: #f0f2f5;
-  border-radius: 15px;
+  gap: 4px;
+  padding: 3px 8px !important;
+  border-radius: 10px;
   margin-bottom: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  width: auto !important;
+  max-width: fit-content !important;
 }
 
 .category-icon {
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .category-name {
-  font-size: 12px;
-  font-weight: 500;
-  color: #666;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* 카테고리별 색상 */
+.category-tag[data-category="funding"] {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.category-tag[data-category="support"] {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.category-tag[data-category="startup"] {
+  background: rgba(251, 146, 60, 0.1);
+  color: #ea580c;
+}
+
+.category-tag[data-category="rnd"] {
+  background: rgba(147, 51, 234, 0.1);
+  color: #7c3aed;
+}
+
+.category-tag[data-category="policy"] {
+  background: rgba(236, 72, 153, 0.1);
+  color: #db2777;
+}
+
+.category-tag[data-category="정부지원"] {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+}
+
+.category-tag[data-category="지역정책"] {
+  background: rgba(250, 204, 21, 0.1);
+  color: #ca8a04;
+}
+
+.category-tag[data-category="중소기업"] {
+  background: rgba(99, 102, 241, 0.1);
+  color: #4f46e5;
 }
 
 .thumbnail-title {
@@ -289,10 +334,9 @@
   color: #2c3e50;
   margin-bottom: 12px;
   line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   transition: color 0.3s ease;
 }
 
@@ -366,9 +410,178 @@
   display: grid;
 }
 
-/* 모바일 리스트는 기본 숨김 */
-.mobile-list {
+/* 모바일 썸네일 컨테이너는 기본 숨김 */
+.mobile-thumbnails-container {
   display: none;
+  position: relative;
+}
+
+/* 모바일 슬라이더 화살표 */
+.mobile-slider-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  color: #333;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+}
+
+.mobile-slider-arrow:hover {
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.mobile-slider-arrow-left {
+  left: -18px;
+}
+
+.mobile-slider-arrow-right {
+  right: -18px;
+}
+
+/* 모바일 썸네일 슬라이더 스타일 */
+.mobile-thumbnails-slider {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  padding-bottom: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-thumbnails-slider::-webkit-scrollbar {
+  height: 6px;
+}
+
+.mobile-thumbnails-slider::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+.mobile-thumbnails-slider::-webkit-scrollbar-thumb {
+  background: rgba(102, 126, 234, 0.5);
+  border-radius: 10px;
+}
+
+.mobile-thumbnail-item {
+  flex: 0 0 280px;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease;
+  text-decoration: none;
+  scroll-snap-align: start;
+}
+
+.mobile-thumbnail-item:active {
+  transform: scale(0.98);
+}
+
+.mobile-thumbnail-image-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.mobile-thumbnail-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mobile-thumbnail-info {
+  padding: 16px;
+}
+
+.mobile-category-tag {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px !important;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  width: auto !important;
+  max-width: fit-content !important;
+}
+
+/* 모바일 카테고리별 색상 */
+.mobile-category-tag[data-category="funding"] {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.mobile-category-tag[data-category="support"] {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.mobile-category-tag[data-category="startup"] {
+  background: rgba(251, 146, 60, 0.1);
+  color: #ea580c;
+}
+
+.mobile-category-tag[data-category="rnd"] {
+  background: rgba(147, 51, 234, 0.1);
+  color: #7c3aed;
+}
+
+.mobile-category-tag[data-category="policy"] {
+  background: rgba(236, 72, 153, 0.1);
+  color: #db2777;
+}
+
+.mobile-category-tag[data-category="정부지원"] {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+}
+
+.mobile-category-tag[data-category="지역정책"] {
+  background: rgba(250, 204, 21, 0.1);
+  color: #ca8a04;
+}
+
+.mobile-category-tag[data-category="중소기업"] {
+  background: rgba(99, 102, 241, 0.1);
+  color: #4f46e5;
+}
+
+.mobile-thumbnail-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.mobile-thumbnail-meta {
+  font-size: 12px;
+  color: #999;
+}
+
+.mobile-thumbnail-date {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 /* 모바일 리스트 스타일 */
@@ -447,9 +660,9 @@
     display: none;
   }
 
-  /* 모바일 리스트 표시 */
-  .mobile-list {
-    display: flex;
+  /* 모바일 썸네일 컨테이너 표시 */
+  .mobile-thumbnails-container {
+    display: block;
   }
   .thumbnails-header {
     flex-direction: column;

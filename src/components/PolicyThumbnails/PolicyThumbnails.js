@@ -90,7 +90,7 @@ const PolicyThumbnails = () => {
               </div>
 
               <div className="thumbnail-info">
-                <div className="category-tag">
+                <div className="category-tag" data-category={item.category}>
                   <span className="category-icon">{categoryIconMap[item.category] || '📌'}</span>
                   <span className="category-name">{categoryLabelMap[item.category] || item.category}</span>
                 </div>
@@ -110,23 +110,63 @@ const PolicyThumbnails = () => {
           ))}
         </div>
 
-        {/* 모바일 리스트 뷰 */}
-        <div className="thumbnails-list mobile-list">
-          {thumbnails.map((item) => (
-            <Link key={item.id} href={`/policy-analysis?id=${item.id}`} className="list-item-mobile">
-              <div className="list-item-date">
-                {item.dateText || item.createdAt}
-              </div>
-              <div className="list-item-category">
-                <span className="category-badge-mobile">
-                  {categoryLabelMap[item.category] || item.category}
-                </span>
-              </div>
-              <div className="list-item-title">
-                {item.title}
-              </div>
-            </Link>
-          ))}
+        {/* 모바일 썸네일 슬라이드 뷰 */}
+        <div className="mobile-thumbnails-container">
+          <button
+            className="mobile-slider-arrow mobile-slider-arrow-left"
+            onClick={() => {
+              const slider = document.querySelector('.mobile-thumbnails-slider');
+              if (slider) {
+                slider.scrollBy({ left: -300, behavior: 'smooth' });
+              }
+            }}
+            aria-label="이전"
+          >
+            <i className="fas fa-chevron-left" />
+          </button>
+          <div className="mobile-thumbnails-slider">
+            {thumbnails.map((item) => (
+              <Link key={item.id} href={`/policy-analysis?id=${item.id}`} className="mobile-thumbnail-item">
+                <div className="mobile-thumbnail-image-wrapper">
+                  <img src={item.thumbnail} alt={item.title} className="mobile-thumbnail-image" />
+                  {item.isPinned ? (
+                    <div className="pinned-badge">
+                      <i className="fas fa-thumbtack" />
+                    </div>
+                  ) : null}
+                  {item.badge ? (
+                    <div className={`thumbnail-badge badge-${badgeClassMap[item.badge] || 'default'}`}>
+                      {item.badge}
+                    </div>
+                  ) : null}
+                </div>
+                <div className="mobile-thumbnail-info">
+                  <div className="mobile-category-tag" data-category={item.category}>
+                    <span className="category-icon">{categoryIconMap[item.category] || '📌'}</span>
+                    <span className="category-name">{categoryLabelMap[item.category] || item.category}</span>
+                  </div>
+                  <h3 className="mobile-thumbnail-title">{item.title}</h3>
+                  <div className="mobile-thumbnail-meta">
+                    <span className="mobile-thumbnail-date">
+                      <i className="far fa-calendar" /> {item.dateText || item.createdAt}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <button
+            className="mobile-slider-arrow mobile-slider-arrow-right"
+            onClick={() => {
+              const slider = document.querySelector('.mobile-thumbnails-slider');
+              if (slider) {
+                slider.scrollBy({ left: 300, behavior: 'smooth' });
+              }
+            }}
+            aria-label="다음"
+          >
+            <i className="fas fa-chevron-right" />
+          </button>
         </div>
       </>
     );
