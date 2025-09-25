@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { FiCheckCircle } from 'react-icons/fi';
 import PolicyNewsSection from '../PolicyNewsSection/PolicyNewsSection';
 import './PolicyAnalysis.css';
 
@@ -185,7 +186,7 @@ const PolicyAnalysis = () => {
   const [posts, setPosts] = useState([]);
   const [topPosts, setTopPosts] = useState([]);
   const [currentTopIndex, setCurrentTopIndex] = useState(0);
-  const [searchTerm, setSearchTerm] = useState('');
+  // const [searchTerm, setSearchTerm] = useState(''); // 검색 기능 제거
   const [visiblePosts, setVisiblePosts] = useState(5);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState('');
@@ -194,10 +195,19 @@ const PolicyAnalysis = () => {
   const [writePasswordError, setWritePasswordError] = useState('');
   const [isVerifyingWritePassword, setIsVerifyingWritePassword] = useState(false);
   const [isWriteAuthorized, setIsWriteAuthorized] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     // body에 클래스 추가 제거 - 높이 문제 해결
     // document.body.classList.add('page-policy-analysis');
+
+    // 모바일 감지
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
 
     if (typeof window !== 'undefined') {
       if (sessionStorage.getItem('policyAnalysisAuthorized') === 'true') {
@@ -224,6 +234,10 @@ const PolicyAnalysis = () => {
     };
 
     void checkExistingAccess();
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
   }, []);
 
   useEffect(() => {
@@ -323,20 +337,13 @@ const PolicyAnalysis = () => {
     setVisiblePosts(5);
   }, [posts.length]);
 
-  useEffect(() => {
-    setVisiblePosts(5);
-  }, [searchTerm]);
+  // 검색 기능 제거로 인한 useEffect 제거
+  // useEffect(() => {
+  //   setVisiblePosts(5);
+  // }, [searchTerm]);
 
-  const filteredPosts = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
-
-    return posts.filter((post) => {
-      if (!normalizedSearch) {
-        return true;
-      }
-      return post.searchText.includes(normalizedSearch);
-    });
-  }, [posts, searchTerm]);
+  // 검색 기능 제거 - 모든 posts를 표시
+  const filteredPosts = posts;
 
   const mainTopPosts = useMemo(() => topPosts.slice(0, 5), [topPosts]);
   const indicatorCount = mainTopPosts.length;
@@ -539,25 +546,6 @@ const PolicyAnalysis = () => {
         <PolicyNewsSection />
       </section>
 
-      <div className="analysis-section-header">
-        <button className="analysis-section__write-button" onClick={handleWriteClick} type="button">
-          <i className="fas fa-pen"></i>
-          <span>정책분석 작성</span>
-        </button>
-      </div>
-
-      <div className="search-section">
-        <div className="search-box">
-          <i className="fas fa-search"></i>
-          <input
-            type="text"
-            placeholder="제목, 정책명, 담당자를 검색하세요."
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-          />
-        </div>
-      </div>
-
       <div className="main-content">
         <div className="top-section">
           <div className="section-header">
@@ -623,19 +611,10 @@ const PolicyAnalysis = () => {
                       </div>
                       <h3>{post.title}</h3>
                       <p>{post.excerpt}</p>
-                      <div className="analysis-stats">
-                        <span>
-                          <i className="fas fa-eye"></i> {post.views.toLocaleString()}
-                        </span>
-                        <span>
-                          <i className="fas fa-heart"></i> {post.likes}
-                        </span>
-                        <span>
-                          <i className="fas fa-comment"></i> {post.comments}
-                        </span>
-                        <span>
-                          <i className="fas fa-clock"></i> {post.readTime}분
-                        </span>
+                      <div className="analysis-author-info">
+                        <FiCheckCircle style={{ color: '#3b82f6', fontSize: '1rem' }} />
+                        <span className="author-name">{post.author}</span>
+                        <span className="author-company">{post.authorTitle}</span>
                       </div>
                     </div>
                   </div>
@@ -684,6 +663,24 @@ const PolicyAnalysis = () => {
                 )}
               </div>
 
+              {/* 모바일에서 스와이프 안내 */}
+              {isMobile && (
+                <div style={{ textAlign: 'center', marginTop: '12px', marginBottom: '20px' }}>
+                  <span style={{
+                    fontSize: '11px',
+                    color: '#64748b',
+                    padding: '6px 14px',
+                    background: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)',
+                    borderRadius: '20px',
+                    display: 'inline-block',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
+                  }}>
+                    <i className="fas fa-arrows-alt-h" style={{ marginRight: '6px', fontSize: '10px' }}></i>
+                    좌우로 밀어서 더보기
+                  </span>
+                </div>
+              )}
+
               <div className="top-grid">
                 {topPosts.slice(1, 7).map((post, index) => (
                   <div key={post.id} className="grid-item" onClick={() => handleViewPost(post.id)}>
@@ -718,9 +715,8 @@ const PolicyAnalysis = () => {
         <div className="list-section">
           <div className="section-header">
             <h2>
-              <i className="fas fa-list"></i> 게시글 목록
+              <i className="fas fa-list"></i> 게시글 목록 <span className="post-count">총 {filteredPosts.length}건</span>
             </h2>
-            <span className="post-count">총 {filteredPosts.length}건</span>
           </div>
 
           {isLoading && posts.length === 0 ? (
@@ -737,8 +733,8 @@ const PolicyAnalysis = () => {
             <>
               <div className="posts-list">
                 {filteredPosts.slice(0, visiblePosts).map((post) => (
-                  <article key={post.id} className="list-item" onClick={() => handleViewPost(post.id)}>
-                    <div className="item-thumbnail">
+                  <article key={post.id} className="list-item">
+                    <div className="item-thumbnail" onClick={() => handleViewPost(post.id)}>
                       <img
                         src={post.thumbnail}
                         alt={post.title}
@@ -752,38 +748,19 @@ const PolicyAnalysis = () => {
                     <div className="item-content">
                       <div className="item-header">
                         <span className="item-category">{post.categoryLabel}</span>
-                        <span className="item-date">{post.date}</span>
+                        <span className="item-author-info">
+                          <FiCheckCircle style={{ color: '#3b82f6', fontSize: '0.875rem', display: 'inline-block', verticalAlign: 'middle' }} />
+                          <span className="author-name">{post.author}</span>
+                          <span className="author-company">{post.authorTitle}</span>
+                        </span>
                       </div>
-                      <h3 className="item-title">{post.title}</h3>
-                      <p className="item-excerpt">{post.excerpt}</p>
+                      <h3 className="item-title" onClick={() => handleViewPost(post.id)}>{post.title}</h3>
                       <div className="item-tags">
                         {post.tags.slice(0, 3).map((tag, idx) => (
                           <span key={`${post.id}-tag-${idx}`} className="tag">
                             #{tag}
                           </span>
                         ))}
-                      </div>
-                      <div className="item-meta">
-                        <div className="item-author-info">
-                          <span className="item-author">
-                            <i className="fas fa-user-tie"></i> {post.author}
-                          </span>
-                          <span className="author-title">{post.authorTitle}</span>
-                        </div>
-                        <span className="item-stats">
-                          <span>
-                            <i className="fas fa-eye"></i> {post.views.toLocaleString()}
-                          </span>
-                          <span>
-                            <i className="fas fa-heart"></i> {post.likes}
-                          </span>
-                          <span>
-                            <i className="fas fa-comment"></i> {post.comments}
-                          </span>
-                          <span>
-                            <i className="fas fa-clock"></i> {post.readTime}분
-                          </span>
-                        </span>
                       </div>
                     </div>
                   </article>
@@ -798,6 +775,15 @@ const PolicyAnalysis = () => {
             </>
           )}
         </div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', maxWidth: 'var(--layout-max-width, 1280px)', margin: '-10px auto 20px', paddingLeft: 'var(--layout-padding-inline)', paddingRight: 'var(--layout-padding-inline)' }}>
+        <button
+          className="write-button"
+          onClick={handleWriteClick}
+        >
+          <i className="fas fa-pencil-alt"></i> 정책분석 작성하기
+        </button>
       </div>
 
       <section className="policy-analysis__cta-section" aria-labelledby="policy-analysis-cta-title">

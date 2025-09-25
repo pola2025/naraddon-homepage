@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { FiUsers, FiDollarSign, FiFileText, FiCheckCircle, FiCalendar, FiInfo } from 'react-icons/fi';
 import './PolicyAnalysisDetail.css';
 
 const fallbackImages = {
@@ -149,7 +150,7 @@ const PolicyAnalysisDetail = ({ postId }) => {
         const examinerCompany = rawPost.examiner?.companyName || '';
         const sections = Array.isArray(rawPost.sections)
           ? rawPost.sections
-              .filter((section) => section && section.title && section.content)
+              .filter((section) => section && section.title && section.content && section.title !== '지원절차')
               .map((section) => ({
                 id: section.id || section.title,
                 title: section.title,
@@ -358,9 +359,6 @@ const PolicyAnalysisDetail = ({ postId }) => {
             <button className="share-btn" onClick={handleShare}>
               <i className="fas fa-share-alt"></i> 공유
             </button>
-            <button className="delete-btn" onClick={handleDelete}>
-              <i className="fas fa-trash"></i> 삭제
-            </button>
           </div>
         </div>
 
@@ -388,12 +386,6 @@ const PolicyAnalysisDetail = ({ postId }) => {
           </div>
         )}
 
-        {post.excerpt && (
-          <div className="detail-excerpt">
-            <p>{post.excerpt}</p>
-          </div>
-        )}
-
         <div className="detail-content">
           {post.isStructured && post.sections.length > 0 ? (
             <div className="sections-grid">
@@ -401,7 +393,17 @@ const PolicyAnalysisDetail = ({ postId }) => {
                 <section key={section.id} className="detail-section">
                   <div className="section-heading">
                     <span className="heading-icon">
-                      <i className="fas fa-check-circle"></i>
+                      {section.title === '지원대상' && <FiUsers />}
+                      {section.title === '지원규모' && <FiDollarSign />}
+                      {section.title === '신청자격' && <FiFileText />}
+                      {section.title === '신청방법' && <FiCheckCircle />}
+                      {section.title === '제출서류' && <FiFileText />}
+                      {section.title === '선정기준' && <FiCheckCircle />}
+                      {section.title === '지원기간' && <FiCalendar />}
+                      {![
+                        '지원대상', '지원규모', '신청자격',
+                        '신청방법', '제출서류', '선정기준', '지원기간'
+                      ].includes(section.title) && <FiInfo />}
                     </span>
                     <h2>{section.title}</h2>
                   </div>
@@ -416,24 +418,6 @@ const PolicyAnalysisDetail = ({ postId }) => {
             <div className="detail-markdown" dangerouslySetInnerHTML={{ __html: renderedContent }} />
           )}
 
-          {post.images.length > 0 && (
-            <div className="detail-gallery">
-              {post.images.map((image, index) => (
-                <figure key={`${image.url}-${index}`}>
-                  <img
-                    src={image.url}
-                    alt={image.caption || `이미지 ${index + 1}`}
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = pickThumbnail(post.category, `${post.id}-${index}`);
-                    }}
-                    loading="lazy"
-                  />
-                  {(image.caption || image.name) && <figcaption>{image.caption || image.name}</figcaption>}
-                </figure>
-              ))}
-            </div>
-          )}
 
           {post.tags.length > 0 && (
             <div className="detail-tags">
