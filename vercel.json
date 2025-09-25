@@ -1,22 +1,20 @@
 {
-  "buildCommand": "rm -rf .next node_modules/.cache && npm run build",
+  "buildCommand": "npm run build",
   "framework": "nextjs",
   "cleanUrls": true,
+  "functions": {
+    "app/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./src/",
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate, max-age=0, s-maxage=0"
-        },
-        {
-          "key": "Pragma",
-          "value": "no-cache"
-        },
-        {
-          "key": "Expires",
-          "value": "0"
+          "value": "s-maxage=1, stale-while-revalidate"
         }
       ]
     }
