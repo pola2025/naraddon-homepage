@@ -36,6 +36,11 @@ const nextConfig = {
   swcMinify: true,
   compress: true,
 
+  // 캐시 비활성화 (프로덕션 동기화 문제 해결)
+  generateBuildId: async () => {
+    return Date.now().toString();
+  },
+
   // public 폴더의 영상 파일에 대한 캐시 설정
   async headers() {
     return [
