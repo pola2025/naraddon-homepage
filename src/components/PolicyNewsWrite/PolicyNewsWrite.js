@@ -87,10 +87,14 @@ const PolicyNewsWrite = () => {
       return;
     }
 
+    // 세션스토리지에서 비밀번호 가져오기
+    const adminPassword = sessionStorage.getItem('policyNewsPassword') || process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'vhffkvhffk82';
+
     try {
       const response = await fetch(`/api/policy-news/${postId}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: adminPassword })
       });
 
       if (!response.ok) {
@@ -250,6 +254,9 @@ const PolicyNewsWrite = () => {
       .map((tag) => tag.trim())
       .filter((tag) => tag.length > 0);
 
+    // 세션스토리지에서 비밀번호 가져오기 (관리자 페이지에서 저장됨)
+    const adminPassword = sessionStorage.getItem('policyNewsPassword') || process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'vhffkvhffk82';
+
     const payload = {
       title: formData.title,
       category: formData.category,
@@ -258,7 +265,7 @@ const PolicyNewsWrite = () => {
       thumbnail: formData.thumbnail,
       tags: tagsArray,
       isMain: formData.isMainNews,
-      // password 제거 - 세션으로 인증
+      password: adminPassword // API에서 요구하는 비밀번호 추가
     };
 
     try {
