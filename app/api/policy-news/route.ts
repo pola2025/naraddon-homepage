@@ -29,16 +29,23 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: Request) {
   try {
-    const adminPassword = process.env.POLICY_NEWS_PASSWORD;
-    if (!adminPassword) {
-      return NextResponse.json({ message: '게시글 비밀번호가 설정되지 않았습니다.' }, { status: 500 });
-    }
-
     const body = await request.json();
     const { password, title, content, category, excerpt, thumbnail, tags, isMain, isPinned, badge } = body;
 
-    if (!password || password !== adminPassword) {
-      return NextResponse.json({ message: '비밀번호가 올바르지 않습니다.' }, { status: 401 });
+    // Referer 헤더 확인 - 관리자 페이지에서 오는 요청인지 체크
+    const referer = request.headers.get('referer') || '';
+    const isFromAdmin = referer.includes('/policy-news/admin') || referer.includes('/policy-news/write');
+
+    // 관리자 페이지에서 오지 않은 요청만 비밀번호 검증
+    if (!isFromAdmin) {
+      const adminPassword = process.env.POLICY_NEWS_PASSWORD;
+      if (!adminPassword) {
+        return NextResponse.json({ message: '게시글 비밀번호가 설정되지 않았습니다.' }, { status: 500 });
+      }
+
+      if (!password || password !== adminPassword) {
+        return NextResponse.json({ message: '비밀번호가 올바르지 않습니다.' }, { status: 401 });
+      }
     }
 
     if (!title || !title.trim() || !content || !content.trim()) {

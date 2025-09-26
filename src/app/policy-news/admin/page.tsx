@@ -74,7 +74,7 @@ export default function PolicyNewsAdminPage() {
       }
 
       sessionStorage.setItem('policyNewsAuthorized', 'true');
-      sessionStorage.setItem('policyNewsPassword', password.trim()); // 비밀번호 저장
+      // 비밀번호는 저장하지 않음 - API에서 referer로 확인
       setIsAuthorized(true);
       fetchPosts();
     } catch (error) {
