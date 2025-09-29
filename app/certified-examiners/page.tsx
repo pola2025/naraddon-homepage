@@ -1,19 +1,10 @@
-export default function CertifiedExaminersPage() {
+import CertifiedExaminersPage from '@/components/certified-examiners/CertifiedExaminersPage';
+import styles from './page.module.css';
+
+export default function Page() {
   return (
-    <div style={{ marginTop: '-50px' }}>
-      <iframe
-        src="/examiners.html"
-        style={{
-          width: '100%',
-          height: 'calc(100vh + 50px)',
-          border: 'none',
-          margin: 0,
-          padding: 0,
-          overflow: 'auto',
-          display: 'block'
-        }}
-        title="Certified Examiners"
-      />
+    <div className={styles.pageWrapper} style={{ backgroundColor: '#0A0A0A', minHeight: '100vh' }}>
+      <CertifiedExaminersPage />
     </div>
   );
 }
