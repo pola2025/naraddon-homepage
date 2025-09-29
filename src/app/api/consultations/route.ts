@@ -68,6 +68,9 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
     const data = await request.json();
 
+    // 디버깅: 받은 데이터 확인
+    console.log('[상담신청] 받은 데이터:', JSON.stringify(data, null, 2));
+
     // 상담 신청 데이터 생성
     const consultation: Partial<ConsultationRequest> = {
       source: ConsultationSource.WEB_FORM,
@@ -110,11 +113,81 @@ export async function POST(request: NextRequest) {
     const client = await clientPromise;
     const db = client.db('naraddon');
 
+    // 디버깅: 저장할 데이터 확인
+    console.log('[상담신청] 저장할 데이터:', JSON.stringify(consultation, null, 2));
+
     // 상담 신청 저장
     const result = await db.collection('consultations').insertOne(consultation);
 
-    // 알림 발송 (관리자에게)
-    // TODO: 이메일/SMS 알림 구현
+    console.log('[상담신청] 저장 완료:', result.insertedId);
+
+    // Google Apps Script 웹훅 호출 (스프레드시트, 이메일, 텔레그램 알림)
+    try {
+      const webhookUrl = process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL || 'https://script.google.com/macros/s/AKfycbyzrH3BgdAyqyqw-Mzk013BGkCAZEPnej_Jd7DpN_0g-hKP8qJH85aEdCFlSHxRY3ybZQ/exec';
+      const webhookSecret = process.env.CONSULTATION_WEBHOOK_SECRET_AUDITOR || '';
+
+      const webhookPayload = {
+        auth: {
+          secret: webhookSecret
+        },
+        submission: {
+          name: consultation.userName,
+          phone: consultation.userPhone,
+          email: consultation.userEmail,
+          region: data.region || '', // 지역 정보
+          businessNumber: consultation.businessNumber,
+          consultType: consultation.consultationType,
+          annualRevenue: consultation.annualRevenue,
+          employeeCount: consultation.employeeCount,
+          desiredTime: data.desiredTime || '',
+          preferredTime: consultation.preferredTime,
+          message: consultation.message,
+          privacyConsent: true, // 상담 신청시 기본 동의
+          marketingConsent: false
+        },
+        submittedAt: new Date().toISOString(),
+        meta: {
+          source: consultation.source,
+          isAuditorConsultation: data.isAuditorConsultation || false
+        },
+        notification: {
+          emails: process.env.CONSULTATION_NOTIFICATION_EMAILS?.split(',') || ['jjk_naraddon@naver.com'],
+          telegram: {
+            enabled: true // 텔레그램 설정은 Google Apps Script에서 관리
+          },
+          sms: {
+            enabled: false // SMS는 비활성화
+          }
+        }
+      };
+
+      console.log('[상담신청] 웹훅 URL:', webhookUrl);
+      console.log('[상담신청] 웹훅 페이로드:', JSON.stringify(webhookPayload, null, 2));
+
+      // 웹훅 호출 (await로 변경하여 응답 확인)
+      const webhookResponse = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(webhookPayload)
+      });
+
+      console.log('[상담신청] 웹훅 응답 상태:', webhookResponse.status);
+
+      const responseText = await webhookResponse.text();
+      console.log('[상담신청] 웹훅 응답 내용:', responseText);
+
+      if (!webhookResponse.ok) {
+        console.error('[상담신청] 웹훅 호출 실패:', webhookResponse.status, responseText);
+      } else {
+        console.log('[상담신청] 웹훅 호출 성공');
+      }
+
+    } catch (webhookError) {
+      console.error('[상담신청] 웹훅 오류:', webhookError);
+      // 웹훅 실패시에도 상담 신청은 성공으로 처리
+    }
 
     return NextResponse.json({
       success: true,
