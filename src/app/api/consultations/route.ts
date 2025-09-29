@@ -70,6 +70,8 @@ export async function POST(request: NextRequest) {
 
     // 디버깅: 받은 데이터 확인
     console.log('[상담신청] 받은 데이터:', JSON.stringify(data, null, 2));
+    console.log('[상담신청] MongoDB URI 설정:', process.env.MONGODB_URI ? '있음' : '없음');
+    console.log('[상담신청] 웹훅 URL:', process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL ? '설정됨' : '기본값 사용');
 
     // 상담 신청 데이터 생성
     const consultation: Partial<ConsultationRequest> = {
@@ -110,16 +112,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = await clientPromise;
-    const db = client.db('naraddon');
+    // MongoDB 저장 시도 (실패해도 계속 진행)
+    let mongoSaveSuccess = false;
+    let mongoInsertedId = null;
 
-    // 디버깅: 저장할 데이터 확인
-    console.log('[상담신청] 저장할 데이터:', JSON.stringify(consultation, null, 2));
+    try {
+      const client = await clientPromise;
+      if (client && client.db) {
+        const db = client.db('naraddon');
+        console.log('[상담신청] MongoDB 연결 성공');
 
-    // 상담 신청 저장
-    const result = await db.collection('consultations').insertOne(consultation);
+        // 디버깅: 저장할 데이터 확인
+        console.log('[상담신청] 저장할 데이터:', JSON.stringify(consultation, null, 2));
 
-    console.log('[상담신청] 저장 완료:', result.insertedId);
+        // 상담 신청 저장
+        const result = await db.collection('consultations').insertOne(consultation);
+        mongoInsertedId = result.insertedId;
+        mongoSaveSuccess = true;
+        console.log('[상담신청] MongoDB 저장 완료:', result.insertedId);
+      } else {
+        console.warn('[상담신청] MongoDB 클라이언트가 없음 (더미 클라이언트 사용 중)');
+      }
+    } catch (mongoError) {
+      console.error('[상담신청] MongoDB 저장 실패:', mongoError);
+      // MongoDB 저장 실패해도 계속 진행
+    }
 
     // Google Apps Script 웹훅 호출 (스프레드시트, 이메일, 텔레그램 알림)
     try {
@@ -189,15 +206,29 @@ export async function POST(request: NextRequest) {
       // 웹훅 실패시에도 상담 신청은 성공으로 처리
     }
 
+    // 웹훅 호출 성공 여부와 관계없이 성공 응답 반환
     return NextResponse.json({
       success: true,
-      consultationId: result.insertedId,
-      message: '상담 신청이 접수되었습니다. 담당자 배정 후 연락드리겠습니다.'
+      consultationId: mongoInsertedId || 'webhook-only',
+      message: '상담 신청이 접수되었습니다. 담당자 배정 후 연락드리겠습니다.',
+      debug: process.env.NODE_ENV === 'development' ? {
+        mongoSaved: mongoSaveSuccess,
+        webhookCalled: true
+      } : undefined
     });
   } catch (error) {
     console.error('Failed to create consultation:', error);
+
+    // 프로덕션 디버깅을 위한 상세 에러 정보
+    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+    const isProduction = process.env.NODE_ENV === 'production';
+
     return NextResponse.json(
-      { error: '상담 신청 중 오류가 발생했습니다.' },
+      {
+        error: '상담 신청 중 오류가 발생했습니다.',
+        details: isProduction ? undefined : errorMessage,
+        timestamp: new Date().toISOString()
+      },
       { status: 500 }
     );
   }

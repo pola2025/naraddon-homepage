@@ -765,9 +765,14 @@ function QuickConsultForm() {
         body: JSON.stringify(consultationData),
       });
 
+      const result = await response.json();
+
       if (!response.ok) {
-        throw new Error('Request failed');
+        console.error('상담 신청 실패:', result);
+        throw new Error(result.error || 'Request failed');
       }
+
+      console.log('상담 신청 성공:', result);
 
       dispatch({ type: 'SET_SUCCESS', value: true });
       dispatch({ type: 'SET_ERRORS', errors: {} });
@@ -776,7 +781,8 @@ function QuickConsultForm() {
       }, 3200);
     } catch (error) {
       console.error('Submission error:', error);
-      window.alert('상담 신청 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      const errorMessage = error instanceof Error ? error.message : '상담 신청 중 오류가 발생했습니다.';
+      window.alert(`${errorMessage}\n잠시 후 다시 시도해 주세요.`);
     } finally {
       dispatch({ type: 'SET_SUBMITTING', value: false });
     }
