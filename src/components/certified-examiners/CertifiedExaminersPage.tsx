@@ -10,22 +10,22 @@ import './certified-examiners.css';
 
 // 심사관 데이터 - 16명 전체
 const allExaminers = [
-  { name: '이용흔', company: '제이제이에스 기업지원센터', filename: '이용흔_제이제이에스 기업지원센터.jpg' },
-  { name: '김수빈', company: '주식회사 유에스이노웨이브', filename: '김수빈_주식회사 유에스이노웨이브.jpg' },
-  { name: '태건호', company: '경영지원컨설팅', filename: '태건호_경영지원컨설팅.jpg' },
-  { name: '박민재', company: '푸른중소기업경영컨설팅', filename: '박민재_푸른중소기업경영컨설팅.jpg' },
-  { name: '양미진', company: '에스제이파트너스', filename: '양미진_에스제이파트너스.jpg' },
-  { name: '전예진', company: '비젠파트너스', filename: '전예진_비젠파트너스.jpg' },
-  { name: '전지선', company: '제이티엘파트너스', filename: '전지선_제이티엘파트너스.jpg' },
-  { name: '김범준', company: '에스제이파트너스', filename: '김범준_에스제이파트너스.jpg' },
-  { name: '김영희', company: '세움기업지원센터', filename: '김영희_세움기업지원센터.jpg' },
-  { name: '김태은', company: '가나안 기업지원센터', filename: '김태은_가나안 기업지원센터.jpg' },
-  { name: '박성훈', company: '비즈스카이', filename: '박성훈_비즈스카이.jpg' },
-  { name: '박현숙', company: '케이피제이', filename: '박현숙_케이피제이.jpg' },
-  { name: '손지숙', company: '손스타컴퍼니', filename: '손지숙_손스타컴퍼니.jpg' },
-  { name: '전윤지', company: '열린정책자금연구소', filename: '전윤지_열린정책자금연구소.jpg' },
-  { name: '팽성희', company: '기업성장지원플랫폼', filename: '팽성희_기업성장지원플랫폼.jpg' },
-  { name: '황만규', company: '바른경영지원센터', filename: '황만규_바른경영지원센터.jpg' }
+  { name: '이용흔', company: '제이제이에스 기업지원센터', filename: 'lee-yong-heun.jpg' },
+  { name: '김수빈', company: '주식회사 유에스이노웨이브', filename: 'kim-su-bin.jpg' },
+  { name: '태건호', company: '경영지원컨설팅', filename: 'tae-gun-ho.jpg' },
+  { name: '박민재', company: '푸른중소기업경영컨설팅', filename: 'park-min-jae.jpg' },
+  { name: '양미진', company: '에스제이파트너스', filename: 'yang-mi-jin.jpg' },
+  { name: '전예진', company: '비젠파트너스', filename: 'jeon-ye-jin.jpg' },
+  { name: '전지선', company: '제이티엘파트너스', filename: 'jeon-ji-sun.jpg' },
+  { name: '김범준', company: '에스제이파트너스', filename: 'kim-beom-jun.jpg' },
+  { name: '김영희', company: '세움기업지원센터', filename: 'kim-young-hee.jpg' },
+  { name: '김태은', company: '가나안 기업지원센터', filename: 'kim-tae-eun.jpg' },
+  { name: '박성훈', company: '비즈스카이', filename: 'park-sung-hoon.jpg' },
+  { name: '박현숙', company: '케이피제이', filename: 'park-hyun-sook.jpg' },
+  { name: '손지숙', company: '손스타컴퍼니', filename: 'son-ji-sook.jpg' },
+  { name: '전윤지', company: '열린정책자금연구소', filename: 'jeon-yoon-ji.jpg' },
+  { name: '팽성희', company: '기업성장지원플랫폼', filename: 'paeng-sung-hee.jpg' },
+  { name: '황만규', company: '바른경영지원센터', filename: 'hwang-man-gyu.jpg' }
 ];
 
 // Fisher-Yates 셔플 알고리즘
