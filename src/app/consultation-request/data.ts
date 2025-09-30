@@ -577,21 +577,21 @@ export const CONSULTATION_TYPE_OPTIONS = [
 ];
 
 export const ANNUAL_REVENUE_OPTIONS = [
-  { value: 'pre-startup', label: '예비창업' },
-  { value: 'under-100m', label: '1억 미만' },
-  { value: '100m-500m', label: '1-5억' },
-  { value: '500m-1b', label: '5-10억' },
-  { value: '1b-5b', label: '10-50억' },
-  { value: 'over-5b', label: '50억 이상' },
+  { value: '예비창업', label: '예비창업' },
+  { value: '1억 미만', label: '1억 미만' },
+  { value: '1-5억', label: '1-5억' },
+  { value: '5-10억', label: '5-10억' },
+  { value: '10-50억', label: '10-50억' },
+  { value: '50억 이상', label: '50억 이상' },
 ];
 
 export const EMPLOYEE_COUNT_OPTIONS = [
-  { value: '0', label: '없음' },
-  { value: '1-5', label: '1-5명' },
-  { value: '6-10', label: '6-10명' },
-  { value: '11-30', label: '11-30명' },
-  { value: '31-100', label: '31-100명' },
-  { value: 'over-100', label: '100명 이상' },
+  { value: '없음', label: '없음' },
+  { value: '1-5명', label: '1-5명' },
+  { value: '6-10명', label: '6-10명' },
+  { value: '11-30명', label: '11-30명' },
+  { value: '31-100명', label: '31-100명' },
+  { value: '100명 이상', label: '100명 이상' },
 ];
 
 export const PREFERRED_TIME_OPTIONS = [

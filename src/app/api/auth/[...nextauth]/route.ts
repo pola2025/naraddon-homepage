@@ -49,8 +49,8 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
   },
-  // 프로덕션에서는 디버깅 비활성화
-  debug: false,
+  // 개발 환경에서만 디버깅 활성화
+  debug: process.env.NODE_ENV === 'development',
 };
 
 const handler = NextAuth(authOptions);

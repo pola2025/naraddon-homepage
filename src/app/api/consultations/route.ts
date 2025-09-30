@@ -147,9 +147,53 @@ export async function POST(request: NextRequest) {
     }
 
     // Google Apps Script 웹훅 호출 (스프레드시트, 이메일, 텔레그램 알림)
+    let webhookSuccess = false;
+    let webhookErrorDetail = '';
+
     try {
-      const webhookUrl = process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL || 'https://script.google.com/macros/s/AKfycbyzrH3BgdAyqyqw-Mzk013BGkCAZEPnej_Jd7DpN_0g-hKP8qJH85aEdCFlSHxRY3ybZQ/exec';
-      const webhookSecret = process.env.CONSULTATION_WEBHOOK_SECRET_AUDITOR || '';
+      // 환경변수에서 따옴표와 공백 제거 (Vercel 환경변수 입력 실수 방지)
+      const rawWebhookUrl = process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL || 'https://script.google.com/macros/s/AKfycbyzrH3BgdAyqyqw-Mzk013BGkCAZEPnej_Jd7DpN_0g-hKP8qJH85aEdCFlSHxRY3ybZQ/exec';
+      const webhookUrl = rawWebhookUrl.trim().replace(/^["']|["']$/g, '');
+
+      const rawWebhookSecret = process.env.CONSULTATION_WEBHOOK_SECRET_AUDITOR || '';
+      const webhookSecret = rawWebhookSecret.trim().replace(/^["']|["']$/g, '');
+
+      console.log('[상담신청 웹훅] 환경 체크:', {
+        webhookUrlExists: !!process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL,
+        webhookUrlLength: webhookUrl.length,
+        webhookSecretExists: !!process.env.CONSULTATION_WEBHOOK_SECRET_AUDITOR,
+        webhookSecretLength: webhookSecret.length,
+        isProduction: process.env.NODE_ENV === 'production'
+      });
+
+      // 연매출 영어 -> 한글 변환 매핑
+      const annualRevenueMap: Record<string, string> = {
+        'pre-startup': '예비창업',
+        'under-100m': '1억 미만',
+        '100m-500m': '1-5억',
+        '500m-1b': '5-10억',
+        '1b-5b': '10-50억',
+        'over-5b': '50억 이상'
+      };
+
+      // 직원 수 영어 -> 한글 변환 매핑
+      const employeeCountMap: Record<string, string> = {
+        '0': '없음',
+        '1-5': '1-5명',
+        '6-10': '6-10명',
+        '11-30': '11-30명',
+        '31-100': '31-100명',
+        'over-100': '100명 이상'
+      };
+
+      // 한글로 변환 (이미 한글이면 그대로, 영어면 변환)
+      const annualRevenueKorean = consultation.annualRevenue
+        ? (annualRevenueMap[consultation.annualRevenue] || consultation.annualRevenue)
+        : '';
+
+      const employeeCountKorean = consultation.employeeCount
+        ? (employeeCountMap[consultation.employeeCount] || consultation.employeeCount)
+        : '';
 
       const webhookPayload = {
         auth: {
@@ -162,8 +206,8 @@ export async function POST(request: NextRequest) {
           region: data.region || '', // 지역 정보
           businessNumber: consultation.businessNumber,
           consultType: consultation.consultationType,
-          annualRevenue: consultation.annualRevenue,
-          employeeCount: consultation.employeeCount,
+          annualRevenue: annualRevenueKorean,
+          employeeCount: employeeCountKorean,
           desiredTime: data.desiredTime || '',
           preferredTime: consultation.preferredTime,
           message: consultation.message,
@@ -204,12 +248,23 @@ export async function POST(request: NextRequest) {
       console.log('[상담신청] 웹훅 응답 내용:', responseText);
 
       if (!webhookResponse.ok) {
-        console.error('[상담신청] 웹훅 호출 실패:', webhookResponse.status, responseText);
+        webhookErrorDetail = `Status ${webhookResponse.status}: ${responseText}`;
+        console.error('[상담신청] 웹훅 호출 실패:', webhookErrorDetail);
       } else {
+        webhookSuccess = true;
         console.log('[상담신청] 웹훅 호출 성공');
+
+        // 응답 내용 파싱 시도
+        try {
+          const responseJson = JSON.parse(responseText);
+          console.log('[상담신청] 웹훅 응답 JSON:', responseJson);
+        } catch (e) {
+          console.log('[상담신청] 웹훅 응답이 JSON이 아님');
+        }
       }
 
     } catch (webhookError) {
+      webhookErrorDetail = webhookError instanceof Error ? webhookError.message : String(webhookError);
       console.error('[상담신청] 웹훅 오류:', webhookError);
       // 웹훅 실패시에도 상담 신청은 성공으로 처리
     }
@@ -221,7 +276,9 @@ export async function POST(request: NextRequest) {
       message: '상담 신청이 접수되었습니다. 담당자 배정 후 연락드리겠습니다.',
       debug: process.env.NODE_ENV === 'development' ? {
         mongoSaved: mongoSaveSuccess,
-        webhookCalled: true
+        webhookCalled: true,
+        webhookSuccess,
+        webhookError: webhookSuccess ? undefined : webhookErrorDetail
       } : undefined
     });
   } catch (error) {

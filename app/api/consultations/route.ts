@@ -11,11 +11,16 @@ import {
 } from '@/types/consultation.types';
 
 // 웹훅 관련 환경변수 - 기업심사관(AUDITOR) 용 사용
-const GOOGLE_APPS_SCRIPT_WEBHOOK_URL = process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL_AUDITOR || process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL;
+// 환경변수에서 따옴표와 공백 제거 (Vercel 환경변수 입력 실수 방지)
+const rawWebhookUrl = process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL_AUDITOR || process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL || '';
+const GOOGLE_APPS_SCRIPT_WEBHOOK_URL = rawWebhookUrl.trim().replace(/^["']|["']$/g, '');
+
 const CONSULTATION_NOTIFICATION_EMAILS = process.env.CONSULTATION_NOTIFICATION_EMAILS_AUDITOR || process.env.CONSULTATION_NOTIFICATION_EMAILS || '';
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN_AUDITOR || '';
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID_AUDITOR || '';
-const CONSULTATION_WEBHOOK_SECRET = process.env.CONSULTATION_WEBHOOK_SECRET_AUDITOR || '';
+
+const rawWebhookSecret = process.env.CONSULTATION_WEBHOOK_SECRET_AUDITOR || '';
+const CONSULTATION_WEBHOOK_SECRET = rawWebhookSecret.trim().replace(/^["']|["']$/g, '');
 
 function parseEmailList(raw: string): string[] {
   return raw
@@ -27,19 +32,28 @@ function parseEmailList(raw: string): string[] {
 // 영어 값을 한글로 변환하는 헬퍼 함수들
 function convertAnnualRevenue(value: string): string {
   const map: Record<string, string> = {
+    // 기존 형식
     'under-1': '1억 미만',
     '1-5': '1억-5억',
     '5-10': '5억-10억',
     '10-30': '10억-30억',
     '30-50': '30억-50억',
     '50-100': '50억-100억',
-    'over-100': '100억 이상'
+    'over-100': '100억 이상',
+    // 새로운 형식 (consultation-request 페이지)
+    'pre-startup': '예비창업',
+    'under-100m': '1억 미만',
+    '100m-500m': '1-5억',
+    '500m-1b': '5-10억',
+    '1b-5b': '10-50억',
+    'over-5b': '50억 이상'
   };
   return map[value] || value;
 }
 
 function convertEmployeeCount(value: string): string {
   const map: Record<string, string> = {
+    '0': '없음',
     '1-5': '1-5명',
     '6-10': '6-10명',
     '11-30': '11-30명',
