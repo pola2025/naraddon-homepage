@@ -382,7 +382,7 @@ function validateBusinessStep(form: ConsultationFormState): ConsultationFormErro
     nextErrors.employeeCount = '직원 수를 선택해 주세요.';
   }
   if (!form.preferredTime) {
-    nextErrors.preferredTime = '희망 상담 시기를 선택해 주세요.';
+    nextErrors.preferredTime = '상담 희망 시기를 선택해 주세요.';
   }
   return nextErrors;
 }
@@ -603,7 +603,7 @@ function FormSummary({ form }: SummaryCardProps) {
     { label: '상담 유형', value: getConsultTypeLabel(form.consultType) },
     { label: '연 매출', value: ANNUAL_REVENUE_OPTIONS.find((item) => item.value === form.annualRevenue)?.label || '미선택' },
     { label: '직원 수', value: EMPLOYEE_COUNT_OPTIONS.find((item) => item.value === form.employeeCount)?.label || '미선택' },
-    { label: '상담 희망 시간 (선택)', value: PREFERRED_TIME_OPTIONS.find((item) => item.value === form.preferredTime)?.label || '미선택' },
+    { label: '상담 희망 시기', value: PREFERRED_TIME_OPTIONS.find((item) => item.value === form.preferredTime)?.label || '미선택' },
   ];
 
   return (
@@ -1020,7 +1020,7 @@ function QuickConsultForm() {
       </div>
       <div className={styles.field}>
         <label htmlFor="consult-preferred-time" className={styles.fieldLabel}>
-          희망 상담 시기<span className={styles.requiredMark}>*</span>
+          상담 희망 시기<span className={styles.requiredMark}>*</span>
         </label>
         <select
           id="consult-preferred-time"
