@@ -167,6 +167,14 @@ export async function POST(request: NextRequest) {
     let notificationsForwarded = false;
     let notificationError: string | undefined;
 
+    console.log('[Webhook Debug] Environment check:', {
+      url: !!GOOGLE_APPS_SCRIPT_WEBHOOK_URL,
+      urlLength: GOOGLE_APPS_SCRIPT_WEBHOOK_URL?.length,
+      secret: !!CONSULTATION_WEBHOOK_SECRET,
+      secretPrefix: CONSULTATION_WEBHOOK_SECRET?.substring(0, 10),
+      telegram: !!TELEGRAM_BOT_TOKEN,
+      chatId: !!TELEGRAM_CHAT_ID
+    });
 
     if (GOOGLE_APPS_SCRIPT_WEBHOOK_URL) {
       const webhookPayload: Record<string, unknown> = {
@@ -208,6 +216,9 @@ export async function POST(request: NextRequest) {
       }
 
       try {
+        console.log('[Webhook Debug] Sending to:', GOOGLE_APPS_SCRIPT_WEBHOOK_URL);
+        console.log('[Webhook Debug] Payload has auth:', !!webhookPayload.auth);
+
         const response = await fetch(GOOGLE_APPS_SCRIPT_WEBHOOK_URL, {
           method: 'POST',
           headers: {
@@ -217,12 +228,22 @@ export async function POST(request: NextRequest) {
           body: JSON.stringify(webhookPayload),
         });
 
+        const responseText = await response.text();
+        console.log('[Webhook Debug] Response status:', response.status);
+        console.log('[Webhook Debug] Response body:', responseText);
+
         if (!response.ok) {
           notificationError = `웹훅 응답 오류 (status: ${response.status})`;
           console.error('Webhook error:', notificationError);
         } else {
-          notificationsForwarded = true;
-          console.log('Webhook notification sent successfully');
+          const responseJson = JSON.parse(responseText);
+          if (responseJson.ok === false) {
+            notificationError = responseJson.message || 'Webhook returned error';
+            console.error('[Webhook Debug] Webhook rejected:', notificationError);
+          } else {
+            notificationsForwarded = true;
+            console.log('Webhook notification sent successfully');
+          }
         }
       } catch (error) {
         notificationError =
