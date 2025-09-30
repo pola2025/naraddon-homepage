@@ -131,6 +131,9 @@ export async function POST(request: NextRequest) {
     let notificationsForwarded = false;
     let notificationError: string | undefined;
 
+    console.log('Webhook URL exists:', !!GOOGLE_APPS_SCRIPT_WEBHOOK_URL);
+    console.log('Webhook URL length:', GOOGLE_APPS_SCRIPT_WEBHOOK_URL?.length);
+
     if (GOOGLE_APPS_SCRIPT_WEBHOOK_URL) {
       const webhookPayload: Record<string, unknown> = {
         submission: {
@@ -170,6 +173,9 @@ export async function POST(request: NextRequest) {
       }
 
       try {
+        console.log('Sending webhook to:', GOOGLE_APPS_SCRIPT_WEBHOOK_URL);
+        console.log('Webhook payload keys:', Object.keys(webhookPayload));
+
         const response = await fetch(GOOGLE_APPS_SCRIPT_WEBHOOK_URL, {
           method: 'POST',
           headers: {
@@ -178,6 +184,10 @@ export async function POST(request: NextRequest) {
           cache: 'no-store',
           body: JSON.stringify(webhookPayload),
         });
+
+        console.log('Webhook response status:', response.status);
+        const responseText = await response.text();
+        console.log('Webhook response:', responseText);
 
         if (!response.ok) {
           notificationError = `웹훅 응답 오류 (status: ${response.status})`;
@@ -189,7 +199,8 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         notificationError =
           error instanceof Error ? error.message : '웹훅 전송 중 알 수 없는 오류가 발생했습니다.';
-        console.error('Webhook error:', notificationError);
+        console.error('Webhook catch error:', error);
+        console.error('Webhook error details:', notificationError);
       }
     } else {
       notificationError = 'GOOGLE_APPS_SCRIPT_WEBHOOK_URL 환경변수가 설정되지 않았습니다.';
