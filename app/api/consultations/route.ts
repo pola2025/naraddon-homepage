@@ -10,6 +10,20 @@ import {
   ConsultationPhase
 } from '@/types/consultation.types';
 
+// 웹훅 관련 환경변수
+const GOOGLE_APPS_SCRIPT_WEBHOOK_URL = process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL;
+const CONSULTATION_NOTIFICATION_EMAILS = process.env.CONSULTATION_NOTIFICATION_EMAILS ?? '';
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN ?? '';
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID ?? '';
+const CONSULTATION_WEBHOOK_SECRET = process.env.CONSULTATION_WEBHOOK_SECRET ?? '';
+
+function parseEmailList(raw: string): string[] {
+  return raw
+    .split(',')
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+}
+
 // GET /api/consultations - 상담 목록 조회
 export async function GET(request: NextRequest) {
   try {
@@ -113,13 +127,81 @@ export async function POST(request: NextRequest) {
     // 상담 신청 저장
     const result = await db.collection('consultations').insertOne(consultation);
 
-    // 알림 발송 (관리자에게)
-    // TODO: 이메일/SMS 알림 구현
+    // 웹훅 호출로 알림 발송
+    let notificationsForwarded = false;
+    let notificationError: string | undefined;
+
+    if (GOOGLE_APPS_SCRIPT_WEBHOOK_URL) {
+      const webhookPayload: Record<string, unknown> = {
+        submission: {
+          name: consultation.userName,
+          phone: consultation.userPhone,
+          email: consultation.userEmail,
+          company: consultation.companyName,
+          message: consultation.message,
+          consultType: consultation.consultationType,
+          preferredTime: consultation.preferredTime,
+          annualRevenue: consultation.annualRevenue,
+          employeeCount: consultation.employeeCount,
+          region: data.region || '',
+          businessNumber: consultation.businessNumber,
+          privacyConsent: true,
+          marketingConsent: data.marketingConsent || false
+        },
+        submittedAt: new Date().toISOString(),
+        meta: {
+          consultationId: result.insertedId,
+          source: 'consultation-request-form'
+        },
+        notification: {
+          emails: parseEmailList(CONSULTATION_NOTIFICATION_EMAILS),
+          telegram: {
+            enabled: Boolean(TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID),
+            botToken: TELEGRAM_BOT_TOKEN,
+            chatId: TELEGRAM_CHAT_ID,
+          }
+        }
+      };
+
+      if (CONSULTATION_WEBHOOK_SECRET) {
+        (webhookPayload as { auth?: { secret: string } }).auth = {
+          secret: CONSULTATION_WEBHOOK_SECRET,
+        };
+      }
+
+      try {
+        const response = await fetch(GOOGLE_APPS_SCRIPT_WEBHOOK_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          cache: 'no-store',
+          body: JSON.stringify(webhookPayload),
+        });
+
+        if (!response.ok) {
+          notificationError = `웹훅 응답 오류 (status: ${response.status})`;
+          console.error('Webhook error:', notificationError);
+        } else {
+          notificationsForwarded = true;
+          console.log('Webhook notification sent successfully');
+        }
+      } catch (error) {
+        notificationError =
+          error instanceof Error ? error.message : '웹훅 전송 중 알 수 없는 오류가 발생했습니다.';
+        console.error('Webhook error:', notificationError);
+      }
+    } else {
+      notificationError = 'GOOGLE_APPS_SCRIPT_WEBHOOK_URL 환경변수가 설정되지 않았습니다.';
+      console.warn(notificationError);
+    }
 
     return NextResponse.json({
       success: true,
       consultationId: result.insertedId,
-      message: '상담 신청이 접수되었습니다. 담당자 배정 후 연락드리겠습니다.'
+      message: '상담 신청이 접수되었습니다. 담당자 배정 후 연락드리겠습니다.',
+      notificationsForwarded,
+      notificationError: notificationsForwarded ? undefined : notificationError
     });
   } catch (error) {
     console.error('Failed to create consultation:', error);

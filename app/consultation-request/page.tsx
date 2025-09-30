@@ -747,15 +747,18 @@ function QuickConsultForm() {
       const consultationData = {
         userName: form.name,
         userPhone: form.phone,
-        userEmail: form.email,
-        companyName: form.region, // region을 회사명으로 사용 또는 별도 필드 추가 필요
-        businessNumber: form.businessNumber,
+        userEmail: form.email || '',
+        companyName: form.name, // 이름을 회사명으로도 사용
+        businessNumber: form.businessNumber || '',
         consultationType: form.consultType || '기업심사관 상담',
-        message: form.message,
+        message: form.message || '',
         preferredTime: form.preferredTime,
         annualRevenue: form.annualRevenue,
         employeeCount: form.employeeCount,
         desiredTime: form.desiredTime,
+        region: form.region, // 지역 정보 추가
+        privacyConsent: form.privacyConsent,
+        marketingConsent: form.marketingConsent,
         isAuditorConsultation: true // 기업심사관 상담 표시
       };
 
