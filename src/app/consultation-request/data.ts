@@ -595,11 +595,9 @@ export const EMPLOYEE_COUNT_OPTIONS = [
 ];
 
 export const PREFERRED_TIME_OPTIONS = [
-  { value: '09-11', label: '오전 09-11시' },
-  { value: '11-13', label: '오전 11시-오후 1시' },
-  { value: '13-15', label: '오후 1-3시' },
-  { value: '15-17', label: '오후 3-5시' },
-  { value: '17-19', label: '오후 5-7시' },
-  { value: '19-21', label: '저녁 7-9시' },
+  { value: 'immediate', label: '즉시 상담' },
+  { value: 'today', label: '오늘 중' },
+  { value: 'weekday', label: '평일' },
+  { value: 'weekend', label: '주말' },
   { value: 'anytime', label: '상관없음' },
 ];
