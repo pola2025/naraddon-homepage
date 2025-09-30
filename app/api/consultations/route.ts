@@ -10,19 +10,54 @@ import {
   ConsultationPhase
 } from '@/types/consultation.types';
 
-// 웹훅 관련 환경변수
-const GOOGLE_APPS_SCRIPT_WEBHOOK_URL = process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL;
-const CONSULTATION_NOTIFICATION_EMAILS = process.env.CONSULTATION_NOTIFICATION_EMAILS ?? '';
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN ?? '';
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID ?? '';
-// 기업심사관 상담용 SECRET 사용
-const CONSULTATION_WEBHOOK_SECRET = process.env.CONSULTATION_WEBHOOK_SECRET_AUDITOR ?? '';
+// 웹훅 관련 환경변수 - 기업심사관(AUDITOR) 용 사용
+const GOOGLE_APPS_SCRIPT_WEBHOOK_URL = process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL_AUDITOR || process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL;
+const CONSULTATION_NOTIFICATION_EMAILS = process.env.CONSULTATION_NOTIFICATION_EMAILS_AUDITOR || process.env.CONSULTATION_NOTIFICATION_EMAILS || '';
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN_AUDITOR || '';
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID_AUDITOR || '';
+const CONSULTATION_WEBHOOK_SECRET = process.env.CONSULTATION_WEBHOOK_SECRET_AUDITOR || '';
 
 function parseEmailList(raw: string): string[] {
   return raw
     .split(',')
     .map((item) => item.trim())
     .filter((item) => item.length > 0);
+}
+
+// 영어 값을 한글로 변환하는 헬퍼 함수들
+function convertAnnualRevenue(value: string): string {
+  const map: Record<string, string> = {
+    'under-1': '1억 미만',
+    '1-5': '1억-5억',
+    '5-10': '5억-10억',
+    '10-30': '10억-30억',
+    '30-50': '30억-50억',
+    '50-100': '50억-100억',
+    'over-100': '100억 이상'
+  };
+  return map[value] || value;
+}
+
+function convertEmployeeCount(value: string): string {
+  const map: Record<string, string> = {
+    '1-5': '1-5명',
+    '6-10': '6-10명',
+    '11-30': '11-30명',
+    '31-100': '31-100명',
+    'over-100': '100명 이상'
+  };
+  return map[value] || value;
+}
+
+function convertPreferredTime(value: string): string {
+  const map: Record<string, string> = {
+    'immediate': '즉시 상담',
+    'today': '오늘 중',
+    'weekday': '평일',
+    'weekend': '주말',
+    'anytime': '상관없음'
+  };
+  return map[value] || value;
 }
 
 // GET /api/consultations - 상담 목록 조회
@@ -132,8 +167,6 @@ export async function POST(request: NextRequest) {
     let notificationsForwarded = false;
     let notificationError: string | undefined;
 
-    console.log('Webhook URL exists:', !!GOOGLE_APPS_SCRIPT_WEBHOOK_URL);
-    console.log('Webhook URL length:', GOOGLE_APPS_SCRIPT_WEBHOOK_URL?.length);
 
     if (GOOGLE_APPS_SCRIPT_WEBHOOK_URL) {
       const webhookPayload: Record<string, unknown> = {
@@ -144,9 +177,10 @@ export async function POST(request: NextRequest) {
           company: consultation.companyName,
           message: consultation.message,
           consultType: consultation.consultationType,
-          preferredTime: consultation.preferredTime,
-          annualRevenue: consultation.annualRevenue,
-          employeeCount: consultation.employeeCount,
+          preferredTime: convertPreferredTime(consultation.preferredTime || ''),
+          annualRevenue: convertAnnualRevenue(consultation.annualRevenue || ''),
+          employeeCount: convertEmployeeCount(consultation.employeeCount || ''),
+          desiredTime: data.desiredTime || consultation.preferredTime || '',  // 상담희망시간 추가
           region: data.region || '',
           businessNumber: consultation.businessNumber,
           privacyConsent: true,
@@ -174,9 +208,6 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        console.log('Sending webhook to:', GOOGLE_APPS_SCRIPT_WEBHOOK_URL);
-        console.log('Webhook payload keys:', Object.keys(webhookPayload));
-
         const response = await fetch(GOOGLE_APPS_SCRIPT_WEBHOOK_URL, {
           method: 'POST',
           headers: {
@@ -185,10 +216,6 @@ export async function POST(request: NextRequest) {
           cache: 'no-store',
           body: JSON.stringify(webhookPayload),
         });
-
-        console.log('Webhook response status:', response.status);
-        const responseText = await response.text();
-        console.log('Webhook response:', responseText);
 
         if (!response.ok) {
           notificationError = `웹훅 응답 오류 (status: ${response.status})`;
