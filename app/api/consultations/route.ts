@@ -15,9 +15,14 @@ import {
 const rawWebhookUrl = process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL_AUDITOR || process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL || '';
 const GOOGLE_APPS_SCRIPT_WEBHOOK_URL = rawWebhookUrl.trim().replace(/^["']|["']$/g, '');
 
-const CONSULTATION_NOTIFICATION_EMAILS = process.env.CONSULTATION_NOTIFICATION_EMAILS_AUDITOR || process.env.CONSULTATION_NOTIFICATION_EMAILS || '';
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN_AUDITOR || '';
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID_AUDITOR || '';
+const rawNotificationEmails = process.env.CONSULTATION_NOTIFICATION_EMAILS_AUDITOR || process.env.CONSULTATION_NOTIFICATION_EMAILS || '';
+const CONSULTATION_NOTIFICATION_EMAILS = rawNotificationEmails.trim().replace(/^["']|["']$/g, '');
+
+const rawTelegramToken = process.env.TELEGRAM_BOT_TOKEN_AUDITOR || '';
+const TELEGRAM_BOT_TOKEN = rawTelegramToken.trim().replace(/^["']|["']$/g, '');
+
+const rawTelegramChatId = process.env.TELEGRAM_CHAT_ID_AUDITOR || '';
+const TELEGRAM_CHAT_ID = rawTelegramChatId.trim().replace(/^["']|["']$/g, '');
 
 const rawWebhookSecret = process.env.CONSULTATION_WEBHOOK_SECRET_AUDITOR || '';
 const CONSULTATION_WEBHOOK_SECRET = rawWebhookSecret.trim().replace(/^["']|["']$/g, '');
