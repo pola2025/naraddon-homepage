@@ -128,8 +128,16 @@ export async function POST(request: NextRequest) {
         // 상담 신청 저장
         const result = await db.collection('consultations').insertOne(consultation);
         mongoInsertedId = result.insertedId;
-        mongoSaveSuccess = true;
-        console.log('[상담신청] MongoDB 저장 완료:', result.insertedId);
+
+        // insertedId가 dummy 또는 fallback으로 시작하면 실제 저장 실패
+        if (mongoInsertedId && typeof mongoInsertedId === 'string' &&
+            (mongoInsertedId.startsWith('dummy-') || mongoInsertedId.startsWith('fallback-'))) {
+          console.warn('[상담신청] MongoDB 더미 클라이언트 사용 중, 실제 저장 안됨');
+          mongoSaveSuccess = false;
+        } else {
+          mongoSaveSuccess = true;
+          console.log('[상담신청] MongoDB 실제 저장 완료:', result.insertedId);
+        }
       } else {
         console.warn('[상담신청] MongoDB 클라이언트가 없음 (더미 클라이언트 사용 중)');
       }

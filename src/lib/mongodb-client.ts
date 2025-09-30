@@ -8,13 +8,16 @@ let clientPromise: Promise<MongoClient | any>;
 // MongoDB가 설정되지 않았을 때 더미 클라이언트 반환
 if (!uri) {
   console.warn('MONGODB_URI not set, using dummy client');
+  console.warn('Environment:', process.env.NODE_ENV);
+  console.warn('Vercel:', process.env.VERCEL ? 'Yes' : 'No');
+
   const dummyClient = {
     connect: () => Promise.resolve(null),
     db: () => ({
       collection: () => ({
         findOne: () => Promise.resolve(null),
         find: () => ({ toArray: () => Promise.resolve([]) }),
-        insertOne: () => Promise.resolve({ insertedId: null }),
+        insertOne: () => Promise.resolve({ insertedId: 'dummy-' + Date.now() }),
         updateOne: () => Promise.resolve({ modifiedCount: 0 }),
         deleteOne: () => Promise.resolve({ deletedCount: 0 }),
         findOneAndUpdate: () => Promise.resolve({ value: null }),
@@ -24,6 +27,7 @@ if (!uri) {
   };
   clientPromise = Promise.resolve(dummyClient);
 } else {
+  console.log('MongoDB URI is set, attempting connection...');
   // 정상적인 MongoDB 클라이언트 설정
   const options = {};
   let client;
@@ -43,7 +47,26 @@ if (!uri) {
   } else {
     // In production mode, it's best to not use a global variable.
     client = new MongoClient(uri, options);
-    clientPromise = client.connect();
+    clientPromise = client.connect().catch((error) => {
+      console.error('MongoDB connection failed:', error.message);
+      console.error('Connection string starts with:', uri.substring(0, 20) + '...');
+
+      // 연결 실패 시 더미 클라이언트 반환
+      return {
+        connect: () => Promise.resolve(null),
+        db: () => ({
+          collection: () => ({
+            findOne: () => Promise.resolve(null),
+            find: () => ({ toArray: () => Promise.resolve([]) }),
+            insertOne: () => Promise.resolve({ insertedId: 'fallback-' + Date.now() }),
+            updateOne: () => Promise.resolve({ modifiedCount: 0 }),
+            deleteOne: () => Promise.resolve({ deletedCount: 0 }),
+            findOneAndUpdate: () => Promise.resolve({ value: null }),
+            deleteMany: () => Promise.resolve({ deletedCount: 0 }),
+          })
+        })
+      };
+    });
   }
 }
 
