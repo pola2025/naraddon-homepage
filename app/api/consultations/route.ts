@@ -15,7 +15,8 @@ const GOOGLE_APPS_SCRIPT_WEBHOOK_URL = process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_UR
 const CONSULTATION_NOTIFICATION_EMAILS = process.env.CONSULTATION_NOTIFICATION_EMAILS ?? '';
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN ?? '';
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID ?? '';
-const CONSULTATION_WEBHOOK_SECRET = process.env.CONSULTATION_WEBHOOK_SECRET ?? '';
+// 기업심사관 상담용 SECRET 사용
+const CONSULTATION_WEBHOOK_SECRET = process.env.CONSULTATION_WEBHOOK_SECRET_AUDITOR ?? '';
 
 function parseEmailList(raw: string): string[] {
   return raw
