@@ -14,6 +14,9 @@ export async function GET() {
       .sort({ order: 1, createdAt: -1 })
       .select('-__v');
 
+    // DEBUG: Log raw MongoDB data
+    console.log('[DEBUG] Raw MongoDB expert[0]:', JSON.stringify(experts[0], null, 2));
+
     // Transform data to match ExaminerProfile format
     const transformedExperts = experts.map((expert) => ({
       _id: expert._id.toString(),
@@ -28,6 +31,9 @@ export async function GET() {
       legacyKey: expert.imageKey,
       isPublished: expert.isActive,
     }));
+
+    // DEBUG: Log transformed data
+    console.log('[DEBUG] Transformed expert[0]:', JSON.stringify(transformedExperts[0], null, 2));
 
     return NextResponse.json({
       success: true,
