@@ -23,7 +23,7 @@ export async function GET() {
       companyName: expert.companyName,
       category: 'expert',
       specialties: expert.specialties,
-      imageUrl: expert.imageUrl || `https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/${expert.imageKey}.png`,
+      imageUrl: `https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/${expert.imageKey}.png`,
       imageAlt: `${expert.name} 전문가 사진`,
       sortOrder: expert.order,
       legacyKey: expert.imageKey,
