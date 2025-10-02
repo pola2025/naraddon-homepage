@@ -63,3 +63,4 @@ service-account.json
 .secrets/
 /docs/development-credentials.md
 nul
+*.gs
