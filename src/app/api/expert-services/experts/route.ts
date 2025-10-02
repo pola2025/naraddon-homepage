@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Expert from '@/models/Expert';
 
+// Disable caching for this API route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   try {
     await dbConnect();
@@ -9,11 +13,6 @@ export async function GET() {
     const experts = await Expert.find({ isActive: true })
       .sort({ order: 1, createdAt: -1 })
       .select('-__v');
-
-    console.log('[API] MongoDB에서 가져온 데이터 수:', experts.length);
-    if (experts.length > 0) {
-      console.log('[API] 첫 번째 전문가 imageUrl:', experts[0].imageUrl);
-    }
 
     // Transform data to match ExaminerProfile format
     const transformedExperts = experts.map((expert) => ({
