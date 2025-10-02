@@ -23,7 +23,7 @@ import {
 import { VERIFIED_EXPERT_PROFILES as VERIFIED_EXPERT_PROFILES_DATA } from '@/data/expertsShowcase';
 import './page.css';
 const VERIFIED_EXPERT_PROFILES = VERIFIED_EXPERT_PROFILES_DATA;
-const ENABLE_DYNAMIC_EXPERT_SOURCE = true;
+const ENABLE_DYNAMIC_EXPERT_SOURCE = false;
 const MAX_CONTENT_LENGTH = 500;
 
 // 한글 이름 -> 영문 imageKey 매핑
