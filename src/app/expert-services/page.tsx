@@ -499,17 +499,20 @@ export default function ExpertServicesPage() {
                       >
                         <div className="card-inner">
                           <div className="card-image-section">
-                            {hasImage ? (
-                              <img
-                                src={imageUrl}
-                                alt={expert.imageAlt || `${expert.name} 프로필`}
-                                loading="lazy"
-                              />
-                            ) : (
-                              <div className="image-placeholder">
-                                <i className="fas fa-user-tie" />
-                              </div>
-                            )}
+                            <img
+                              src={`https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/${expert.legacyKey}.png`}
+                              alt={expert.imageAlt || `${expert.name} 프로필`}
+                              loading="lazy"
+                              onError={(e) => {
+                                const img = e.currentTarget;
+                                img.style.display = 'none';
+                                const placeholder = img.parentElement?.querySelector('.image-placeholder-new');
+                                if (placeholder) placeholder.classList.remove('hidden');
+                              }}
+                            />
+                            <div className="image-placeholder-new hidden" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#f0f0f0'}}>
+                              <i className="fas fa-user-tie" style={{fontSize: '48px', color: '#999'}} />
+                            </div>
                           </div>
 
                           <div className="card-content-section">
