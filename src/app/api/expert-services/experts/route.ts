@@ -10,6 +10,11 @@ export async function GET() {
       .sort({ order: 1, createdAt: -1 })
       .select('-__v');
 
+    console.log('[API] MongoDB에서 가져온 데이터 수:', experts.length);
+    if (experts.length > 0) {
+      console.log('[API] 첫 번째 전문가 imageUrl:', experts[0].imageUrl);
+    }
+
     // Transform data to match ExaminerProfile format
     const transformedExperts = experts.map((expert) => ({
       _id: expert._id.toString(),
