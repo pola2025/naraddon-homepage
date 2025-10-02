@@ -14,7 +14,13 @@
       "Bash(npm run migrate:*)",
       "Bash(npx tsx:*)",
       "Bash(curl:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(git rm:*)",
+      "Bash(grep:*)",
+      "Bash(npx vercel inspect:*)",
+      "Bash(npx vercel:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

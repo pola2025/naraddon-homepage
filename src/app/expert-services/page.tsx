@@ -87,7 +87,7 @@ export default function ExpertServicesPage() {
           typeof profile.imageUrl === 'string' && profile.imageUrl.trim().length > 0
             ? profile.imageUrl.trim()
             : legacyKey
-              ? `/images/examiners/${legacyKey}.png`
+              ? `/pro/${legacyKey}.png`
               : '';
         const imageAlt =
           typeof profile.imageAlt === 'string' && profile.imageAlt.trim().length > 0

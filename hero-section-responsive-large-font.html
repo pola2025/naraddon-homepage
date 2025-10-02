@@ -1,0 +1,198 @@
+<!-- ================================================ -->
+<!-- 회사소개 히어로 섹션 - 아임웹 HTML 위젯용 -->
+<!-- 섹션 ID: #s20250909b4e300203e536 -->
+<!-- 폰트 크기 증가 버전 (반응형) -->
+<!-- ================================================ -->
+<style>
+/* 폰트 설정 */
+#s20250909b4e300203e536 {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
+/* 섹션 배경 - 히어로 섹션 (배경색 제거, 투명 처리) */
+#s20250909b4e300203e536 {
+    background: transparent !important;
+    padding: 120px 0 !important;
+    text-align: center !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+/* 움직이는 그라데이션 효과 - JM 블루 컬러 */
+#s20250909b4e300203e536::after {
+    content: '' !important;
+    position: absolute !important;
+    top: -50% !important;
+    left: -50% !important;
+    width: 200% !important;
+    height: 200% !important;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(0, 107, 179, 0.05) 50%,
+        transparent 70%
+    ) !important;
+    animation: shimmer 4s infinite !important;
+    pointer-events: none !important;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%) translateY(-100%) !important;
+    }
+    100% {
+        transform: translateX(100%) translateY(100%) !important;
+    }
+}
+
+/* 패턴 배경 - JM 블루 컬러 */
+#s20250909b4e300203e536::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230084c7' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") !important;
+    pointer-events: none !important;
+}
+
+#s20250909b4e300203e536 .hero-content {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 20px !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* PC 기본 폰트 크기 증가 */
+#s20250909b4e300203e536 h1 {
+    font-size: 64px !important;
+    font-weight: 700 !important;
+    color: #FFFFFF !important;
+    margin-bottom: 28px !important;
+    letter-spacing: -0.02em !important;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+#s20250909b4e300203e536 .subtitle {
+    font-size: 32px !important;
+    margin-bottom: 20px !important;
+    font-weight: 600 !important;
+    color: #3b9dd8 !important;  /* JM Light Blue */
+    opacity: 1 !important;
+    display: inline-block !important;
+    text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* 설명 텍스트 크기를 부제와 동일하게 조정 */
+#s20250909b4e300203e536 .description {
+    font-size: 32px !important;  /* 22px → 32px (부제와 동일) */
+    color: #E8F4F8 !important;
+    line-height: 1.6 !important;  /* 줄 간격 조정 */
+    max-width: 900px !important;  /* 최대 너비 증가 */
+    margin: 0 auto !important;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3) !important;
+    font-weight: 500 !important;  /* 약간의 굵기 추가 */
+}
+
+/* 강조 텍스트 - JM Success Green */
+#s20250909b4e300203e536 .highlight {
+    color: #00a652 !important;
+    font-weight: 600 !important;
+}
+
+/* PC에서는 br 태그 숨김 */
+#s20250909b4e300203e536 .mobile-br {
+    display: none !important;
+}
+
+/* 반응형 디자인 - 태블릿 */
+@media (max-width: 1024px) {
+    #s20250909b4e300203e536 h1 {
+        font-size: 52px !important;
+    }
+
+    #s20250909b4e300203e536 .subtitle {
+        font-size: 28px !important;
+    }
+
+    #s20250909b4e300203e536 .description {
+        font-size: 28px !important;
+    }
+}
+
+/* 반응형 디자인 - 모바일 */
+@media (max-width: 768px) {
+    #s20250909b4e300203e536 {
+        padding: 60px 0 !important;
+    }
+
+    #s20250909b4e300203e536 h1 {
+        font-size: 36px !important;
+        margin-bottom: 18px !important;
+    }
+
+    #s20250909b4e300203e536 .subtitle {
+        font-size: 26px !important;
+        margin-bottom: 14px !important;
+    }
+
+    #s20250909b4e300203e536 .description {
+        font-size: 24px !important;  /* 모바일에서도 크게 */
+        line-height: 1.5 !important;
+    }
+
+    /* 모바일에서만 br 태그 표시 */
+    #s20250909b4e300203e536 .mobile-br {
+        display: inline !important;
+    }
+
+    /* 기존 br 태그는 모바일에서 숨김 */
+    #s20250909b4e300203e536 .pc-br {
+        display: none !important;
+    }
+}
+
+@media (max-width: 480px) {
+    #s20250909b4e300203e536 {
+        padding: 50px 0 !important;
+    }
+
+    #s20250909b4e300203e536 h1 {
+        font-size: 30px !important;
+        margin-bottom: 14px !important;
+    }
+
+    #s20250909b4e300203e536 .subtitle {
+        font-size: 22px !important;
+    }
+
+    #s20250909b4e300203e536 .description {
+        font-size: 20px !important;
+    }
+}
+
+@media (max-width: 375px) {
+    #s20250909b4e300203e536 h1 {
+        font-size: 26px !important;
+    }
+
+    #s20250909b4e300203e536 .subtitle {
+        font-size: 20px !important;
+    }
+
+    #s20250909b4e300203e536 .description {
+        font-size: 18px !important;
+    }
+}
+</style>
+
+<div class="hero-content">
+    <h1>사업의 생명줄 자금</h1>
+    <p class="subtitle">제이엠 비즈니스지원센터</p>
+    <p class="description">
+        자금이 끊기면 사업도 멈춥니다. 제이엠은 그 생명을 지키는 전략으로 <br>
+        <span class="highlight">사업의 흐름이</span> 멈추지 않도록 자금확보를 실시합니다.
+    </p>
+</div>

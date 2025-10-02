@@ -37,7 +37,12 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      experts: transformedExperts
+      experts: transformedExperts,
+      debug: {
+        rawFromMongo: experts[0],
+        transformed: transformedExperts[0],
+        timestamp: new Date().toISOString()
+      }
     });
   } catch (error) {
     console.error('Error fetching experts:', error);
