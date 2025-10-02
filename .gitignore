@@ -64,3 +64,4 @@ service-account.json
 /docs/development-credentials.md
 nul
 *.gs
+env-for-vercel.txt
