@@ -12,3 +12,10 @@
      · cpus
 
  ✓ Ready in 1364ms
+
+[1m[33mwarn[39m[22m - As of Tailwind CSS v3.3, the `@tailwindcss/line-clamp` plugin is now included by default.
+[1m[33mwarn[39m[22m - Remove it from the `plugins` array in your configuration to eliminate this warning.
+ ○ Compiling /not-found ...
+ ✓ Compiled /not-found in 3s (673 modules)
+ ✓ Compiled in 311ms (306 modules)
+ ✓ Compiled in 185ms (306 modules)

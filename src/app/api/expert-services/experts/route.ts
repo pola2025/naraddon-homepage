@@ -5,8 +5,11 @@ import Expert from '@/models/Expert';
 // Disable caching for this API route
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+export const runtime = 'nodejs';
 
-export async function GET() {
+export async function GET(request: Request) {
+  // Force dynamic by using request headers
+  const timestamp = request.headers.get('x-timestamp') || Date.now();
   try {
     await dbConnect();
 
