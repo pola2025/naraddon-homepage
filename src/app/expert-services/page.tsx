@@ -45,7 +45,7 @@ export default function ExpertServicesPage() {
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [isPrivacyOpen, setPrivacyOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-
+  const [isImageReady, setIsImageReady] = useState(false);
 
   const [expertProfiles, setExpertProfiles] = useState<ExaminerProfile[]>(VERIFIED_EXPERT_PROFILES);
   const [isLoadingExperts, setIsLoadingExperts] = useState(false);
@@ -165,6 +165,7 @@ export default function ExpertServicesPage() {
 
   useEffect(() => {
     setIsMounted(true);
+    setIsImageReady(true);
   }, []);
 
   useEffect(() => {
@@ -456,17 +457,23 @@ export default function ExpertServicesPage() {
                       >
                         <div className="card-inner">
                           <div className="card-image-section">
-                            <img
-                              src={expert.imageUrl || `https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/${expert.legacyKey || 'default'}.png`}
-                              alt={expert.imageAlt || `${expert.name} 프로필`}
-                              loading="lazy"
-                              onError={(e) => {
-                                const img = e.currentTarget;
-                                img.style.display = 'none';
-                                const placeholder = img.parentElement?.querySelector('.image-placeholder-new');
-                                if (placeholder) placeholder.classList.remove('hidden');
-                              }}
-                            />
+                            {isImageReady ? (
+                              <img
+                                src={expert.imageUrl || `https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/${expert.legacyKey || 'default'}.png`}
+                                alt={expert.imageAlt || `${expert.name} 프로필`}
+                                loading="lazy"
+                                onError={(e) => {
+                                  const img = e.currentTarget;
+                                  img.style.display = 'none';
+                                  const placeholder = img.parentElement?.querySelector('.image-placeholder-new');
+                                  if (placeholder) placeholder.classList.remove('hidden');
+                                }}
+                              />
+                            ) : (
+                              <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#f0f0f0'}}>
+                                <i className="fas fa-user-tie" style={{fontSize: '48px', color: '#999'}} />
+                              </div>
+                            )}
                             <div className="image-placeholder-new hidden" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#f0f0f0'}}>
                               <i className="fas fa-user-tie" style={{fontSize: '48px', color: '#999'}} />
                             </div>
