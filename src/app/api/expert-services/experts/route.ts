@@ -7,45 +7,11 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export async function GET() {
-  try {
-    await dbConnect();
+  // TEMPORARY: Use fallback data directly to bypass caching issues
+  const useFallback = true;
 
-    const experts = await Expert.find({ isActive: true })
-      .sort({ order: 1, createdAt: -1 })
-      .select('-__v');
-
-    // DEBUG: Log raw MongoDB data
-    console.log('[DEBUG] Raw MongoDB expert[0]:', JSON.stringify(experts[0], null, 2));
-
-    // Transform data to match ExaminerProfile format
-    const transformedExperts = experts.map((expert) => ({
-      _id: expert._id.toString(),
-      name: expert.name,
-      position: expert.position,
-      companyName: expert.companyName,
-      category: 'expert',
-      specialties: expert.specialties,
-      imageUrl: `https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/${expert.imageKey}.png`,
-      imageAlt: `${expert.name} 전문가 사진`,
-      sortOrder: expert.order,
-      legacyKey: expert.imageKey,
-      isPublished: expert.isActive,
-    }));
-
-    // DEBUG: Log transformed data
-    console.log('[DEBUG] Transformed expert[0]:', JSON.stringify(transformedExperts[0], null, 2));
-
-    return NextResponse.json({
-      success: true,
-      experts: transformedExperts,
-      debug: {
-        rawFromMongo: experts[0],
-        transformed: transformedExperts[0],
-        timestamp: new Date().toISOString()
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching experts:', error);
+  if (useFallback) {
+    console.log('[INFO] Using fallback data with Cloudflare R2 URLs');
 
     // Return fallback data if database error
     const fallbackExperts = [
