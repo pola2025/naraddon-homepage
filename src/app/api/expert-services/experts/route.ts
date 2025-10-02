@@ -18,7 +18,7 @@ export async function GET() {
       companyName: expert.companyName,
       category: 'expert',
       specialties: expert.specialties,
-      imageUrl: `/pro/${expert.name}.png`,
+      imageUrl: `/pro/${expert.imageKey}.png`,
       imageAlt: `${expert.name} 전문가 사진`,
       sortOrder: expert.order,
       legacyKey: expert.imageKey,
