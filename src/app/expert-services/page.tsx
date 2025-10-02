@@ -67,7 +67,7 @@ export default function ExpertServicesPage() {
     try {
       setIsLoadingExperts(true);
       setExpertsError(null);
-      const response = await fetch('/api/expert-services/experts', { cache: 'no-store' });
+      const response = await fetch('/api/expert-services/experts-v2', { cache: 'no-store' });
       if (!response.ok) {
         throw new Error('Failed to load expert profiles.');
       }
