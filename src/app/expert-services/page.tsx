@@ -26,16 +26,6 @@ const VERIFIED_EXPERT_PROFILES = VERIFIED_EXPERT_PROFILES_DATA;
 const ENABLE_DYNAMIC_EXPERT_SOURCE = false;
 const MAX_CONTENT_LENGTH = 500;
 
-// 한글 이름 -> 영문 imageKey 매핑
-const NAME_TO_IMAGE_KEY: Record<string, string> = {
-  '백경우': 'baek-kyung-woo',
-  '성민석': 'sung-min-seok',
-  '전기홍': 'jeon-ki-hong',
-  '최일현': 'choi-il-hyun',
-  '황기현': 'hwang-ki-hyun',
-  '김재균': 'kim-jae-gyun',
-};
-
 const defaultFormState = {
   name: '',
   phone: '',
@@ -467,7 +457,7 @@ export default function ExpertServicesPage() {
                         <div className="card-inner">
                           <div className="card-image-section">
                             <img
-                              src={`https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/${NAME_TO_IMAGE_KEY[expert.name] || expert.legacyKey || 'default'}.png`}
+                              src={expert.imageUrl || `https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/${expert.legacyKey || 'default'}.png`}
                               alt={expert.imageAlt || `${expert.name} 프로필`}
                               loading="lazy"
                               onError={(e) => {
