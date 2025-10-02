@@ -7,7 +7,6 @@
       "maxDuration": 30
     }
   },
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./src/ ./app/ ./public/",
   "headers": [
     {
       "source": "/(.*)",
