@@ -20,8 +20,7 @@
       "Bash(npx vercel inspect:*)",
       "Bash(npx vercel:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
