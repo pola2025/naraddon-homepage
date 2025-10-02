@@ -7,6 +7,7 @@ export interface IExpert {
   companyName: string;
   specialties: string[];
   imageKey: string;
+  imageUrl?: string;
   order: number;
   isActive: boolean;
   createdAt?: Date;
@@ -34,6 +35,10 @@ const ExpertSchema = new mongoose.Schema<IExpert>(
     imageKey: {
       type: String,
       required: true,
+    },
+    imageUrl: {
+      type: String,
+      required: false,
     },
     order: {
       type: Number,
