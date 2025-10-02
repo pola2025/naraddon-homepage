@@ -1,8 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   FocusEvent as ReactFocusEvent,
@@ -168,14 +165,8 @@ export default function ExpertServicesPage() {
       return true;
     });
 
-    if (uniqueProfiles.length <= 1) {
-      return uniqueProfiles;
-    }
-
-    const copy = [...uniqueProfiles];
-    const randomIndex = Math.floor(Math.random() * copy.length);
-    const [first] = copy.splice(randomIndex, 1);
-    return [first, ...copy];
+    // No shuffling - keep deterministic order to prevent hydration errors
+    return uniqueProfiles;
   }, [expertProfiles]);
 
   const totalExperts = displayedExperts.length;
@@ -196,43 +187,13 @@ export default function ExpertServicesPage() {
 
   const goToNext = useCallback(() => {
     if (!canNavigate) return;
-
-    // 모바일에서 부드러운 전환 효과 (클라이언트 사이드에서만)
-    if (isMounted && typeof window !== 'undefined' && window.innerWidth <= 767) {
-      const currentCard = document.querySelector('.expert-card-horizontal[data-position="center"]');
-      if (currentCard) {
-        currentCard.classList.add('fade-out');
-        setTimeout(() => {
-          setActiveIndex((prev) => (prev + 1) % totalExperts);
-          currentCard.classList.remove('fade-out');
-        }, 200);
-      } else {
-        setActiveIndex((prev) => (prev + 1) % totalExperts);
-      }
-    } else {
-      setActiveIndex((prev) => (prev + 1) % totalExperts);
-    }
-  }, [canNavigate, totalExperts, isMounted]);
+    setActiveIndex((prev) => (prev + 1) % totalExperts);
+  }, [canNavigate, totalExperts]);
 
   const goToPrev = useCallback(() => {
     if (!canNavigate) return;
-
-    // 모바일에서 부드러운 전환 효과 (클라이언트 사이드에서만)
-    if (isMounted && typeof window !== 'undefined' && window.innerWidth <= 767) {
-      const currentCard = document.querySelector('.expert-card-horizontal[data-position="center"]');
-      if (currentCard) {
-        currentCard.classList.add('fade-out');
-        setTimeout(() => {
-          setActiveIndex((prev) => (prev - 1 + totalExperts) % totalExperts);
-          currentCard.classList.remove('fade-out');
-        }, 200);
-      } else {
-        setActiveIndex((prev) => (prev - 1 + totalExperts) % totalExperts);
-      }
-    } else {
-      setActiveIndex((prev) => (prev - 1 + totalExperts) % totalExperts);
-    }
-  }, [canNavigate, totalExperts, isMounted]);
+    setActiveIndex((prev) => (prev - 1 + totalExperts) % totalExperts);
+  }, [canNavigate, totalExperts]);
 
   useEffect(() => {
     if (!isAutoPlaying || !canNavigate) {
@@ -481,13 +442,6 @@ export default function ExpertServicesPage() {
                   {getVisibleExperts.map((expert, visibleIndex) => {
                     const expertIndex = displayedExperts.indexOf(expert);
                     const isCenter = visibleIndex === 1 || (totalExperts === 1 && visibleIndex === 0);
-                    const imageUrl =
-                      typeof expert.imageUrl === 'string' && expert.imageUrl.trim().length > 0
-                        ? expert.imageUrl
-                        : expert.legacyKey
-                          ? `/images/examiners/${expert.legacyKey}.png`
-                          : '';
-                    const hasImage = Boolean(imageUrl);
                     const fallbackId =
                       'id' in expert && typeof (expert as { id?: string | number }).id !== 'undefined'
                         ? (expert as { id?: string | number }).id
