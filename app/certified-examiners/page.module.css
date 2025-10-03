@@ -1,0 +1,8 @@
+.pageWrapper {
+  background: #0A0A0A !important;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  margin-top: -1px; /* 헤더 아래 공백 제거 */
+}

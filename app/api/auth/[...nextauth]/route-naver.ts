@@ -1,0 +1,57 @@
+import NextAuth from 'next-auth';
+import type { NextAuthOptions } from 'next-auth';
+
+// 네이버 OAuth 전용 설정
+const authOptions: NextAuthOptions = {
+  providers: [
+    {
+      id: 'naver',
+      name: 'Naver',
+      type: 'oauth',
+      clientId: process.env.NAVER_CLIENT_ID!,
+      clientSecret: process.env.NAVER_CLIENT_SECRET!,
+      // 네이버 OAuth URL 설정
+      authorization: 'https://nid.naver.com/oauth2.0/authorize',
+      token: 'https://nid.naver.com/oauth2.0/token',
+      userinfo: 'https://openapi.naver.com/v1/nid/me',
+      // 프로필 매핑
+      profile(profile: any) {
+        return {
+          id: profile.response?.id,
+          name: profile.response?.name,
+          email: profile.response?.email,
+          image: profile.response?.profile_image,
+        };
+      },
+    },
+  ],
+  callbacks: {
+    async jwt({ token, account, profile }) {
+      if (account && profile) {
+        token.provider = 'naver';
+        token.providerId = profile.response?.id;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        (session.user as any).provider = token.provider;
+        (session.user as any).providerId = token.providerId;
+      }
+      return session;
+    },
+  },
+  pages: {
+    signIn: '/auth/login',
+    error: '/auth/error',
+  },
+  secret: process.env.NEXTAUTH_SECRET!,
+  session: {
+    strategy: 'jwt',
+  },
+  // 디버깅 활성화
+  debug: true,
+};
+
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST };
