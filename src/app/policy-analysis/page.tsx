@@ -1,12 +1,12 @@
 'use client';
 
-import dynamic from 'next/dynamic';
+import nextDynamic from 'next/dynamic';
 
 // Force dynamic rendering and disable caching
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-const PolicyAnalysis = dynamic(() => import('@/components/policy/PolicyAnalysis'), {
+const PolicyAnalysis = nextDynamic(() => import('@/components/policy/PolicyAnalysis'), {
   ssr: true,  // SSR 활성화로 변경
   loading: () => (
     <div className="min-h-screen flex items-center justify-center">
