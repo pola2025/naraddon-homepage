@@ -1,5 +1,6 @@
 'use client';
-// Force rebuild to invalidate Vercel build cache
+// Cache buster - force fresh build without old chunks
+const CACHE_BUSTER = 'v20250103-1';
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   FocusEvent as ReactFocusEvent,
