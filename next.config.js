@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Cache busting: force fresh build
+  env: {
+    BUILD_ID: Date.now().toString(),
+  },
+
   // 출력 타입 설정
   output: 'standalone',
 
