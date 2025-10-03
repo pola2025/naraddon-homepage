@@ -10,7 +10,16 @@ export async function GET() {
       .sort({ order: 1, createdAt: -1 })
       .select('-__v');
 
-    return NextResponse.json({ success: true, experts });
+    return NextResponse.json(
+      { success: true, experts },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      }
+    );
   } catch (error) {
     console.error('Error fetching experts:', error);
     return NextResponse.json(
