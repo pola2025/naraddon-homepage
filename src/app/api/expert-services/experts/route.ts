@@ -2,16 +2,45 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Expert from '@/models/Expert';
 
-// Disable caching for this API route
+// Force dynamic rendering and disable all caching
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+export const runtime = 'nodejs';
+
+const CLOUDFLARE_R2_BASE = 'https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev';
 
 export async function GET() {
-  // TEMPORARY: Use fallback data directly to bypass caching issues
-  const useFallback = true;
+  try {
+    await dbConnect();
 
-  if (useFallback) {
-    console.log('[INFO] Using fallback data with Cloudflare R2 URLs');
+    // Fetch from MongoDB
+    const experts = await Expert.find({ isPublished: true })
+      .sort({ sortOrder: 1 })
+      .lean();
+
+    // Transform MongoDB data to ensure correct image URLs
+    const transformedExperts = experts.map(expert => ({
+      ...expert,
+      _id: expert._id.toString(),
+      // Force Cloudflare R2 URLs
+      imageUrl: expert.imageUrl?.startsWith('http')
+        ? expert.imageUrl
+        : `${CLOUDFLARE_R2_BASE}/${expert.legacyKey || expert.name}.png`,
+    }));
+
+    return NextResponse.json({
+      success: true,
+      experts: transformedExperts
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
+    });
+  } catch (error) {
+    console.error('[ERROR] Failed to fetch experts from MongoDB:', error);
 
     // Return fallback data if database error
     const fallbackExperts = [
@@ -72,6 +101,10 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       experts: fallbackExperts
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+      }
     });
   }
 }
