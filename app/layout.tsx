@@ -1,22 +1,20 @@
-import '../sentry.client.config';
-
 import type { Metadata } from 'next';
 import './globals.css';
-import '@/App.css';
-import '@/styles/components.css';
+import '../App.css';
+import '../styles/components.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Providers } from '@/components/Providers';
 
 export const metadata: Metadata = {
-  title: '?�라??NARADDON) - ?��??�책?�금 ?�문 컨설??| 중소기업 지?�금 ?�랫??,
+  title: '나라똔(NARADDON) - 정부정책자금 전문 컨설팅 | 중소기업 지원금 플랫폼',
   description:
-    '?�라?��? ?�증 기업?�사관�??�께 ?�책?�금, R&D지?�금, ?�출바우�????��?지?�사?�을 ?�결?�는 ?�?��?�?1???�랫?�입?�다. ?�간 450만원 ?�약, 100% 책임보증?�도',
+    '나라똔은 인증 기업심사관과 함께 정책자금, R&D지원금, 수출바우처 등 정부지원사업을 연결하는 대한민국 1위 플랫폼입니다. 연간 450만원 절약, 100% 책임보증제도',
   keywords:
-    '?�책?�금, ?��?지?�금, 중소기업지?? R&D?�금, ?�출바우�? 창업지?�금, ?�라?? NARADDON, 기업?�사관, ?��?보조�? ?�업?��?�?,
-  authors: [{ name: '?�라?? }],
-  creator: '?�라??,
-  publisher: '?�라??,
+    '정책자금, 정부지원금, 중소기업지원, R&D자금, 수출바우처, 창업지원금, 나라똔, NARADDON, 기업심사관, 정부보조금, 사업자대출',
+  authors: [{ name: '나라똔' }],
+  creator: '나라똔',
+  publisher: '나라똔',
   formatDetection: {
     email: false,
     address: false,
@@ -27,10 +25,10 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: '?�라??NARADDON) - ?��??�책?�금 ?�문 컨설??,
-    description: '?�증 기업?�사관�??�께?�는 ?�책?�금 ?�공 ?�트?? ?�간 450만원 ?�약!',
+    title: '나라똔(NARADDON) - 정부정책자금 전문 컨설팅',
+    description: '인증 기업심사관과 함께하는 정책자금 성공 파트너. 연간 450만원 절약!',
     url: 'https://naraddon.com',
-    siteName: '?�라??,
+    siteName: '나라똔',
     locale: 'ko_KR',
     type: 'website',
     images: [
@@ -38,14 +36,14 @@ export const metadata: Metadata = {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: '?�라??- ?�책?�금 ?�문 ?�랫??,
+        alt: '나라똔 - 정책자금 전문 플랫폼',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: '?�라??NARADDON) - ?��??�책?�금 ?�문 컨설??,
-    description: '?�증 기업?�사관�??�께?�는 ?�책?�금 ?�공 ?�트??,
+    title: '나라똔(NARADDON) - 정부정책자금 전문 컨설팅',
+    description: '인증 기업심사관과 함께하는 정책자금 성공 파트너',
     images: ['/twitter-image.jpg'],
   },
   robots: {
@@ -59,8 +57,8 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  // Next.js App Router가 ?�동?�로 icon.png?� apple-icon.png�?찾습?�다
-  // icons ?�정???�거?�여 ?�동 감�? ?�용
+  // Next.js App Router가 자동으로 icon.png와 apple-icon.png를 찾습니다
+  // icons 설정을 제거하여 자동 감지 사용
   verification: {
     google: 'google-site-verification-code',
     naver: 'naver-site-verification-code',
@@ -75,40 +73,40 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
-        {/* ?�비�?*/}
+        {/* 파비콘 */}
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-        {/* SEO 최적??메�? ?�그 */}
+        {/* SEO 최적화 메타 태그 */}
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta charSet="utf-8" />
 
-        {/* CSRF ?�큰 메�? ?�그 (보안 강화) */}
+        {/* CSRF 토큰 메타 태그 (보안 강화) */}
         <meta name="csrf-token" content="" />
 
-        {/* 추�? SEO 메�? ?�그 */}
+        {/* 추가 SEO 메타 태그 */}
         <meta name="theme-color" content="#4CAF50" />
         <meta name="msapplication-TileColor" content="#4CAF50" />
         <meta name="format-detection" content="telephone=no" />
 
-        {/* 구조?�된 ?�이??(JSON-LD) */}
+        {/* 구조화된 데이터 (JSON-LD) */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'Organization',
-              name: '?�라??,
+              name: '나라똔',
               alternateName: 'NARADDON',
               url: 'https://naraddon.com',
               logo: 'https://naraddon.com/logo.png',
-              description: '?��??�책?�금 ?�문 컨설???�랫??,
+              description: '정부정책자금 전문 컨설팅 플랫폼',
               address: {
                 '@type': 'PostalAddress',
                 addressCountry: 'KR',
-                addressLocality: '?�울?�별??,
+                addressLocality: '서울특별시',
               },
               contactPoint: {
                 '@type': 'ContactPoint',
