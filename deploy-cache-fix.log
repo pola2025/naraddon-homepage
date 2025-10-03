@@ -1,0 +1,15 @@
+Vercel CLI 48.1.0
+Retrieving project…
+Deploying mkt9834-4301s-projects/homepage
+Uploading [--------------------] (0.0B/34KB)
+Uploading [============--------] (20.6KB/34KB)
+Uploading [====================] (34.0KB/34KB)
+Inspect: https://vercel.com/mkt9834-4301s-projects/homepage/BjAVEyn6n1YKuzvipLjzTMEMZTZP [6s]
+Production: https://homepage-9rjs6l255-mkt9834-4301s-projects.vercel.app [6s]
+https://homepage-9rjs6l255-mkt9834-4301s-projects.vercel.appQueued
+Building
+Completing
+
+Common next commands:
+- `vercel inspect homepage-9rjs6l255-mkt9834-4301s-projects.vercel.app --logs`
+- `vercel redeploy homepage-9rjs6l255-mkt9834-4301s-projects.vercel.app`

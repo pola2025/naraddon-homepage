@@ -34,7 +34,12 @@
       "Bash(if [ $i -lt 6 ])",
       "Bash(then sleep 10)",
       "Bash(fi)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Bash(git log:*)",
+      "Bash(git grep:*)",
+      "Bash(for img in baek-kyung-woo sung-min-seok jeon-ki-hong choi-il-hyun)",
+      "Bash(do echo \"=== $img.png ===\")",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []

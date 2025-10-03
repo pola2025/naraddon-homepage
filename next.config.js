@@ -1,52 +1,54 @@
 /** @type {import('next').NextConfig} */
+const { withSentryConfig } = require('@sentry/nextjs');
+
 const nextConfig = {
   // Cache busting: force fresh build
   env: {
     BUILD_ID: Date.now().toString(),
   },
 
-  // ì¶œë ¥ íƒ€ì… ì„¤ì •
+  // Ãâ·Â ¼³Á¤
   output: 'standalone',
 
-  // ESLint ë¹Œë“œ ì‹œ ë¬´ì‹œ
+  // ESLint ºôµå ¿À·ù ¹«½Ã
   eslint: {
     ignoreDuringBuilds: true,
   },
 
-  // TypeScript ê²€ì‚¬ ë¬´ì‹œ
+  // TypeScript °Ë»ç ¹«½Ã
   typescript: {
     ignoreBuildErrors: true,
   },
 
-  // ì™¸ë¶€ ì´ë¯¸ì§€ ë„ë©”ì¸ ì„¤ì •
+  // ÀÌ¹ÌÁö µµ¸ŞÀÎ ¼³Á¤
   images: {
     domains: [
       'pub-b520cb8ed3989e8182bdb020ade36495.r2.dev',
       'img.youtube.com',
-      'images.unsplash.com'
+      'images.unsplash.com',
     ],
-    // unoptimized: true, // ì´ë¯¸ì§€ ìµœì í™” í™œì„±í™”
+    // unoptimized: true, // ÀÌ¹ÌÁö ÃÖÀûÈ­ ºñÈ°¼ºÈ­
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 
-  // ì‹¤í—˜ì  ê¸°ëŠ¥
+  // ½ÇÇè ±â´É
   experimental: {
     workerThreads: false,
     cpus: 1,
   },
 
-  // ì„±ëŠ¥ ìµœì í™”
+  // ¼º´É ÃÖÀûÈ­
   swcMinify: true,
   compress: true,
 
-  // ìºì‹œ ë¹„í™œì„±í™” (í”„ë¡œë•ì…˜ ë™ê¸°í™” ë¬¸ì œ í•´ê²°)
+  // Ä³½Ã ºñÈ°¼ºÈ­ (ÇÁ·Î´ö¼Ç ¹èÆ÷ ¹®Á¦ ÇØ°á)
   generateBuildId: async () => {
     return Date.now().toString();
   },
 
-  // public í´ë”ì˜ ì˜ìƒ íŒŒì¼ì— ëŒ€í•œ ìºì‹œ ì„¤ì •
+  // public Æú´õ »ó ÀÌ¹ÌÁö/ºñµğ¿À Ä³½Ã ¼³Á¤
   async headers() {
     return [
       {
@@ -71,4 +73,9 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+module.exports = withSentryConfig(nextConfig, {
+  silent: true,
+  dryRun: process.env.SENTRY_DRY_RUN === '1',
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+});

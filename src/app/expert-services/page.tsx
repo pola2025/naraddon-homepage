@@ -1,6 +1,6 @@
 'use client';
 // Cache buster - force fresh build without old chunks
-const CACHE_BUSTER = 'v20250103-2';
+const CACHE_BUSTER = 'v20250103-3';
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   FocusEvent as ReactFocusEvent,
@@ -351,8 +351,12 @@ export default function ExpertServicesPage() {
 
   const charCount = form.content.length;
 
+  if (!isMounted) {
+    return null;
+  }
+
   return (
-    <div className="expert-services-page bg-slate-50">
+    <div className="expert-services-page bg-slate-50" suppressHydrationWarning>
       <section className="expert-hero layout-hero relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-sky-100">
         <div className="layout-container">
           <div className="max-w-3xl">
