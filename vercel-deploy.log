@@ -1,17 +1,56 @@
 Vercel CLI 48.1.0
 Retrieving project…
 Deploying mkt9834-4301s-projects/homepage
-Uploading [--------------------] (0.0B/98.5KB)
-Uploading [=====---------------] (24.7KB/98.5KB)
-Uploading [============--------] (61.3KB/98.5KB)
-Uploading [===============-----] (74.2KB/98.5KB)
-Uploading [====================] (98.5KB/98.5KB)
-Inspect: https://vercel.com/mkt9834-4301s-projects/homepage/812UunqRmK8znAPYu3QHGc9Nq2aW [8s]
-Production: https://homepage-ga1c1lp52-mkt9834-4301s-projects.vercel.app [8s]
-https://homepage-ga1c1lp52-mkt9834-4301s-projects.vercel.appQueued
+Uploading [--------------------] (0.0B/974.6KB)
+Uploading [=====---------------] (246.4KB/974.6KB)
+Uploading [==========----------] (502.4KB/974.6KB)
+Uploading [===============-----] (742.4KB/974.6KB)
+Uploading [====================] (974.6KB/974.6KB)
+Inspect: https://vercel.com/mkt9834-4301s-projects/homepage/4743q3SwtwGmnKidumm4mLTdRsMg [7s]
+Production: https://homepage-c8u923p5t-mkt9834-4301s-projects.vercel.app [7s]
+https://homepage-c8u923p5t-mkt9834-4301s-projects.vercel.appQueued
 Building
-Completing
-
-Common next commands:
-- `vercel inspect homepage-ga1c1lp52-mkt9834-4301s-projects.vercel.app --logs`
-- `vercel redeploy homepage-ga1c1lp52-mkt9834-4301s-projects.vercel.app`
+2025-10-03T03:31:59.669Z  Running build in Washington, D.C., USA (East) – iad1
+2025-10-03T03:31:59.669Z  Build machine configuration: 2 cores, 8 GB
+2025-10-03T03:31:59.685Z  Retrieving list of deployment files...
+2025-10-03T03:32:01.066Z  Downloading 6204 deployment files...
+2025-10-03T03:32:54.887Z  Restored build cache from previous deployment (8AdXyRFeSfwFB9gZEFKXCisGK7gm)
+2025-10-03T03:32:56.130Z  Running "vercel build"
+2025-10-03T03:32:56.516Z  Vercel CLI 48.1.6
+2025-10-03T03:32:57.389Z  Installing dependencies...
+2025-10-03T03:33:04.050Z  npm warn deprecated @replayio/replay@0.22.12: This package is deprecated. Please use replayio instead.
+2025-10-03T03:33:08.288Z  
+2025-10-03T03:33:08.289Z  added 197 packages in 9s
+2025-10-03T03:33:08.289Z  
+2025-10-03T03:33:08.289Z  299 packages are looking for funding
+2025-10-03T03:33:08.289Z    run `npm fund` for details
+2025-10-03T03:33:08.351Z  Detected Next.js version: 14.1.0
+2025-10-03T03:33:08.352Z  Running "npm run build"
+2025-10-03T03:33:08.460Z  
+2025-10-03T03:33:08.461Z  > naraddon-nextjs@0.1.6 build
+2025-10-03T03:33:08.461Z  > next build
+2025-10-03T03:33:08.461Z  
+2025-10-03T03:33:09.454Z     ▲ Next.js 14.1.0
+2025-10-03T03:33:09.455Z     - Environments: .env.production
+2025-10-03T03:33:09.455Z     - Experiments (use at your own risk):
+2025-10-03T03:33:09.455Z       · instrumentationHook
+2025-10-03T03:33:09.455Z  
+2025-10-03T03:33:09.513Z     Creating an optimized production build ...
+2025-10-03T03:33:10.172Z  [@sentry/nextjs] DEPRECATION WARNING: It is recommended renaming your `sentry.client.config.ts` file, or moving its content to `instrumentation-client.ts`. When using Turbopack `sentry.client.config.ts` will no longer work. Read more about the `instrumentation-client.ts` file: https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation-client
+2025-10-03T03:33:16.070Z  
+2025-10-03T03:33:16.070Z  [1m[33mwarn[39m[22m - As of Tailwind CSS v3.3, the `@tailwindcss/line-clamp` plugin is now included by default.
+2025-10-03T03:33:16.070Z  [1m[33mwarn[39m[22m - Remove it from the `plugins` array in your configuration to eliminate this warning.
+2025-10-03T03:33:39.477Z  Failed to compile.
+2025-10-03T03:33:39.477Z  
+2025-10-03T03:33:39.477Z  ./app/layout.tsx
+2025-10-03T03:33:39.477Z  Error: Failed to read source code from /vercel/path0/app/layout.tsx
+2025-10-03T03:33:39.477Z  
+2025-10-03T03:33:39.477Z  Caused by:
+2025-10-03T03:33:39.477Z      stream did not contain valid UTF-8
+2025-10-03T03:33:39.477Z  
+2025-10-03T03:33:39.478Z  Import trace for requested module:
+2025-10-03T03:33:39.478Z  ./app/layout.tsx
+2025-10-03T03:33:39.478Z  
+2025-10-03T03:33:39.479Z  
+2025-10-03T03:33:39.479Z  > Build failed because of webpack errors
+2025-10-03T03:33:39.555Z  Error: Command "npm run build" exited with 1

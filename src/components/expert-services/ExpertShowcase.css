@@ -1,0 +1,190 @@
+.expert-showcase {
+  padding: 4rem 0;
+}
+
+.expert-showcase__header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.expert-showcase__eyebrow {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #2563eb;
+  margin-bottom: 0.5rem;
+}
+
+.expert-showcase__title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 1rem;
+}
+
+.expert-showcase__description {
+  font-size: 1.125rem;
+  color: #64748b;
+  max-width: 42rem;
+  margin: 0 auto;
+}
+
+.expert-showcase__carousel {
+  position: relative;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.expert-card {
+  background: white;
+  border-radius: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.expert-card:hover {
+  transform: translateY(-5px);
+}
+
+.expert-card__image {
+  width: 100%;
+  height: 400px;
+  position: relative;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.expert-card__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.expert-card__image-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  color: white;
+}
+
+.expert-card__image-fallback.hidden {
+  display: none;
+}
+
+.expert-card__content {
+  padding: 2rem;
+  text-align: center;
+}
+
+.expert-badge {
+  display: inline-block;
+  background: #dbeafe;
+  color: #1e40af;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  margin-bottom: 1rem;
+}
+
+.expert-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.5rem;
+}
+
+.expert-position {
+  font-size: 1.125rem;
+  color: #475569;
+  margin-bottom: 0.25rem;
+}
+
+.expert-company {
+  font-size: 1rem;
+  color: #64748b;
+}
+
+.expert-card__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1rem;
+  background: #10b981;
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.expert-card__cta:hover {
+  background: #059669;
+}
+
+.expert-showcase__controls {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  padding: 0 1rem;
+}
+
+.carousel-btn {
+  pointer-events: auto;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.carousel-btn:hover {
+  background: #f1f5f9;
+  transform: scale(1.1);
+}
+
+.expert-showcase__indicators {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.indicator {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: #cbd5e1;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  padding: 0;
+}
+
+.indicator.active {
+  background: #2563eb;
+  width: 2rem;
+  border-radius: 0.375rem;
+}
+
+.expert-showcase-loading,
+.expert-showcase-empty {
+  padding: 4rem 2rem;
+  text-align: center;
+}

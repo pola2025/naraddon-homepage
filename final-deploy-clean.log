@@ -1,0 +1,55 @@
+Vercel CLI 48.1.0
+Retrieving project…
+Deploying mkt9834-4301s-projects/homepage
+Uploading [--------------------] (0.0B/33.8KB)
+Uploading [=============-------] (22.6KB/33.8KB)
+Uploading [===============-----] (27.0KB/33.8KB)
+Uploading [====================] (33.8KB/33.8KB)
+Inspect: https://vercel.com/mkt9834-4301s-projects/homepage/6UinT1vrXgwv6R3WwhV8VAdj4EcH [8s]
+Production: https://homepage-1y8yha2pi-mkt9834-4301s-projects.vercel.app [8s]
+https://homepage-1y8yha2pi-mkt9834-4301s-projects.vercel.appQueued
+Building
+2025-10-03T03:42:21.998Z  Running build in Washington, D.C., USA (East) – iad1
+2025-10-03T03:42:21.998Z  Build machine configuration: 2 cores, 8 GB
+2025-10-03T03:42:22.033Z  Retrieving list of deployment files...
+2025-10-03T03:42:23.174Z  Downloading 6208 deployment files...
+2025-10-03T03:43:25.485Z  Restored build cache from previous deployment (8AdXyRFeSfwFB9gZEFKXCisGK7gm)
+2025-10-03T03:43:26.646Z  Running "vercel build"
+2025-10-03T03:43:27.055Z  Vercel CLI 48.1.6
+2025-10-03T03:43:27.923Z  Installing dependencies...
+2025-10-03T03:43:33.229Z  npm warn deprecated @replayio/replay@0.22.12: This package is deprecated. Please use replayio instead.
+2025-10-03T03:43:37.487Z  
+2025-10-03T03:43:37.487Z  added 197 packages in 9s
+2025-10-03T03:43:37.488Z  
+2025-10-03T03:43:37.488Z  299 packages are looking for funding
+2025-10-03T03:43:37.488Z    run `npm fund` for details
+2025-10-03T03:43:37.557Z  Detected Next.js version: 14.1.0
+2025-10-03T03:43:37.558Z  Running "npm run build"
+2025-10-03T03:43:37.668Z  
+2025-10-03T03:43:37.669Z  > naraddon-nextjs@0.1.6 build
+2025-10-03T03:43:37.669Z  > next build
+2025-10-03T03:43:37.669Z  
+2025-10-03T03:43:38.886Z     ▲ Next.js 14.1.0
+2025-10-03T03:43:38.887Z     - Environments: .env.production
+2025-10-03T03:43:38.887Z     - Experiments (use at your own risk):
+2025-10-03T03:43:38.887Z       · instrumentationHook
+2025-10-03T03:43:38.888Z  
+2025-10-03T03:43:38.946Z     Creating an optimized production build ...
+2025-10-03T03:43:39.623Z  [@sentry/nextjs] DEPRECATION WARNING: It is recommended renaming your `sentry.client.config.ts` file, or moving its content to `instrumentation-client.ts`. When using Turbopack `sentry.client.config.ts` will no longer work. Read more about the `instrumentation-client.ts` file: https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation-client
+2025-10-03T03:43:45.638Z  
+2025-10-03T03:43:45.639Z  [1m[33mwarn[39m[22m - As of Tailwind CSS v3.3, the `@tailwindcss/line-clamp` plugin is now included by default.
+2025-10-03T03:43:45.639Z  [1m[33mwarn[39m[22m - Remove it from the `plugins` array in your configuration to eliminate this warning.
+2025-10-03T03:44:09.241Z  Failed to compile.
+2025-10-03T03:44:09.242Z  
+2025-10-03T03:44:09.242Z  ./app/layout.tsx
+2025-10-03T03:44:09.242Z  Error: Failed to read source code from /vercel/path0/app/layout.tsx
+2025-10-03T03:44:09.242Z  
+2025-10-03T03:44:09.242Z  Caused by:
+2025-10-03T03:44:09.242Z      stream did not contain valid UTF-8
+2025-10-03T03:44:09.242Z  
+2025-10-03T03:44:09.242Z  Import trace for requested module:
+2025-10-03T03:44:09.242Z  ./app/layout.tsx
+2025-10-03T03:44:09.243Z  
+2025-10-03T03:44:09.243Z  
+2025-10-03T03:44:09.243Z  > Build failed because of webpack errors
+2025-10-03T03:44:09.313Z  Error: Command "npm run build" exited with 1
