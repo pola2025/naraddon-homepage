@@ -33,7 +33,8 @@
       "Bash(timeout:*)",
       "Bash(if [ $i -lt 6 ])",
       "Bash(then sleep 10)",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(tee:*)"
     ],
     "deny": [],
     "ask": []

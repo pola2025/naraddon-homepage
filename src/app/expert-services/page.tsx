@@ -1,6 +1,6 @@
 'use client';
 // Cache buster - force fresh build without old chunks
-const CACHE_BUSTER = 'v20250103-1';
+const CACHE_BUSTER = 'v20250103-2';
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   FocusEvent as ReactFocusEvent,

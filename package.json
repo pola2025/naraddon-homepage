@@ -1,6 +1,6 @@
 {
   "name": "naraddon-nextjs",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "private": true,
   "scripts": {
     "migrate:ttontok-categories:fallback": "ts-node --transpile-only --compiler-options {\"module\":\"commonjs\"} scripts/migrate-ttontok-categories.ts --apply --fallback-etc",

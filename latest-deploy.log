@@ -1,15 +1,17 @@
 Vercel CLI 48.1.0
 Retrieving project…
 Deploying mkt9834-4301s-projects/homepage
-Uploading [--------------------] (0.0B/1.5KB)
-Uploading [========------------] (661.0B/1.5KB)
-Uploading [====================] (1.5KB/1.5KB)
-Inspect: https://vercel.com/mkt9834-4301s-projects/homepage/4u1j8z7ViF5rEAdoc1RQRunhGNxj [5s]
-Production: https://homepage-h59sd4tih-mkt9834-4301s-projects.vercel.app [5s]
-https://homepage-h59sd4tih-mkt9834-4301s-projects.vercel.appQueued
+Uploading [--------------------] (0.0B/75.4KB)
+Uploading [========------------] (32.7KB/75.4KB)
+Uploading [==============------] (53.5KB/75.4KB)
+Uploading [===============-----] (57.0KB/75.4KB)
+Uploading [====================] (75.4KB/75.4KB)
+Inspect: https://vercel.com/mkt9834-4301s-projects/homepage/AcGvjTjbefthYN8C3wvPUSUiNPXE [7s]
+Production: https://homepage-jw8wxdpuy-mkt9834-4301s-projects.vercel.app [7s]
+https://homepage-jw8wxdpuy-mkt9834-4301s-projects.vercel.appQueued
 Building
 Completing
 
 Common next commands:
-- `vercel inspect homepage-h59sd4tih-mkt9834-4301s-projects.vercel.app --logs`
-- `vercel redeploy homepage-h59sd4tih-mkt9834-4301s-projects.vercel.app`
+- `vercel inspect homepage-jw8wxdpuy-mkt9834-4301s-projects.vercel.app --logs`
+- `vercel redeploy homepage-jw8wxdpuy-mkt9834-4301s-projects.vercel.app`
