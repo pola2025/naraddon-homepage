@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import '../App.css';
-import '../styles/components.css';
+import '@/App.css';
+import '@/styles/components.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Providers } from '@/components/Providers';
