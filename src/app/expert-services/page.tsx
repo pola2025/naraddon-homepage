@@ -1,18 +1,8 @@
 'use client';
-// Cache buster - force fresh build without old chunks
-const CACHE_BUSTER = 'v20250103-3';
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type {
-  FocusEvent as ReactFocusEvent,
-  KeyboardEvent as ReactKeyboardEvent,
-  PointerEvent as ReactPointerEvent,
-} from 'react';
+
+import { FormEvent, useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-
 import { StandardBottomCta } from '@/components/ui/StandardBottomCta';
-
-import type { ExaminerProfile } from '@/components/examiners/examinerTypes';
-
 import {
   consultFields,
   expertServiceCta,
@@ -21,10 +11,8 @@ import {
   successMessage,
   timingOptions,
 } from '@/data/expertServices';
-import { VERIFIED_EXPERT_PROFILES as VERIFIED_EXPERT_PROFILES_DATA } from '@/data/expertsShowcase';
 import './page.css';
-const VERIFIED_EXPERT_PROFILES = VERIFIED_EXPERT_PROFILES_DATA;
-const ENABLE_DYNAMIC_EXPERT_SOURCE = false;
+
 const MAX_CONTENT_LENGTH = 500;
 
 const defaultFormState = {
@@ -35,251 +23,99 @@ const defaultFormState = {
   content: '',
 };
 
-type FormState = typeof defaultFormState;
-
-type CardSlot = 'left' | 'center' | 'right' | 'hidden';
+interface Expert {
+  _id: string;
+  name: string;
+  position: string;
+  companyName: string;
+  imageUrl: string;
+  imageAlt?: string;
+  legacyKey?: string;
+}
 
 export default function ExpertServicesPage() {
-  const [form, setForm] = useState<FormState>(defaultFormState);
+  const [form, setForm] = useState(defaultFormState);
   const [selectedField, setSelectedField] = useState('');
   const [selectedTiming, setSelectedTiming] = useState('');
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [isPrivacyOpen, setPrivacyOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const [isImageReady, setIsImageReady] = useState(false);
 
-  const [expertProfiles, setExpertProfiles] = useState<ExaminerProfile[]>(VERIFIED_EXPERT_PROFILES);
-  const [isLoadingExperts, setIsLoadingExperts] = useState(false);
-  const [expertsError, setExpertsError] = useState<string | null>(null);
+  // Expert carousel state
+  const [experts, setExperts] = useState<Expert[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const autoPlayTimerRef = useRef<number | null>(null);
-  const touchStartX = useRef<number>(0);
-  const touchEndX = useRef<number>(0);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const fetchExpertProfiles = useCallback(async () => {
-    if (!ENABLE_DYNAMIC_EXPERT_SOURCE) {
-      setExpertProfiles(VERIFIED_EXPERT_PROFILES);
-      setIsLoadingExperts(false);
-      setExpertsError(null);
-      return;
-    }
-
-    try {
-      setIsLoadingExperts(true);
-      setExpertsError(null);
-      const response = await fetch('/api/expert-services/experts-v2', { cache: 'no-store' });
-      if (!response.ok) {
-        throw new Error('Failed to load expert profiles.');
-      }
-      const data = await response.json().catch(() => null);
-      const list = Array.isArray(data?.experts) ? data.experts : [];
-      const normalized: ExaminerProfile[] = list.map((profile: any, index: number) => {
-        const legacyKey =
-          typeof profile.legacyKey === 'string' && profile.legacyKey.trim().length > 0
-            ? profile.legacyKey.trim()
-            : undefined;
-        const inferredId =
-          (typeof profile.id === 'string' && profile.id.trim()) ||
-          (typeof profile._id === 'string' && profile._id.trim()) ||
-          legacyKey ||
-          profile.name;
-        const imageUrl =
-          typeof profile.imageUrl === 'string' && profile.imageUrl.trim().length > 0
-            ? profile.imageUrl.trim()
-            : legacyKey
-              ? `https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/${legacyKey}.png`
-              : '';
-        const imageAlt =
-          typeof profile.imageAlt === 'string' && profile.imageAlt.trim().length > 0
-            ? profile.imageAlt.trim()
-            : `${profile.name} 전문가`;
-        return {
-          ...profile,
-          _id: inferredId,
-          legacyKey: legacyKey ?? inferredId,
-          category: profile.category ?? 'expert',
-          specialties: Array.isArray(profile.specialties) ? profile.specialties : [],
-          imageUrl,
-          imageAlt,
-          sortOrder: typeof profile.sortOrder === 'number' ? profile.sortOrder : index,
-        } satisfies ExaminerProfile;
-      });
-      const sorted = normalized.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-      setExpertProfiles(sorted.length > 0 ? sorted : VERIFIED_EXPERT_PROFILES);
-    } catch (error) {
-      console.error('[ExpertServices] fetchExpertProfiles', error);
-      setExpertProfiles(VERIFIED_EXPERT_PROFILES);
-      setExpertsError((error as Error).message ?? 'Failed to load expert profiles.');
-    } finally {
-      setIsLoadingExperts(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (ENABLE_DYNAMIC_EXPERT_SOURCE) {
-      void fetchExpertProfiles();
-    } else {
-      setExpertProfiles(VERIFIED_EXPERT_PROFILES);
-    }
-  }, [fetchExpertProfiles]);
-
-  const displayedExperts = useMemo(() => {
-    if (expertProfiles.length === 0) {
-      return expertProfiles;
-    }
-
-    const seenKeys = new Set<string>();
-    const uniqueProfiles = expertProfiles.filter((profile) => {
-      const rawKey =
-        (typeof profile._id === 'string' && profile._id.trim()) ||
-        (profile._id && typeof (profile._id as { toString?: () => string }).toString === 'function'
-          ? (profile._id as { toString: () => string }).toString()
-          : '') ||
-        (typeof (profile as { id?: string | number }).id === 'string'
-          ? (profile as { id?: string }).id
-          : (profile as { id?: number }).id !== undefined
-            ? String((profile as { id?: number }).id)
-            : '') ||
-        (typeof profile.legacyKey === 'string' && profile.legacyKey.trim()
-          ? profile.legacyKey.trim()
-          : `${profile.name}-${profile.companyName ?? ''}`);
-
-      const key = rawKey.toLowerCase();
-      if (!key) {
-        return true;
-      }
-      if (seenKeys.has(key)) {
-        return false;
-      }
-      seenKeys.add(key);
-      return true;
-    });
-
-    // No shuffling - keep deterministic order to prevent hydration errors
-    return uniqueProfiles;
-  }, [expertProfiles]);
-
-  const totalExperts = displayedExperts.length;
-  const heroSubtitle = useMemo(() => ({ __html: expertServiceHero.subtitleHtml }), []);
-  const canNavigate = totalExperts > 1;
-
+  // Mount state
   useEffect(() => {
     setIsMounted(true);
-    setIsImageReady(true);
   }, []);
 
+  // Load experts from API
   useEffect(() => {
-    if (totalExperts === 0) {
-      setActiveIndex(0);
-      return;
-    }
-    setActiveIndex((previous) => (previous >= totalExperts ? 0 : previous));
-  }, [totalExperts]);
+    const abortController = new AbortController();
 
-  const goToNext = useCallback(() => {
-    if (!canNavigate) return;
-    setActiveIndex((prev) => (prev + 1) % totalExperts);
-  }, [canNavigate, totalExperts]);
-
-  const goToPrev = useCallback(() => {
-    if (!canNavigate) return;
-    setActiveIndex((prev) => (prev - 1 + totalExperts) % totalExperts);
-  }, [canNavigate, totalExperts]);
-
-  useEffect(() => {
-    if (!isAutoPlaying || !canNavigate) {
-      if (autoPlayTimerRef.current) {
-        clearInterval(autoPlayTimerRef.current);
-        autoPlayTimerRef.current = null;
+    fetch('/api/experts', {
+      signal: abortController.signal,
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
       }
-      return;
-    }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.experts)) {
+          setExperts(data.experts);
+        }
+        setIsLoading(false);
+      })
+      .catch(err => {
+        if (err.name !== 'AbortError') {
+          console.error('Failed to load experts:', err);
+        }
+        setIsLoading(false);
+      });
 
-    const intervalId = setInterval(() => {
-      goToNext();
-    }, 5000);
-    autoPlayTimerRef.current = intervalId as unknown as number;
-
-    return () => {
-      if (autoPlayTimerRef.current) {
-        clearInterval(autoPlayTimerRef.current);
-        autoPlayTimerRef.current = null;
-      }
-    };
-  }, [isAutoPlaying, canNavigate, goToNext]);
-
-  const pauseAutoPlay = useCallback(() => {
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
+    return () => abortController.abort();
   }, []);
 
-  const getVisibleExperts = useMemo(() => {
-    if (totalExperts === 0) return [];
-    if (totalExperts === 1) return [displayedExperts[0]];
-    if (totalExperts === 2) {
-      return [
-        displayedExperts[activeIndex],
-        displayedExperts[(activeIndex + 1) % 2]
-      ];
+  const heroSubtitle = { __html: expertServiceHero.subtitleHtml };
+
+  // Get 3 visible experts (prev, current, next)
+  const getVisibleExperts = useCallback(() => {
+    if (experts.length === 0) return [];
+    if (experts.length === 1) return [experts[0]];
+    if (experts.length === 2) {
+      return [experts[activeIndex], experts[(activeIndex + 1) % 2]];
     }
 
-    const prevIndex = (activeIndex - 1 + totalExperts) % totalExperts;
-    const nextIndex = (activeIndex + 1) % totalExperts;
+    const prevIndex = (activeIndex - 1 + experts.length) % experts.length;
+    const nextIndex = (activeIndex + 1) % experts.length;
 
     return [
-      displayedExperts[prevIndex],
-      displayedExperts[activeIndex],
-      displayedExperts[nextIndex]
+      experts[prevIndex],
+      experts[activeIndex],
+      experts[nextIndex]
     ];
-  }, [activeIndex, displayedExperts, totalExperts]);
+  }, [experts, activeIndex]);
 
-  const handleCardClick = useCallback((expertIndex: number) => {
-    const visibleIndex = getVisibleExperts.findIndex(
-      expert => expert === displayedExperts[expertIndex]
-    );
+  const visibleExperts = getVisibleExperts();
 
-    if (visibleIndex === 0 && totalExperts > 2) {
-      pauseAutoPlay();
-      goToPrev();
-    } else if (visibleIndex === 2) {
-      pauseAutoPlay();
-      goToNext();
+  const nextExpert = () => {
+    setActiveIndex((prev) => (prev + 1) % experts.length);
+  };
+
+  const prevExpert = () => {
+    setActiveIndex((prev) => (prev - 1 + experts.length) % experts.length);
+  };
+
+  const handleCardClick = (expert: Expert) => {
+    const expertIndex = experts.indexOf(expert);
+    if (expertIndex !== activeIndex && expertIndex !== -1) {
+      setActiveIndex(expertIndex);
     }
-  }, [displayedExperts, getVisibleExperts, goToNext, goToPrev, pauseAutoPlay, totalExperts]);
-
-  const handleScrollToForm = useCallback(() => {
-    const target = document.querySelector('#expert-consultation-form');
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      pauseAutoPlay();
-    }
-  }, [pauseAutoPlay]);
-
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  }, []);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    touchEndX.current = e.touches[0].clientX;
-  }, []);
-
-  const handleTouchEnd = useCallback(() => {
-    if (!canNavigate) return;
-
-    const swipeDistance = touchStartX.current - touchEndX.current;
-    const minSwipeDistance = 50;
-
-    if (swipeDistance > minSwipeDistance) {
-      // Swiped left - go to next
-      pauseAutoPlay();
-      goToNext();
-    } else if (swipeDistance < -minSwipeDistance) {
-      // Swiped right - go to previous
-      pauseAutoPlay();
-      goToPrev();
-    }
-  }, [canNavigate, goToNext, goToPrev, pauseAutoPlay]);
+  };
 
   const resetForm = () => {
     setForm(defaultFormState);
@@ -317,7 +153,6 @@ export default function ExpertServicesPage() {
     }
 
     try {
-      // API 호출로 상담 신청
       const response = await fetch('/api/consultations', {
         method: 'POST',
         headers: {
@@ -328,7 +163,6 @@ export default function ExpertServicesPage() {
           userPhone: form.phone,
           userEmail: form.email,
           companyName: form.companyName,
-          businessNumber: form.businessNumber,
           consultationType: selectedField,
           message: form.content,
           preferredTime: selectedTiming,
@@ -351,12 +185,13 @@ export default function ExpertServicesPage() {
 
   const charCount = form.content.length;
 
+  // Prevent hydration errors
   if (!isMounted) {
     return null;
   }
 
   return (
-    <div className="expert-services-page bg-slate-50" suppressHydrationWarning>
+    <div className="expert-services-page bg-slate-50">
       <section className="expert-hero layout-hero relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-sky-100">
         <div className="layout-container">
           <div className="max-w-3xl">
@@ -381,17 +216,17 @@ export default function ExpertServicesPage() {
                   <p className="text-sm font-medium text-slate-500">{stat.label}</p>
                 </div>
               ))}
-              <button
-                type="button"
-                onClick={handleScrollToForm}
+              <a
+                href="#expert-consultation-form"
                 className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-6 py-3 text-base font-semibold text-white shadow-lg transition hover:bg-emerald-600"
               >
                 <i className="fas fa-headset" aria-hidden="true" /> 상담 요청하기
-              </button>
+              </a>
             </div>
           </div>
         </div>
       </section>
+
       <section className="expert-services__experts layout-section" id="expert-cards">
         <div className="layout-container">
           <div className="expert-services__experts-header">
@@ -402,83 +237,48 @@ export default function ExpertServicesPage() {
             </p>
           </div>
 
-          {expertsError ? (
-            <p className="mt-6 rounded-2xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-600">
-              {expertsError}
-            </p>
-          ) : null}
-
-          {isLoadingExperts ? (
-            <p className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white/50 px-4 py-3 text-sm text-slate-500">
-              전문가 정보를 불러오는 중입니다.
-            </p>
-          ) : null}
-
-          {!isLoadingExperts && !expertsError && totalExperts === 0 ? (
-            <div className="expert-rotator__empty">등록된 전문가가 없습니다.</div>
-          ) : null}
-
-          <div
-            className="expert-carousel-horizontal"
-            onMouseEnter={() => setIsAutoPlaying(false)}
-            onMouseLeave={() => setIsAutoPlaying(true)}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          >
-            {displayedExperts.length === 0 ? (
+          <div className="expert-carousel-horizontal">
+            {isLoading ? (
               <div className="expert-carousel__empty">
-                {isLoadingExperts
-                  ? '전문가 정보를 불러오는 중입니다.'
-                  : expertsError ?? '등록된 전문가가 없습니다.'}
+                전문가 정보를 불러오는 중입니다.
+              </div>
+            ) : experts.length === 0 ? (
+              <div className="expert-carousel__empty">
+                등록된 전문가가 없습니다.
               </div>
             ) : (
               <>
                 <div className="expert-carousel__track">
-                  {getVisibleExperts.map((expert, visibleIndex) => {
-                    const expertIndex = displayedExperts.indexOf(expert);
-                    const isCenter = visibleIndex === 1 || (totalExperts === 1 && visibleIndex === 0);
-                    const fallbackId =
-                      'id' in expert && typeof (expert as { id?: string | number }).id !== 'undefined'
-                        ? (expert as { id?: string | number }).id
-                        : undefined;
-                    const stableKey =
-                      expert._id ??
-                      (typeof fallbackId === 'number' ? String(fallbackId) : fallbackId) ??
-                      expert.legacyKey ??
-                      `${expert.name}-${expert.companyName ?? 'unknown'}`;
+                  {visibleExperts.map((expert, visibleIndex) => {
+                    const isCenter = visibleIndex === 1 || (experts.length === 1 && visibleIndex === 0);
 
                     return (
                       <article
-                        key={stableKey}
+                        key={expert._id}
                         className="expert-card-horizontal"
                         data-position={isCenter ? 'center' : 'side'}
                         onClick={() => {
-                          if (!isCenter && totalExperts > 1) {
-                            handleCardClick(expertIndex);
+                          if (!isCenter && experts.length > 1) {
+                            handleCardClick(expert);
                           }
                         }}
                         tabIndex={isCenter ? 0 : -1}
                       >
                         <div className="card-inner">
                           <div className="card-image-section">
-                            {isImageReady ? (
-                              <img
-                                src={expert.imageUrl || `https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/${expert.legacyKey || 'default'}.png`}
-                                alt={expert.imageAlt || `${expert.name} 프로필`}
-                                loading="lazy"
-                                onError={(e) => {
-                                  const img = e.currentTarget;
-                                  img.style.display = 'none';
-                                  const placeholder = img.parentElement?.querySelector('.image-placeholder-new');
-                                  if (placeholder) placeholder.classList.remove('hidden');
-                                }}
-                              />
-                            ) : (
-                              <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#f0f0f0'}}>
-                                <i className="fas fa-user-tie" style={{fontSize: '48px', color: '#999'}} />
-                              </div>
-                            )}
+                            <img
+                              src={expert.imageUrl}
+                              alt={expert.imageAlt || `${expert.name} 프로필`}
+                              loading="lazy"
+                              onError={(e) => {
+                                const img = e.currentTarget;
+                                img.style.display = 'none';
+                                const placeholder = img.parentElement?.querySelector('.image-placeholder-new');
+                                if (placeholder) {
+                                  placeholder.classList.remove('hidden');
+                                }
+                              }}
+                            />
                             <div className="image-placeholder-new hidden" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#f0f0f0'}}>
                               <i className="fas fa-user-tie" style={{fontSize: '48px', color: '#999'}} />
                             </div>
@@ -494,31 +294,25 @@ export default function ExpertServicesPage() {
                           </div>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            handleScrollToForm();
-                          }}
+                        <a
+                          href="#expert-consultation-form"
                           className="consult-cta"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           상담 요청하기
                           <i className="fas fa-arrow-right" aria-hidden="true" />
-                        </button>
+                        </a>
                       </article>
                     );
                   })}
                 </div>
 
-                {canNavigate ? (
+                {experts.length > 1 && (
                   <>
                     <button
                       type="button"
                       className="carousel-control prev"
-                      onClick={() => {
-                        pauseAutoPlay();
-                        goToPrev();
-                      }}
+                      onClick={prevExpert}
                       aria-label="이전 전문가"
                     >
                       <i className="fas fa-chevron-left" />
@@ -526,16 +320,13 @@ export default function ExpertServicesPage() {
                     <button
                       type="button"
                       className="carousel-control next"
-                      onClick={() => {
-                        pauseAutoPlay();
-                        goToNext();
-                      }}
+                      onClick={nextExpert}
                       aria-label="다음 전문가"
                     >
                       <i className="fas fa-chevron-right" />
                     </button>
                   </>
-                ) : null}
+                )}
               </>
             )}
           </div>
@@ -558,6 +349,49 @@ export default function ExpertServicesPage() {
             className="mt-12 space-y-10 rounded-3xl bg-white p-8 shadow ring-1 ring-slate-100"
             onSubmit={handleSubmit}
           >
+            <div className="space-y-3">
+              <h3 className="flex items-center text-lg font-semibold text-slate-900">
+                <span className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-600">
+                  1
+                </span>
+                기본 정보
+              </h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <input
+                  type="text"
+                  placeholder="이름 *"
+                  value={form.name}
+                  onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
+                  className="rounded-xl border border-slate-200 px-4 py-3 text-sm shadow-sm focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-200"
+                  required
+                />
+                <input
+                  type="tel"
+                  placeholder="연락처 *"
+                  value={form.phone}
+                  onChange={(e) => setForm(prev => ({ ...prev, phone: e.target.value }))}
+                  className="rounded-xl border border-slate-200 px-4 py-3 text-sm shadow-sm focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-200"
+                  required
+                />
+                <input
+                  type="email"
+                  placeholder="이메일 *"
+                  value={form.email}
+                  onChange={(e) => setForm(prev => ({ ...prev, email: e.target.value }))}
+                  className="rounded-xl border border-slate-200 px-4 py-3 text-sm shadow-sm focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-200"
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="회사명 *"
+                  value={form.companyName}
+                  onChange={(e) => setForm(prev => ({ ...prev, companyName: e.target.value }))}
+                  className="rounded-xl border border-slate-200 px-4 py-3 text-sm shadow-sm focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-200"
+                  required
+                />
+              </div>
+            </div>
+
             <div className="space-y-3">
               <h3 className="flex items-center text-lg font-semibold text-slate-900">
                 <span className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-600">
@@ -673,12 +507,12 @@ export default function ExpertServicesPage() {
                 >
                   상담 요청하기
                 </button>
-                <Link
+                <a
                   href="#expert-cards"
                   className="inline-flex items-center justify-center rounded-full border border-slate-200 px-6 py-3 text-sm font-semibold text-slate-600 transition hover:border-violet-300 hover:text-blue-600"
                 >
                   전문가 소개 다시 보기
-                </Link>
+                </a>
               </div>
             </div>
           </form>
@@ -698,7 +532,7 @@ export default function ExpertServicesPage() {
         </div>
       </section>
 
-      {isPrivacyOpen ? (
+      {isPrivacyOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-4"
           role="dialog"
@@ -733,33 +567,7 @@ export default function ExpertServicesPage() {
             </div>
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
