@@ -586,9 +586,11 @@ export default function InterviewSection() {
                       />
 
                       <div className="play-overlay">
-                        <svg className="play-icon" viewBox="0 0 24 24" fill="white">
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
+                        <div className="play-icon">
+                          <svg viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
+                        </div>
                       </div>
                     </div>
                     <div className="video-info">
