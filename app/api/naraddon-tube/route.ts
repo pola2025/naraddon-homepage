@@ -18,10 +18,8 @@ type IncomingVideoPayload = {
 type NaraddonTubePayload = {
   password?: string;
   title?: string;
-  subtitle?: string;
-  description?: string;
-  thumbnailUrl?: string;
-  videos?: IncomingVideoPayload[];
+  youtubeUrl?: string;
+  customThumbnail?: string;
   isPublished?: boolean;
   sortOrder?: number;
 };
@@ -105,76 +103,43 @@ export async function POST(request: NextRequest) {
     }
 
     const body = (await request.json()) as NaraddonTubePayload;
-    const { password, title, subtitle, description, thumbnailUrl, videos, isPublished, sortOrder } =
-      body;
+    const { password, title, youtubeUrl, customThumbnail, isPublished, sortOrder } = body;
 
     if (!password || password !== adminPassword) {
       return NextResponse.json({ message: '비밀번호가 올바르지 않습니다.' }, { status: 401 });
     }
 
     if (!title || !title.trim()) {
-      return NextResponse.json({ message: '제목을 입력해주세요.' }, { status: 400 });
+      return NextResponse.json({ message: '영상 제목을 입력해주세요.' }, { status: 400 });
     }
 
-    if (!thumbnailUrl || !thumbnailUrl.trim()) {
-      return NextResponse.json({ message: '썸네일 URL을 입력해주세요.' }, { status: 400 });
+    if (!youtubeUrl || !youtubeUrl.trim()) {
+      return NextResponse.json({ message: 'YouTube URL을 입력해주세요.' }, { status: 400 });
     }
 
-    // 영상은 선택적 - 없어도 등록 가능
-    const normalizedVideos = Array.isArray(videos)
-      ? videos.filter(video => {
-          const incomingLink =
-            (typeof video?.youtubeUrl === 'string' && video.youtubeUrl.trim()) ||
-            (typeof video?.url === 'string' && video.url.trim()) ||
-            (typeof video?.youtubeId === 'string' && video.youtubeId.trim()) ||
-            '';
-          return incomingLink !== '';
-        }).map((video, index) => {
-          const videoTitle =
-            typeof video?.title === 'string' && video.title.trim()
-              ? video.title.trim()
-              : `영상 ${index + 1}`;
-
-          const incomingLink =
-            (typeof video?.youtubeUrl === 'string' && video.youtubeUrl.trim()) ||
-            (typeof video?.url === 'string' && video.url.trim()) ||
-            (typeof video?.youtubeId === 'string' && video.youtubeId.trim()) ||
-            '';
-
-          const youtubeId = extractYoutubeId(incomingLink);
-          if (!youtubeId) {
-            throw new Error(`영상 ${index + 1}의 링크가 올바르지 않습니다.`);
-          }
-
-          const normalizedUrl = `https://www.youtube.com/watch?v=${youtubeId}`;
-
-          return {
-            title: videoTitle,
-            youtubeId,
-            url: normalizedUrl,
-        customThumbnail:
-          typeof video?.customThumbnail === 'string' && video.customThumbnail.trim()
-            ? video.customThumbnail.trim()
-            : undefined,
-          };
-        })
-      : [];
+    const youtubeId = extractYoutubeId(youtubeUrl);
+    if (!youtubeId) {
+      return NextResponse.json({ message: '올바른 YouTube URL이 아닙니다.' }, { status: 400 });
+    }
 
     await connectDB();
 
     const entry = await NaraddonTubeEntry.create({
-      title: title.trim(),
-      subtitle: typeof subtitle === 'string' ? subtitle.trim() : undefined,
-      description: typeof description === 'string' ? description.trim() : undefined,
-      thumbnailUrl: thumbnailUrl.trim(),
-      videos: normalizedVideos,
+      videos: [
+        {
+          title: title.trim(),
+          youtubeId,
+          url: `https://www.youtube.com/watch?v=${youtubeId}`,
+          customThumbnail: customThumbnail?.trim() || undefined,
+        },
+      ],
       isPublished: typeof isPublished === 'boolean' ? isPublished : true,
       sortOrder: typeof sortOrder === 'number' && Number.isFinite(sortOrder) ? sortOrder : 0,
     });
 
     return NextResponse.json({ entry }, { status: 201 });
   } catch (error: unknown) {
-    if (error instanceof Error && error.message.includes('영상 링크가 올바르지 않습니다.')) {
+    if (error instanceof Error && error.message.includes('videos 배열은 정확히 1개')) {
       return NextResponse.json({ message: error.message }, { status: 400 });
     }
 

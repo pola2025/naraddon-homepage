@@ -40,11 +40,9 @@ export async function PUT(request: NextRequest) {
       password,
       entryId,
       title,
-      subtitle,
-      description,
-      thumbnailUrl,
-      oldThumbnailUrl,
-      videos,
+      youtubeUrl,
+      customThumbnail,
+      oldCustomThumbnail,
       sortOrder,
       isPublished
     } = body;
@@ -65,40 +63,32 @@ export async function PUT(request: NextRequest) {
 
     if (!title?.trim()) {
       return NextResponse.json(
-        { message: '제목을 입력해 주세요.' },
+        { message: '영상 제목을 입력해 주세요.' },
         { status: 400 }
       );
     }
 
-    if (!thumbnailUrl?.trim()) {
+    if (!youtubeUrl?.trim()) {
       return NextResponse.json(
-        { message: '썸네일 이미지가 필요합니다.' },
+        { message: 'YouTube URL을 입력해 주세요.' },
         { status: 400 }
       );
     }
 
-    // 영상은 선택적 - 없어도 수정 가능
-    const processedVideos = Array.isArray(videos)
-      ? videos.filter(video => video?.youtubeUrl?.trim()).map((video, index) => {
-          const youtubeId = extractYoutubeId(video.youtubeUrl);
-          if (!youtubeId) {
-            throw new Error(`영상 ${index + 1}의 YouTube 링크가 올바르지 않습니다.`);
-          }
-          return {
-            title: video.title?.trim() || `영상 ${index + 1}`,
-            youtubeId,
-            url: `https://www.youtube.com/watch?v=${youtubeId}`,
-            customThumbnail: video.customThumbnail?.trim() || null
-          };
-        })
-      : [];
+    const youtubeId = extractYoutubeId(youtubeUrl);
+    if (!youtubeId) {
+      return NextResponse.json(
+        { message: '올바른 YouTube URL이 아닙니다.' },
+        { status: 400 }
+      );
+    }
 
-    // 썸네일이 변경된 경우 이전 썸네일 삭제
-    if (oldThumbnailUrl &&
-        oldThumbnailUrl !== thumbnailUrl &&
-        oldThumbnailUrl.includes('r2.cloudflarestorage.com')) {
+    // 커스텀 썸네일이 변경된 경우 이전 썸네일 삭제
+    if (oldCustomThumbnail &&
+        oldCustomThumbnail !== customThumbnail &&
+        oldCustomThumbnail.includes('r2.cloudflarestorage.com')) {
       try {
-        const url = new URL(oldThumbnailUrl);
+        const url = new URL(oldCustomThumbnail);
         const pathParts = url.pathname.split('/');
         const objectKey = pathParts.slice(1).join('/');
         await deleteR2Object(objectKey);
@@ -112,11 +102,14 @@ export async function PUT(request: NextRequest) {
     const collection = db.collection('naraddontubeentries'); // Mongoose 디폴트 콜렉션 이름
 
     const updateData = {
-      title: title.trim(),
-      subtitle: subtitle?.trim() || '',
-      description: description?.trim() || '',
-      thumbnailUrl: thumbnailUrl.trim(),
-      videos: processedVideos,
+      videos: [
+        {
+          title: title.trim(),
+          youtubeId,
+          url: `https://www.youtube.com/watch?v=${youtubeId}`,
+          customThumbnail: customThumbnail?.trim() || undefined
+        }
+      ],
       sortOrder: Number.isFinite(sortOrder) ? sortOrder : 0,
       isPublished: Boolean(isPublished),
       updatedAt: new Date().toISOString()

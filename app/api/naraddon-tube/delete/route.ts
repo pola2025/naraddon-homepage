@@ -59,17 +59,21 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // R2에서 썸네일 삭제 (R2 URL인 경우만)
-    if (entry.thumbnailUrl && entry.thumbnailUrl.includes('r2.cloudflarestorage.com')) {
-      try {
-        const url = new URL(entry.thumbnailUrl);
-        const pathParts = url.pathname.split('/');
-        const objectKey = pathParts.slice(1).join('/'); // 버킷 이름 제외
+    // R2에서 커스텀 썸네일 삭제 (videos 배열 내 customThumbnail이 R2 URL인 경우만)
+    if (entry.videos && Array.isArray(entry.videos)) {
+      for (const video of entry.videos) {
+        if (video.customThumbnail && video.customThumbnail.includes('r2.cloudflarestorage.com')) {
+          try {
+            const url = new URL(video.customThumbnail);
+            const pathParts = url.pathname.split('/');
+            const objectKey = pathParts.slice(1).join('/'); // 버킷 이름 제외
 
-        await deleteR2Object(objectKey);
-      } catch (error) {
-        console.error('[naraddon-tube][delete] R2 deletion error:', error);
-        // R2 삭제 실패해도 계속 진행
+            await deleteR2Object(objectKey);
+          } catch (error) {
+            console.error('[naraddon-tube][delete] R2 deletion error:', error);
+            // R2 삭제 실패해도 계속 진행
+          }
+        }
       }
     }
 

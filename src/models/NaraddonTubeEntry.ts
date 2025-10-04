@@ -8,11 +8,7 @@ export interface INaraddonTubeVideo {
 }
 
 export interface INaraddonTubeEntry extends Document {
-  title: string;
-  subtitle?: string;
-  description?: string;
-  thumbnailUrl: string;
-  videos: INaraddonTubeVideo[];
+  videos: INaraddonTubeVideo[]; // 1개만 저장
   isPublished: boolean;
   sortOrder: number;
   createdAt: Date;
@@ -46,30 +42,15 @@ const naraddonTubeVideoSchema = new Schema<INaraddonTubeVideo>(
 
 const naraddonTubeEntrySchema = new Schema<INaraddonTubeEntry>(
   {
-    title: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    subtitle: {
-      type: String,
-      trim: true,
-      default: '',
-    },
-    description: {
-      type: String,
-      trim: true,
-      default: '',
-    },
-    thumbnailUrl: {
-      type: String,
-      required: true,
-      trim: true,
-    },
     videos: {
       type: [naraddonTubeVideoSchema],
-      default: [],
-      required: false,
+      required: true,
+      validate: {
+        validator: function(v: INaraddonTubeVideo[]) {
+          return v && v.length === 1; // 정확히 1개만 허용
+        },
+        message: 'videos 배열은 정확히 1개의 영상만 포함해야 합니다.'
+      }
     },
     isPublished: {
       type: Boolean,
