@@ -66,14 +66,18 @@ export async function GET(
 
     // 마지막 로그인 시간만 업데이트 (createdAt은 절대 수정 안 함)
     const currentLoginTime = new Date();
-    await db.collection('users').updateOne(
+    const updateResult = await db.collection('users').updateOne(
       { email: userId },
       {
-        $set: { lastLoginAt: currentLoginTime },
-        $setOnInsert: { createdAt: currentLoginTime }  // 새 문서일 때만 createdAt 설정
-      },
-      { upsert: false }  // 기존 문서만 업데이트
+        $set: { lastLoginAt: currentLoginTime }
+        // createdAt은 절대 건드리지 않음
+      }
     );
+
+    // 업데이트 확인
+    if (updateResult.matchedCount === 0) {
+      return NextResponse.json({ error: 'User not found after initial query' }, { status: 404 });
+    }
 
     // mobile 필드가 있고 profile.phone이 없으면 동기화
     if (user.mobile && (!user.profile || !user.profile.phone)) {
@@ -91,11 +95,13 @@ export async function GET(
     }
 
     // 날짜 필드를 ISO 문자열로 변환하여 반환
+    // user.createdAt은 DB에서 가져온 원본 값 (업데이트 안 됨)
+    // lastLoginAt만 currentLoginTime 사용
     const userResponse = {
       ...user,
       createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : new Date().toISOString(),
       updatedAt: user.updatedAt ? new Date(user.updatedAt).toISOString() : new Date().toISOString(),
-      lastLoginAt: currentLoginTime.toISOString()
+      lastLoginAt: currentLoginTime.toISOString()  // 방금 업데이트한 시간
     };
 
     return NextResponse.json(userResponse);
@@ -133,9 +139,12 @@ export async function PUT(
     const client = await clientPromise;
     const db = client.db('naraddon');
 
-    // 업데이트할 데이터 준비
+    // ⚠️ 보안: createdAt, lastLoginAt, _id는 클라이언트가 수정할 수 없음
+    const { createdAt, lastLoginAt, _id, ...safeData } = data;
+
+    // 업데이트할 데이터 준비 (안전한 필드만)
     const updateData = {
-      ...data,
+      ...safeData,
       updatedAt: new Date()
     };
 
