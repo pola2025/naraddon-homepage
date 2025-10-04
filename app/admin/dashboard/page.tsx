@@ -11,6 +11,8 @@ interface DashboardStats {
   totalConsultations: number;
   pendingConsultations: number;
   totalExaminers: number;
+  totalPolicyNews: number;
+  totalTubeVideos: number;
   recentActivities: Activity[];
 }
 
@@ -34,33 +36,14 @@ export default function AdminDashboard() {
   const fetchDashboardStats = async () => {
     try {
       setLoading(true);
-      // 실제 API 엔드포인트로 교체 필요
-      // const data = await api.get<DashboardStats>('/admin/stats')
-      // setStats(data)
+      const response = await fetch('/api/admin/stats');
 
-      // 임시 더미 데이터
-      setStats({
-        totalUsers: 1234,
-        totalConsultations: 567,
-        pendingConsultations: 23,
-        totalExaminers: 45,
-        recentActivities: [
-          {
-            id: '1',
-            type: 'consultation',
-            description: '새로운 상담 신청',
-            timestamp: '2024-01-20 14:30',
-            user: 'user@example.com',
-          },
-          {
-            id: '2',
-            type: 'user',
-            description: '새로운 사용자 가입',
-            timestamp: '2024-01-20 13:45',
-            user: 'newuser@example.com',
-          },
-        ],
-      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch stats');
+      }
+
+      const data = await response.json();
+      setStats(data);
     } catch (error) {
       console.error('Dashboard stats error:', error);
       setError('대시보드 데이터를 불러오는데 실패했습니다.');
@@ -193,6 +176,61 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
+              {/* 추가 통계 카드 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 bg-indigo-500 rounded-md p-3">
+                      <svg
+                        className="h-6 w-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
+                        />
+                      </svg>
+                    </div>
+                    <div className="ml-5">
+                      <p className="text-sm font-medium text-gray-500">정책 소식</p>
+                      <p className="text-2xl font-semibold text-gray-900">
+                        {stats?.totalPolicyNews.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 bg-red-500 rounded-md p-3">
+                      <svg
+                        className="h-6 w-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
+                    <div className="ml-5">
+                      <p className="text-sm font-medium text-gray-500">나라돈 튜브 영상</p>
+                      <p className="text-2xl font-semibold text-gray-900">
+                        {stats?.totalTubeVideos.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* 빠른 메뉴 */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <div className="bg-white rounded-lg shadow">
@@ -262,7 +300,7 @@ export default function AdminDashboard() {
                       </Link>
 
                       <Link
-                        href="/admin/settings"
+                        href="/naraddon-tube/admin"
                         className="flex items-center p-3 rounded-lg hover:bg-gray-50 border border-gray-200"
                       >
                         <svg
@@ -275,16 +313,50 @@ export default function AdminDashboard() {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
                           />
+                        </svg>
+                        <span className="text-sm font-medium text-gray-900">나라돈 튜브</span>
+                      </Link>
+
+                      <Link
+                        href="/admin/logs"
+                        className="flex items-center p-3 rounded-lg hover:bg-gray-50 border border-gray-200"
+                      >
+                        <svg
+                          className="h-6 w-6 text-gray-400 mr-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                           />
                         </svg>
-                        <span className="text-sm font-medium text-gray-900">시스템 설정</span>
+                        <span className="text-sm font-medium text-gray-900">활동 로그</span>
+                      </Link>
+
+                      <Link
+                        href="/policy-news/admin"
+                        className="flex items-center p-3 rounded-lg hover:bg-gray-50 border border-gray-200"
+                      >
+                        <svg
+                          className="h-6 w-6 text-gray-400 mr-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
+                          />
+                        </svg>
+                        <span className="text-sm font-medium text-gray-900">정책 소식</span>
                       </Link>
                     </div>
                   </div>
