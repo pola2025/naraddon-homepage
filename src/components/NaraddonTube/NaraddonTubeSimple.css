@@ -1,0 +1,381 @@
+/* ===== 나라똔 튜브 Simple 섹션 ===== */
+.tube-simple-section {
+  padding: 80px 20px;
+  background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+.tube-simple-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 헤더 */
+.tube-simple-header {
+  text-align: center;
+  margin-bottom: 48px;
+  position: relative;
+}
+
+.tube-simple-eyebrow {
+  font-size: 14px;
+  color: #4CAF50;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.tube-simple-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 12px 0;
+}
+
+.tube-simple-subtitle {
+  font-size: 16px;
+  color: #666;
+  margin: 0 0 24px 0;
+}
+
+.tube-simple-admin-button {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tube-simple-admin-button:hover {
+  background: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.tube-simple-loading {
+  text-align: center;
+  color: #999;
+  font-size: 16px;
+  padding: 40px 0;
+}
+
+/* ===== 비디오 그리드 ===== */
+.tube-simple-grid {
+  display: grid;
+  gap: 24px;
+  transition: all 0.5s ease-in-out;
+  margin-bottom: 32px;
+}
+
+/* 축소 상태: 1줄 가로 스크롤 */
+.tube-simple-grid.collapsed {
+  grid-template-columns: repeat(4, 1fr);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #4CAF50 #f0f0f0;
+}
+
+.tube-simple-grid.collapsed::-webkit-scrollbar {
+  height: 8px;
+}
+
+.tube-simple-grid.collapsed::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.tube-simple-grid.collapsed::-webkit-scrollbar-thumb {
+  background: #4CAF50;
+  border-radius: 4px;
+}
+
+.tube-simple-grid.collapsed::-webkit-scrollbar-thumb:hover {
+  background: #45a049;
+}
+
+/* 확장 상태: 2-3열 그리드 */
+.tube-simple-grid.expanded {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  max-height: none;
+}
+
+/* 비디오 카드 */
+.tube-simple-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  scroll-snap-align: start;
+}
+
+.tube-simple-grid.collapsed .tube-simple-card {
+  min-width: 280px; /* 가로 스크롤 시 최소 너비 */
+}
+
+.tube-simple-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.tube-simple-thumbnail {
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 비율 */
+  background: #000;
+  overflow: hidden;
+}
+
+.tube-simple-thumbnail img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.tube-simple-card:hover .tube-simple-thumbnail img {
+  transform: scale(1.05);
+}
+
+.tube-simple-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.tube-simple-card:hover .tube-simple-overlay {
+  opacity: 1;
+}
+
+.tube-simple-play-icon {
+  width: 64px;
+  height: 64px;
+  color: white;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.tube-simple-info {
+  padding: 16px;
+}
+
+.tube-simple-video-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tube-simple-category {
+  font-size: 13px;
+  color: #4CAF50;
+  font-weight: 500;
+}
+
+/* ===== 더보기/접기 버튼 ===== */
+.tube-simple-toggle {
+  text-align: center;
+  margin-top: 32px;
+}
+
+.tube-simple-toggle-button {
+  background: white;
+  border: 2px solid #4CAF50;
+  color: #4CAF50;
+  padding: 14px 32px;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tube-simple-toggle-button:hover {
+  background: #4CAF50;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.tube-simple-toggle-icon {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s ease;
+}
+
+.tube-simple-toggle-button:hover .tube-simple-toggle-icon {
+  transform: scale(1.2);
+}
+
+/* ===== 비디오 재생 모달 ===== */
+.tube-simple-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 9998;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease;
+}
+
+.tube-simple-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 1000px;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 9999;
+  animation: slideUp 0.3s ease;
+}
+
+.tube-simple-close-button {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  z-index: 10000;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tube-simple-close-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.tube-simple-close-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.tube-simple-player-container {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+}
+
+.tube-simple-youtube-player {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* ===== 애니메이션 ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translate(-50%, -40%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%);
+    opacity: 1;
+  }
+}
+
+/* ===== 반응형 ===== */
+@media (max-width: 1024px) {
+  .tube-simple-grid.collapsed,
+  .tube-simple-grid.expanded {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+
+  .tube-simple-grid.collapsed .tube-simple-card {
+    min-width: 240px;
+  }
+}
+
+@media (max-width: 768px) {
+  .tube-simple-section {
+    padding: 60px 16px;
+  }
+
+  .tube-simple-title {
+    font-size: 28px;
+  }
+
+  .tube-simple-subtitle {
+    font-size: 14px;
+  }
+
+  .tube-simple-grid.collapsed {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .tube-simple-grid.expanded {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .tube-simple-grid.collapsed .tube-simple-card {
+    min-width: auto;
+  }
+
+  .tube-simple-modal {
+    width: 95%;
+  }
+
+  .tube-simple-toggle-button {
+    font-size: 14px;
+    padding: 12px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tube-simple-grid.collapsed {
+    grid-template-columns: 1fr;
+  }
+}

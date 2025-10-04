@@ -9,7 +9,7 @@ import { prefetchPolicyNews } from '../../utils/prefetch';
 const TrustSection = lazy(() => import('../TrustSection'));
 const PolicyThumbnails = lazy(() => import('../PolicyThumbnails'));
 const SaveSection = lazy(() => import('../SaveSection'));
-const NaraddonTube = lazy(() => import('../NaraddonTube/NaraddonTube'));
+const NaraddonTube = lazy(() => import('../NaraddonTube/NaraddonTubeSimple'));
 const EmpathySection = lazy(() => import('../EmpathySection'));
 
 const CAPTION_FADE_DURATION = 850;
