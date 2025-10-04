@@ -60,6 +60,7 @@ const NaraddonTubeAdminPage: React.FC = () => {
   const [adminPassword, setAdminPassword] = useState('');
   const [passwordFeedback, setPasswordFeedback] = useState<FeedbackState>(null);
   const [isVerifyingPassword, setIsVerifyingPassword] = useState(false);
+  const [isCheckingAdminSession, setIsCheckingAdminSession] = useState(true);
 
   const [entries, setEntries] = useState<TubeEntry[]>([]);
   const [isLoadingEntries, setIsLoadingEntries] = useState(false);
@@ -81,6 +82,44 @@ const NaraddonTubeAdminPage: React.FC = () => {
     () => [...entries].sort((a, b) => a.sortOrder - b.sortOrder),
     [entries]
   );
+
+  // 관리자 세션 확인 - 이미 로그인했으면 비밀번호 입력 건너뛰기
+  useEffect(() => {
+    const checkAdminSession = async () => {
+      try {
+        const res = await fetch('/api/admin/check-session', {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const userRole = data.user?.role;
+
+          if (userRole === 'admin' || userRole === 'super_admin') {
+            // 관리자 세션이 있으면 자동 인증
+            // 서버에서 NARADDON_TUBE_PASSWORD를 받아와서 설정
+            const pwdRes = await fetch('/api/naraddon-tube/get-password', {
+              method: 'GET',
+              credentials: 'include'
+            });
+
+            if (pwdRes.ok) {
+              const pwdData = await pwdRes.json();
+              setAdminPassword(pwdData.password || '');
+              setIsAuthorized(true);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('[NaraddonTubeAdmin] session check error:', error);
+      } finally {
+        setIsCheckingAdminSession(false);
+      }
+    };
+
+    checkAdminSession();
+  }, []);
 
   const fetchEntries = useCallback(async () => {
     try {
