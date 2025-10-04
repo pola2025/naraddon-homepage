@@ -64,10 +64,15 @@ export async function GET(
       });
     }
 
-    // 마지막 로그인 시간 업데이트 및 mobile 필드 동기화
+    // 마지막 로그인 시간만 업데이트 (createdAt은 절대 수정 안 함)
+    const currentLoginTime = new Date();
     await db.collection('users').updateOne(
       { email: userId },
-      { $set: { lastLoginAt: new Date() } }
+      {
+        $set: { lastLoginAt: currentLoginTime },
+        $setOnInsert: { createdAt: currentLoginTime }  // 새 문서일 때만 createdAt 설정
+      },
+      { upsert: false }  // 기존 문서만 업데이트
     );
 
     // mobile 필드가 있고 profile.phone이 없으면 동기화
@@ -90,7 +95,7 @@ export async function GET(
       ...user,
       createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : new Date().toISOString(),
       updatedAt: user.updatedAt ? new Date(user.updatedAt).toISOString() : new Date().toISOString(),
-      lastLoginAt: user.lastLoginAt ? new Date(user.lastLoginAt).toISOString() : new Date().toISOString()
+      lastLoginAt: currentLoginTime.toISOString()
     };
 
     return NextResponse.json(userResponse);
