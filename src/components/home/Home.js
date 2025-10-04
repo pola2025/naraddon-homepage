@@ -210,10 +210,10 @@ function Home() {
             <PolicyThumbnails />
           </Suspense>
           <Suspense fallback={<SectionLoader />}>
-            <SaveSection />
+            <NaraddonTube />
           </Suspense>
           <Suspense fallback={<SectionLoader />}>
-            <NaraddonTube />
+            <SaveSection />
           </Suspense>
           <Suspense fallback={<SectionLoader />}>
             <EmpathySection />
