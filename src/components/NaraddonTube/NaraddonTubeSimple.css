@@ -36,25 +36,7 @@
 .tube-simple-subtitle {
   font-size: 16px;
   color: #666;
-  margin: 0 0 24px 0;
-}
-
-.tube-simple-admin-button {
-  background: #4CAF50;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.tube-simple-admin-button:hover {
-  background: #45a049;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  margin: 0;
 }
 
 .tube-simple-loading {

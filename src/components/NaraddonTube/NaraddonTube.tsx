@@ -25,6 +25,9 @@ type TubeEntry = {
   videos: TubeVideo[];
 };
 
+// 초기 표시할 비디오 개수 (1줄에 표시)
+const INITIAL_VIDEO_COUNT = 4;
+
 type FeedbackState = { type: 'success' | 'error'; text: string } | null;
 
 type UploadFormState = {
@@ -60,10 +63,8 @@ const NaraddonTube: React.FC<NaraddonTubeProps> = () => {
   const [entries, setEntries] = useState<TubeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [expandedThumb, setExpandedThumb] = useState<string | null>(null);
+  const [isGridExpanded, setIsGridExpanded] = useState(false); // 그리드 확장 상태
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);

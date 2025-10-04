@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import './NaraddonTubeSimple.css';
 
 interface Video {
@@ -18,7 +17,6 @@ interface TubeEntry {
 const INITIAL_VIDEO_COUNT = 4; // 초기에 보여줄 비디오 개수
 
 const NaraddonTubeSimple = () => {
-  const router = useRouter();
   const [entries, setEntries] = useState<TubeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -63,10 +61,6 @@ const NaraddonTubeSimple = () => {
     setPlayingVideo(null);
   };
 
-  const handleAdminClick = () => {
-    router.push('/naraddon-tube/admin');
-  };
-
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
   };
@@ -95,15 +89,8 @@ const NaraddonTubeSimple = () => {
               <h2 className="tube-simple-title">나라똔 튜브</h2>
             </div>
             <p className="tube-simple-subtitle">
-              영상으로 만나는 정책자금 활용 사례와 실전 가이드를 만나보세요
+              영상으로 만나는 나라똔 정책자금 활용 케이스 및 대표님 인터뷰
             </p>
-            <button
-              type="button"
-              className="tube-simple-admin-button"
-              onClick={handleAdminClick}
-            >
-              영상 등록
-            </button>
           </div>
 
           {/* 비디오 그리드 - 확장 여부에 따라 클래스 변경 */}
