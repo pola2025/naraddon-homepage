@@ -50,7 +50,7 @@ export default function NaraddonTubeAdminPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 관리자 세션 확인 - 이미 로그인했으면 비밀번호 입력 건너뛰기
+  // 관리자 세션 확인 - NextAuth admin이면 자동 인증
   useEffect(() => {
     const checkAdminSession = async () => {
       try {
@@ -64,6 +64,7 @@ export default function NaraddonTubeAdminPage() {
           const userRole = data.user?.role;
 
           if (userRole === 'admin' || userRole === 'super_admin') {
+            // NextAuth admin 계정이면 비밀번호 입력 없이 바로 접근
             const pwdRes = await fetch('/api/naraddon-tube/get-password', {
               method: 'GET',
               credentials: 'include'
@@ -71,16 +72,20 @@ export default function NaraddonTubeAdminPage() {
 
             if (pwdRes.ok) {
               const pwdData = await pwdRes.json();
-              setAdminPassword(pwdData.password || '');
+              setAdminPassword(pwdData.password || 'auto-authenticated');
               setIsAdminBoardVisible(true);
               resetForm();
               fetchVideos();
+              return; // 자동 인증 성공, 아래 로직 건너뛰기
             }
           }
         }
       } catch (error) {
         console.error('[NaraddonTubeAdmin] session check error:', error);
       }
+
+      // NextAuth 인증 실패 시 기존 비밀번호 입력 방식 유지
+      // 아무 작업 하지 않음 (사용자가 "관리하기" 버튼을 클릭해야 함)
     };
 
     checkAdminSession();
