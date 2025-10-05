@@ -7,50 +7,79 @@ const nextConfig = {
     BUILD_ID: Date.now().toString(),
   },
 
-  // Ãâ·Â ¼³Á¤
+  // ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
   output: 'standalone',
 
-  // ESLint ºôµå ¿À·ù ¹«½Ã
+  // ESLint ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
   eslint: {
     ignoreDuringBuilds: true,
   },
 
-  // TypeScript °Ë»ç ¹«½Ã
+  // TypeScript ï¿½Ë»ï¿½ ï¿½ï¿½ï¿½ï¿½
   typescript: {
     ignoreBuildErrors: true,
   },
 
-  // ÀÌ¹ÌÁö µµ¸ŞÀÎ ¼³Á¤
+  // ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
   images: {
     domains: [
       'pub-b520cb8ed3989e8182bdb020ade36495.r2.dev',
       'img.youtube.com',
       'images.unsplash.com',
     ],
-    // unoptimized: true, // ÀÌ¹ÌÁö ÃÖÀûÈ­ ºñÈ°¼ºÈ­
+    // unoptimized: true, // ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½È­ ï¿½ï¿½È°ï¿½ï¿½È­
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 
-  // ½ÇÇè ±â´É
+  // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
   experimental: {
     workerThreads: false,
     cpus: 1,
+    // ì„±ëŠ¥ ìµœì í™”
+    optimizeCss: true,
+    optimizePackageImports: ['react-icons', '@heroicons/react'],
   },
 
-  // ¼º´É ÃÖÀûÈ­
+  // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½È­
   swcMinify: true,
   compress: true,
 
-  // Ä³½Ã ºñÈ°¼ºÈ­ (ÇÁ·Î´ö¼Ç ¹èÆ÷ ¹®Á¦ ÇØ°á)
+  // ìŠ¤ë§ˆíŠ¸ ìºì‹œ ì „ëµ: Git SHA ê¸°ë°˜ (ë³€ê²½ì‚¬í•­ ìˆì„ ë•Œë§Œ ê°±ì‹ )
   generateBuildId: async () => {
-    return Date.now().toString();
+    // ê°•ì œ ìºì‹œ ë¬´íš¨í™”ê°€ í•„ìš”í•œ ê²½ìš°: FORCE_CACHE_BUST=1 vercel --prod
+    if (process.env.FORCE_CACHE_BUST === '1') {
+      return Date.now().toString();
+    }
+    // ì¼ë°˜ ë°°í¬: Git SHA ì‚¬ìš© (ì½”ë“œ ë³€ê²½ ì‹œì—ë§Œ Build ID ë³€ê²½)
+    return process.env.VERCEL_GIT_COMMIT_SHA || 'development';
   },
 
-  // public Æú´õ »ó ÀÌ¹ÌÁö/ºñµğ¿À Ä³½Ã ¼³Á¤
+  // ìŠ¤ë§ˆíŠ¸ ìºì‹œ ì „ëµ
   async headers() {
     return [
+      // 1. APIëŠ” í•­ìƒ ìºì‹œ ì•ˆí•¨
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      // 2. Next.js ì •ì  ë¦¬ì†ŒìŠ¤ ì˜êµ¬ ìºì‹œ (íŒŒì¼ëª…ì— í•´ì‹œ í¬í•¨)
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // 3. public í´ë” ë¯¸ë””ì–´ íŒŒì¼ ì¥ê¸° ìºì‹œ
       {
         source: '/videos/:path*',
         headers: [
@@ -66,6 +95,16 @@ const nextConfig = {
           {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // 4. HTML í˜ì´ì§€: 5ë¶„ ìºì‹œ + ë°±ê·¸ë¼ìš´ë“œ ê°±ì‹ 
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=300, stale-while-revalidate=86400',
           },
         ],
       },
