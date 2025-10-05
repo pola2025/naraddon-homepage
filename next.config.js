@@ -38,8 +38,9 @@ const nextConfig = {
     workerThreads: false,
     cpus: 1,
     // 성능 최적화
-    optimizeCss: true,
+    // optimizeCss: true, // critters 패키지 필요 - 비활성화
     optimizePackageImports: ['react-icons', '@heroicons/react'],
+    instrumentationHook: true, // NextAuth 및 계측을 위해 필요
   },
 
   // ���� ����ȭ
