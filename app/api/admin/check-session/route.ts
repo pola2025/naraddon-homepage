@@ -1,29 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { validateAdminSession, extendAdminSession } from '@/lib/auth/admin-auth';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 export async function GET(request: NextRequest) {
   try {
-    const isValid = await validateAdminSession();
+    const session = await getServerSession(authOptions);
 
-    if (isValid) {
-      // 세션 연장
-      await extendAdminSession();
-
+    if (!session) {
       return NextResponse.json(
         {
-          authenticated: true,
-          message: '세션이 유효합니다.'
+          authenticated: false,
+          message: '세션이 없습니다.'
         },
-        { status: 200 }
+        { status: 401 }
       );
     }
 
+    const userRole = (session.user as any)?.role;
+
     return NextResponse.json(
       {
-        authenticated: false,
-        message: '세션이 없거나 만료되었습니다.'
+        authenticated: true,
+        message: '세션이 유효합니다.',
+        user: {
+          email: session.user?.email,
+          name: session.user?.name,
+          role: userRole
+        }
       },
-      { status: 401 }
+      { status: 200 }
     );
   } catch (error) {
     console.error('Session check error:', error);

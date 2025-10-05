@@ -19,7 +19,8 @@ export default function AdminLayout({
 
   useEffect(() => {
     checkAuthorization();
-  }, [session, status, pathname]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, status]); // pathname 의존성 제거 - 무한 루프 방지
 
   const checkAuthorization = async () => {
     // NextAuth 세션 로딩 중
