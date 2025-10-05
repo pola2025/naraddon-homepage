@@ -33,10 +33,11 @@ export default function AdminLoginPage() {
       }
 
       setSuccess(true);
-      // 3초 후 대시보드로 이동
+
+      // 세션 갱신 후 대시보드로 이동 (window.location.href로 강제 새로고침)
       setTimeout(() => {
         window.location.href = '/admin/dashboard';
-      }, 2000);
+      }, 1500);
     } catch (error) {
       console.error('Admin login error:', error);
       setError('권한 부여 중 오류가 발생했습니다.');
@@ -121,6 +122,9 @@ export default function AdminLoginPage() {
             <h2 className="text-2xl font-bold text-gray-900">관리자 권한 부여</h2>
             <p className="mt-2 text-sm text-gray-600">
               현재 로그인: {session.user?.email}
+            </p>
+            <p className="mt-1 text-xs text-gray-500">
+              현재 Role: {(session.user as any)?.role || 'user'}
             </p>
             <p className="mt-1 text-xs text-gray-500">
               관리자 비밀번호를 입력하세요
