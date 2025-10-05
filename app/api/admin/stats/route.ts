@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import clientPromise from '@/lib/mongodb-client';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/admin/stats - 관리자 대시보드 통계
 export async function GET(request: NextRequest) {
   try {
