@@ -24,7 +24,7 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
   const menuItems = [
     {
       name: '대시보드',
-      href: '/admin',
+      href: '/admin/dashboard',
       icon: HomeIcon,
     },
     {
@@ -33,22 +33,22 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
       items: [
         {
           name: '나라똔튜브',
-          href: '/admin/naraddon-tube',
+          href: '/naraddon-tube/admin',
           icon: VideoCameraIcon,
         },
         {
           name: '정책소식',
-          href: '/admin/policy-news',
+          href: '/policy-news/admin',
           icon: NewspaperIcon,
         },
         {
           name: '비즈니스보이스',
-          href: '/admin/business-voice',
+          href: '/business-voice/admin',
           icon: MicrophoneIcon,
         },
         {
           name: '전문가서비스',
-          href: '/admin/expert-services',
+          href: '/expert-services/admin',
           icon: BriefcaseIcon,
         },
       ],
@@ -59,20 +59,20 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
       icon: UserGroupIcon,
     },
     {
-      name: '통계',
-      href: '/admin/analytics',
+      name: '상담 관리',
+      href: '/admin/consultations',
       icon: ChartBarIcon,
     },
     {
-      name: '설정',
-      href: '/admin/settings',
+      name: '활동 로그',
+      href: '/admin/logs',
       icon: CogIcon,
     },
   ];
 
   const isActive = (href: string) => {
-    if (href === '/admin') {
-      return pathname === '/admin';
+    if (href === '/admin/dashboard') {
+      return pathname === '/admin/dashboard';
     }
     return pathname.startsWith(href);
   };
