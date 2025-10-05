@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -12,6 +12,13 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+
+  // 이미 admin 권한이 있으면 대시보드로 자동 이동
+  useEffect(() => {
+    if (session && (session.user as any)?.role === 'admin') {
+      router.replace('/admin/dashboard');
+    }
+  }, [session, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
