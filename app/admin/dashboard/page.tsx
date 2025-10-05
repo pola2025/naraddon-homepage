@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import { api } from '@/lib/api-client';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
 
@@ -53,8 +51,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <ProtectedRoute requiredRole="admin">
-      <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">관리자 대시보드</h1>
@@ -423,7 +420,6 @@ export default function AdminDashboard() {
             </>
           )}
         </div>
-      </div>
-    </ProtectedRoute>
+    </div>
   );
 }

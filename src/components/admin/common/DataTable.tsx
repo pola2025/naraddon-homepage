@@ -54,7 +54,7 @@ export default function DataTable<T extends { id: string | number }>({
   const filteredData = data.filter(item => {
     if (!searchTerm) return true;
     return Object.values(item).some(value =>
-      String(value).toLowerCase().includes(searchTerm.toLowerCase())
+      value != null && String(value).toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 

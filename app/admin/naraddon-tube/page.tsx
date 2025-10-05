@@ -70,9 +70,9 @@ export default function NaraddonTubeAdminPage() {
 
   // 검색 및 필터링
   const filteredEntries = entries.filter(entry => {
-    const matchesSearch = entry.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         entry.subtitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         entry.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = entry.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         entry.subtitle?.toLowerCase()?.includes(searchTerm.toLowerCase()) ||
+                         entry.description?.toLowerCase()?.includes(searchTerm.toLowerCase());
 
     const matchesStatus = statusFilter === 'all' ||
                          (statusFilter === 'published' && entry.isPublished) ||

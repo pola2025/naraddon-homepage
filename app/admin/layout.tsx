@@ -96,7 +96,8 @@ export default function AdminLayout({
     }
   };
 
-  // 메인 admin 페이지 또는 로그인 페이지는 레이아웃 미적용
+  // 메인 admin 페이지, 로그인 페이지는 레이아웃 미적용
+  // 나머지 admin 페이지들은 레이아웃 적용
   if (pathname === '/admin' || pathname === '/admin/login') {
     return <>{children}</>;
   }
