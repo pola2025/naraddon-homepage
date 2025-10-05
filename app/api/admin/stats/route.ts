@@ -8,14 +8,26 @@ export async function GET(request: NextRequest) {
   try {
     // 세션 확인
     const session = await getServerSession(authOptions);
+    console.log('[Admin Stats API] Session:', session ? { email: session.user?.email } : 'NO SESSION');
+
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // 관리자 권한 확인
     const userRole = (session.user as any)?.role;
+    console.log('[Admin Stats API] User role:', userRole);
+    console.log('[Admin Stats API] Full session.user:', session.user);
+
     if (userRole !== 'admin' && userRole !== 'super_admin') {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
+      return NextResponse.json({
+        error: 'Forbidden - Admin access required',
+        debug: {
+          userEmail: session.user?.email,
+          userRole: userRole,
+          requiredRoles: ['admin', 'super_admin']
+        }
+      }, { status: 403 });
     }
 
     // MongoDB 연결
