@@ -56,7 +56,8 @@
       "Bash(if not exist .claudeshared mkdir .claudeshared)",
       "Bash(copy E:Naraddonhomepagescriptswatch-tasks.js E:claude-4agent-monitorscripts )",
       "Bash(copy E:Naraddonhomepagescriptswatch-reviews.js E:claude-4agent-monitorscripts)",
-      "Bash(wmic process where:*)"
+      "Bash(wmic process where:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []
