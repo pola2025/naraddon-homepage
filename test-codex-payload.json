@@ -1,0 +1,5 @@
+{
+  "code": "import { NextRequest, NextResponse } from 'next/server';\n\nexport async function POST(request: NextRequest) {\n  const body = await request.json();\n  const userInput = body.input;\n  return NextResponse.json({ result: userInput });\n}",
+  "filePath": "app/api/test/route.ts",
+  "claudeBFeedback": "코드 품질 양호, UI/UX 적절함"
+}
