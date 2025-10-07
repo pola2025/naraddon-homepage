@@ -52,12 +52,15 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">관리자 대시보드</h1>
-        <p className="text-gray-600">시스템 전체 현황을 확인하고 관리합니다.</p>
-      </div>
+      {/* 대시보드 전용 헤더 */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="px-6 py-4">
+          <h1 className="text-2xl font-semibold text-gray-900">관리자 대시보드</h1>
+          <p className="mt-1 text-sm text-gray-500">시스템 전체 현황을 확인하고 관리합니다</p>
+        </div>
+      </header>
 
-          {loading ? (
+      {loading ? (
             <LoadingSpinner message="데이터를 불러오는 중..." fullScreen />
           ) : error ? (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
