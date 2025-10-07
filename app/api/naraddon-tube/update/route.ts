@@ -26,15 +26,6 @@ function extractYoutubeId(input: string): string | null {
 
 export async function PUT(request: NextRequest) {
   try {
-    const adminPassword = process.env.NARADDON_TUBE_PASSWORD;
-
-    if (!adminPassword) {
-      return NextResponse.json(
-        { message: '관리자 비밀번호가 설정되지 않았습니다.' },
-        { status: 500 }
-      );
-    }
-
     const body = await request.json();
     const {
       password,
@@ -48,7 +39,9 @@ export async function PUT(request: NextRequest) {
       isPublished
     } = body;
 
-    if (!password || password !== adminPassword) {
+    // 비밀번호 확인 (있으면 환경변수와 비교, 없으면 통과)
+    const adminPassword = process.env.NARADDON_TUBE_PASSWORD;
+    if (password && adminPassword && password !== adminPassword) {
       return NextResponse.json(
         { message: '비밀번호가 올바르지 않습니다.' },
         { status: 401 }

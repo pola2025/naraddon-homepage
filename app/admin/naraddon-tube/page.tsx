@@ -302,10 +302,6 @@ const NaraddonTubeAdminPage: React.FC = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!adminPassword) {
-      setFeedback({ type: 'error', text: '비밀번호 확인 후 다시 시도해 주세요.' });
-      return;
-    }
 
     const trimmedTitle = form.title.trim();
     const trimmedYoutubeUrl = form.youtubeUrl.trim();
@@ -330,7 +326,7 @@ const NaraddonTubeAdminPage: React.FC = () => {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            password: adminPassword,
+            password: adminPassword || undefined,
             entryId: editingEntry._id,
             title: trimmedTitle,
             description: form.description.trim() || undefined,
@@ -356,7 +352,7 @@ const NaraddonTubeAdminPage: React.FC = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            password: adminPassword,
+            password: adminPassword || undefined,
             title: trimmedTitle,
             description: form.description.trim() || undefined,
             youtubeUrl: trimmedYoutubeUrl,
