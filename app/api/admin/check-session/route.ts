@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import clientPromise from '@/lib/mongodb-client';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +19,29 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const userRole = (session.user as any)?.role;
+    // 세션의 role 대신 MongoDB에서 직접 최신 role 조회 (캐시 우회)
+    let userRole = (session.user as any)?.role;
+
+    if (session.user?.email) {
+      try {
+        const client = await clientPromise;
+        const db = client.db('naraddon');
+        const user = await db.collection('users').findOne({ email: session.user.email });
+
+        console.log('[check-session] Email:', session.user.email);
+        console.log('[check-session] User from DB:', user ? { email: user.email, role: user.role } : 'NOT FOUND');
+
+        if (user && user.role) {
+          userRole = user.role;
+          console.log('[check-session] Role set to:', userRole);
+        } else {
+          console.log('[check-session] No role found in DB, using session role:', userRole);
+        }
+      } catch (dbError) {
+        console.error('[check-session] MongoDB query error:', dbError);
+        // DB 조회 실패 시 세션의 role 사용
+      }
+    }
 
     return NextResponse.json(
       {

@@ -18,6 +18,7 @@ export default function AdminLayout({
   // useRef로 인증 완료 상태 추적 (리렌더링 트리거 안함)
   const authCheckedRef = useRef(false);
   const currentPathRef = useRef('');
+  const retryCountRef = useRef(0);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -35,12 +36,23 @@ export default function AdminLayout({
         return;
       }
 
+      // 무한 루프 방지: 5번 이상 재시도하면 에러 표시
+      if (retryCountRef.current >= 5) {
+        console.error('[AdminLayout] Too many retries, stopping');
+        setIsLoading(false);
+        setIsAuthorized(false);
+        return;
+      }
+
+      retryCountRef.current += 1;
+
       // 로그인 페이지는 인증 불필요
       if (pathname === '/admin/login') {
         setIsLoading(false);
         setIsAuthorized(true);
         authCheckedRef.current = true;
         currentPathRef.current = pathname;
+        retryCountRef.current = 0; // 성공 시 카운터 리셋
         return;
       }
 
@@ -50,6 +62,7 @@ export default function AdminLayout({
         setIsAuthorized(true);
         authCheckedRef.current = true;
         currentPathRef.current = pathname;
+        retryCountRef.current = 0; // 성공 시 카운터 리셋
         return;
       }
 
@@ -60,12 +73,13 @@ export default function AdminLayout({
         setIsLoading(false);
         authCheckedRef.current = true; // 리다이렉트 후 재시도 방지
         currentPathRef.current = pathname;
+        retryCountRef.current = 0; // 리다이렉트 시 카운터 리셋
         return;
       }
 
-      // 관리자 역할 확인 (MongoDB에서 role 확인)
+      // 관리자 역할 확인 (MongoDB에서 role 직접 확인)
       try {
-        console.log('[AdminLayout] Checking admin role...');
+        console.log('[AdminLayout] Checking admin role... (attempt', retryCountRef.current, ')');
         const res = await fetch('/api/admin/check-session', {
           method: 'GET',
           credentials: 'include',
@@ -82,12 +96,14 @@ export default function AdminLayout({
             setIsLoading(false);
             authCheckedRef.current = true;
             currentPathRef.current = pathname;
+            retryCountRef.current = 0; // 성공 시 카운터 리셋
           } else {
-            console.log('[AdminLayout] Not authorized, redirecting to login');
+            console.log('[AdminLayout] Not authorized (role:', userRole, '), redirecting to login');
             router.push('/admin/login');
             setIsLoading(false);
             authCheckedRef.current = true; // 리다이렉트 후 재시도 방지
             currentPathRef.current = pathname;
+            retryCountRef.current = 0; // 리다이렉트 시 카운터 리셋
           }
         } else {
           console.log('[AdminLayout] Check session failed, redirecting to login');
@@ -95,6 +111,7 @@ export default function AdminLayout({
           setIsLoading(false);
           authCheckedRef.current = true; // 리다이렉트 후 재시도 방지
           currentPathRef.current = pathname;
+          retryCountRef.current = 0; // 리다이렉트 시 카운터 리셋
         }
       } catch (error) {
         console.error('[AdminLayout] Authorization check error:', error);
@@ -102,6 +119,7 @@ export default function AdminLayout({
         setIsLoading(false);
         authCheckedRef.current = true; // 리다이렉트 후 재시도 방지
         currentPathRef.current = pathname;
+        retryCountRef.current = 0; // 리다이렉트 시 카운터 리셋
       }
     };
 
