@@ -108,14 +108,7 @@ export default function AdminLayout({
 
     checkAuthorization();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]); // status와 session 모두 제거 - pathname 변경시에만 재실행
-
-  // pathname 변경 시 인증 플래그 리셋
-  useEffect(() => {
-    if (currentPathRef.current !== pathname) {
-      authCheckedRef.current = false;
-    }
-  }, [pathname]);
+  }, []);
 
   const handleLogout = async () => {
     try {
