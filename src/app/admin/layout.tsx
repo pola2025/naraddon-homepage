@@ -15,10 +15,6 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    checkSession();
-  }, [pathname]);
-
   const checkSession = async () => {
     try {
       const res = await fetch('/api/admin/check-session', {
@@ -43,6 +39,11 @@ export default function AdminLayout({
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    checkSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleLogout = async () => {
     try {
