@@ -108,7 +108,14 @@ export default function InterviewSection() {
     fetchVideos();
 
     return () => {
-      document.head.removeChild(link);
+      // cleanup: 안전하게 제거
+      try {
+        if (link.parentNode === document.head) {
+          document.head.removeChild(link);
+        }
+      } catch (e) {
+        // 이미 제거됨 - 무시
+      }
     };
   }, []);
 
@@ -165,44 +172,49 @@ export default function InterviewSection() {
       const CACHE_KEY = 'naraddon-tube-videos';
       const CACHE_DURATION = 5 * 60 * 1000; // 5분
 
-      // localStorage 캐시 확인
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (cached) {
+      // localStorage 캐시 확인 (SSR 안전)
+      if (typeof window !== 'undefined') {
         try {
-          const { data, timestamp } = JSON.parse(cached);
-          const isExpired = Date.now() - timestamp > CACHE_DURATION;
+          const cached = localStorage.getItem(CACHE_KEY);
+          if (cached) {
+            const { data, timestamp } = JSON.parse(cached);
+            const isExpired = Date.now() - timestamp > CACHE_DURATION;
 
-          if (!isExpired && data.entries) {
-            // 캐시된 데이터 사용 (즉시 표시)
-            const convertedVideos: InterviewVideo[] = data.entries.map((entry: NaraddonTubeEntry) => {
-              const video = entry.videos[0];
-              return {
-                _id: entry._id,
-                youtubeUrl: video.url,
-                youtubeId: video.youtubeId,
-                title: video.title,
-                description: video.description,
-                thumbnailUrl: video.customThumbnail,
-                displayThumbnail: video.customThumbnail || `https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`,
-              };
-            });
-            setVideos(convertedVideos);
-            setIsLoading(false);
+            if (!isExpired && data?.entries && Array.isArray(data.entries)) {
+              // 캐시된 데이터 사용 (즉시 표시)
+              const convertedVideos: InterviewVideo[] = data.entries.map((entry: NaraddonTubeEntry) => {
+                const video = entry.videos[0];
+                return {
+                  _id: entry._id,
+                  youtubeUrl: video.url,
+                  youtubeId: video.youtubeId,
+                  title: video.title,
+                  description: video.description,
+                  thumbnailUrl: video.customThumbnail,
+                  displayThumbnail: video.customThumbnail || `https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`,
+                };
+              });
+              setVideos(convertedVideos);
+              setIsLoading(false);
 
-            // 백그라운드에서 최신 데이터 fetch (캐시 갱신)
-            fetch('/api/naraddon-tube')
-              .then(res => res.json())
-              .then(freshData => {
-                localStorage.setItem(CACHE_KEY, JSON.stringify({
-                  data: freshData,
-                  timestamp: Date.now()
-                }));
-              })
-              .catch(() => {/* 실패해도 캐시 데이터 유지 */});
-            return;
+              // 백그라운드에서 최신 데이터 fetch (캐시 갱신)
+              fetch('/api/naraddon-tube')
+                .then(res => res.json())
+                .then(freshData => {
+                  if (freshData?.entries) {
+                    localStorage.setItem(CACHE_KEY, JSON.stringify({
+                      data: freshData,
+                      timestamp: Date.now()
+                    }));
+                  }
+                })
+                .catch(() => {/* 실패해도 캐시 데이터 유지 */});
+              return;
+            }
           }
         } catch (e) {
           // 캐시 파싱 실패 시 무시하고 계속
+          console.warn('Cache parse error:', e);
         }
       }
 
@@ -211,11 +223,18 @@ export default function InterviewSection() {
       const data = await response.json();
 
       if (data.entries && Array.isArray(data.entries)) {
-        // localStorage에 캐싱
-        localStorage.setItem(CACHE_KEY, JSON.stringify({
-          data,
-          timestamp: Date.now()
-        }));
+        // localStorage에 캐싱 (클라이언트에서만)
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem(CACHE_KEY, JSON.stringify({
+              data,
+              timestamp: Date.now()
+            }));
+          } catch (e) {
+            // localStorage 용량 초과 등의 에러 무시
+            console.warn('localStorage save error:', e);
+          }
+        }
 
         // NaraddonTubeEntry를 InterviewVideo 형식으로 변환
         const convertedVideos: InterviewVideo[] = data.entries.map((entry: NaraddonTubeEntry) => {
