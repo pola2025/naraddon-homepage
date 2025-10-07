@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 import styles from './ExpertServicesAdmin.module.css';
 
 interface Expert {
@@ -16,11 +17,27 @@ interface Expert {
 }
 
 export default function ExpertServicesAdminPage() {
+  const router = useRouter();
+
+  // 인증 관리 (공통 Hook 사용)
+  const {
+    isAuthenticated,
+    isLoading: isLoggingIn,
+    error: authError,
+    login,
+    logout,
+  } = useAdminAuth({
+    apiEndpoint: '/api/expert-services/verify',
+    storageKey: 'expertServicesAuth',
+    storageType: 'session',
+  });
+
+  // 비밀번호 입력 상태 (로그인 폼용)
   const [password, setPassword] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // 전문가 관리 상태
   const [experts, setExperts] = useState<Expert[]>([]);
   const [loading, setLoading] = useState(false);
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [editingExpert, setEditingExpert] = useState<Expert | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -31,7 +48,6 @@ export default function ExpertServicesAdminPage() {
     order: 0,
     isActive: true,
   });
-  const router = useRouter();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -54,31 +70,12 @@ export default function ExpertServicesAdminPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoggingIn(true);
 
-    try {
-      const response = await fetch('/api/expert-services/verify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        setIsAuthenticated(true);
-        sessionStorage.setItem('expertServicesAuth', 'true');
-      } else {
-        alert(data.message || '비밀번호가 올바르지 않습니다.');
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      alert('로그인 중 오류가 발생했습니다.');
-    } finally {
-      setIsLoggingIn(false);
+    const success = await login(password);
+    if (success) {
+      setPassword(''); // 비밀번호 초기화
     }
+    // 에러는 authError 상태로 자동 관리됨
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -191,7 +188,13 @@ export default function ExpertServicesAdminPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className={styles.passwordInput}
+              disabled={isLoggingIn}
             />
+            {authError && (
+              <div style={{ color: 'red', fontSize: '14px', marginTop: '8px' }}>
+                {authError}
+              </div>
+            )}
             <button type="submit" className={styles.loginButton} disabled={isLoggingIn}>
               {isLoggingIn ? '로그인 중...' : '로그인'}
             </button>

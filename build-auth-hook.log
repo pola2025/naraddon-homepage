@@ -1,0 +1,82 @@
+
+> naraddon-nextjs@0.1.6 build
+> next build
+
+   ▲ Next.js 14.1.0
+   - Environments: .env.production.local, .env.local, .env.production
+   - Experiments (use at your own risk):
+     · cpus
+     · instrumentationHook
+
+   Creating an optimized production build ...
+warn  - It seems like you don't have a global error handler set up. It is recommended that you add a global-error.js file with Sentry instrumentation so that React rendering errors are reported to Sentry. Read more: https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/#react-render-errors-in-app-router (you can suppress this warning by setting SENTRY_SUPPRESS_GLOBAL_ERROR_HANDLER_FILE_WARNING=1 as environment variable)
+[@sentry/nextjs] DEPRECATION WARNING: It is recommended renaming your `sentry.client.config.ts` file, or moving its content to `instrumentation-client.ts`. When using Turbopack `sentry.client.config.ts` will no longer work. Read more about the `instrumentation-client.ts` file: https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation-client
+ ⚠ Compiled with warnings
+
+./sentry.server.config.ts
+Attempted import error: 'prismaIntegration' is not exported from '@sentry/nextjs' (imported as 'Sentry').
+
+Import trace for requested module:
+./sentry.server.config.ts
+
+./sentry.server.config.ts
+Attempted import error: 'prismaIntegration' is not exported from '@sentry/nextjs' (imported as 'Sentry').
+
+Import trace for requested module:
+./sentry.server.config.ts
+
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+MongoDB URI optimized for Vercel environment
+MongoDB URI is set, attempting connection...
+MongoDB connection attempt 1/3...
+[S3Client] Successfully initialized with endpoint: https://b520cb8ed3989e8182bdb020ade36495.r2.cloudflarestorage.com
+MongoDB connection successful!
+   Generating static pages (0/73) ...
+   Generating static pages (18/73) 
+[get-password] error: n [Error]: Dynamic server usage: Page couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at d (E:\Naraddon\homepage\.next\server\chunks\436.js:1:4458)
+    at u (E:\Naraddon\homepage\.next\server\chunks\436.js:1:1573)
+    at a (E:\Naraddon\homepage\.next\server\chunks\5759.js:30:18632)
+    at l (E:\Naraddon\homepage\.next\server\app\api\naraddon-tube\get-password\route.js:1:1729)
+    at E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:42490
+    at E:\Naraddon\homepage\node_modules\next\dist\server\lib\trace\tracer.js:133:36
+    at NoopContextManager.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
+    at ContextAPI.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
+    at NoopTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
+    at ProxyTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24) {
+  description: "Page couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+   Generating static pages (36/73) 
+   Generating static pages (54/73) 
+ReferenceError: sessionStorage is not defined
+    at apiEndpoint (E:\Naraddon\homepage\.next\server\app\expert-services\admin\page.js:1:3361)
+    at c (E:\Naraddon\homepage\.next\server\app\expert-services\admin\page.js:1:4244)
+    at nM (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47419)
+    at nN (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:64674)
+    at nI (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:46806)
+    at nM (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47570)
+    at nM (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:61663)
+    at nN (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:64674)
+    at nB (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:67657)
+    at nF (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:66824)
+
+Error occurred prerendering page "/expert-services/admin". Read more: https://nextjs.org/docs/messages/prerender-error
+
+ReferenceError: sessionStorage is not defined
+    at apiEndpoint (E:\Naraddon\homepage\.next\server\app\expert-services\admin\page.js:1:3361)
+    at c (E:\Naraddon\homepage\.next\server\app\expert-services\admin\page.js:1:4244)
+    at nM (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47419)
+    at nN (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:64674)
+    at nI (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:46806)
+    at nM (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47570)
+    at nM (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:61663)
+    at nN (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:64674)
+    at nB (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:67657)
+    at nF (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:66824)
+ ✓ Generating static pages (73/73) 
+
+> Export encountered errors on following paths:
+	/expert-services/admin/page: /expert-services/admin
