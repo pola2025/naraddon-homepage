@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
@@ -14,10 +14,20 @@ export default function AdminLayout({
   const { data: session, status } = useSession();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // useRef로 인증 완료 상태 추적 (리렌더링 트리거 안함)
+  const authCheckedRef = useRef(false);
+  const currentPathRef = useRef('');
+
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
+    // 이미 인증 완료되었고 같은 경로면 스킵
+    if (authCheckedRef.current && currentPathRef.current === pathname) {
+      return;
+    }
+
     const checkAuthorization = async () => {
       console.log('[AdminLayout] checkAuthorization - pathname:', pathname, 'status:', status);
 
@@ -31,6 +41,8 @@ export default function AdminLayout({
       if (pathname === '/admin/login') {
         setIsLoading(false);
         setIsAuthorized(true);
+        authCheckedRef.current = true;
+        currentPathRef.current = pathname;
         return;
       }
 
@@ -38,6 +50,8 @@ export default function AdminLayout({
       if (pathname === '/admin') {
         setIsLoading(false);
         setIsAuthorized(true);
+        authCheckedRef.current = true;
+        currentPathRef.current = pathname;
         return;
       }
 
@@ -66,6 +80,8 @@ export default function AdminLayout({
           if (userRole === 'admin' || userRole === 'super_admin') {
             setIsAuthorized(true);
             setIsLoading(false);
+            authCheckedRef.current = true;
+            currentPathRef.current = pathname;
           } else {
             console.log('[AdminLayout] Not authorized, redirecting to login');
             router.push('/admin/login');
@@ -85,10 +101,21 @@ export default function AdminLayout({
 
     checkAuthorization();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, status, pathname]);
+  }, [status, pathname]); // session 제거 - session 객체 참조 변경으로 인한 무한 루프 방지
+
+  // pathname 변경 시 인증 플래그 리셋
+  useEffect(() => {
+    if (currentPathRef.current !== pathname) {
+      authCheckedRef.current = false;
+    }
+  }, [pathname]);
 
   const handleLogout = async () => {
     try {
+      // 인증 플래그 리셋
+      authCheckedRef.current = false;
+      currentPathRef.current = '';
+
       // NextAuth 로그아웃
       const { signOut } = await import('next-auth/react');
       await signOut({ redirect: false });
