@@ -23,19 +23,20 @@ export default function AdminLayout({
   const pathname = usePathname();
 
   useEffect(() => {
+    // status가 loading이면 아직 체크하지 않음
+    if (status === 'loading') {
+      setIsLoading(true);
+      return;
+    }
+
     // 이미 인증 완료되었고 같은 경로면 스킵
     if (authCheckedRef.current && currentPathRef.current === pathname) {
+      console.log('[AdminLayout] Skipping auth check - already checked for:', pathname);
       return;
     }
 
     const checkAuthorization = async () => {
-      console.log('[AdminLayout] checkAuthorization - pathname:', pathname, 'status:', status);
-
-      // NextAuth 세션 로딩 중
-      if (status === 'loading') {
-        setIsLoading(true);
-        return;
-      }
+      console.log('[AdminLayout] Running auth check - pathname:', pathname, 'status:', status);
 
       // 로그인 페이지는 인증 불필요
       if (pathname === '/admin/login') {
@@ -60,6 +61,8 @@ export default function AdminLayout({
         console.log('[AdminLayout] No session, redirecting to login');
         router.push('/admin/login');
         setIsLoading(false);
+        authCheckedRef.current = true; // 리다이렉트 후 재시도 방지
+        currentPathRef.current = pathname;
         return;
       }
 
@@ -86,22 +89,28 @@ export default function AdminLayout({
             console.log('[AdminLayout] Not authorized, redirecting to login');
             router.push('/admin/login');
             setIsLoading(false);
+            authCheckedRef.current = true; // 리다이렉트 후 재시도 방지
+            currentPathRef.current = pathname;
           }
         } else {
           console.log('[AdminLayout] Check session failed, redirecting to login');
           router.push('/admin/login');
           setIsLoading(false);
+          authCheckedRef.current = true; // 리다이렉트 후 재시도 방지
+          currentPathRef.current = pathname;
         }
       } catch (error) {
         console.error('[AdminLayout] Authorization check error:', error);
         router.push('/admin/login');
         setIsLoading(false);
+        authCheckedRef.current = true; // 리다이렉트 후 재시도 방지
+        currentPathRef.current = pathname;
       }
     };
 
     checkAuthorization();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, pathname]); // session 제거 - session 객체 참조 변경으로 인한 무한 루프 방지
+  }, [pathname]); // status와 session 모두 제거 - pathname 변경시에만 재실행
 
   // pathname 변경 시 인증 플래그 리셋
   useEffect(() => {
