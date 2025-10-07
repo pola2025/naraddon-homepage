@@ -2,6 +2,7 @@ import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export interface INaraddonTubeVideo {
   title: string;
+  description?: string;
   youtubeId: string;
   url: string;
   customThumbnail?: string;
@@ -20,6 +21,10 @@ const naraddonTubeVideoSchema = new Schema<INaraddonTubeVideo>(
     title: {
       type: String,
       required: true,
+      trim: true,
+    },
+    description: {
+      type: String,
       trim: true,
     },
     youtubeId: {

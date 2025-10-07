@@ -40,6 +40,7 @@ export async function PUT(request: NextRequest) {
       password,
       entryId,
       title,
+      description,
       youtubeUrl,
       customThumbnail,
       oldCustomThumbnail,
@@ -105,6 +106,7 @@ export async function PUT(request: NextRequest) {
       videos: [
         {
           title: title.trim(),
+          description: description?.trim() || undefined,
           youtubeId,
           url: `https://www.youtube.com/watch?v=${youtubeId}`,
           customThumbnail: customThumbnail?.trim() || undefined

@@ -18,6 +18,7 @@ type IncomingVideoPayload = {
 type NaraddonTubePayload = {
   password?: string;
   title?: string;
+  description?: string;
   youtubeUrl?: string;
   customThumbnail?: string;
   isPublished?: boolean;
@@ -103,7 +104,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = (await request.json()) as NaraddonTubePayload;
-    const { password, title, youtubeUrl, customThumbnail, isPublished, sortOrder } = body;
+    const { password, title, description, youtubeUrl, customThumbnail, isPublished, sortOrder } = body;
 
     if (!password || password !== adminPassword) {
       return NextResponse.json({ message: '비밀번호가 올바르지 않습니다.' }, { status: 401 });
@@ -128,6 +129,7 @@ export async function POST(request: NextRequest) {
       videos: [
         {
           title: title.trim(),
+          description: description?.trim() || undefined,
           youtubeId,
           url: `https://www.youtube.com/watch?v=${youtubeId}`,
           customThumbnail: customThumbnail?.trim() || undefined,
