@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
@@ -17,74 +17,75 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
 
-  const checkAuthorization = useCallback(async () => {
-    console.log('[AdminLayout] checkAuthorization - pathname:', pathname, 'status:', status);
+  useEffect(() => {
+    const checkAuthorization = async () => {
+      console.log('[AdminLayout] checkAuthorization - pathname:', pathname, 'status:', status);
 
-    // NextAuth 세션 로딩 중
-    if (status === 'loading') {
-      setIsLoading(true);
-      return;
-    }
+      // NextAuth 세션 로딩 중
+      if (status === 'loading') {
+        setIsLoading(true);
+        return;
+      }
 
-    // 로그인 페이지는 인증 불필요
-    if (pathname === '/admin/login') {
-      setIsLoading(false);
-      setIsAuthorized(true);
-      return;
-    }
+      // 로그인 페이지는 인증 불필요
+      if (pathname === '/admin/login') {
+        setIsLoading(false);
+        setIsAuthorized(true);
+        return;
+      }
 
-    // 메인 admin 페이지는 자체 인증 로직 사용
-    if (pathname === '/admin') {
-      setIsLoading(false);
-      setIsAuthorized(true);
-      return;
-    }
+      // 메인 admin 페이지는 자체 인증 로직 사용
+      if (pathname === '/admin') {
+        setIsLoading(false);
+        setIsAuthorized(true);
+        return;
+      }
 
-    // NextAuth 세션 없으면 로그인 페이지로
-    if (!session) {
-      console.log('[AdminLayout] No session, redirecting to login');
-      router.push('/admin/login');
-      setIsLoading(false);
-      return;
-    }
+      // NextAuth 세션 없으면 로그인 페이지로
+      if (!session) {
+        console.log('[AdminLayout] No session, redirecting to login');
+        router.push('/admin/login');
+        setIsLoading(false);
+        return;
+      }
 
-    // 관리자 역할 확인 (MongoDB에서 role 확인)
-    try {
-      console.log('[AdminLayout] Checking admin role...');
-      const res = await fetch('/api/admin/check-session', {
-        method: 'GET',
-        credentials: 'include',
-        cache: 'no-store'
-      });
+      // 관리자 역할 확인 (MongoDB에서 role 확인)
+      try {
+        console.log('[AdminLayout] Checking admin role...');
+        const res = await fetch('/api/admin/check-session', {
+          method: 'GET',
+          credentials: 'include',
+          cache: 'no-store'
+        });
 
-      if (res.ok) {
-        const data = await res.json();
-        const userRole = data.user?.role;
-        console.log('[AdminLayout] User role:', userRole);
+        if (res.ok) {
+          const data = await res.json();
+          const userRole = data.user?.role;
+          console.log('[AdminLayout] User role:', userRole);
 
-        if (userRole === 'admin' || userRole === 'super_admin') {
-          setIsAuthorized(true);
-          setIsLoading(false);
+          if (userRole === 'admin' || userRole === 'super_admin') {
+            setIsAuthorized(true);
+            setIsLoading(false);
+          } else {
+            console.log('[AdminLayout] Not authorized, redirecting to login');
+            router.push('/admin/login');
+            setIsLoading(false);
+          }
         } else {
-          console.log('[AdminLayout] Not authorized, redirecting to login');
+          console.log('[AdminLayout] Check session failed, redirecting to login');
           router.push('/admin/login');
           setIsLoading(false);
         }
-      } else {
-        console.log('[AdminLayout] Check session failed, redirecting to login');
+      } catch (error) {
+        console.error('[AdminLayout] Authorization check error:', error);
         router.push('/admin/login');
         setIsLoading(false);
       }
-    } catch (error) {
-      console.error('[AdminLayout] Authorization check error:', error);
-      router.push('/admin/login');
-      setIsLoading(false);
-    }
-  }, [session, status, pathname, router]);
+    };
 
-  useEffect(() => {
     checkAuthorization();
-  }, [checkAuthorization]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, status, pathname]);
 
   const handleLogout = async () => {
     try {
