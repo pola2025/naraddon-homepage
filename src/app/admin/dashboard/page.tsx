@@ -40,7 +40,29 @@ export default function AdminDashboard() {
       setStats(data);
     } catch (error: any) {
       console.error('Dashboard stats error:', error);
-      const errorMessage = error?.message || '대시보드 데이터를 불러오는데 실패했습니다.';
+      console.error('Error response:', error.response);
+
+      let errorMessage = '대시보드 데이터를 불러오는데 실패했습니다.';
+
+      if (error.response) {
+        const status = error.response.status;
+        const data = error.response.data;
+
+        if (status === 401) {
+          errorMessage = '인증이 필요합니다. 다시 로그인해주세요.';
+        } else if (status === 403) {
+          errorMessage = '관리자 권한이 필요합니다.';
+        } else if (status >= 500) {
+          errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+        } else if (data?.error) {
+          errorMessage = data.error;
+        }
+      } else if (error.request) {
+        errorMessage = '서버에 연결할 수 없습니다. 네트워크를 확인해주세요.';
+      } else {
+        errorMessage = error.message || errorMessage;
+      }
+
       setError(errorMessage);
 
       // 에러 발생 시에도 기본 구조 유지 (빈 데이터)
