@@ -30,7 +30,17 @@ export async function GET(request: NextRequest) {
 
     const posts = await postsQuery.lean();
 
-    return NextResponse.json({ posts });
+    // CDN 캐싱 헤더 설정 (5분 캐싱)
+    return NextResponse.json(
+      { posts },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+          'CDN-Cache-Control': 'public, max-age=300',
+          'Vercel-CDN-Cache-Control': 'public, max-age=300',
+        },
+      }
+    );
   } catch (error) {
     console.error('[policy-news][GET]', error);
     return NextResponse.json({ message: '게시글을 불러오지 못했습니다.' }, { status: 500 });
