@@ -29,8 +29,8 @@ export default function AdminLayout({
       return;
     }
 
-    // 이미 인증 완료되었고 같은 경로면 스킵
-    if (authCheckedRef.current && currentPathRef.current === pathname) {
+    // 이미 인증 완료되었고 같은 경로이며 인증 상태면 스킵
+    if (authCheckedRef.current && currentPathRef.current === pathname && isAuthorized) {
       return;
     }
 
@@ -108,7 +108,7 @@ export default function AdminLayout({
 
     checkAuthorization();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [status, pathname]); // status와 pathname이 변경될 때 실행
 
   const handleLogout = async () => {
     try {
