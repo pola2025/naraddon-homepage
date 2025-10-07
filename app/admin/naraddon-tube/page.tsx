@@ -109,7 +109,8 @@ const NaraddonTubeAdminPage: React.FC = () => {
     if (!isLoadingPassword && adminPassword) {
       void fetchEntries();
     }
-  }, [isLoadingPassword, adminPassword, fetchEntries]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoadingPassword, adminPassword]);
 
   const deleteObjectFromR2 = useCallback(
     async (objectKey: string) => {

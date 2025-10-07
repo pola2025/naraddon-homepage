@@ -24,7 +24,7 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
   const menuItems = [
     {
       name: '대시보드',
-      href: '/admin',
+      href: '/admin/dashboard',
       icon: HomeIcon,
     },
     {
@@ -71,6 +71,9 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
   ];
 
   const isActive = (href: string) => {
+    if (href === '/admin/dashboard') {
+      return pathname === '/admin/dashboard';
+    }
     if (href === '/admin') {
       return pathname === '/admin';
     }
