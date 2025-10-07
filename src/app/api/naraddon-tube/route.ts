@@ -86,7 +86,16 @@ export async function GET(request: NextRequest) {
 
     const entries = await entriesQuery;
 
-    return NextResponse.json({ entries });
+    // 5분 캐싱 (브라우저 + CDN)
+    return NextResponse.json(
+      { entries },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+          'CDN-Cache-Control': 'public, max-age=300',
+        },
+      }
+    );
   } catch (error) {
     console.error('[naraddon-tube][GET]', error);
     return NextResponse.json({ message: '영상 목록을 불러오지 못했습니다.' }, { status: 500 });

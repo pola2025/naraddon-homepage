@@ -98,7 +98,18 @@ export default function InterviewSection() {
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   useEffect(() => {
+    // YouTube 썸네일 CDN preconnect로 이미지 로딩 속도 향상
+    const link = document.createElement('link');
+    link.rel = 'preconnect';
+    link.href = 'https://img.youtube.com';
+    link.crossOrigin = 'anonymous';
+    document.head.appendChild(link);
+
     fetchVideos();
+
+    return () => {
+      document.head.removeChild(link);
+    };
   }, []);
 
   // Intersection Observer for lazy loading video cards
@@ -151,14 +162,64 @@ export default function InterviewSection() {
   const fetchVideos = async () => {
     setIsLoading(true);
     try {
-      // 나라똔튜브 API 사용 - published 영상만 가져오기
+      const CACHE_KEY = 'naraddon-tube-videos';
+      const CACHE_DURATION = 5 * 60 * 1000; // 5분
+
+      // localStorage 캐시 확인
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        try {
+          const { data, timestamp } = JSON.parse(cached);
+          const isExpired = Date.now() - timestamp > CACHE_DURATION;
+
+          if (!isExpired && data.entries) {
+            // 캐시된 데이터 사용 (즉시 표시)
+            const convertedVideos: InterviewVideo[] = data.entries.map((entry: NaraddonTubeEntry) => {
+              const video = entry.videos[0];
+              return {
+                _id: entry._id,
+                youtubeUrl: video.url,
+                youtubeId: video.youtubeId,
+                title: video.title,
+                description: video.description,
+                thumbnailUrl: video.customThumbnail,
+                displayThumbnail: video.customThumbnail || `https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`,
+              };
+            });
+            setVideos(convertedVideos);
+            setIsLoading(false);
+
+            // 백그라운드에서 최신 데이터 fetch (캐시 갱신)
+            fetch('/api/naraddon-tube')
+              .then(res => res.json())
+              .then(freshData => {
+                localStorage.setItem(CACHE_KEY, JSON.stringify({
+                  data: freshData,
+                  timestamp: Date.now()
+                }));
+              })
+              .catch(() => {/* 실패해도 캐시 데이터 유지 */});
+            return;
+          }
+        } catch (e) {
+          // 캐시 파싱 실패 시 무시하고 계속
+        }
+      }
+
+      // 캐시 없음 또는 만료됨 - API 호출
       const response = await fetch('/api/naraddon-tube');
       const data = await response.json();
 
       if (data.entries && Array.isArray(data.entries)) {
+        // localStorage에 캐싱
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          data,
+          timestamp: Date.now()
+        }));
+
         // NaraddonTubeEntry를 InterviewVideo 형식으로 변환
         const convertedVideos: InterviewVideo[] = data.entries.map((entry: NaraddonTubeEntry) => {
-          const video = entry.videos[0]; // 항상 1개의 영상만 있음
+          const video = entry.videos[0];
           return {
             _id: entry._id,
             youtubeUrl: video.url,
@@ -172,8 +233,8 @@ export default function InterviewSection() {
 
         setVideos(convertedVideos);
 
-        // 처음 3개 썸네일 미리 로드
-        convertedVideos.slice(0, 3).forEach((video: InterviewVideo) => {
+        // 처음 6개 썸네일 미리 로드 (개선됨: 3개 → 6개)
+        convertedVideos.slice(0, 6).forEach((video: InterviewVideo) => {
           if (video.youtubeId) {
             const img = new window.Image();
             img.src = `https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`;
