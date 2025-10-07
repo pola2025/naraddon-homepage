@@ -261,7 +261,7 @@ export default function InterviewSection() {
     <section id="interview-section" className="interview-section-new">
       <div className="section-header">
         <h2>나라똔과 함께한 대표님 인터뷰</h2>
-        <p>현재 실무지원금을 받은 대표님들의 생생한 후기입니다.</p>
+        <p>인증 기업심사관과 함께한 대표님들의 생생한 후기입니다.</p>
       </div>
 
       <div className="interview-videos-container">
