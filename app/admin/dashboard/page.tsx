@@ -51,12 +51,11 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">관리자 대시보드</h1>
-            <p className="mt-2 text-gray-600">시스템 전체 현황을 확인하고 관리합니다.</p>
-          </div>
+    <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">관리자 대시보드</h1>
+        <p className="text-gray-600">시스템 전체 현황을 확인하고 관리합니다.</p>
+      </div>
 
           {loading ? (
             <LoadingSpinner message="데이터를 불러오는 중..." fullScreen />
@@ -419,7 +418,6 @@ export default function AdminDashboard() {
               </div>
             </>
           )}
-        </div>
     </div>
   );
 }
