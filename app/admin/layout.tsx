@@ -20,9 +20,11 @@ export default function AdminLayout({
   useEffect(() => {
     checkAuthorization();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, status]); // pathname 의존성 제거 - 무한 루프 방지
+  }, [session, status, pathname]);
 
   const checkAuthorization = async () => {
+    console.log('[AdminLayout] checkAuthorization - pathname:', pathname, 'status:', status);
+
     // NextAuth 세션 로딩 중
     if (status === 'loading') {
       setIsLoading(true);
@@ -45,6 +47,7 @@ export default function AdminLayout({
 
     // NextAuth 세션 없으면 로그인 페이지로
     if (!session) {
+      console.log('[AdminLayout] No session, redirecting to login');
       router.push('/admin/login');
       setIsLoading(false);
       return;
@@ -52,28 +55,34 @@ export default function AdminLayout({
 
     // 관리자 역할 확인 (MongoDB에서 role 확인)
     try {
+      console.log('[AdminLayout] Checking admin role...');
       const res = await fetch('/api/admin/check-session', {
         method: 'GET',
-        credentials: 'include'
+        credentials: 'include',
+        cache: 'no-store'
       });
 
       if (res.ok) {
         const data = await res.json();
         const userRole = data.user?.role;
+        console.log('[AdminLayout] User role:', userRole);
 
         if (userRole === 'admin' || userRole === 'super_admin') {
           setIsAuthorized(true);
+          setIsLoading(false);
         } else {
-          // 권한 없으면 grant-role 페이지로
+          console.log('[AdminLayout] Not authorized, redirecting to login');
           router.push('/admin/login');
+          setIsLoading(false);
         }
       } else {
+        console.log('[AdminLayout] Check session failed, redirecting to login');
         router.push('/admin/login');
+        setIsLoading(false);
       }
     } catch (error) {
-      console.error('Authorization check error:', error);
+      console.error('[AdminLayout] Authorization check error:', error);
       router.push('/admin/login');
-    } finally {
       setIsLoading(false);
     }
   };
