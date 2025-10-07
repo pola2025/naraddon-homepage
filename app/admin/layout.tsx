@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
@@ -17,12 +17,7 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    checkAuthorization();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, status, pathname]);
-
-  const checkAuthorization = async () => {
+  const checkAuthorization = useCallback(async () => {
     console.log('[AdminLayout] checkAuthorization - pathname:', pathname, 'status:', status);
 
     // NextAuth 세션 로딩 중
@@ -85,7 +80,11 @@ export default function AdminLayout({
       router.push('/admin/login');
       setIsLoading(false);
     }
-  };
+  }, [session, status, pathname, router]);
+
+  useEffect(() => {
+    checkAuthorization();
+  }, [checkAuthorization]);
 
   const handleLogout = async () => {
     try {
