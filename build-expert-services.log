@@ -1,0 +1,195 @@
+
+> naraddon-nextjs@0.1.6 build
+> next build
+
+   ▲ Next.js 14.1.0
+   - Environments: .env.production.local, .env.local, .env.production
+   - Experiments (use at your own risk):
+     · cpus
+     · instrumentationHook
+
+   Creating an optimized production build ...
+warn  - It seems like you don't have a global error handler set up. It is recommended that you add a global-error.js file with Sentry instrumentation so that React rendering errors are reported to Sentry. Read more: https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/#react-render-errors-in-app-router (you can suppress this warning by setting SENTRY_SUPPRESS_GLOBAL_ERROR_HANDLER_FILE_WARNING=1 as environment variable)
+[@sentry/nextjs] DEPRECATION WARNING: It is recommended renaming your `sentry.client.config.ts` file, or moving its content to `instrumentation-client.ts`. When using Turbopack `sentry.client.config.ts` will no longer work. Read more about the `instrumentation-client.ts` file: https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation-client
+
+[1m[33mwarn[39m[22m - As of Tailwind CSS v3.3, the `@tailwindcss/line-clamp` plugin is now included by default.
+[1m[33mwarn[39m[22m - Remove it from the `plugins` array in your configuration to eliminate this warning.
+ ⚠ Compiled with warnings
+
+./sentry.server.config.ts
+Attempted import error: 'prismaIntegration' is not exported from '@sentry/nextjs' (imported as 'Sentry').
+
+Import trace for requested module:
+./sentry.server.config.ts
+
+./sentry.server.config.ts
+Attempted import error: 'prismaIntegration' is not exported from '@sentry/nextjs' (imported as 'Sentry').
+
+Import trace for requested module:
+./sentry.server.config.ts
+
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+MongoDB URI optimized for Vercel environment
+MongoDB URI is set, attempting connection...
+MongoDB connection attempt 1/3...
+[S3Client] Successfully initialized with endpoint: https://b520cb8ed3989e8182bdb020ade36495.r2.cloudflarestorage.com
+MongoDB connection successful!
+   Generating static pages (0/73) ...
+   Generating static pages (18/73) 
+[get-password] error: n [Error]: Dynamic server usage: Page couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at d (E:\Naraddon\homepage\.next\server\chunks\436.js:1:4458)
+    at u (E:\Naraddon\homepage\.next\server\chunks\436.js:1:1573)
+    at a (E:\Naraddon\homepage\.next\server\chunks\5759.js:30:18632)
+    at l (E:\Naraddon\homepage\.next\server\app\api\naraddon-tube\get-password\route.js:1:1729)
+    at E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:42490
+    at E:\Naraddon\homepage\node_modules\next\dist\server\lib\trace\tracer.js:133:36
+    at NoopContextManager.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
+    at ContextAPI.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
+    at NoopTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
+    at ProxyTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24) {
+  description: "Page couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+   Generating static pages (36/73) 
+   Generating static pages (54/73) 
+ ✓ Generating static pages (73/73) 
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                        Size     First Load JS
+┌ ○ /                                              3.17 kB         216 kB
+├ ○ /_not-found                                    1.05 kB         214 kB
+├ ○ /403                                           355 B           216 kB
+├ ○ /admin                                         745 B           214 kB
+├ ○ /admin/consultations                           6.63 kB         229 kB
+├ λ /admin/consultations/[id]                      7.73 kB         230 kB
+├ ○ /admin/dashboard                               2.65 kB         218 kB
+├ ○ /admin/login                                   2.06 kB         227 kB
+├ ○ /admin/logs                                    5.48 kB         228 kB
+├ ○ /admin/naraddon-tube                           4.43 kB         218 kB
+├ ○ /admin/users                                   6.22 kB         227 kB
+├ λ /api/admin/check-session                       0 B                0 B
+├ λ /api/admin/customer-cards                      0 B                0 B
+├ λ /api/admin/grant-role                          0 B                0 B
+├ λ /api/admin/login                               0 B                0 B
+├ λ /api/admin/logout                              0 B                0 B
+├ λ /api/admin/logs                                0 B                0 B
+├ λ /api/admin/stats                               0 B                0 B
+├ λ /api/admin/users/[id]/role                     0 B                0 B
+├ λ /api/admin/users/[id]/upgrade                  0 B                0 B
+├ λ /api/auth/[...nextauth]                        0 B                0 B
+├ λ /api/auth/blacklist                            0 B                0 B
+├ λ /api/auth/error                                0 B                0 B
+├ λ /api/auth/login                                0 B                0 B
+├ λ /api/auth/logout                               0 B                0 B
+├ λ /api/auth/register                             0 B                0 B
+├ λ /api/business-voice/admin/auth                 0 B                0 B
+├ λ /api/business-voice/interview-videos           0 B                0 B
+├ λ /api/business-voice/interview-videos/[id]      0 B                0 B
+├ λ /api/business-voice/interview-videos/upload    0 B                0 B
+├ λ /api/business-voice/interview-videos/verify    0 B                0 B
+├ λ /api/business-voice/interviews                 0 B                0 B
+├ λ /api/business-voice/interviews/[id]            0 B                0 B
+├ λ /api/business-voice/questions                  0 B                0 B
+├ λ /api/business-voice/replies/reorder            0 B                0 B
+├ λ /api/business-voice/ttontok                    0 B                0 B
+├ λ /api/business-voice/ttontok/[postId]           0 B                0 B
+├ λ /api/business-voice/ttontok/[postId]/replies   0 B                0 B
+├ λ /api/business-voice/ttontok/replies/[replyId]  0 B                0 B
+├ λ /api/business/verify                           0 B                0 B
+├ λ /api/claude-monitor                            0 B                0 B
+├ λ /api/codex-verify                              0 B                0 B
+├ λ /api/consultation/quick-submit                 0 B                0 B
+├ λ /api/consultations                             0 B                0 B
+├ λ /api/consultations/[id]                        0 B                0 B
+├ λ /api/consultations/[id]/assign                 0 B                0 B
+├ λ /api/consultations/[id]/review                 0 B                0 B
+├ λ /api/consultations/[id]/status                 0 B                0 B
+├ λ /api/ddontalk                                  0 B                0 B
+├ λ /api/ddontalk/[id]                             0 B                0 B
+├ λ /api/ddontalk/[id]/comment                     0 B                0 B
+├ λ /api/ddontalk/[id]/comments                    0 B                0 B
+├ λ /api/ddontalk/[id]/like                        0 B                0 B
+├ λ /api/ddontalk/[id]/likes                       0 B                0 B
+├ λ /api/debug/env                                 0 B                0 B
+├ λ /api/expert-services/assets/delete             0 B                0 B
+├ λ /api/expert-services/assets/presign            0 B                0 B
+├ λ /api/expert-services/examiners                 0 B                0 B
+├ λ /api/expert-services/examiners/[id]            0 B                0 B
+├ λ /api/expert-services/examiners/[id]/profile    0 B                0 B
+├ λ /api/expert-services/examiners/cleanup         0 B                0 B
+├ λ /api/expert-services/examiners/verify          0 B                0 B
+├ ○ /api/expert-services/experts                   0 B                0 B
+├ λ /api/expert-services/experts/[id]              0 B                0 B
+├ λ /api/experts                                   0 B                0 B
+├ λ /api/git-execute                               0 B                0 B
+├ ○ /api/health                                    0 B                0 B
+├ λ /api/naraddon-tube                             0 B                0 B
+├ λ /api/naraddon-tube/assets/delete               0 B                0 B
+├ λ /api/naraddon-tube/assets/presign              0 B                0 B
+├ λ /api/naraddon-tube/delete                      0 B                0 B
+├ λ /api/naraddon-tube/examiners                   0 B                0 B
+├ λ /api/naraddon-tube/examiners/[id]              0 B                0 B
+├ λ /api/naraddon-tube/get-password                0 B                0 B
+├ λ /api/naraddon-tube/update                      0 B                0 B
+├ λ /api/naraddon-tube/verify                      0 B                0 B
+├ λ /api/policy-analysis                           0 B                0 B
+├ λ /api/policy-analysis/[id]                      0 B                0 B
+├ λ /api/policy-analysis/access                    0 B                0 B
+├ λ /api/policy-analysis/uploads                   0 B                0 B
+├ λ /api/policy-news                               0 B                0 B
+├ λ /api/policy-news/[id]                          0 B                0 B
+├ λ /api/policy-news/upload-image                  0 B                0 B
+├ λ /api/policy-news/verify                        0 B                0 B
+├ λ /api/telegram-notify                           0 B                0 B
+├ ○ /api/test-user                                 0 B                0 B
+├ λ /api/ttontok/posts                             0 B                0 B
+├ λ /api/ttontok/posts/[id]                        0 B                0 B
+├ λ /api/ttontok/verify                            0 B                0 B
+├ λ /api/upload                                    0 B                0 B
+├ λ /api/users/[id]                                0 B                0 B
+├ λ /api/users/[id]/activities                     0 B                0 B
+├ λ /api/users/[id]/stats                          0 B                0 B
+├ ○ /auth/error                                    1.11 kB         214 kB
+├ ○ /auth/login                                    6.22 kB         222 kB
+├ ○ /business-voice                                8.53 kB         229 kB
+├ ○ /business-voice/admin                          5.04 kB         218 kB
+├ λ /business-voice/ttontok/[postId]               5.55 kB         221 kB
+├ ○ /business-voice/ttontok/write                  2.62 kB         218 kB
+├ ○ /certified-examiners                           32.3 kB         246 kB
+├ ○ /consultation                                  538 B           214 kB
+├ ○ /consultation-request                          17.3 kB         233 kB
+├ λ /ddontalk/[id]                                 3.36 kB         219 kB
+├ ○ /examiner/dashboard                            3.88 kB         229 kB
+├ ○ /expert-services                               5.37 kB         221 kB
+├ ○ /expert-services/admin                         2.46 kB         216 kB
+├ ○ /experts                                       3.93 kB         219 kB
+├ ○ /my-consultations                              6.67 kB         231 kB
+├ ○ /mypage                                        11.7 kB         242 kB
+├ ○ /naraddon-tube/admin                           3.82 kB         217 kB
+├ ○ /policy-analysis                               1.14 kB         214 kB
+├ λ /policy-analysis/[id]                          463 B           219 kB
+├ λ /policy-analysis/[id]/edit                     3.07 kB         216 kB
+├ ○ /policy-analysis/detail                        675 B           220 kB
+├ ○ /policy-analysis/write                         7.26 kB         221 kB
+├ ○ /policy-news                                   6.63 kB         220 kB
+├ λ /policy-news/[id]                              3.41 kB         219 kB
+├ λ /policy-news/[id]/edit                         2.9 kB          216 kB
+├ ○ /policy-news/admin                             2.13 kB         218 kB
+├ ○ /policy-news/write                             4.64 kB         218 kB
+├ ○ /ttontok                                       4.31 kB         220 kB
+├ λ /ttontok/[id]                                  1.87 kB         217 kB
+├ ○ /ttontok/write                                 3.1 kB          216 kB
+└ ○ /voice                                         50.6 kB         264 kB
++ First Load JS shared by all                      213 kB
+  ├ chunks/254-05b1c972fc0a785b.js                 117 kB
+  ├ chunks/52774a7f-336a2e9deb6bc9bc.js            38.9 kB
+  ├ chunks/fd9d1056-47e8d4789e1d5138.js            53.5 kB
+  └ other shared chunks (total)                    4.25 kB
+
+
+○  (Static)   prerendered as static content
+λ  (Dynamic)  server-rendered on demand using Node.js
+

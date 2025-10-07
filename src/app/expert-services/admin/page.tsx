@@ -20,6 +20,7 @@ export default function ExpertServicesAdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [experts, setExperts] = useState<Expert[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [editingExpert, setEditingExpert] = useState<Expert | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -51,13 +52,32 @@ export default function ExpertServicesAdminPage() {
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === process.env.NEXT_PUBLIC_EXPERT_SERVICES_PASSWORD) {
-      setIsAuthenticated(true);
-      sessionStorage.setItem('expertServicesAuth', 'true');
-    } else {
-      alert('비밀번호가 올바르지 않습니다.');
+    setIsLoggingIn(true);
+
+    try {
+      const response = await fetch('/api/expert-services/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setIsAuthenticated(true);
+        sessionStorage.setItem('expertServicesAuth', 'true');
+      } else {
+        alert(data.message || '비밀번호가 올바르지 않습니다.');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('로그인 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -172,8 +192,8 @@ export default function ExpertServicesAdminPage() {
               onChange={(e) => setPassword(e.target.value)}
               className={styles.passwordInput}
             />
-            <button type="submit" className={styles.loginButton}>
-              로그인
+            <button type="submit" className={styles.loginButton} disabled={isLoggingIn}>
+              {isLoggingIn ? '로그인 중...' : '로그인'}
             </button>
           </form>
         </div>
