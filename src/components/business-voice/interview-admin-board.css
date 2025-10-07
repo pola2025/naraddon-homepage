@@ -849,3 +849,66 @@
     );
   }
 }
+
+/* 전체보기 버튼 스타일 */
+.show-more-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+  padding: 20px 0;
+}
+
+.show-more-button {
+  padding: 14px 40px;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.show-more-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+}
+
+.show-more-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.3);
+}
+
+/* 확장 애니메이션 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 모바일 반응형 - 전체보기 버튼 */
+@media (max-width: 768px) {
+  .show-more-container {
+    margin-top: 24px;
+    padding: 12px 0;
+  }
+
+  .show-more-button {
+    padding: 12px 32px;
+    font-size: 0.95rem;
+    width: calc(100% - 40px);
+    max-width: 280px;
+    justify-content: center;
+  }
+}

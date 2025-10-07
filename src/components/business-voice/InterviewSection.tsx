@@ -87,13 +87,12 @@ function VideoModal({ video, isOpen, onClose }: VideoModalProps) {
 
 export default function InterviewSection() {
   const [videos, setVideos] = useState<InterviewVideo[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<InterviewVideo | null>(null);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
   const [visibleCards, setVisibleCards] = useState<Set<string>>(new Set());
-  const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
+  const [showAll, setShowAll] = useState(false);
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -132,11 +131,12 @@ export default function InterviewSection() {
   useEffect(() => {
     if (!observerRef.current) return;
 
-    const visibleVids = videos.slice(currentIndex, currentIndex + 3);
+    const displayCount = showAll ? videos.length : Math.min(6, videos.length);
+    const displayVideos = videos.slice(0, displayCount);
 
     // Observe new cards
     cardRefs.current.forEach((element, cardId) => {
-      if (visibleVids.some(video => video._id === cardId)) {
+      if (displayVideos.some(video => video._id === cardId)) {
         observerRef.current?.observe(element);
       }
     });
@@ -146,7 +146,7 @@ export default function InterviewSection() {
         observerRef.current?.unobserve(element);
       });
     };
-  }, [videos, currentIndex]);
+  }, [videos, showAll]);
 
   const fetchVideos = async () => {
     setIsLoading(true);
@@ -187,19 +187,6 @@ export default function InterviewSection() {
     }
   };
 
-
-  const handlePrevSlide = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    }
-  };
-
-  const handleNextSlide = () => {
-    if (currentIndex < Math.max(0, videos.length - 3)) {
-      setCurrentIndex(currentIndex + 1);
-    }
-  };
-
   // Handle image load state
   const handleImageLoad = useCallback((imageUrl: string) => {
     setLoadedImages(prev => new Set([...prev, imageUrl]));
@@ -214,38 +201,9 @@ export default function InterviewSection() {
     }
   }, []);
 
-  const visibleVideos = videos.slice(currentIndex, currentIndex + 3);
-
-  // Preload next slide images - 성능 최적화
-  const preloadNextSlideImages = useCallback(() => {
-    const nextIndex = currentIndex + 1;
-    if (nextIndex < Math.max(0, videos.length - 3)) {
-      const nextVideos = videos.slice(nextIndex, nextIndex + 3);
-
-      nextVideos.forEach((video) => {
-        const extractYoutubeId = (url: string): string => {
-          const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-          return match ? match[1] : '';
-        };
-        const videoId = video.youtubeId || extractYoutubeId(video.youtubeUrl);
-        const youtubeThumbnail = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-        const thumbnailUrl = video.displayThumbnail || video.thumbnailUrl || youtubeThumbnail;
-
-        if (!preloadedImages.has(thumbnailUrl)) {
-          const img = new window.Image();
-          img.src = thumbnailUrl;
-          img.onload = () => {
-            setPreloadedImages(prev => new Set([...prev, thumbnailUrl]));
-          };
-        }
-      });
-    }
-  }, [currentIndex, videos, preloadedImages]);
-
-  // Preload images when current index changes
-  useEffect(() => {
-    preloadNextSlideImages();
-  }, [preloadNextSlideImages]);
+  // 표시할 비디오 개수 결정
+  const displayCount = showAll ? videos.length : Math.min(6, videos.length);
+  const displayVideos = videos.slice(0, displayCount);
 
   const handleVideoClick = (video: InterviewVideo) => {
     setSelectedVideo(video);
@@ -265,104 +223,105 @@ export default function InterviewSection() {
       </div>
 
       <div className="interview-videos-container">
-        <div className="videos-slider">
-          {videos.length > 3 && currentIndex > 0 && (
-            <button className="slider-arrow arrow-left" onClick={handlePrevSlide}>
-              ←
-            </button>
-          )}
+        <div className="videos-grid" style={{
+          maxHeight: showAll ? 'none' : '800px',
+          overflow: 'hidden',
+          transition: 'max-height 0.5s ease-in-out'
+        }}>
+          {isLoading ? (
+            <div className="loading-message">영상을 불러오는 중…</div>
+          ) : displayVideos.length > 0 ? (
+            displayVideos.map((video, index) => {
+              const extractYoutubeId = (url: string): string => {
+                const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+                return match ? match[1] : '';
+              };
+              const videoId = video.youtubeId || extractYoutubeId(video.youtubeUrl);
+              const youtubeThumbnail = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+              const thumbnailUrl = video.displayThumbnail || video.thumbnailUrl || youtubeThumbnail;
 
-          <div className="videos-grid">
-            {isLoading ? (
-              <div className="loading-message">영상을 불러오는 중…</div>
-            ) : visibleVideos.length > 0 ? (
-              visibleVideos.map((video) => {
-                const extractYoutubeId = (url: string): string => {
-                  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-                  return match ? match[1] : '';
-                };
-                const videoId = video.youtubeId || extractYoutubeId(video.youtubeUrl);
-                // mqdefault를 기본으로 사용 (320x180, 더 빠른 로딩)
-                const youtubeThumbnail = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
-                const thumbnailUrl = video.displayThumbnail || video.thumbnailUrl || youtubeThumbnail;
+              const isImageLoaded = loadedImages.has(thumbnailUrl);
+              const shouldLoadEagerly = index < 6; // Load first 6 eagerly
 
-                const isVisible = visibleCards.has(video._id);
-                const isImageLoaded = loadedImages.has(thumbnailUrl);
-                const shouldLoadEagerly = currentIndex === 0; // Load first 3 eagerly
-
-                return (
-                  <div
-                    key={video._id}
-                    className="video-card"
-                    onClick={() => handleVideoClick(video)}
-                    ref={(el) => setCardRef(el, video._id)}
-                    data-card-id={video._id}
-                  >
-                    <div className="video-thumbnail">
-                      {/* Skeleton/blur placeholder */}
-                      {!isImageLoaded && (
-                        <div className="thumbnail-skeleton">
-                          <div className="skeleton-shimmer"></div>
-                        </div>
-                      )}
-
-                      <Image
-                        src={thumbnailUrl}
-                        alt={video.title}
-                        width={320}
-                        height={180}
-                        priority={shouldLoadEagerly}
-                        style={{
-                          opacity: isImageLoaded ? 1 : 0,
-                          transition: 'opacity 0.3s ease-in-out',
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          objectPosition: 'center'
-                        }}
-                        onLoad={() => handleImageLoad(thumbnailUrl)}
-                        onError={(e) => {
-                          const target = e.currentTarget as HTMLImageElement;
-                          // mqdefault가 없으면 default로 폴백
-                          if (target.src.includes('mqdefault')) {
-                            target.src = `https://img.youtube.com/vi/${videoId}/default.jpg`;
-                          }
-                        }}
-                        unoptimized
-                      />
-
-                      <div className="play-overlay">
-                        <div className="play-icon">
-                          <svg viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z" />
-                          </svg>
-                        </div>
+              return (
+                <div
+                  key={video._id}
+                  className="video-card"
+                  onClick={() => handleVideoClick(video)}
+                  ref={(el) => setCardRef(el, video._id)}
+                  data-card-id={video._id}
+                  style={{
+                    animation: showAll && index >= 6 ? 'fadeInUp 0.3s ease-out' : 'none',
+                    animationDelay: showAll && index >= 6 ? `${(index - 6) * 0.05}s` : '0s',
+                    animationFillMode: 'both'
+                  }}
+                >
+                  <div className="video-thumbnail">
+                    {!isImageLoaded && (
+                      <div className="thumbnail-skeleton">
+                        <div className="skeleton-shimmer"></div>
                       </div>
-                    </div>
-                    <div className="video-info">
-                      <h3>{video.title}</h3>
-                      {video.description ? <p>{video.description}</p> : null}
-                      <div className="video-meta">
-                        {video.author ? <span>{video.author}</span> : null}
-                        {video.company ? <span>{video.company}</span> : null}
-                        {video.amount ? <span>{video.amount}</span> : null}
+                    )}
+
+                    <Image
+                      src={thumbnailUrl}
+                      alt={video.title}
+                      width={320}
+                      height={180}
+                      priority={shouldLoadEagerly}
+                      style={{
+                        opacity: isImageLoaded ? 1 : 0,
+                        transition: 'opacity 0.3s ease-in-out',
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        objectPosition: 'center'
+                      }}
+                      onLoad={() => handleImageLoad(thumbnailUrl)}
+                      onError={(e) => {
+                        const target = e.currentTarget as HTMLImageElement;
+                        if (target.src.includes('mqdefault')) {
+                          target.src = `https://img.youtube.com/vi/${videoId}/default.jpg`;
+                        }
+                      }}
+                      unoptimized
+                    />
+
+                    <div className="play-overlay">
+                      <div className="play-icon">
+                        <svg viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
                       </div>
                     </div>
                   </div>
-                );
-              })
-            ) : (
-              <div className="empty-message">등록된 영상이 없습니다.</div>
-            )}
-          </div>
-
-          {videos.length > 3 && currentIndex < Math.max(0, videos.length - 3) && (
-            <button className="slider-arrow arrow-right" onClick={handleNextSlide}>
-              →
-            </button>
+                  <div className="video-info">
+                    <h3>{video.title}</h3>
+                    {video.description ? <p>{video.description}</p> : null}
+                    <div className="video-meta">
+                      {video.author ? <span>{video.author}</span> : null}
+                      {video.company ? <span>{video.company}</span> : null}
+                      {video.amount ? <span>{video.amount}</span> : null}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="empty-message">등록된 영상이 없습니다.</div>
           )}
         </div>
 
+        {videos.length > 6 && (
+          <div className="show-more-container">
+            <button
+              className="show-more-button"
+              onClick={() => setShowAll(!showAll)}
+            >
+              {showAll ? '접기 ▲' : '전체보기 ▼'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 비디오 모달 */}
