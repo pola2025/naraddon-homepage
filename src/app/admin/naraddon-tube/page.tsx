@@ -1,7 +1,6 @@
 'use client';
 
 import React, { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import './NaraddonTubeAdmin.css';
 
 interface TubeVideo {
   title: string;
@@ -55,11 +54,8 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
 
 const NaraddonTubeAdminPage: React.FC = () => {
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [passwordInput, setPasswordInput] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
-  const [passwordFeedback, setPasswordFeedback] = useState<FeedbackState>(null);
-  const [isVerifyingPassword, setIsVerifyingPassword] = useState(false);
+  const [isLoadingPassword, setIsLoadingPassword] = useState(true);
 
   const [entries, setEntries] = useState<TubeEntry[]>([]);
   const [isLoadingEntries, setIsLoadingEntries] = useState(false);
@@ -81,6 +77,30 @@ const NaraddonTubeAdminPage: React.FC = () => {
     () => [...entries].sort((a, b) => a.sortOrder - b.sortOrder),
     [entries]
   );
+
+  // Fetch password on mount
+  useEffect(() => {
+    const fetchPassword = async () => {
+      try {
+        const response = await fetch('/api/naraddon-tube/get-password');
+        if (!response.ok) {
+          throw new Error('Failed to fetch password');
+        }
+        const data = await response.json();
+        setAdminPassword(data.password);
+      } catch (error) {
+        console.error('[NaraddonTubeAdmin] fetchPassword', error);
+        setFormFeedback({
+          type: 'error',
+          text: '관리자 인증에 실패했습니다. 페이지를 새로고침해주세요.',
+        });
+      } finally {
+        setIsLoadingPassword(false);
+      }
+    };
+
+    void fetchPassword();
+  }, []);
 
   const fetchEntries = useCallback(async () => {
     try {
@@ -106,46 +126,10 @@ const NaraddonTubeAdminPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (isAuthorized) {
+    if (!isLoadingPassword && adminPassword) {
       void fetchEntries();
     }
-  }, [isAuthorized, fetchEntries]);
-
-  const handlePasswordSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!passwordInput.trim()) {
-      setPasswordFeedback({ type: 'error', text: '비밀번호를 입력해 주세요.' });
-      return;
-    }
-
-    try {
-      setIsVerifyingPassword(true);
-      setPasswordFeedback(null);
-      const response = await fetch('/api/naraddon-tube/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: passwordInput.trim() }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => null);
-        setPasswordFeedback({
-          type: 'error',
-          text: data?.message || '비밀번호가 일치하지 않습니다.',
-        });
-        return;
-      }
-
-      setIsAuthorized(true);
-      setAdminPassword(passwordInput.trim());
-      setPasswordFeedback({ type: 'success', text: '확인되었습니다.' });
-    } catch (error) {
-      console.error('[NaraddonTubeAdmin] verify', error);
-      setPasswordFeedback({ type: 'error', text: '비밀번호 확인 중 오류가 발생했습니다.' });
-    } finally {
-      setIsVerifyingPassword(false);
-    }
-  };
+  }, [isLoadingPassword, adminPassword, fetchEntries]);
 
   const updateFormField = useCallback(
     <K extends keyof UploadFormState>(field: K, value: UploadFormState[K]) => {
@@ -372,8 +356,6 @@ const NaraddonTubeAdminPage: React.FC = () => {
       return;
     }
 
-    // 영상 링크는 선택적 - 없어도 등록 가능
-
     try {
       setIsSaving(true);
       setFormFeedback(null);
@@ -456,375 +438,374 @@ const NaraddonTubeAdminPage: React.FC = () => {
     setFormFeedback(null);
   };
 
-  return (
-    <div className="tube-admin-page">
-      <div className="tube-admin-container">
-        <section className="tube-admin-card">
-          <h1 className="tube-admin-title">나라똔튜브 업로드 보드</h1>
-          <p className="tube-admin-subtitle">
-            관리자 전용 페이지입니다. 비밀번호를 확인하면 썸네일 업로드와 영상 등록을 진행할 수
-            있어요.
-          </p>
+  if (isLoadingPassword) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-gray-500">인증 확인 중...</p>
+      </div>
+    );
+  }
 
-          {!isAuthorized && (
-            <form className="tube-admin-password-form" onSubmit={handlePasswordSubmit}>
-              <div className="tube-admin-field-group">
-                <label className="tube-admin-label" htmlFor="naraddon-tube-admin-password">
-                  관리자 비밀번호
-                </label>
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">나라똔튜브 관리</h1>
+        <p className="text-gray-600">
+          썸네일 업로드와 영상 등록을 관리할 수 있습니다.
+        </p>
+      </div>
+
+      {/* Upload/Edit Form */}
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            {editingEntry ? '나라똔튜브 카드 수정' : '새로운 나라똔튜브 카드 등록'}
+          </h2>
+          <p className="text-sm text-gray-600">
+            {editingEntry
+              ? '수정할 내용을 변경한 후 수정하기 버튼을 눌러 주세요.'
+              : '썸네일을 업로드하고 영상 링크 두 개를 입력한 뒤 등록 버튼을 눌러 주세요.'}
+          </p>
+          {editingEntry && (
+            <button
+              type="button"
+              className="mt-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+              onClick={handleCancelEdit}
+            >
+              수정 취소
+            </button>
+          )}
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Basic Info Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="tube-card-title" className="block text-sm font-medium text-gray-700 mb-1">
+                카드 제목
+              </label>
+              <input
+                id="tube-card-title"
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={uploadForm.title}
+                onChange={(event) => updateFormField('title', event.target.value)}
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="tube-card-subtitle" className="block text-sm font-medium text-gray-700 mb-1">
+                서브 타이틀 (선택)
+              </label>
+              <input
+                id="tube-card-subtitle"
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={uploadForm.subtitle}
+                onChange={(event) => updateFormField('subtitle', event.target.value)}
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label htmlFor="tube-card-description" className="block text-sm font-medium text-gray-700 mb-1">
+                설명 (선택)
+              </label>
+              <textarea
+                id="tube-card-description"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={uploadForm.description}
+                onChange={(event) => updateFormField('description', event.target.value)}
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="tube-card-sort" className="block text-sm font-medium text-gray-700 mb-1">
+                노출 우선순위 (숫자가 낮을수록 먼저 노출)
+              </label>
+              <input
+                id="tube-card-sort"
+                type="number"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={uploadForm.sortOrder}
+                min={0}
+                onChange={(event) => updateFormField('sortOrder', Number(event.target.value))}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">공개 상태</label>
+              <label className="flex items-center justify-between px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50">
+                <span className="text-sm text-gray-700">
+                  {uploadForm.isPublished ? '바로 공개' : '임시 저장'}
+                </span>
                 <input
-                  id="naraddon-tube-admin-password"
-                  type="password"
-                  className="tube-admin-input"
-                  value={passwordInput}
-                  onChange={(event) => setPasswordInput(event.target.value)}
-                  autoComplete="current-password"
-                  required
+                  type="checkbox"
+                  checked={uploadForm.isPublished}
+                  onChange={(event) => updateFormField('isPublished', event.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+              </label>
+            </div>
+          </div>
+
+          {/* Thumbnail Upload */}
+          <div className="border border-gray-200 rounded-lg p-4 space-y-4">
+            <div>
+              <label htmlFor="tube-thumbnail" className="block text-sm font-medium text-gray-700 mb-1">
+                썸네일 이미지 업로드
+              </label>
+              <input
+                id="tube-thumbnail"
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handleThumbnailSelect}
+                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingThumbnail}
+              >
+                {isUploadingThumbnail ? '업로드 중...' : '이미지 선택'}
+              </button>
+
+              <button
+                type="button"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => void clearThumbnailSelection()}
+                disabled={isUploadingThumbnail || !uploadForm.thumbnailUrl}
+              >
+                썸네일 초기화
+              </button>
+            </div>
+
+            {uploadForm.thumbnailUrl && (
+              <div className="mt-4">
+                <img
+                  src={uploadForm.thumbnailUrl}
+                  alt="나라똔튜브 썸네일 미리보기"
+                  className="max-w-full h-auto rounded-md border border-gray-200"
                 />
               </div>
+            )}
 
-              {passwordFeedback && (
-                <p
-                  className={`tube-admin-feedback ${
-                    passwordFeedback.type === 'error'
-                      ? 'tube-admin-feedback--error'
-                      : 'tube-admin-feedback--success'
-                  }`}
-                >
-                  {passwordFeedback.text}
-                </p>
-              )}
+            {thumbnailFeedback && (
+              <p
+                className={`text-sm ${
+                  thumbnailFeedback.type === 'error' ? 'text-red-600' : 'text-green-600'
+                }`}
+              >
+                {thumbnailFeedback.text}
+              </p>
+            )}
+          </div>
 
-              <button className="tube-admin-button" type="submit" disabled={isVerifyingPassword}>
-                {isVerifyingPassword ? '확인 중...' : '비밀번호 확인'}
-              </button>
-            </form>
+          {/* Video Links */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="tube-video-1-title" className="block text-sm font-medium text-gray-700 mb-1">
+                영상 1 제목 (선택)
+              </label>
+              <input
+                id="tube-video-1-title"
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={uploadForm.video1Title}
+                onChange={(event) => updateFormField('video1Title', event.target.value)}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="tube-video-1-url" className="block text-sm font-medium text-gray-700 mb-1">
+                영상 1 YouTube 링크 또는 ID (선택)
+              </label>
+              <input
+                id="tube-video-1-url"
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={uploadForm.video1Url}
+                onChange={(event) => updateFormField('video1Url', event.target.value)}
+                placeholder="영상 준비 중인 경우 비워두세요"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="tube-video-2-title" className="block text-sm font-medium text-gray-700 mb-1">
+                영상 2 제목 (선택)
+              </label>
+              <input
+                id="tube-video-2-title"
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={uploadForm.video2Title}
+                onChange={(event) => updateFormField('video2Title', event.target.value)}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="tube-video-2-url" className="block text-sm font-medium text-gray-700 mb-1">
+                영상 2 YouTube 링크 또는 ID (선택)
+              </label>
+              <input
+                id="tube-video-2-url"
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={uploadForm.video2Url}
+                onChange={(event) => updateFormField('video2Url', event.target.value)}
+                placeholder="영상 준비 중인 경우 비워두세요"
+              />
+            </div>
+          </div>
+
+          {formFeedback && (
+            <p
+              className={`text-sm ${
+                formFeedback.type === 'error' ? 'text-red-600' : 'text-green-600'
+              }`}
+            >
+              {formFeedback.text}
+            </p>
           )}
-        </section>
 
-        {isAuthorized && (
-          <>
-            <section className="tube-admin-card tube-admin-card--compact">
-              <div className="tube-admin-board">
-                <header>
-                  <h2 className="tube-admin-title">
-                    {editingEntry ? '나라똔튜브 카드 수정' : '새로운 나라똔튜브 카드 등록'}
-                  </h2>
-                  <p className="tube-admin-subtitle">
-                    {editingEntry
-                      ? '수정할 내용을 변경한 후 수정하기 버튼을 눌러 주세요.'
-                      : '썸네일을 업로드하고 영상 링크 두 개를 입력한 뒤 등록 버튼을 눌러 주세요.'}
-                  </p>
-                  {editingEntry && (
-                    <button
-                      type="button"
-                      className="tube-admin-secondary-button"
-                      onClick={handleCancelEdit}
-                      style={{ marginTop: '8px' }}
-                    >
-                      수정 취소
-                    </button>
-                  )}
-                </header>
+          {/* Form Actions */}
+          <div className="flex gap-3">
+            <button
+              type="button"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => void resetForm()}
+              disabled={isSaving || isUploadingThumbnail}
+            >
+              입력 초기화
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isSaving}
+            >
+              {isSaving ? '처리 중...' : editingEntry ? '수정하기' : '등록하기'}
+            </button>
+          </div>
+        </form>
+      </div>
 
-                <form onSubmit={handleSubmit} className="tube-admin-board">
-                  <div className="tube-admin-form-grid">
-                    <div className="tube-admin-field-group">
-                      <label className="tube-admin-label" htmlFor="tube-card-title">
-                        카드 제목
-                      </label>
-                      <input
-                        id="tube-card-title"
-                        className="tube-admin-input"
-                        value={uploadForm.title}
-                        onChange={(event) => updateFormField('title', event.target.value)}
-                        required
-                      />
-                    </div>
+      {/* Entries List */}
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-1">등록된 카드 현황</h2>
+            <p className="text-sm text-gray-600">
+              최신 순으로 정렬하려면 우선순위를 조정해 주세요. 임시 저장 상태는 회색 뱃지로 표시됩니다.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+            onClick={() => void handleManualRefresh()}
+          >
+            새로고침
+          </button>
+        </div>
 
-                    <div className="tube-admin-field-group">
-                      <label className="tube-admin-label" htmlFor="tube-card-subtitle">
-                        서브 타이틀 (선택)
-                      </label>
-                      <input
-                        id="tube-card-subtitle"
-                        className="tube-admin-input"
-                        value={uploadForm.subtitle}
-                        onChange={(event) => updateFormField('subtitle', event.target.value)}
-                      />
-                    </div>
+        {isLoadingEntries && <p className="text-gray-500">목록을 불러오는 중입니다...</p>}
 
-                    <div className="tube-admin-field-group">
-                      <label className="tube-admin-label" htmlFor="tube-card-description">
-                        설명 (선택)
-                      </label>
-                      <textarea
-                        id="tube-card-description"
-                        className="tube-admin-input tube-admin-textarea"
-                        value={uploadForm.description}
-                        onChange={(event) => updateFormField('description', event.target.value)}
-                        rows={3}
-                      />
-                    </div>
+        {loadEntriesError && (
+          <p className="text-sm text-red-600">{loadEntriesError}</p>
+        )}
 
-                    <div className="tube-admin-field-group">
-                      <label className="tube-admin-label" htmlFor="tube-card-sort">
-                        노출 우선순위 (숫자가 낮을수록 먼저 노출)
-                      </label>
-                      <input
-                        id="tube-card-sort"
-                        type="number"
-                        className="tube-admin-input"
-                        value={uploadForm.sortOrder}
-                        min={0}
-                        onChange={(event) =>
-                          updateFormField('sortOrder', Number(event.target.value))
-                        }
-                      />
-                    </div>
+        {!isLoadingEntries && !formattedEntries.length && !loadEntriesError && (
+          <p className="text-gray-500 text-center py-8">아직 등록된 카드가 없습니다.</p>
+        )}
 
-                    <div className="tube-admin-field-group">
-                      <label className="tube-admin-label">공개 상태</label>
-                      <label
-                        className="tube-admin-secondary-button"
-                        style={{ justifyContent: 'space-between' }}
-                      >
-                        <span>{uploadForm.isPublished ? '바로 공개' : '임시 저장'}</span>
-                        <input
-                          type="checkbox"
-                          checked={uploadForm.isPublished}
-                          onChange={(event) => updateFormField('isPublished', event.target.checked)}
-                          style={{ marginLeft: '12px' }}
-                        />
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="tube-admin-upload-box">
-                    <div className="tube-admin-field-group">
-                      <label className="tube-admin-label" htmlFor="tube-thumbnail">
-                        썸네일 이미지 업로드
-                      </label>
-                      <input
-                        id="tube-thumbnail"
-                        type="file"
-                        accept="image/*"
-                        ref={fileInputRef}
-                        onChange={handleThumbnailSelect}
-                        className="tube-admin-input"
-                      />
-                    </div>
-
-                    <div className="tube-admin-upload-actions">
-                      <button
-                        type="button"
-                        className="tube-admin-secondary-button"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={isUploadingThumbnail}
-                      >
-                        {isUploadingThumbnail ? '업로드 중...' : '이미지 선택'}
-                      </button>
-
-                      <button
-                        type="button"
-                        className="tube-admin-secondary-button"
-                        onClick={() => void clearThumbnailSelection()}
-                        disabled={isUploadingThumbnail || !uploadForm.thumbnailUrl}
-                      >
-                        썸네일 초기화
-                      </button>
-                    </div>
-
-                    {uploadForm.thumbnailUrl && (
-                      <div className="tube-admin-preview">
-                        <img src={uploadForm.thumbnailUrl} alt="나라똔튜브 썸네일 미리보기" />
-                      </div>
-                    )}
-
-                    {thumbnailFeedback && (
-                      <p
-                        className={`tube-admin-feedback ${
-                          thumbnailFeedback.type === 'error'
-                            ? 'tube-admin-feedback--error'
-                            : 'tube-admin-feedback--success'
-                        }`}
-                      >
-                        {thumbnailFeedback.text}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="tube-admin-form-grid">
-                    <div className="tube-admin-field-group">
-                      <label className="tube-admin-label" htmlFor="tube-video-1-title">
-                        영상 1 제목 (선택)
-                      </label>
-                      <input
-                        id="tube-video-1-title"
-                        className="tube-admin-input"
-                        value={uploadForm.video1Title}
-                        onChange={(event) => updateFormField('video1Title', event.target.value)}
-                      />
-                    </div>
-
-                    <div className="tube-admin-field-group">
-                      <label className="tube-admin-label" htmlFor="tube-video-1-url">
-                        영상 1 YouTube 링크 또는 ID (선택)
-                      </label>
-                      <input
-                        id="tube-video-1-url"
-                        className="tube-admin-input"
-                        value={uploadForm.video1Url}
-                        onChange={(event) => updateFormField('video1Url', event.target.value)}
-                        placeholder="영상 준비 중인 경우 비워두세요"
-                      />
-                    </div>
-
-                    <div className="tube-admin-field-group">
-                      <label className="tube-admin-label" htmlFor="tube-video-2-title">
-                        영상 2 제목 (선택)
-                      </label>
-                      <input
-                        id="tube-video-2-title"
-                        className="tube-admin-input"
-                        value={uploadForm.video2Title}
-                        onChange={(event) => updateFormField('video2Title', event.target.value)}
-                      />
-                    </div>
-
-                    <div className="tube-admin-field-group">
-                      <label className="tube-admin-label" htmlFor="tube-video-2-url">
-                        영상 2 YouTube 링크 또는 ID (선택)
-                      </label>
-                      <input
-                        id="tube-video-2-url"
-                        className="tube-admin-input"
-                        value={uploadForm.video2Url}
-                        onChange={(event) => updateFormField('video2Url', event.target.value)}
-                        placeholder="영상 준비 중인 경우 비워두세요"
-                      />
-                    </div>
-                  </div>
-
-                  {formFeedback && (
-                    <p
-                      className={`tube-admin-feedback ${
-                        formFeedback.type === 'error'
-                          ? 'tube-admin-feedback--error'
-                          : 'tube-admin-feedback--success'
-                      }`}
-                    >
-                      {formFeedback.text}
-                    </p>
-                  )}
-
-                  <div className="tube-admin-actions">
-                    <button
-                      type="button"
-                      className="tube-admin-secondary-button"
-                      onClick={() => void resetForm()}
-                      disabled={isSaving || isUploadingThumbnail}
-                    >
-                      입력 초기화
-                    </button>
-                    <button type="submit" className="tube-admin-button" disabled={isSaving}>
-                      {isSaving ? '처리 중...' : editingEntry ? '수정하기' : '등록하기'}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </section>
-
-            <section className="tube-admin-card tube-admin-card--compact">
-              <header className="tube-admin-actions" style={{ justifyContent: 'space-between' }}>
-                <div>
-                  <h2 className="tube-admin-title">등록된 카드 현황</h2>
-                  <p className="tube-admin-subtitle">
-                    최신 순으로 정렬하려면 우선순위를 조정해 주세요. 임시 저장 상태는 회색 뱃지로
-                    표시됩니다.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className="tube-admin-secondary-button"
-                  onClick={() => void handleManualRefresh()}
-                >
-                  새로고침
-                </button>
-              </header>
-
-              {isLoadingEntries && <p>목록을 불러오는 중입니다...</p>}
-              {loadEntriesError && (
-                <p className="tube-admin-feedback tube-admin-feedback--error">{loadEntriesError}</p>
-              )}
-
-              {!isLoadingEntries && !formattedEntries.length && !loadEntriesError && (
-                <p className="tube-admin-empty">아직 등록된 카드가 없습니다.</p>
-              )}
-
-              {!isLoadingEntries && formattedEntries.length > 0 && (
-                <div style={{ overflowX: 'auto' }}>
-                  <table className="tube-admin-table">
-                    <thead>
-                      <tr>
-                        <th>제목</th>
-                        <th>우선순위</th>
-                        <th>공개</th>
-                        <th>등록일</th>
-                        <th>영상 수</th>
-                        <th>작업</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {formattedEntries.map((entry) => {
-                        const created = entry.createdAt ? new Date(entry.createdAt) : null;
-                        const formattedDate = created
-                          ? created.toLocaleString('ko-KR', { hour12: false })
-                          : '-';
-                        return (
-                          <tr key={entry._id}>
-                            <td>{entry.title}</td>
-                            <td>{entry.sortOrder}</td>
-                            <td>
-                              <span
-                                className={`tube-admin-status-badge ${
-                                  entry.isPublished ? '' : 'tube-admin-status-badge--draft'
-                                }`}
-                              >
-                                {entry.isPublished ? '공개' : '임시'}
-                              </span>
-                            </td>
-                            <td>{formattedDate}</td>
-                            <td>{entry.videos?.length ?? 0}</td>
-                            <td>
-                              <div style={{ display: 'flex', gap: '8px' }}>
-                                <button
-                                  type="button"
-                                  className="tube-admin-action-button tube-admin-action-button--edit"
-                                  onClick={() => handleEditEntry(entry)}
-                                  disabled={isSaving || isUploadingThumbnail}
-                                >
-                                  수정
-                                </button>
-                                <button
-                                  type="button"
-                                  className="tube-admin-action-button tube-admin-action-button--delete"
-                                  onClick={() => handleDeleteEntry(entry._id)}
-                                  disabled={isSaving || isUploadingThumbnail || deletingEntryId === entry._id}
-                                >
-                                  {deletingEntryId === entry._id ? '삭제 중...' : '삭제'}
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </section>
-          </>
+        {!isLoadingEntries && formattedEntries.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    제목
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    우선순위
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    공개
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    등록일
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    영상 수
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    작업
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {formattedEntries.map((entry) => {
+                  const created = entry.createdAt ? new Date(entry.createdAt) : null;
+                  const formattedDate = created
+                    ? created.toLocaleString('ko-KR', { hour12: false })
+                    : '-';
+                  return (
+                    <tr key={entry._id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {entry.title}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {entry.sortOrder}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            entry.isPublished
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}
+                        >
+                          {entry.isPublished ? '공개' : '임시'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formattedDate}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {entry.videos?.length ?? 0}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            className="text-blue-600 hover:text-blue-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={() => handleEditEntry(entry)}
+                            disabled={isSaving || isUploadingThumbnail}
+                          >
+                            수정
+                          </button>
+                          <button
+                            type="button"
+                            className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={() => handleDeleteEntry(entry._id)}
+                            disabled={isSaving || isUploadingThumbnail || deletingEntryId === entry._id}
+                          >
+                            {deletingEntryId === entry._id ? '삭제 중...' : '삭제'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

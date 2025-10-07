@@ -60,7 +60,8 @@
       "Bash(dir:*)",
       "Bash(find:*)",
       "Bash(awk:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(test:*)"
     ],
     "deny": [],
     "ask": []
