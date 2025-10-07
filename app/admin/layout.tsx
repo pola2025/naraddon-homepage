@@ -31,12 +31,10 @@ export default function AdminLayout({
 
     // 이미 인증 완료되었고 같은 경로면 스킵
     if (authCheckedRef.current && currentPathRef.current === pathname) {
-      console.log('[AdminLayout] Skipping auth check - already checked for:', pathname);
       return;
     }
 
     const checkAuthorization = async () => {
-      console.log('[AdminLayout] Running auth check - pathname:', pathname, 'status:', status);
 
       // 로그인 페이지는 인증 불필요
       if (pathname === '/admin/login') {
