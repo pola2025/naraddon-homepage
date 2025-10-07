@@ -57,7 +57,10 @@
       "Bash(copy E:Naraddonhomepagescriptswatch-tasks.js E:claude-4agent-monitorscripts )",
       "Bash(copy E:Naraddonhomepagescriptswatch-reviews.js E:claude-4agent-monitorscripts)",
       "Bash(wmic process where:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(find:*)",
+      "Bash(awk:*)",
+      "Bash(xargs:*)"
     ],
     "deny": [],
     "ask": []
