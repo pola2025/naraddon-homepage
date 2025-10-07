@@ -29,12 +29,11 @@ export default function AdminLayout({
       return;
     }
 
-    // 이미 인증 완료되었고 같은 경로이며 인증 상태면 스킵
-    if (authCheckedRef.current && currentPathRef.current === pathname && isAuthorized) {
-      return;
-    }
-
     const checkAuthorization = async () => {
+      // 이미 인증 완료되었고 같은 경로면 스킵
+      if (authCheckedRef.current && currentPathRef.current === pathname) {
+        return;
+      }
 
       // 로그인 페이지는 인증 불필요
       if (pathname === '/admin/login') {
