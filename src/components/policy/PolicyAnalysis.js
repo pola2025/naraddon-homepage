@@ -249,7 +249,8 @@ const PolicyAnalysis = () => {
       setFetchError('');
 
       try {
-        const response = await fetch('/api/policy-analysis?sort=views', {
+        // limit와 fields 파라미터 추가 (성능 최적화)
+        const response = await fetch('/api/policy-analysis?sort=views&limit=20&fields=minimal', {
           cache: 'no-store',
           signal: controller.signal,
         });

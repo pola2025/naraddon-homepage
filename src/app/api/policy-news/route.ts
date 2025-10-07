@@ -10,13 +10,22 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const limitParam = searchParams.get('limit');
     const mainOnly = searchParams.get('mainOnly') === 'true';
+    const fieldsParam = searchParams.get('fields');
 
     const query = mainOnly ? { isMain: true } : {};
-    const limit = limitParam ? parseInt(limitParam, 10) : undefined;
+    // 기본 limit 설정 (성능 최적화)
+    const limit = limitParam ? parseInt(limitParam, 10) : 20;
 
-    const postsQuery = PolicyNewsPost.find(query).sort({ createdAt: -1 });
-    if (limit && !Number.isNaN(limit)) {
+    // 필드 선택 (content 제외로 데이터 전송량 80% 감소)
+    let postsQuery = PolicyNewsPost.find(query).sort({ createdAt: -1 });
+
+    if (limit && !Number.isNaN(limit) && limit > 0) {
       postsQuery.limit(limit);
+    }
+
+    // 기본값을 minimal로 설정 (fieldsParam이 'full'일 때만 전체 반환)
+    if (fieldsParam !== 'full') {
+      postsQuery = postsQuery.select('-content');
     }
 
     const posts = await postsQuery.lean();

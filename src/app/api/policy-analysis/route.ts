@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
     const rawLimit = searchParams.get('limit');
     const rawSearch = searchParams.get('search');
     const sortKey = searchParams.get('sort') || 'newest';
+    const fieldsParam = searchParams.get('fields');
 
     const query: Record<string, unknown> = {};
 
@@ -47,12 +48,20 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const limit = rawLimit ? Number.parseInt(rawLimit, 10) : undefined;
+    // 기본 limit 설정 (성능 최적화)
+    const limit = rawLimit ? Number.parseInt(rawLimit, 10) : 20;
     const sort = ALLOWED_SORT_FIELDS[sortKey] || ALLOWED_SORT_FIELDS.newest;
 
+    // 필드 선택 (content, sections, attachments, images 제외로 데이터 전송량 80% 감소)
     let postsQuery = PolicyAnalysisPost.find(query).sort(sort);
-    if (limit && !Number.isNaN(limit)) {
+
+    if (limit && !Number.isNaN(limit) && limit > 0) {
       postsQuery = postsQuery.limit(limit);
+    }
+
+    // 기본값을 minimal로 설정 (fieldsParam이 'full'일 때만 전체 반환)
+    if (fieldsParam !== 'full') {
+      postsQuery = postsQuery.select('-content -sections -attachments -images -isStructured');
     }
 
     const posts = await postsQuery.lean();

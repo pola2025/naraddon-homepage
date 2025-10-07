@@ -116,7 +116,8 @@ export const usePolicyNews = ({ limit = 12, fallbackImages = FALLBACK_IMAGES } =
     setError('');
 
     try {
-      const response = await fetch(`/api/policy-news?limit=${limit}`, {
+      // fields 파라미터 추가 (성능 최적화)
+      const response = await fetch(`/api/policy-news?limit=${limit}&fields=minimal`, {
         cache: 'no-store',
         signal: controller.signal,
       });

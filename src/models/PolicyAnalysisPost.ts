@@ -233,6 +233,9 @@ const policyAnalysisSchema = new Schema<IPolicyAnalysisPost>(
 policyAnalysisSchema.index({ createdAt: -1 });
 policyAnalysisSchema.index({ category: 1, createdAt: -1 });
 policyAnalysisSchema.index({ 'examiner.key': 1 });
+// 성능 최적화를 위한 추가 인덱스
+policyAnalysisSchema.index({ views: -1, createdAt: -1 }); // views 정렬용
+policyAnalysisSchema.index({ category: 1, views: -1 }); // 카테고리별 인기순
 
 const PolicyAnalysisPost: Model<IPolicyAnalysisPost> =
   mongoose.models.PolicyAnalysisPost ||
