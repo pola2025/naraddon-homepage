@@ -39,7 +39,7 @@ const SECONDARY_NAV: NavItem[] = [
 const ALL_NAV_ITEMS = [...PRIMARY_NAV, ...SECONDARY_NAV];
 
 const ADMIN_NAV: NavItem = { href: "/admin", label: "관리자" };
-const EXAMINER_NAV: NavItem = { href: "/examiner", label: "심사관" };
+const EXAMINER_NAV: NavItem = { href: "/examiner/dashboard", label: "심사관" };
 
 export default function Header() {
   const pathname = usePathname();
