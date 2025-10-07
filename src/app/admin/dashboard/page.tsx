@@ -34,36 +34,23 @@ export default function AdminDashboard() {
   const fetchDashboardStats = async () => {
     try {
       setLoading(true);
-      // 실제 API 엔드포인트로 교체 필요
-      // const data = await api.get<DashboardStats>('/admin/stats')
-      // setStats(data)
+      setError('');
 
-      // 임시 더미 데이터
-      setStats({
-        totalUsers: 1234,
-        totalConsultations: 567,
-        pendingConsultations: 23,
-        totalExaminers: 45,
-        recentActivities: [
-          {
-            id: '1',
-            type: 'consultation',
-            description: '새로운 상담 신청',
-            timestamp: '2024-01-20 14:30',
-            user: 'user@example.com',
-          },
-          {
-            id: '2',
-            type: 'user',
-            description: '새로운 사용자 가입',
-            timestamp: '2024-01-20 13:45',
-            user: 'newuser@example.com',
-          },
-        ],
-      });
-    } catch (error) {
+      const data = await api.get<DashboardStats>('/admin/stats');
+      setStats(data);
+    } catch (error: any) {
       console.error('Dashboard stats error:', error);
-      setError('대시보드 데이터를 불러오는데 실패했습니다.');
+      const errorMessage = error?.message || '대시보드 데이터를 불러오는데 실패했습니다.';
+      setError(errorMessage);
+
+      // 에러 발생 시에도 기본 구조 유지 (빈 데이터)
+      setStats({
+        totalUsers: 0,
+        totalConsultations: 0,
+        pendingConsultations: 0,
+        totalExaminers: 0,
+        recentActivities: [],
+      });
     } finally {
       setLoading(false);
     }
