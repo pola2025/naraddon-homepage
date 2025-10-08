@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 import './admin.css';
 
 interface PolicyNewsItem {
@@ -21,21 +22,21 @@ interface PolicyNewsItem {
 
 export default function PolicyNewsAdminPage() {
   const router = useRouter();
-  const [isAuthorized, setIsAuthorized] = useState(false);
+  const auth = useAdminAuth({
+    apiEndpoint: '/api/policy-news/verify',
+    storageKey: 'policyNewsAuthorized',
+    storageType: 'session'
+  });
+
   const [password, setPassword] = useState('');
-  const [verifyError, setVerifyError] = useState('');
-  const [isVerifying, setIsVerifying] = useState(false);
   const [posts, setPosts] = useState<PolicyNewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // 세션 확인
-    const cached = sessionStorage.getItem('policyNewsAuthorized');
-    if (cached === 'true') {
-      setIsAuthorized(true);
+    if (auth.isAuthenticated) {
       fetchPosts();
     }
-  }, []);
+  }, [auth.isAuthenticated]);
 
   const fetchPosts = async () => {
     setIsLoading(true);
@@ -55,31 +56,13 @@ export default function PolicyNewsAdminPage() {
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!password.trim()) {
-      setVerifyError('비밀번호를 입력해주세요.');
       return;
     }
 
-    setIsVerifying(true);
-    setVerifyError('');
-
-    try {
-      const response = await fetch('/api/policy-news/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: password.trim() })
-      });
-
-      if (!response.ok) {
-        throw new Error('비밀번호가 올바르지 않습니다.');
-      }
-
-      sessionStorage.setItem('policyNewsAuthorized', 'true');
-      setIsAuthorized(true);
+    const success = await auth.login(password.trim());
+    if (success) {
+      setPassword('');
       fetchPosts();
-    } catch (error) {
-      setVerifyError(error instanceof Error ? error.message : '인증 실패');
-    } finally {
-      setIsVerifying(false);
     }
   };
 
@@ -115,7 +98,7 @@ export default function PolicyNewsAdminPage() {
     }
   };
 
-  if (!isAuthorized) {
+  if (!auth.isAuthenticated) {
     return (
       <div className="admin-login-container">
         <form className="admin-login-form" onSubmit={handlePasswordSubmit}>
@@ -125,19 +108,16 @@ export default function PolicyNewsAdminPage() {
           <input
             type="password"
             value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              setVerifyError('');
-            }}
+            onChange={(e) => setPassword(e.target.value)}
             placeholder="비밀번호"
-            disabled={isVerifying}
+            disabled={auth.isLoading}
             autoFocus
           />
 
-          {verifyError && <div className="error-message">{verifyError}</div>}
+          {auth.error && <div className="error-message">{auth.error}</div>}
 
-          <button type="submit" disabled={isVerifying}>
-            {isVerifying ? '확인 중...' : '로그인'}
+          <button type="submit" disabled={auth.isLoading}>
+            {auth.isLoading ? '확인 중...' : '로그인'}
           </button>
         </form>
       </div>

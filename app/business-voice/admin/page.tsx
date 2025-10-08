@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 import './page.css';
 
 interface TtontokReply {
@@ -82,7 +83,12 @@ const formatDate = (date: string) => {
 
 export default function BusinessVoiceAdminPage() {
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const auth = useAdminAuth({
+    apiEndpoint: '/api/business-voice/admin/auth',
+    storageKey: 'ttontokAdminAuth',
+    storageType: 'local'
+  });
+
   const [password, setPassword] = useState('');
   const [posts, setPosts] = useState<TtontokPost[]>([]);
   const [selectedPost, setSelectedPost] = useState<TtontokPost | null>(null);
@@ -101,51 +107,29 @@ export default function BusinessVoiceAdminPage() {
   const [editingReplies, setEditingReplies] = useState<{[key: string]: TtontokReply}>({});
 
   useEffect(() => {
-    const authStatus = localStorage.getItem('ttontokAdminAuth');
-    if (authStatus === 'authenticated') {
-      setIsAuthenticated(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isAuthenticated) {
+    if (auth.isAuthenticated) {
       fetchPosts();
     }
-  }, [isAuthenticated, currentPage, selectedCategory, sortBy]);
+  }, [auth.isAuthenticated, currentPage, selectedCategory, sortBy]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    try {
-      const response = await fetch('/api/business-voice/admin/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password })
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        setIsAuthenticated(true);
-        localStorage.setItem('ttontokAdminAuth', 'authenticated');
-        fetchPosts();
-      } else {
-        alert(data.message || '비밀번호가 올바르지 않습니다.');
-      }
-    } catch (error) {
-      console.error('로그인 오류:', error);
-      alert('로그인 중 오류가 발생했습니다.');
+    const success = await auth.login(password);
+    if (success) {
+      setPassword('');
+      fetchPosts();
+    } else if (auth.error) {
+      alert(auth.error);
     }
   };
 
   const handleLogout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem('ttontokAdminAuth');
+    auth.logout();
     setPassword('');
   };
 
   const fetchPosts = async () => {
-    if (!isAuthenticated && localStorage.getItem('ttontokAdminAuth') !== 'authenticated') {
+    if (!auth.isAuthenticated) {
       return;
     }
 
@@ -416,7 +400,7 @@ export default function BusinessVoiceAdminPage() {
     }
   };
 
-  if (!isAuthenticated) {
+  if (!auth.isAuthenticated) {
     return (
       <div className="admin-container">
         <div className="login-box">
@@ -428,8 +412,12 @@ export default function BusinessVoiceAdminPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoFocus
+              disabled={auth.isLoading}
             />
-            <button type="submit">로그인</button>
+            <button type="submit" disabled={auth.isLoading}>
+              {auth.isLoading ? '로그인 중...' : '로그인'}
+            </button>
+            {auth.error && <p className="error-message">{auth.error}</p>}
           </form>
         </div>
       </div>
