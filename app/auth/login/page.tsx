@@ -108,10 +108,17 @@ function LoginForm() {
   const handleCloseLegalModal = () => setLegalModal(null);
 
   const handleSocialLogin = (provider: SocialProvider) => {
+    console.log('[DEBUG] handleSocialLogin called with:', provider.id);
+    console.log('[DEBUG] redirect URL:', redirect);
+
     // 네이버는 실제 로그인 진행, 카카오는 준비 중
     if (provider.id === 'naver') {
-      // NextAuth signIn 함수 사용
-      signIn('naver', { callbackUrl: redirect });
+      console.log('[DEBUG] Calling signIn for naver...');
+      // NextAuth signIn 함수 사용 - redirect: true 명시
+      signIn('naver', {
+        callbackUrl: redirect,
+        redirect: true
+      });
     } else {
       // 카카오는 아직 준비 중
       setModalProvider(provider);
