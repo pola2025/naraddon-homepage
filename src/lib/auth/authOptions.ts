@@ -147,7 +147,7 @@ export const authOptions: NextAuthOptions = {
               })
             }).catch(err => console.error('Telegram notification failed:', err));
 
-            // 이메일 알림 발송 (관리자에게)
+            // 관리자 알림 발송
             fetch(`${process.env.NEXTAUTH_URL || ''}/api/notifications/new-user`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -155,9 +155,21 @@ export const authOptions: NextAuthOptions = {
                 name: user.name,
                 email: user.email,
                 provider: account.provider,
-                registeredAt: new Date().toISOString()
+                registeredAt: new Date().toISOString(),
+                notifyAdmin: true
               })
-            }).catch(err => console.error('Email notification failed:', err));
+            }).catch(err => console.error('Admin notification failed:', err));
+
+            // 신규 가입자 환영 이메일 발송
+            fetch(`${process.env.NEXTAUTH_URL || ''}/api/notifications/welcome-email`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                name: user.name,
+                email: user.email,
+                provider: account.provider
+              })
+            }).catch(err => console.error('Welcome email failed:', err));
           }
         }
       } catch (error) {

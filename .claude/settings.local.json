@@ -72,7 +72,8 @@
       "Bash(Format-Table)",
       "Bash(kill:*)",
       "Bash(python3:*)",
-      "Bash(git remote:*)"
+      "Bash(git remote:*)",
+      "Bash(start scripts/welcome-email-preview.html)"
     ],
     "deny": [],
     "ask": []
