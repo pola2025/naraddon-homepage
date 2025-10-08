@@ -138,11 +138,14 @@ export default function AdminConsultationsPage() {
 
   const fetchStaffList = async () => {
     try {
-      const response = await fetch('/api/admin/users?role=auditor,expert');
+      const response = await fetch('/api/admin/users?role=auditor,expert,examiner');
       const data = await response.json();
 
-      if (response.ok && Array.isArray(data)) {
-        setStaffList(data.map((user: any) => ({
+      // API 응답에서 users 배열 추출
+      const userList = data.users || data;
+
+      if (response.ok && Array.isArray(userList)) {
+        setStaffList(userList.map((user: any) => ({
           email: user.email,
           name: user.name || user.email,
           role: user.role,
@@ -537,12 +540,17 @@ export default function AdminConsultationsPage() {
                       className="w-full border-gray-300 rounded-md"
                     >
                       <option value="">선택하세요</option>
-                      {staffList.map((staff) => (
-                        <option key={staff.email} value={staff.email}>
-                          {staff.name} ({staff.role === 'auditor' ? '기업심사관' : '전문가'})
-                          - 현재 {staff.assignedCount}건 담당
-                        </option>
-                      ))}
+                      {staffList.map((staff) => {
+                        let roleLabel = '전문가';
+                        if (staff.role === 'auditor') roleLabel = '기업심사관(Auditor)';
+                        else if (staff.role === 'examiner') roleLabel = '기업심사관';
+
+                        return (
+                          <option key={staff.email} value={staff.email}>
+                            {staff.name} ({roleLabel}) - 현재 {staff.assignedCount}건 담당
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
 

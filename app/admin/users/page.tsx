@@ -51,8 +51,10 @@ export default function UsersManagementPage() {
       const response = await fetch('/api/admin/users');
       if (response.ok) {
         const data = await response.json();
+        // API 응답에서 users 배열 추출
+        const userList = data.users || data;
         // DB 데이터를 User 타입으로 변환
-        const formattedUsers = data.map((user: any) => ({
+        const formattedUsers = (Array.isArray(userList) ? userList : []).map((user: any) => ({
           id: user._id || user.id,
           email: user.email,
           name: user.name || '사용자',

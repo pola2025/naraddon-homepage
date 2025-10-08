@@ -55,7 +55,7 @@ Import trace for requested module:
 MongoDB URI optimized for Vercel environment
 MongoDB URI is set, attempting connection...
 MongoDB connection attempt 1/3...
-(node:14652) [MONGOOSE] Warning: Duplicate schema index on {"nickname":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:13016) [MONGOOSE] Warning: Duplicate schema index on {"nickname":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
 (Use `node --trace-warnings ...` to show where the warning was created)
 [S3Client] Successfully initialized with endpoint: https://b520cb8ed3989e8182bdb020ade36495.r2.cloudflarestorage.com
 MongoDB connection successful!
@@ -86,13 +86,13 @@ Route (app)                                        Size     First Load JS
 ├ ○ /_not-found                                    1.05 kB         214 kB
 ├ ○ /403                                           355 B           216 kB
 ├ ○ /admin                                         745 B           214 kB
-├ ○ /admin/consultations                           6.63 kB         229 kB
+├ ○ /admin/consultations                           6.66 kB         229 kB
 ├ λ /admin/consultations/[id]                      7.73 kB         230 kB
-├ ○ /admin/dashboard                               2.76 kB         218 kB
+├ ○ /admin/dashboard                               2.98 kB         219 kB
 ├ ○ /admin/login                                   2.06 kB         227 kB
 ├ ○ /admin/logs                                    5.48 kB         228 kB
 ├ ○ /admin/naraddon-tube                           4.43 kB         218 kB
-├ ○ /admin/users                                   6.22 kB         227 kB
+├ ○ /admin/users                                   7.49 kB         229 kB
 ├ λ /api/admin/check-session                       0 B                0 B
 ├ λ /api/admin/customer-cards                      0 B                0 B
 ├ λ /api/admin/grant-role                          0 B                0 B
@@ -100,6 +100,7 @@ Route (app)                                        Size     First Load JS
 ├ λ /api/admin/logout                              0 B                0 B
 ├ λ /api/admin/logs                                0 B                0 B
 ├ λ /api/admin/stats                               0 B                0 B
+├ λ /api/admin/users                               0 B                0 B
 ├ λ /api/admin/users/[id]/role                     0 B                0 B
 ├ λ /api/admin/users/[id]/upgrade                  0 B                0 B
 ├ λ /api/auth/[...nextauth]                        0 B                0 B
@@ -199,7 +200,7 @@ Route (app)                                        Size     First Load JS
 ├ ○ /my-consultations                              6.67 kB         232 kB
 ├ ○ /mypage                                        11.7 kB         242 kB
 ├ ○ /naraddon-tube/admin                           3.82 kB         217 kB
-├ ○ /policy-analysis                               1.14 kB         214 kB
+├ ○ /policy-analysis                               1.14 kB         215 kB
 ├ λ /policy-analysis/[id]                          463 B           220 kB
 ├ λ /policy-analysis/[id]/edit                     3.07 kB         216 kB
 ├ ○ /policy-analysis/detail                        675 B           220 kB
@@ -214,10 +215,10 @@ Route (app)                                        Size     First Load JS
 ├ ○ /ttontok/write                                 3.1 kB          216 kB
 └ ○ /voice                                         50.6 kB         264 kB
 + First Load JS shared by all                      213 kB
-  ├ chunks/254-d57f8e32a5514d7c.js                 117 kB
+  ├ chunks/254-4f133494f8c8554c.js                 117 kB
   ├ chunks/52774a7f-336a2e9deb6bc9bc.js            38.9 kB
   ├ chunks/fd9d1056-47e8d4789e1d5138.js            53.5 kB
-  └ other shared chunks (total)                    4.32 kB
+  └ other shared chunks (total)                    4.31 kB
 
 
 ○  (Static)   prerendered as static content
