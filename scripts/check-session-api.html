@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>세션 체크</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1e1e1e;
+      color: #00ff00;
+    }
+    pre {
+      background: #000;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    .error { color: #ff4444; }
+    .success { color: #44ff44; }
+  </style>
+</head>
+<body>
+  <h1>🔍 NextAuth 세션 디버거</h1>
+
+  <button onclick="checkSession()">세션 확인</button>
+  <button onclick="testImageUpload()">이미지 업로드 테스트</button>
+  <button onclick="location.reload()">새로고침</button>
+
+  <div id="output"></div>
+
+  <script>
+    const output = document.getElementById('output');
+
+    async function checkSession() {
+      try {
+        output.innerHTML = '<p>세션 조회 중...</p>';
+
+        const response = await fetch('/api/auth/session');
+        const session = await response.json();
+
+        output.innerHTML = `
+          <h2 class="success">✅ 세션 정보</h2>
+          <pre>${JSON.stringify(session, null, 2)}</pre>
+
+          <h3>권한 체크:</h3>
+          <ul>
+            <li>로그인 상태: ${session.user ? '✅ 로그인됨' : '❌ 로그아웃됨'}</li>
+            <li>이메일: ${session.user?.email || 'N/A'}</li>
+            <li>이름: ${session.user?.name || 'N/A'}</li>
+            <li>Role: <strong>${session.user?.role || 'N/A'}</strong></li>
+            <li>관리자 권한: ${session.user?.role === 'admin' || session.user?.role === 'super_admin' ? '✅ 있음' : '❌ 없음'}</li>
+          </ul>
+        `;
+
+        if (session.user?.role !== 'admin' && session.user?.role !== 'super_admin') {
+          output.innerHTML += '<p class="error">⚠️ 관리자 권한이 없습니다. 로그아웃 후 다시 로그인하세요.</p>';
+        }
+      } catch (error) {
+        output.innerHTML = `<p class="error">❌ 오류: ${error.message}</p>`;
+      }
+    }
+
+    async function testImageUpload() {
+      try {
+        output.innerHTML = '<p>업로드 API 테스트 중...</p>';
+
+        // 더미 파일 생성 (1x1 투명 PNG)
+        const blob = new Blob([
+          new Uint8Array([
+            0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+            0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
+            0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+            0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
+            0x89, 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44, 0x41,
+            0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
+            0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00,
+            0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
+            0x42, 0x60, 0x82
+          ])
+        ], { type: 'image/png' });
+
+        const formData = new FormData();
+        formData.append('file', blob, 'test.png');
+
+        const response = await fetch('/api/policy-news/upload-image', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          output.innerHTML = `
+            <h2 class="success">✅ 업로드 성공</h2>
+            <pre>${JSON.stringify(result, null, 2)}</pre>
+          `;
+        } else {
+          output.innerHTML = `
+            <h2 class="error">❌ 업로드 실패 (${response.status})</h2>
+            <pre>${JSON.stringify(result, null, 2)}</pre>
+            <p class="error">응답 상태: ${response.status} ${response.statusText}</p>
+          `;
+        }
+      } catch (error) {
+        output.innerHTML = `<p class="error">❌ 오류: ${error.message}</p>`;
+      }
+    }
+
+    // 페이지 로드 시 자동 실행
+    window.onload = () => checkSession();
+  </script>
+</body>
+</html>

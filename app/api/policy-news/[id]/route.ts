@@ -52,10 +52,10 @@ export async function PUT(request: Request, { params }: RouteParams) {
       return NextResponse.json({ message: '로그인이 필요합니다.' }, { status: 401 });
     }
 
-    // 관리자 권한 확인
+    // 권한 확인: 관리자 또는 기업심사관만 수정/삭제 가능
     const userRole = (session.user as any)?.role;
-    if (userRole !== 'admin' && userRole !== 'super_admin') {
-      return NextResponse.json({ message: '관리자 권한이 필요합니다.' }, { status: 403 });
+    if (userRole !== 'admin' && userRole !== 'super_admin' && userRole !== 'examiner') {
+      return NextResponse.json({ message: '정책소식 수정 권한이 없습니다. (관리자 또는 기업심사관만 가능)' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -116,10 +116,10 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       return NextResponse.json({ message: '로그인이 필요합니다.' }, { status: 401 });
     }
 
-    // 관리자 권한 확인
+    // 권한 확인: 관리자 또는 기업심사관만 수정/삭제 가능
     const userRole = (session.user as any)?.role;
-    if (userRole !== 'admin' && userRole !== 'super_admin') {
-      return NextResponse.json({ message: '관리자 권한이 필요합니다.' }, { status: 403 });
+    if (userRole !== 'admin' && userRole !== 'super_admin' && userRole !== 'examiner') {
+      return NextResponse.json({ message: '정책소식 수정 권한이 없습니다. (관리자 또는 기업심사관만 가능)' }, { status: 403 });
     }
 
     await connectDB();

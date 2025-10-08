@@ -79,7 +79,8 @@
       "Bash(powershell:*)",
       "Bash(if [ -f \"E:\\Naraddon\\homepage\\src\\app\\api\\policy-news\\verify\\route.ts\" ])",
       "Bash(then mv \"E:\\Naraddon\\homepage\\src\\app\\api\\policy-news\\verify\\route.ts\" \"E:\\Naraddon\\homepage\\src\\app\\api\\policy-news\\verify\\route.ts.disabled\")",
-      "Bash(else echo \"No src verify endpoint found\")"
+      "Bash(else echo \"No src verify endpoint found\")",
+      "Bash(start http://localhost:3001/scripts/check-session-api.html)"
     ],
     "deny": [],
     "ask": []

@@ -76,11 +76,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: '로그인이 필요합니다.' }, { status: 401 });
     }
 
-    // 관리자 권한 확인
+    // 권한 확인: 관리자 또는 기업심사관만 업로드 가능
     const userRole = (session.user as any)?.role;
-    if (userRole !== 'admin' && userRole !== 'super_admin') {
+    if (userRole !== 'admin' && userRole !== 'super_admin' && userRole !== 'examiner') {
       console.log('[policy-news-upload] Insufficient permissions:', userRole);
-      return NextResponse.json({ message: '관리자 권한이 필요합니다.' }, { status: 403 });
+      return NextResponse.json({ message: '정책소식 작성 권한이 없습니다. (관리자 또는 기업심사관만 가능)' }, { status: 403 });
     }
 
     console.log('[policy-news-upload] Authentication successful:', session.user?.email);
