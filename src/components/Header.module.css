@@ -624,7 +624,14 @@
   }
 
   .navList {
-    gap: 10px;
+    gap: 8px;
+  }
+
+  .navLink,
+  .dropdownButton {
+    padding: 8px 10px;
+    font-size: 13px;
+    white-space: nowrap;
   }
 }
 

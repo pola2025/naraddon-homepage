@@ -1,0 +1,451 @@
+.qna-detail-page {
+  min-height: 100vh;
+  background: #f9fafb;
+  padding: 60px 0 80px;
+}
+
+.qna-detail-page .container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  font-size: 0.875rem;
+}
+
+.breadcrumb a {
+  color: #6b7280;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.breadcrumb a:hover {
+  color: #2563eb;
+}
+
+.breadcrumb .separator {
+  color: #d1d5db;
+}
+
+.breadcrumb .current {
+  color: #111827;
+  font-weight: 500;
+}
+
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b7280;
+}
+
+.question-card {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.question-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.category-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.category-badge.category-tax {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.category-badge.category-funding {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.category-badge.category-hr {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.category-badge.category-legal {
+  background: #fce7f3;
+  color: #9f1239;
+}
+
+.category-badge.category-marketing {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.expert-requested-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #fef2f2;
+  color: #dc2626;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.question-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.4;
+  margin: 0 0 16px;
+}
+
+.question-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 24px;
+  font-size: 0.875rem;
+  color: #6b7280;
+  flex-wrap: wrap;
+}
+
+.question-meta .author {
+  font-weight: 600;
+  color: #374151;
+}
+
+.question-meta .business-info,
+.question-meta .region {
+  padding: 2px 8px;
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+.question-content {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: #374151;
+}
+
+.question-content p {
+  margin: 0 0 16px;
+  white-space: pre-wrap;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 20px;
+}
+
+.section-title .count {
+  color: #2563eb;
+  margin-left: 4px;
+}
+
+.answers-section {
+  margin-bottom: 32px;
+}
+
+.answers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.answer-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: relative;
+  border: 2px solid transparent;
+}
+
+/* 채택된 답변 - 초록색 */
+.answer-card.pinned {
+  border-color: #10b981;
+  background: linear-gradient(to right, #f0fdf4, #d1fae5);
+}
+
+/* 기업심사관 - 주황색 그라데이션 */
+.answer-card.role-examiner {
+  border-color: #f59e0b;
+  background: linear-gradient(to right, #fffbeb, #fef3c7);
+}
+
+/* 전문가/컨설턴트 - 보라색 그라데이션 */
+.answer-card.role-expert,
+.answer-card.role-consultant {
+  border-color: #8b5cf6;
+  background: linear-gradient(to right, #f3e8ff, #ede9fe);
+}
+
+/* 일반 커뮤니티 - 기본 흰색 */
+.answer-card.role-community {
+  background: white;
+  border-color: #e5e7eb;
+}
+
+.pinned-badge {
+  position: absolute;
+  top: -12px;
+  left: 24px;
+  background: #2563eb;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.answer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.answer-author {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.answer-author .name {
+  font-weight: 600;
+  color: #111827;
+}
+
+.role-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.role-badge.examiner {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.role-badge.expert {
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.role-badge.consultant {
+  background: #eff6ff;
+  color: #1e40af;
+}
+
+.answer-author .organization {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.answer-date {
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+.answer-content {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: #374151;
+  margin-bottom: 16px;
+}
+
+.answer-content p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.answer-footer {
+  display: flex;
+  gap: 12px;
+}
+
+.helpful-btn {
+  padding: 6px 16px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.helpful-btn:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.helpful-btn i {
+  margin-right: 6px;
+}
+
+.no-answers {
+  background: white;
+  border-radius: 12px;
+  padding: 60px 20px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.no-answers p {
+  color: #9ca3af;
+  margin: 0;
+}
+
+.answer-write-section {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.answer-form textarea {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s;
+  margin-bottom: 12px;
+}
+
+.answer-form textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.char-count {
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+.btn-submit {
+  padding: 10px 24px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.btn-submit:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.login-required {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.login-required p {
+  color: #6b7280;
+  margin: 0 0 20px;
+}
+
+.btn-login {
+  display: inline-block;
+  padding: 10px 24px;
+  background: #2563eb;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-login:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.page-actions {
+  text-align: center;
+}
+
+.btn-list {
+  display: inline-block;
+  padding: 10px 32px;
+  background: white;
+  color: #374151;
+  text-decoration: none;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-list:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+@media (max-width: 768px) {
+  .qna-detail-page {
+    padding: 40px 0 60px;
+  }
+
+  .question-card,
+  .answer-write-section {
+    padding: 24px 20px;
+  }
+
+  .question-title {
+    font-size: 1.375rem;
+  }
+
+  .question-meta {
+    font-size: 0.8125rem;
+  }
+
+  .answer-card {
+    padding: 20px 16px;
+  }
+
+  .answer-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

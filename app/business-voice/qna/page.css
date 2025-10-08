@@ -1,0 +1,271 @@
+.qna-list-page {
+  min-height: 100vh;
+  background: #f9fafb;
+  padding: 60px 0 80px;
+}
+
+.qna-list-page .container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  gap: 20px;
+}
+
+.header-content h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 8px;
+}
+
+.page-description {
+  font-size: 0.9375rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.btn-write {
+  flex-shrink: 0;
+  display: inline-block;
+  padding: 12px 24px;
+  background: #2563eb;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-write:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.filter-bar::-webkit-scrollbar {
+  height: 4px;
+}
+
+.filter-bar::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 2px;
+}
+
+.filter-btn {
+  padding: 8px 20px;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.filter-btn:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.filter-btn.active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: white;
+}
+
+.loading {
+  text-align: center;
+  padding: 80px 20px;
+  color: #9ca3af;
+  font-size: 0.9375rem;
+}
+
+.questions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.question-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 20px 24px;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.question-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.question-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.category-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.category-badge.category-tax {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.category-badge.category-funding {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.category-badge.category-hr {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.category-badge.category-legal {
+  background: #fce7f3;
+  color: #9f1239;
+}
+
+.category-badge.category-marketing {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.question-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.question-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.8125rem;
+  color: #9ca3af;
+}
+
+.question-meta .author {
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.question-stats {
+  flex-shrink: 0;
+  margin-left: 20px;
+}
+
+.answer-count {
+  display: inline-block;
+  padding: 6px 16px;
+  background: #f3f4f6;
+  color: #6b7280;
+  border-radius: 16px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.answer-count.has-answer {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 100px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.empty-state p {
+  color: #9ca3af;
+  font-size: 1rem;
+  margin: 0 0 24px;
+}
+
+.btn-write-empty {
+  display: inline-block;
+  padding: 12px 32px;
+  background: #2563eb;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-write-empty:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .qna-list-page {
+    padding: 40px 0 60px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-content h1 {
+    font-size: 1.5rem;
+  }
+
+  .btn-write {
+    text-align: center;
+  }
+
+  .question-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .question-stats {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .answer-count {
+    width: 100%;
+    text-align: center;
+  }
+}

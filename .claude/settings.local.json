@@ -61,7 +61,17 @@
       "Bash(find:*)",
       "Bash(awk:*)",
       "Bash(xargs:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash($env:PORT=3001)",
+      "Bash(pkill:*)",
+      "Bash(PORT=3000 npm run dev)",
+      "Bash(Get-Process node -ErrorAction SilentlyContinue)",
+      "Bash(Stop-Process -Force -ErrorAction SilentlyContinue)",
+      "Bash(Start-Sleep -Seconds 2)",
+      "Bash(Select-Object Id, ProcessName, StartTime)",
+      "Bash(Format-Table)",
+      "Bash(kill:*)",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []

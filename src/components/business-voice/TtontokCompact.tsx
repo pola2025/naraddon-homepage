@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import './ttontok-compact.css';
 
@@ -40,6 +42,8 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export default function TtontokCompact() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [posts, setPosts] = useState<TtontokPost[]>([]);
   const [bestPosts, setBestPosts] = useState<TtontokPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -100,7 +104,16 @@ export default function TtontokCompact() {
 
   const handleWriteClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-    alert('회원가입 후 작성 가능합니다.');
+
+    // 로그인 상태 확인
+    if (!session) {
+      alert('로그인 후 작성 가능합니다.');
+      router.push('/auth/login?callbackUrl=/business-voice/ttontok/write');
+      return;
+    }
+
+    // 로그인한 경우 작성 페이지로 이동
+    router.push('/business-voice/ttontok/write');
   };
 
   return (

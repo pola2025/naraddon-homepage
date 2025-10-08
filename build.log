@@ -16,6 +16,30 @@ warn  - It seems like you don't have a global error handler set up. It is recomm
 [1m[33mwarn[39m[22m - Remove it from the `plugins` array in your configuration to eliminate this warning.
  ⚠ Compiled with warnings
 
+./app/api/business-voice/ttontok/nicknames/route.ts
+Attempted import error: 'connectDB' is not exported from '@/lib/mongodb' (imported as 'connectDB').
+
+Import trace for requested module:
+./app/api/business-voice/ttontok/nicknames/route.ts
+
+./app/api/business-voice/ttontok/nicknames/route.ts
+Attempted import error: 'connectDB' is not exported from '@/lib/mongodb' (imported as 'connectDB').
+
+Import trace for requested module:
+./app/api/business-voice/ttontok/nicknames/route.ts
+
+./app/api/business-voice/ttontok/nicknames/route.ts
+Attempted import error: 'connectDB' is not exported from '@/lib/mongodb' (imported as 'connectDB').
+
+Import trace for requested module:
+./app/api/business-voice/ttontok/nicknames/route.ts
+
+./app/api/business-voice/ttontok/nicknames/route.ts
+Attempted import error: 'connectDB' is not exported from '@/lib/mongodb' (imported as 'connectDB').
+
+Import trace for requested module:
+./app/api/business-voice/ttontok/nicknames/route.ts
+
 ./sentry.server.config.ts
 Attempted import error: 'prismaIntegration' is not exported from '@sentry/nextjs' (imported as 'Sentry').
 
@@ -34,10 +58,12 @@ Import trace for requested module:
 MongoDB URI optimized for Vercel environment
 MongoDB URI is set, attempting connection...
 MongoDB connection attempt 1/3...
+(node:25112) [MONGOOSE] Warning: Duplicate schema index on {"nickname":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
 [S3Client] Successfully initialized with endpoint: https://b520cb8ed3989e8182bdb020ade36495.r2.cloudflarestorage.com
 MongoDB connection successful!
-   Generating static pages (0/73) ...
-   Generating static pages (18/73) 
+   Generating static pages (0/76) ...
+   Generating static pages (19/76) 
 [get-password] error: n [Error]: Dynamic server usage: Page couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
     at d (E:\Naraddon\homepage\.next\server\chunks\436.js:1:4458)
     at u (E:\Naraddon\homepage\.next\server\chunks\436.js:1:1573)
@@ -52,14 +78,14 @@ MongoDB connection successful!
   description: "Page couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
   digest: 'DYNAMIC_SERVER_USAGE'
 }
-   Generating static pages (36/73) 
-   Generating static pages (54/73) 
- ✓ Generating static pages (73/73) 
+   Generating static pages (38/76) 
+   Generating static pages (57/76) 
+ ✓ Generating static pages (76/76) 
    Finalizing page optimization ...
    Collecting build traces ...
 
 Route (app)                                        Size     First Load JS
-┌ ○ /                                              3.17 kB         216 kB
+┌ ○ /                                              3.17 kB         217 kB
 ├ ○ /_not-found                                    1.05 kB         214 kB
 ├ ○ /403                                           355 B           216 kB
 ├ ○ /admin                                         745 B           214 kB
@@ -81,6 +107,7 @@ Route (app)                                        Size     First Load JS
 ├ λ /api/admin/users/[id]/upgrade                  0 B                0 B
 ├ λ /api/auth/[...nextauth]                        0 B                0 B
 ├ λ /api/auth/blacklist                            0 B                0 B
+├ ○ /api/auth/csrf                                 0 B                0 B
 ├ λ /api/auth/error                                0 B                0 B
 ├ λ /api/auth/login                                0 B                0 B
 ├ λ /api/auth/logout                               0 B                0 B
@@ -93,10 +120,13 @@ Route (app)                                        Size     First Load JS
 ├ λ /api/business-voice/interviews                 0 B                0 B
 ├ λ /api/business-voice/interviews/[id]            0 B                0 B
 ├ λ /api/business-voice/questions                  0 B                0 B
+├ λ /api/business-voice/questions/[id]             0 B                0 B
+├ λ /api/business-voice/questions/[id]/answers     0 B                0 B
 ├ λ /api/business-voice/replies/reorder            0 B                0 B
 ├ λ /api/business-voice/ttontok                    0 B                0 B
 ├ λ /api/business-voice/ttontok/[postId]           0 B                0 B
 ├ λ /api/business-voice/ttontok/[postId]/replies   0 B                0 B
+├ λ /api/business-voice/ttontok/nicknames          0 B                0 B
 ├ λ /api/business-voice/ttontok/replies/[replyId]  0 B                0 B
 ├ λ /api/business/verify                           0 B                0 B
 ├ λ /api/claude-monitor                            0 B                0 B
@@ -154,40 +184,43 @@ Route (app)                                        Size     First Load JS
 ├ λ /api/users/[id]/stats                          0 B                0 B
 ├ ○ /auth/error                                    1.11 kB         214 kB
 ├ ○ /auth/login                                    6.22 kB         222 kB
-├ ○ /business-voice                                8.21 kB         229 kB
-├ ○ /business-voice/admin                          5.04 kB         218 kB
+├ ○ /business-voice                                7.21 kB         237 kB
+├ ○ /business-voice/admin                          5.19 kB         219 kB
+├ ○ /business-voice/qna                            1.62 kB         217 kB
+├ λ /business-voice/qna/[id]                       2.45 kB         227 kB
+├ ○ /business-voice/qna/write                      2.33 kB         227 kB
 ├ λ /business-voice/ttontok/[postId]               5.55 kB         221 kB
-├ ○ /business-voice/ttontok/write                  2.62 kB         218 kB
+├ ○ /business-voice/ttontok/write                  2.99 kB         228 kB
 ├ ○ /certified-examiners                           32.3 kB         246 kB
 ├ ○ /consultation                                  538 B           214 kB
 ├ ○ /consultation-request                          17.3 kB         233 kB
 ├ λ /ddontalk/[id]                                 3.36 kB         219 kB
 ├ ○ /examiner/dashboard                            3.88 kB         229 kB
 ├ ○ /expert-services                               5.37 kB         221 kB
-├ ○ /expert-services/admin                         2.46 kB         216 kB
-├ ○ /experts                                       3.93 kB         219 kB
-├ ○ /my-consultations                              6.67 kB         231 kB
+├ ○ /expert-services/admin                         3.16 kB         217 kB
+├ ○ /experts                                       3.93 kB         220 kB
+├ ○ /my-consultations                              6.67 kB         232 kB
 ├ ○ /mypage                                        11.7 kB         242 kB
 ├ ○ /naraddon-tube/admin                           3.82 kB         217 kB
-├ ○ /policy-analysis                               1.14 kB         214 kB
-├ λ /policy-analysis/[id]                          463 B           219 kB
+├ ○ /policy-analysis                               1.14 kB         215 kB
+├ λ /policy-analysis/[id]                          463 B           220 kB
 ├ λ /policy-analysis/[id]/edit                     3.07 kB         216 kB
 ├ ○ /policy-analysis/detail                        675 B           220 kB
 ├ ○ /policy-analysis/write                         7.26 kB         221 kB
 ├ ○ /policy-news                                   6.63 kB         220 kB
 ├ λ /policy-news/[id]                              3.41 kB         219 kB
 ├ λ /policy-news/[id]/edit                         2.9 kB          216 kB
-├ ○ /policy-news/admin                             2.13 kB         218 kB
+├ ○ /policy-news/admin                             2.67 kB         218 kB
 ├ ○ /policy-news/write                             4.64 kB         218 kB
 ├ ○ /ttontok                                       4.31 kB         220 kB
-├ λ /ttontok/[id]                                  1.87 kB         217 kB
+├ λ /ttontok/[id]                                  1.87 kB         218 kB
 ├ ○ /ttontok/write                                 3.1 kB          216 kB
 └ ○ /voice                                         50.6 kB         264 kB
 + First Load JS shared by all                      213 kB
-  ├ chunks/254-cf60838624de140c.js                 117 kB
+  ├ chunks/254-13787a1f8d0f2534.js                 117 kB
   ├ chunks/52774a7f-336a2e9deb6bc9bc.js            38.9 kB
   ├ chunks/fd9d1056-47e8d4789e1d5138.js            53.5 kB
-  └ other shared chunks (total)                    4.26 kB
+  └ other shared chunks (total)                    4.32 kB
 
 
 ○  (Static)   prerendered as static content

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import './page.css';
@@ -35,6 +36,7 @@ const CATEGORY_OPTIONS = [
 ];
 
 export default function TtontokWritePage() {
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
     title: '',
@@ -46,6 +48,22 @@ export default function TtontokWritePage() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 인증 가드: 로그인하지 않은 경우 로그인 페이지로 리다이렉트
+  useEffect(() => {
+    if (status === 'loading') return; // 로딩 중에는 대기
+
+    if (!session) {
+      alert('로그인이 필요합니다.');
+      router.push('/auth/login?callbackUrl=/business-voice/ttontok/write');
+    } else {
+      // 로그인한 경우 닉네임 자동 입력
+      setFormData(prev => ({
+        ...prev,
+        nickname: session.user?.name || '',
+      }));
+    }
+  }, [session, status, router]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -150,6 +168,25 @@ export default function TtontokWritePage() {
       setIsSubmitting(false);
     }
   };
+
+  // 로딩 중일 때 로딩 화면 표시
+  if (status === 'loading') {
+    return (
+      <div className="ttontok-write-container">
+        <div className="ttontok-write-wrapper">
+          <div style={{ textAlign: 'center', padding: '100px 20px' }}>
+            <i className="fas fa-spinner fa-spin" style={{ fontSize: '48px', color: '#10b981' }} />
+            <p style={{ marginTop: '20px', fontSize: '16px', color: '#64748b' }}>로딩 중...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 인증되지 않은 경우 빈 화면 (리다이렉트 중)
+  if (!session) {
+    return null;
+  }
 
   return (
     <div className="ttontok-write-container">
@@ -259,9 +296,14 @@ export default function TtontokWritePage() {
               placeholder="닉네임을 입력해주세요 (최대 24자)"
               maxLength={24}
               disabled={isSubmitting}
+              readOnly
+              style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
             />
             <div className="char-count">{formData.nickname.length}/24</div>
             {errors.nickname && <div className="error-message">{errors.nickname}</div>}
+            <div className="form-hint">
+              로그인한 계정의 닉네임이 자동으로 설정됩니다.
+            </div>
           </div>
 
           {/* 비밀번호 */}
