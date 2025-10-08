@@ -76,7 +76,10 @@
       "Bash(start scripts/welcome-email-preview.html)",
       "WebSearch",
       "WebFetch(domain:vercel.com)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(if [ -f \"E:\\Naraddon\\homepage\\src\\app\\api\\policy-news\\verify\\route.ts\" ])",
+      "Bash(then mv \"E:\\Naraddon\\homepage\\src\\app\\api\\policy-news\\verify\\route.ts\" \"E:\\Naraddon\\homepage\\src\\app\\api\\policy-news\\verify\\route.ts.disabled\")",
+      "Bash(else echo \"No src verify endpoint found\")"
     ],
     "deny": [],
     "ask": []

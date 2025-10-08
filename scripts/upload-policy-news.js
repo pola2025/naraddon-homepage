@@ -77,8 +77,6 @@ async function uploadPolicyNews() {
     console.log(`📊 총 ${data.posts?.length || 0}개의 게시글 발견`);
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3007';
-    const adminPassword = process.env.POLICY_NEWS_PASSWORD || 'policy2024';
-
     console.log('🌐 API URL:', baseUrl);
     console.log('📋 정책 뉴스 등록 시작...\n');
 
@@ -92,7 +90,6 @@ async function uploadPolicyNews() {
       // 등록 데이터 구성
       const postData = {
         ...post,
-        password: adminPassword,
         thumbnail: thumbnailUrl,
         author: examiner.name,
         authorPosition: examiner.position,
@@ -135,7 +132,6 @@ async function uploadPolicyNews() {
 async function uploadSingleNews(newsData, imageUrl, examinerName = null) {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3007';
-    const adminPassword = process.env.POLICY_NEWS_PASSWORD || 'policy2024';
 
     // 심사관 선택 (지정하지 않으면 랜덤)
     const examiner = examinerName
@@ -144,7 +140,6 @@ async function uploadSingleNews(newsData, imageUrl, examinerName = null) {
 
     const postData = {
       ...newsData,
-      password: adminPassword,
       thumbnail: imageUrl || getImageForCategory(newsData.category),
       author: examiner.name,
       authorPosition: examiner.position,

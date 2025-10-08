@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import styles from './login.module.css';
 import {
   LEGAL_BUSINESS_INFO,
   LEGAL_EFFECTIVE_DATE,
@@ -13,7 +14,7 @@ import {
   type LegalSection,
 } from '@/lib/legalContent';
 
-type ProviderId = 'naver' | 'kakao' | 'google';
+type ProviderId = 'naver' | 'kakao';
 
 type SocialProvider = {
   id: ProviderId;
@@ -76,30 +77,6 @@ const SOCIAL_PROVIDERS: SocialProvider[] = [
     helperClass: 'text-xs text-[#2c2100] sm:text-sm',
     ctaClass: 'text-[#191600]/70 group-hover:text-[#191600]',
   },
-  {
-    id: 'google',
-    label: 'Google 로그인',
-    helper: 'Google 계정을 연동해 주세요',
-    className:
-      'bg-white text-[#3c4043] border border-slate-200 hover:bg-[#f8f9fa] hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] focus-visible:ring-[#4285F4] focus-visible:ring-offset-white',
-    icon: (
-      <svg
-        width="28"
-        height="28"
-        viewBox="0 0 48 48"
-        role="img"
-        aria-hidden="true"
-        className="rounded-lg border border-[#dadce0] bg-white"
-      >
-        <path fill="#EA4335" d="M24 9.5c3.54 0 6.72 1.22 9.22 3.6l6.84-6.84C35.9 2.42 30.51 0 24 0 14.62 0 6.51 5.38 2.56 13.22l8 6.2C12.33 13.54 17.66 9.5 24 9.5z" />
-        <path fill="#4285F4" d="M46.5 24c0-1.63-.15-3.2-.43-4.73H24v9h12.65c-.54 2.92-2.2 5.4-4.69 7.07l7.35 5.71C43.63 37.22 46.5 31.09 46.5 24z" />
-        <path fill="#FBBC05" d="M12.56 26.58a9.04 9.04 0 0 1-.47-2.58c0-.89.17-1.76.47-2.58l-8-6.2A23.88 23.88 0 0 0 0 24c0 3.86.9 7.5 2.56 10.78z" />
-        <path fill="#34A853" d="M24 48c6.48 0 11.92-2.14 15.89-5.82l-7.35-5.71C30.73 38.48 27.59 39.5 24 39.5c-6.34 0-11.67-4.04-13.44-9.5l-8 6.2C6.51 42.62 14.62 48 24 48z" />
-      </svg>
-    ),
-    helperClass: 'text-xs text-slate-500 sm:text-sm',
-    ctaClass: 'text-[#3c4043]/70 group-hover:text-[#3c4043]',
-  },
 ];
 
 function LoginForm() {
@@ -143,91 +120,71 @@ function LoginForm() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-100 via-blue-50 to-emerald-50 py-16 px-6">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(30,64,175,0.12),transparent_55%),radial-gradient(circle_at_bottom,rgba(16,185,129,0.12),transparent_60%)]"
-      />
-
-      <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center gap-12 lg:flex-row lg:items-start lg:justify-between">
-        <div className="max-w-xl text-center lg:text-left">
-          <span className="inline-flex items-center rounded-full bg-white/70 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-blue-600">
-            Naraddon Sign In
-          </span>
-          <h1 className="mt-6 text-3xl font-extrabold text-slate-900 sm:text-4xl lg:text-5xl">
-            SNS 계정 하나로
-            <span className="block text-blue-600">안전하고 빠르게 로그인하세요</span>
+    <div className={styles.loginPage}>
+      {/* Hero Section - Left Side */}
+      <div className={styles.heroSection}>
+        <div className={styles.heroContent}>
+          <h1 className={styles.heroTitle}>
+            나라똔과 함께하는
+            <br />
+            스마트한 정책 관리
           </h1>
-          <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
-            별도의 아이디/비밀번호 없이 네이버·카카오·Google 계정으로 바로 이용하실 수 있습니다.
-            로그인 후에는 정책자료, 상담내역 등 모든 서비스를 한 곳에서 확인할 수 있어요.
+          <p className={styles.heroSubtitle}>
+            정부 지원사업, 정책 자금, 상담 서비스를
+            <br />
+            한 곳에서 편리하게 이용하세요
           </p>
         </div>
+      </div>
 
-        <div className="w-full max-w-lg">
-          <div className="rounded-3xl bg-white/90 px-8 py-10 shadow-2xl ring-1 ring-slate-100 backdrop-blur-sm sm:px-10">
-            <div className="mb-8 text-center">
-              <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">소셜 로그인</h2>
-              <p className="mt-2 text-sm text-slate-500">
-                사용하고 계신 SNS 계정을 선택해 주세요. 추가 정보 입력 없이 바로 연결됩니다.
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              {SOCIAL_PROVIDERS.map((provider) => (
-                <button
-                  key={provider.id}
-                  type="button"
-                  onClick={() => handleSocialLogin(provider)}
-                  className={`group flex w-full items-center justify-between rounded-xl px-5 py-4 text-left shadow-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 ${provider.className}`}
-                >
-                  <span className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-lg text-base font-semibold shadow-sm">
-                      {provider.icon}
-                    </span>
-                    <span className="flex flex-col">
-                      <span className="text-base font-semibold sm:text-lg">{provider.label}</span>
-                      <span className={provider.helperClass}>{provider.helper}</span>
-                    </span>
-                  </span>
-                  {provider.id === 'kakao' ? (
-                    <span className={`text-xs font-medium uppercase tracking-wider ${provider.ctaClass}`}>
-                      준비 중
-                    </span>
-                  ) : (
-                    <svg className="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <p className="mt-6 text-xs text-slate-400">
-              소셜 로그인 시 나라똔 서비스 이용약관과 개인정보 처리방침에 동의하는 것으로 간주됩니다.
+      {/* Form Section - Right Side */}
+      <div className={styles.formSection}>
+        <div className={styles.formContainer}>
+          <div className={styles.formHeader}>
+            <h2 className={styles.formTitle}>로그인</h2>
+            <p className={styles.formSubtitle}>
+              SNS 계정으로 간편하게 시작하세요
             </p>
+          </div>
 
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400">
+          <div className={styles.socialButtons}>
+            {SOCIAL_PROVIDERS.map((provider) => (
               <button
+                key={provider.id}
                 type="button"
-                onClick={() => handleOpenLegalModal('terms')}
-                className="rounded-full px-2 py-1 transition hover:text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                onClick={() => handleSocialLogin(provider)}
+                className={`${styles.socialButton} ${
+                  provider.id === 'naver' ? styles.naverButton : styles.kakaoButton
+                }`}
               >
-                이용약관
+                {provider.icon}
+                <span>{provider.label}</span>
               </button>
-              <span aria-hidden="true">·</span>
-              <button
-                type="button"
-                onClick={() => handleOpenLegalModal('privacy')}
-                className="rounded-full px-2 py-1 transition hover:text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-              >
-                개인정보 처리방침
-              </button>
-              <span aria-hidden="true">·</span>
-              <Link href="/" className="hover:text-slate-600">
-                홈으로 이동
-              </Link>
-            </div>
+            ))}
+          </div>
+
+          <div className={styles.divider}>
+            <span className={styles.dividerText}>소셜 로그인으로 간편 가입</span>
+          </div>
+
+          <div className={styles.legalLinks}>
+            <button
+              type="button"
+              onClick={() => handleOpenLegalModal('terms')}
+              className="link-button"
+            >
+              이용약관
+            </button>
+            <span>·</span>
+            <button
+              type="button"
+              onClick={() => handleOpenLegalModal('privacy')}
+              className="link-button"
+            >
+              개인정보 처리방침
+            </button>
+            <span>·</span>
+            <Link href="/">홈으로</Link>
           </div>
         </div>
       </div>

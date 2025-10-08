@@ -95,7 +95,6 @@ async function createTestPost() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                password: process.env.POLICY_NEWS_PASSWORD,
                 title: '2025년 청년 창업 지원 정책 완벽 가이드',
                 content: testHtmlContent,
                 category: '창업지원',
