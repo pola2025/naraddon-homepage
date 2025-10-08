@@ -39,7 +39,7 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
         },
         {
           name: '정책소식',
-          href: '/admin/policy-news',
+          href: '/policy-news/admin',
           icon: NewspaperIcon,
         },
         {

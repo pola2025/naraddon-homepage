@@ -18,6 +18,29 @@ interface Examiner {
   updatedAt: string;
 }
 
+interface ExaminerActivities {
+  pageVisits: number;
+  postsCreated: number;
+  commentsCreated: number;
+  consultationsAssigned: number;
+  consultationsCompleted: number;
+  loginCount: number;
+  lastActiveAt: string | null;
+}
+
+interface ActivityScore {
+  activities: ExaminerActivities;
+  totalScore: number;
+  scoreBreakdown: {
+    pageVisits: number;
+    postsCreated: number;
+    commentsCreated: number;
+    consultationsAssigned: number;
+    consultationsCompleted: number;
+    loginCount: number;
+  };
+}
+
 export default function ExaminersPage() {
   const [examiners, setExaminers] = useState<Examiner[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,6 +48,8 @@ export default function ExaminersPage() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [editingExaminer, setEditingExaminer] = useState<Examiner | null>(null);
   const [viewingExaminer, setViewingExaminer] = useState<Examiner | null>(null);
+  const [activityScore, setActivityScore] = useState<ActivityScore | null>(null);
+  const [loadingActivity, setLoadingActivity] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -94,14 +119,35 @@ export default function ExaminersPage() {
     setEditingExaminer(null);
   };
 
-  const handleViewDetail = (examiner: Examiner) => {
+  const handleViewDetail = async (examiner: Examiner) => {
     setViewingExaminer(examiner);
     setShowDetailModal(true);
+    setActivityScore(null);
+
+    // 활동점수 가져오기
+    if (examiner.userId) {
+      try {
+        setLoadingActivity(true);
+        const response = await fetch(`/api/admin/examiners/${examiner._id}/activities`);
+
+        if (response.ok) {
+          const data = await response.json();
+          setActivityScore(data);
+        } else {
+          console.error('Failed to fetch activity score');
+        }
+      } catch (error) {
+        console.error('Error fetching activity score:', error);
+      } finally {
+        setLoadingActivity(false);
+      }
+    }
   };
 
   const handleCloseDetailModal = () => {
     setShowDetailModal(false);
     setViewingExaminer(null);
+    setActivityScore(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -595,6 +641,93 @@ export default function ExaminersPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* 활동점수 (관리자 전용) */}
+                {viewingExaminer.userId && (
+                  <div className="border-t pt-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">활동점수 (관리자 전용)</h3>
+                    {loadingActivity ? (
+                      <div className="flex justify-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      </div>
+                    ) : activityScore ? (
+                      <div className="space-y-4">
+                        {/* 총점 */}
+                        <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-6 text-white">
+                          <div className="text-sm opacity-90 mb-1">총 활동점수</div>
+                          <div className="text-4xl font-bold">{activityScore.totalScore.toLocaleString()}점</div>
+                        </div>
+
+                        {/* 활동 세부 내역 */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="text-xs text-gray-500 mb-1">페이지 방문</div>
+                            <div className="text-xl font-semibold text-gray-900">
+                              {activityScore.activities.pageVisits}회
+                            </div>
+                            <div className="text-xs text-blue-600 mt-1">
+                              +{activityScore.scoreBreakdown.pageVisits}점
+                            </div>
+                          </div>
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="text-xs text-gray-500 mb-1">게시글 작성</div>
+                            <div className="text-xl font-semibold text-gray-900">
+                              {activityScore.activities.postsCreated}개
+                            </div>
+                            <div className="text-xs text-blue-600 mt-1">
+                              +{activityScore.scoreBreakdown.postsCreated}점
+                            </div>
+                          </div>
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="text-xs text-gray-500 mb-1">댓글 작성</div>
+                            <div className="text-xl font-semibold text-gray-900">
+                              {activityScore.activities.commentsCreated}개
+                            </div>
+                            <div className="text-xs text-blue-600 mt-1">
+                              +{activityScore.scoreBreakdown.commentsCreated}점
+                            </div>
+                          </div>
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="text-xs text-gray-500 mb-1">상담 배정</div>
+                            <div className="text-xl font-semibold text-gray-900">
+                              {activityScore.activities.consultationsAssigned}건
+                            </div>
+                            <div className="text-xs text-blue-600 mt-1">
+                              +{activityScore.scoreBreakdown.consultationsAssigned}점
+                            </div>
+                          </div>
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="text-xs text-gray-500 mb-1">상담 완료</div>
+                            <div className="text-xl font-semibold text-gray-900">
+                              {activityScore.activities.consultationsCompleted}건
+                            </div>
+                            <div className="text-xs text-blue-600 mt-1">
+                              +{activityScore.scoreBreakdown.consultationsCompleted}점
+                            </div>
+                          </div>
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="text-xs text-gray-500 mb-1">로그인</div>
+                            <div className="text-xl font-semibold text-gray-900">
+                              {activityScore.activities.loginCount}회
+                            </div>
+                            <div className="text-xs text-blue-600 mt-1">
+                              +{activityScore.scoreBreakdown.loginCount}점
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 마지막 활동 */}
+                        {activityScore.activities.lastActiveAt && (
+                          <div className="text-sm text-gray-500 mt-2">
+                            마지막 활동: {new Date(activityScore.activities.lastActiveAt).toLocaleString('ko-KR')}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-center py-8">활동 내역이 없습니다.</p>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* 닫기 버튼 */}
