@@ -71,7 +71,8 @@
       "Bash(Select-Object Id, ProcessName, StartTime)",
       "Bash(Format-Table)",
       "Bash(kill:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(git remote:*)"
     ],
     "deny": [],
     "ask": []

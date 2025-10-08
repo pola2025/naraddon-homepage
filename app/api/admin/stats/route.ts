@@ -36,6 +36,13 @@ export async function GET(request: NextRequest) {
     const client = await clientPromise;
     const db = client.db('naraddon');
 
+    // 방문 통계 계산
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
     // 병렬로 통계 데이터 수집
     const [
       totalUsers,
@@ -45,7 +52,11 @@ export async function GET(request: NextRequest) {
       totalPolicyNews,
       totalTubeVideos,
       recentUsers,
-      recentConsultations
+      recentConsultations,
+      todayVisits,
+      yesterdayVisits,
+      monthlyVisits,
+      totalVisits
     ] = await Promise.all([
       // 전체 사용자 수
       db.collection('users').countDocuments(),
@@ -82,7 +93,22 @@ export async function GET(request: NextRequest) {
         .sort({ createdAt: -1 })
         .limit(5)
         .project({ userEmail: 1, consultationType: 1, status: 1, createdAt: 1 })
-        .toArray()
+        .toArray(),
+
+      // 오늘 방문자 수
+      db.collection('page-visits')
+        .countDocuments({ timestamp: { $gte: today } }),
+
+      // 어제 방문자 수
+      db.collection('page-visits')
+        .countDocuments({ timestamp: { $gte: yesterday, $lt: today } }),
+
+      // 이번 달 방문자 수
+      db.collection('page-visits')
+        .countDocuments({ timestamp: { $gte: thisMonth } }),
+
+      // 전체 방문자 수
+      db.collection('page-visits').countDocuments()
     ]);
 
     // 최근 활동 통합 및 정렬
@@ -114,7 +140,13 @@ export async function GET(request: NextRequest) {
       totalExaminers,
       totalPolicyNews,
       totalTubeVideos: videoCount,
-      recentActivities
+      recentActivities,
+      visits: {
+        today: todayVisits,
+        yesterday: yesterdayVisits,
+        thisMonth: monthlyVisits,
+        total: totalVisits
+      }
     });
   } catch (error) {
     console.error('Admin stats error:', error);

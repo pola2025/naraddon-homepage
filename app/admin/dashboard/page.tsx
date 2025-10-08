@@ -12,6 +12,12 @@ interface DashboardStats {
   totalPolicyNews: number;
   totalTubeVideos: number;
   recentActivities: Activity[];
+  visits?: {
+    today: number;
+    yesterday: number;
+    thisMonth: number;
+    total: number;
+  };
 }
 
 interface Activity {
@@ -175,6 +181,119 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
+              {/* 방문 통계 카드 */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 bg-teal-500 rounded-md p-3">
+                      <svg
+                        className="h-6 w-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                    </div>
+                    <div className="ml-5">
+                      <p className="text-sm font-medium text-gray-500">오늘 방문</p>
+                      <p className="text-2xl font-semibold text-gray-900">
+                        {stats?.visits?.today.toLocaleString() || '0'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 bg-orange-500 rounded-md p-3">
+                      <svg
+                        className="h-6 w-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                    <div className="ml-5">
+                      <p className="text-sm font-medium text-gray-500">어제 방문</p>
+                      <p className="text-2xl font-semibold text-gray-900">
+                        {stats?.visits?.yesterday.toLocaleString() || '0'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 bg-cyan-500 rounded-md p-3">
+                      <svg
+                        className="h-6 w-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
+                    <div className="ml-5">
+                      <p className="text-sm font-medium text-gray-500">이번 달 방문</p>
+                      <p className="text-2xl font-semibold text-gray-900">
+                        {stats?.visits?.thisMonth.toLocaleString() || '0'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 bg-pink-500 rounded-md p-3">
+                      <svg
+                        className="h-6 w-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        />
+                      </svg>
+                    </div>
+                    <div className="ml-5">
+                      <p className="text-sm font-medium text-gray-500">전체 방문</p>
+                      <p className="text-2xl font-semibold text-gray-900">
+                        {stats?.visits?.total.toLocaleString() || '0'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* 추가 통계 카드 */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div className="bg-white rounded-lg shadow p-6">
@@ -279,26 +398,6 @@ export default function AdminDashboard() {
                       </Link>
 
                       <Link
-                        href="/admin/examiners"
-                        className="flex items-center p-3 rounded-lg hover:bg-gray-50 border border-gray-200"
-                      >
-                        <svg
-                          className="h-6 w-6 text-gray-400 mr-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                          />
-                        </svg>
-                        <span className="text-sm font-medium text-gray-900">심사관 관리</span>
-                      </Link>
-
-                      <Link
                         href="/naraddon-tube/admin"
                         className="flex items-center p-3 rounded-lg hover:bg-gray-50 border border-gray-200"
                       >
@@ -316,6 +415,26 @@ export default function AdminDashboard() {
                           />
                         </svg>
                         <span className="text-sm font-medium text-gray-900">나라돈 튜브</span>
+                      </Link>
+
+                      <Link
+                        href="/business-voice/admin"
+                        className="flex items-center p-3 rounded-lg hover:bg-gray-50 border border-gray-200"
+                      >
+                        <svg
+                          className="h-6 w-6 text-gray-400 mr-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                          />
+                        </svg>
+                        <span className="text-sm font-medium text-gray-900">똔톡 관리</span>
                       </Link>
 
                       <Link

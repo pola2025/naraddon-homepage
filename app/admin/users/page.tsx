@@ -15,10 +15,30 @@ import {
 // 빈 초기 데이터 (실제 DB에서 로드)
 const initialUsers: User[] = [];
 
+interface Examiner {
+  _id: string;
+  name: string;
+  position: string;
+  companyName: string;
+  userId?: string;
+}
+
 export default function UsersManagementPage() {
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [examinerModalUser, setExaminerModalUser] = useState<User | null>(null);
+  const [examinerAction, setExaminerAction] = useState<'create' | 'link'>('create');
+  const [examiners, setExaminers] = useState<Examiner[]>([]);
+  const [selectedExaminerId, setSelectedExaminerId] = useState<string>('');
+  const [examinerFormData, setExaminerFormData] = useState({
+    name: '',
+    position: '인증 기업심사관',
+    companyName: '',
+    category: 'funding',
+    specialties: [] as string[],
+    isPublished: true
+  });
 
   // 실제 사용자 데이터 로드
   useEffect(() => {
@@ -158,6 +178,77 @@ export default function UsersManagementPage() {
     return true;
   });
 
+  // 심사관 목록 가져오기
+  useEffect(() => {
+    if (examinerModalUser) {
+      fetchExaminers();
+      // 사용자 정보로 폼 초기화
+      setExaminerFormData({
+        name: examinerModalUser.name,
+        position: '인증 기업심사관',
+        companyName: examinerModalUser.profile?.company || '',
+        category: 'funding',
+        specialties: examinerModalUser.profile?.specialty || [],
+        isPublished: true
+      });
+    }
+  }, [examinerModalUser]);
+
+  const fetchExaminers = async () => {
+    try {
+      const response = await fetch('/api/expert-services/examiners?includeHidden=true', {
+        headers: {
+          'x-admin-password': process.env.NEXT_PUBLIC_EXPERT_SERVICES_PASSWORD || ''
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setExaminers(data.examiners || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch examiners:', error);
+    }
+  };
+
+  const handleRoleChangeSubmit = async (userId: string, newRole: UserRole) => {
+    try {
+      let requestBody: any = {
+        newRole,
+        profileData: {}
+      };
+
+      // 기업심사관으로 변경 시
+      if (newRole === UserRole.EXAMINER) {
+        requestBody.examinerAction = {
+          action: examinerAction,
+          ...(examinerAction === 'link' && { examinerId: selectedExaminerId }),
+        };
+        requestBody.profileData = examinerAction === 'create' ? examinerFormData : {};
+      }
+
+      const response = await fetch(`/api/admin/users/${userId}/role`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message);
+        fetchUsers(); // 목록 새로고침
+        setExaminerModalUser(null);
+        setSelectedExaminerId('');
+        setExaminerAction('create');
+      } else {
+        alert(data.error || '역할 변경에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Failed to change role:', error);
+      alert('역할 변경 중 오류가 발생했습니다.');
+    }
+  };
+
   const handleRoleChange = (userId: string, newRole: UserRole) => {
     setUsers(users.map(user =>
       user.id === userId ? { ...user, role: newRole } : user
@@ -267,13 +358,18 @@ export default function UsersManagementPage() {
           searchPlaceholder="이름, 이메일, 회사 검색..."
           actions={(user) => (
             <div className="flex items-center gap-2">
+              {user.role !== UserRole.EXAMINER && (
+                <button
+                  onClick={() => setExaminerModalUser(user)}
+                  className="text-purple-600 hover:text-purple-900 text-sm font-medium"
+                >
+                  심사관 지정
+                </button>
+              )}
               <button
-                onClick={() => handleRoleChange(user.id, UserRole.EXAMINER)}
-                className="text-purple-600 hover:text-purple-900 text-sm"
+                onClick={() => setSelectedUser(user)}
+                className="text-blue-600 hover:text-blue-900 text-sm"
               >
-                등급변경
-              </button>
-              <button className="text-blue-600 hover:text-blue-900 text-sm">
                 상세
               </button>
             </div>
@@ -320,6 +416,153 @@ export default function UsersManagementPage() {
               >
                 ✕
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 심사관 지정 모달 */}
+      {examinerModalUser && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4">
+            <div
+              className="fixed inset-0 bg-gray-500 bg-opacity-75"
+              onClick={() => setExaminerModalUser(null)}
+            />
+            <div className="relative bg-white rounded-lg max-w-3xl w-full p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                기업심사관 지정
+              </h2>
+              <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>{examinerModalUser.name}</strong> ({examinerModalUser.email})님을 기업심사관으로 지정합니다.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                {/* 액션 선택 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    심사관 프로필 설정
+                  </label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="create"
+                        checked={examinerAction === 'create'}
+                        onChange={() => setExaminerAction('create')}
+                        className="mr-2"
+                      />
+                      <span className="text-sm">신규 프로필 생성</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="link"
+                        checked={examinerAction === 'link'}
+                        onChange={() => setExaminerAction('link')}
+                        className="mr-2"
+                      />
+                      <span className="text-sm">기존 심사관과 연결</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* 신규 생성 폼 */}
+                {examinerAction === 'create' && (
+                  <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        이름
+                      </label>
+                      <input
+                        type="text"
+                        value={examinerFormData.name}
+                        onChange={(e) => setExaminerFormData({...examinerFormData, name: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        직책
+                      </label>
+                      <input
+                        type="text"
+                        value={examinerFormData.position}
+                        onChange={(e) => setExaminerFormData({...examinerFormData, position: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        회사명
+                      </label>
+                      <input
+                        type="text"
+                        value={examinerFormData.companyName}
+                        onChange={(e) => setExaminerFormData({...examinerFormData, companyName: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        카테고리
+                      </label>
+                      <select
+                        value={examinerFormData.category}
+                        onChange={(e) => setExaminerFormData({...examinerFormData, category: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      >
+                        <option value="funding">자금</option>
+                        <option value="tax">세무</option>
+                        <option value="legal">법무</option>
+                        <option value="hr">노무</option>
+                        <option value="marketing">마케팅</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* 기존 심사관 연결 */}
+                {examinerAction === 'link' && (
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      연결할 심사관 선택
+                    </label>
+                    <select
+                      value={selectedExaminerId}
+                      onChange={(e) => setSelectedExaminerId(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    >
+                      <option value="">선택하세요</option>
+                      {examiners
+                        .filter(e => !e.userId) // 이미 연결되지 않은 심사관만
+                        .map((examiner) => (
+                          <option key={examiner._id} value={examiner._id}>
+                            {examiner.name} - {examiner.position} ({examiner.companyName})
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  onClick={() => setExaminerModalUser(null)}
+                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={() => handleRoleChangeSubmit(examinerModalUser.id, UserRole.EXAMINER)}
+                  disabled={examinerAction === 'link' && !selectedExaminerId}
+                  className="px-4 py-2 text-sm text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:bg-gray-400"
+                >
+                  심사관 지정하기
+                </button>
+              </div>
             </div>
           </div>
         </div>

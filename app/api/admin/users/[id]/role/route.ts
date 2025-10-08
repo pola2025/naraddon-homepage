@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import clientPromise from '@/lib/mongodb-client';
+import { ObjectId } from 'mongodb';
+
+export const dynamic = 'force-dynamic';
 
 // PUT /api/admin/users/[id]/role - 사용자 역할 변경
 export async function PUT(
@@ -22,10 +25,10 @@ export async function PUT(
     }
 
     const userId = params.id;
-    const { newRole, profileData } = await request.json();
+    const { newRole, profileData, examinerAction } = await request.json();
 
     // 유효한 역할인지 확인
-    const validRoles = ['user', 'auditor', 'expert', 'admin'];
+    const validRoles = ['user', 'auditor', 'examiner', 'expert', 'admin'];
     if (!validRoles.includes(newRole)) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
     }
@@ -34,13 +37,59 @@ export async function PUT(
     const client = await clientPromise;
     const db = client.db('naraddon');
 
+    // 사용자 찾기
+    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
     // 사용자 역할 업데이트
     const updateData: any = {
       role: newRole,
       updatedAt: new Date()
     };
 
-    // 기업심사관으로 전환 시 추가 프로필 정보
+    // 기업심사관(examiner)으로 전환 시
+    if (newRole === 'examiner' && examinerAction) {
+      if (examinerAction.action === 'create') {
+        // 신규 심사관 프로필 생성
+        const examinerProfile = {
+          name: profileData?.name || user.name,
+          position: profileData?.position || '인증 기업심사관',
+          companyName: profileData?.companyName || user.profile?.company || '',
+          category: profileData?.category || 'funding',
+          specialties: profileData?.specialties || user.profile?.specialty || [],
+          imageUrl: profileData?.imageUrl || '',
+          imageAlt: `${profileData?.name || user.name} 인증 기업심사관`,
+          sortOrder: profileData?.sortOrder || 999,
+          legacyKey: profileData?.legacyKey || user.email.split('@')[0].toLowerCase(),
+          isPublished: profileData?.isPublished !== false,
+          userId: userId,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+
+        const examinerResult = await db.collection('expert-examiners').insertOne(examinerProfile);
+        updateData.examinerId = examinerResult.insertedId.toString();
+
+      } else if (examinerAction.action === 'link' && examinerAction.examinerId) {
+        // 기존 심사관 프로필과 연결
+        updateData.examinerId = examinerAction.examinerId;
+
+        // 심사관 프로필에 userId 추가
+        await db.collection('expert-examiners').updateOne(
+          { _id: new ObjectId(examinerAction.examinerId) },
+          {
+            $set: {
+              userId: userId,
+              updatedAt: new Date()
+            }
+          }
+        );
+      }
+    }
+
+    // 기업심사관(auditor) - 레거시 지원
     if (newRole === 'auditor' && profileData) {
       updateData['auditorProfile'] = {
         specialty: profileData.specialty || [],
@@ -54,7 +103,7 @@ export async function PUT(
       };
     }
 
-    // 전문가로 전환 시 추가 프로필 정보
+    // 전문가로 전환 시
     if (newRole === 'expert' && profileData) {
       updateData['expertProfile'] = {
         field: profileData.field || '',
@@ -75,7 +124,7 @@ export async function PUT(
 
     // 사용자 정보 업데이트
     const result = await db.collection('users').updateOne(
-      { email: userId },
+      { _id: new ObjectId(userId) },
       { $set: updateData }
     );
 
@@ -86,7 +135,7 @@ export async function PUT(
     // 역할 변경 로그 저장
     await db.collection('roleLogs').insertOne({
       userId,
-      previousRole: userRole,
+      previousRole: user.role || 'user',
       newRole,
       changedBy: session.user?.email,
       changedAt: new Date(),
@@ -95,7 +144,8 @@ export async function PUT(
 
     return NextResponse.json({
       success: true,
-      message: `사용자 역할이 ${newRole}(으)로 변경되었습니다.`
+      message: `사용자 역할이 ${newRole}(으)로 변경되었습니다.`,
+      examinerId: updateData.examinerId
     });
   } catch (error) {
     console.error('Failed to update user role:', error);
