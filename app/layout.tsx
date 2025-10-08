@@ -5,6 +5,7 @@ import '@/styles/components.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Providers } from '@/components/Providers';
+import PageVisitTracker from '@/components/analytics/PageVisitTracker';
 
 export const metadata: Metadata = {
   title: '나라똔(NARADDON) - 정부정책자금 전문 컨설팅 | 중소기업 지원금 플랫폼',
@@ -142,6 +143,7 @@ export default function RootLayout({
       </head>
       <body>
         <Providers>
+          <PageVisitTracker />
           <div className="App">
             <Header />
             <main>{children}</main>
