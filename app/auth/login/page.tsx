@@ -137,8 +137,8 @@ function LoginForm() {
       </div>
 
       {/* 로그인 박스 */}
-      <div className="mx-auto w-full max-w-lg">
-        <div className={`${styles.formContainer} rounded-3xl bg-white px-8 py-10 shadow-2xl ring-1 ring-slate-200 sm:px-10`}>
+      <div className="flex justify-center">
+        <div className="w-full max-w-lg rounded-3xl bg-white px-8 py-10 shadow-2xl ring-1 ring-slate-200 sm:px-10">
             <div className="mb-8 text-center">
               <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">소셜 로그인</h2>
               <p className="mt-2 text-sm text-slate-500">
