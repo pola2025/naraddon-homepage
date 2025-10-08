@@ -121,25 +121,24 @@ function LoginForm() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-white py-16 px-6">
-      <div className="mx-auto max-w-6xl">
-        {/* 히어로 텍스트 섹션 */}
-        <div className="mb-12 text-center">
-          <span className="inline-flex items-center rounded-full bg-blue-50 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-blue-600">
-            Naraddon Sign In
-          </span>
-          <h1 className="mt-6 text-3xl font-extrabold text-slate-900 sm:text-4xl lg:text-5xl">
-            SNS 계정 하나로
-            <span className="block text-blue-600">안전하고 빠르게 로그인하세요</span>
-          </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-            별도의 아이디/비밀번호 없이 네이버·카카오 계정으로 바로 이용하실 수 있습니다.
-            로그인 후에는 정책자료, 상담내역 등 모든 서비스를 한 곳에서 확인할 수 있어요.
-          </p>
-        </div>
+      {/* 히어로 텍스트 섹션 */}
+      <div className="mb-12 text-center">
+        <span className="inline-flex items-center rounded-full bg-blue-50 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-blue-600">
+          Naraddon Sign In
+        </span>
+        <h1 className="mt-6 text-3xl font-extrabold text-slate-900 sm:text-4xl lg:text-5xl">
+          SNS 계정 하나로
+          <span className="block text-blue-600">안전하고 빠르게 로그인하세요</span>
+        </h1>
+        <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+          별도의 아이디/비밀번호 없이 네이버·카카오 계정으로 바로 이용하실 수 있습니다.
+          로그인 후에는 정책자료, 상담내역 등 모든 서비스를 한 곳에서 확인할 수 있어요.
+        </p>
+      </div>
 
-        {/* 로그인 박스 */}
-        <div className="mx-auto w-full max-w-lg">
-          <div className={`${styles.formContainer} rounded-3xl bg-white px-8 py-10 shadow-2xl ring-1 ring-slate-200 sm:px-10`}>
+      {/* 로그인 박스 */}
+      <div className="mx-auto w-full max-w-lg">
+        <div className={`${styles.formContainer} rounded-3xl bg-white px-8 py-10 shadow-2xl ring-1 ring-slate-200 sm:px-10`}>
             <div className="mb-8 text-center">
               <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">소셜 로그인</h2>
               <p className="mt-2 text-sm text-slate-500">
@@ -206,7 +205,6 @@ function LoginForm() {
             </div>
           </div>
         </div>
-      </div>
 
       {modalProvider && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-6">
