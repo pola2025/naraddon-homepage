@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 // 환경변수 검증 함수
@@ -66,6 +68,23 @@ export async function POST(request: NextRequest) {
   try {
     console.log('[policy-news-upload] Starting image upload process');
 
+    // NextAuth 세션 확인
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      console.log('[policy-news-upload] No session found');
+      return NextResponse.json({ message: '로그인이 필요합니다.' }, { status: 401 });
+    }
+
+    // 관리자 권한 확인
+    const userRole = (session.user as any)?.role;
+    if (userRole !== 'admin' && userRole !== 'super_admin') {
+      console.log('[policy-news-upload] Insufficient permissions:', userRole);
+      return NextResponse.json({ message: '관리자 권한이 필요합니다.' }, { status: 403 });
+    }
+
+    console.log('[policy-news-upload] Authentication successful:', session.user?.email);
+
     // S3Client 초기화 상태 확인
     if (!s3Client) {
       const errorMessage = s3ClientResult.error || 'S3Client 초기화 실패';
@@ -97,34 +116,13 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const password = formData.get('password') as string;
 
     console.log('[policy-news-upload] Form data received:', {
       hasFile: !!file,
-      hasPassword: !!password,
       fileSize: file?.size || 0,
       fileName: file?.name || 'N/A',
       fileType: file?.type || 'N/A'
     });
-
-    // 비밀번호 확인
-    const adminPassword = process.env.POLICY_NEWS_PASSWORD;
-    if (!adminPassword) {
-      console.error('[policy-news-upload] POLICY_NEWS_PASSWORD not set');
-      return NextResponse.json(
-        {
-          message: '서버 설정 오류가 발생했습니다.',
-          details: 'POLICY_NEWS_PASSWORD 환경변수가 설정되지 않았습니다.',
-          type: 'PASSWORD_CONFIG_ERROR'
-        },
-        { status: 500 }
-      );
-    }
-
-    if (!password || password !== adminPassword) {
-      console.log('[policy-news-upload] Password validation failed');
-      return NextResponse.json({ message: '비밀번호가 올바르지 않습니다.' }, { status: 401 });
-    }
 
     if (!file) {
       console.log('[policy-news-upload] No file provided');
