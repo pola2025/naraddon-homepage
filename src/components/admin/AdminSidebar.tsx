@@ -11,7 +11,8 @@ import {
   ChartBarIcon,
   CogIcon,
   ArrowRightOnRectangleIcon,
-  BriefcaseIcon
+  BriefcaseIcon,
+  ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 
 interface AdminSidebarProps {
@@ -57,6 +58,11 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
       name: '사용자 관리',
       href: '/admin/users',
       icon: UserGroupIcon,
+    },
+    {
+      name: '심사관 관리',
+      href: '/admin/examiners',
+      icon: ShieldCheckIcon,
     },
     {
       name: '통계',

@@ -378,6 +378,26 @@ export default function AdminDashboard() {
                       </Link>
 
                       <Link
+                        href="/admin/examiners"
+                        className="flex items-center p-3 rounded-lg hover:bg-gray-50 border border-gray-200"
+                      >
+                        <svg
+                          className="h-6 w-6 text-gray-400 mr-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
+                          />
+                        </svg>
+                        <span className="text-sm font-medium text-gray-900">심사관 관리</span>
+                      </Link>
+
+                      <Link
                         href="/admin/consultations"
                         className="flex items-center p-3 rounded-lg hover:bg-gray-50 border border-gray-200"
                       >
