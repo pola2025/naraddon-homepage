@@ -198,14 +198,12 @@ export default function UsersManagementPage() {
 
   const fetchExaminers = async () => {
     try {
-      const response = await fetch('/api/expert-services/examiners?includeHidden=true', {
-        headers: {
-          'x-admin-password': process.env.NEXT_PUBLIC_EXPERT_SERVICES_PASSWORD || ''
-        }
-      });
+      const response = await fetch('/api/admin/examiners');
       if (response.ok) {
         const data = await response.json();
         setExaminers(data.examiners || []);
+      } else {
+        console.error('Failed to fetch examiners:', response.status);
       }
     } catch (error) {
       console.error('Failed to fetch examiners:', error);
@@ -360,6 +358,18 @@ export default function UsersManagementPage() {
           searchPlaceholder="이름, 이메일, 회사 검색..."
           actions={(user) => (
             <div className="flex items-center gap-2">
+              {user.role !== UserRole.ADMIN && user.role !== 'super_admin' && (
+                <button
+                  onClick={() => {
+                    if (confirm(`${user.name}님을 관리자로 지정하시겠습니까?`)) {
+                      handleRoleChangeSubmit(user.id, UserRole.ADMIN);
+                    }
+                  }}
+                  className="text-red-600 hover:text-red-900 text-sm font-medium"
+                >
+                  관리자 지정
+                </button>
+              )}
               {user.role !== UserRole.EXAMINER && (
                 <button
                   onClick={() => setExaminerModalUser(user)}
