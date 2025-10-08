@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import connectDB from '@/lib/mongodb';
 import PolicyNewsPost from '@/models/PolicyNewsPost';
 
@@ -29,24 +31,21 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { password, title, content, category, excerpt, thumbnail, tags, isMain, isPinned, badge } = body;
+    // NextAuth 세션 확인
+    const session = await getServerSession(authOptions);
 
-    // Referer 헤더 확인 - 관리자 페이지에서 오는 요청인지 체크
-    const referer = request.headers.get('referer') || '';
-    const isFromAdmin = referer.includes('/policy-news/admin') || referer.includes('/policy-news/write');
-
-    // 관리자 페이지에서 오지 않은 요청만 비밀번호 검증
-    if (!isFromAdmin) {
-      const adminPassword = process.env.POLICY_NEWS_PASSWORD;
-      if (!adminPassword) {
-        return NextResponse.json({ message: '게시글 비밀번호가 설정되지 않았습니다.' }, { status: 500 });
-      }
-
-      if (!password || password !== adminPassword) {
-        return NextResponse.json({ message: '비밀번호가 올바르지 않습니다.' }, { status: 401 });
-      }
+    if (!session) {
+      return NextResponse.json({ message: '로그인이 필요합니다.' }, { status: 401 });
     }
+
+    // 관리자 권한 확인
+    const userRole = (session.user as any)?.role;
+    if (userRole !== 'admin' && userRole !== 'super_admin') {
+      return NextResponse.json({ message: '관리자 권한이 필요합니다.' }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const { title, content, category, excerpt, thumbnail, tags, isMain, isPinned, badge } = body;
 
     if (!title || !title.trim() || !content || !content.trim()) {
       return NextResponse.json({ message: '제목과 내용을 입력해주세요.' }, { status: 400 });
