@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { api } from '@/lib/api-client';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -38,46 +37,21 @@ export default function ExaminerDashboard() {
   const fetchExaminerStats = async () => {
     try {
       setLoading(true);
-      // 실제 API 호출로 교체 필요
-      // const data = await api.get<ExaminerStats>('/examiner/stats')
-      // setStats(data)
-
-      // 임시 더미 데이터
-      setStats({
-        assignedConsultations: 24,
-        completedConsultations: 156,
-        pendingReviews: 5,
-        averageRating: 4.8,
-        recentConsultations: [
-          {
-            id: '1',
-            clientName: '김대표',
-            companyName: '(주)테크스타트',
-            consultationType: 'R&D 자금 상담',
-            status: 'in_progress',
-            scheduledDate: '2024-01-21 10:00',
-            amount: '5억원',
-          },
-          {
-            id: '2',
-            clientName: '이사장',
-            companyName: '스마트팩토리',
-            consultationType: '수출바우처 상담',
-            status: 'pending',
-            scheduledDate: '2024-01-21 14:00',
-            amount: '3억원',
-          },
-          {
-            id: '3',
-            clientName: '박대표',
-            companyName: '그린에너지',
-            consultationType: '창업지원금 상담',
-            status: 'review',
-            scheduledDate: '2024-01-20 16:00',
-            amount: '1억원',
-          },
-        ],
+      // 실제 API 호출로 변경
+      const response = await fetch('/api/examiner/stats', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: ExaminerStats = await response.json();
+      setStats(data);
     } catch (error) {
       console.error('Examiner stats error:', error);
       setError('대시보드 데이터를 불러오는데 실패했습니다.');
