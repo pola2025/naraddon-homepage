@@ -254,8 +254,40 @@ DATABASE_URL=mongodb+srv://actual-connection
   git stash save "작업 전 백업 $(date)"
   ```
 
-### 6. 검증 체크리스트
+### 6. 코드 주석 작성 규칙
+- **모든 코드에 프로젝트의 의도와 맥락을 주석으로 남긴다**
+- **주석 작성 필수 항목:**
+  - 함수/컴포넌트의 목적과 역할
+  - 복잡한 로직의 의도와 이유
+  - 비즈니스 요구사항 및 배경
+  - 주요 결정 사항과 트레이드오프
+  - 알려진 제약사항 및 주의사항
+
+**주석 작성 예시:**
+```typescript
+/**
+ * 사용자 인증 및 권한 검증
+ *
+ * @purpose 네이버 OAuth를 통한 소셜 로그인 처리
+ * @context 사용자는 별도 회원가입 없이 네이버 계정으로 로그인
+ * @decision 카카오 로그인은 현재 준비 중으로 모달 표시
+ * @note signIn은 next-auth/react에서 동적 import (초기 번들 크기 최적화)
+ */
+const handleSocialLogin = async (provider: SocialProvider) => {
+  // 네이버만 실제 로그인 진행
+  if (provider.id === 'naver') {
+    const { signIn } = await import('next-auth/react');
+    signIn('naver', { callbackUrl: redirect });
+  } else {
+    // 준비 중인 공급자는 안내 모달 표시
+    setModalProvider(provider);
+  }
+};
+```
+
+### 7. 검증 체크리스트
 코드 변경 시 반드시 확인:
+- [ ] **의도와 맥락 주석 작성 완료**
 - [ ] TDD 사이클 준수 (RED → GREEN → REFACTOR)
 - [ ] 테스트 먼저 작성됨
 - [ ] Playwright 테스트 통과
@@ -475,4 +507,4 @@ describe('User Service', () => {
 
 ---
 *이 문서는 Claude가 참조하는 기본 가이드입니다.*
-*최종 업데이트: 2025-09-24*
+*최종 업데이트: 2025-10-08*
