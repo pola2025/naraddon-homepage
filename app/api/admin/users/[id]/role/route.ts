@@ -50,17 +50,6 @@ export async function PUT(
       }, { status: 403 });
     }
 
-    // admin 역할 부여는 super_admin만 가능 (보안 강화)
-    if (newRole === 'admin' && userRole !== 'super_admin') {
-      return NextResponse.json({
-        error: 'Forbidden - Only super_admin can grant admin role',
-        debug: {
-          currentUserRole: userRole,
-          attemptedRole: newRole
-        }
-      }, { status: 403 });
-    }
-
     // 사용자 찾기
     const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
     if (!user) {
