@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { PlusIcon, PencilIcon, TrashIcon, UserIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, TrashIcon, UserIcon, EyeIcon } from '@heroicons/react/24/outline';
 
 interface Examiner {
   _id: string;
@@ -22,7 +22,9 @@ export default function ExaminersPage() {
   const [examiners, setExaminers] = useState<Examiner[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [editingExaminer, setEditingExaminer] = useState<Examiner | null>(null);
+  const [viewingExaminer, setViewingExaminer] = useState<Examiner | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -90,6 +92,16 @@ export default function ExaminersPage() {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingExaminer(null);
+  };
+
+  const handleViewDetail = (examiner: Examiner) => {
+    setViewingExaminer(examiner);
+    setShowDetailModal(true);
+  };
+
+  const handleCloseDetailModal = () => {
+    setShowDetailModal(false);
+    setViewingExaminer(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -223,10 +235,16 @@ export default function ExaminersPage() {
                       <img
                         src={examiner.imageUrl}
                         alt={examiner.name}
-                        className="w-10 h-10 rounded-full object-cover"
+                        onClick={() => handleViewDetail(examiner)}
+                        className="w-10 h-10 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-blue-500 transition"
+                        title="클릭하여 상세보기"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                      <div
+                        onClick={() => handleViewDetail(examiner)}
+                        className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-blue-500 transition"
+                        title="클릭하여 상세보기"
+                      >
                         <UserIcon className="w-6 h-6 text-gray-400" />
                       </div>
                     )}
@@ -280,14 +298,23 @@ export default function ExaminersPage() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <button
+                    onClick={() => handleViewDetail(examiner)}
+                    className="text-gray-600 hover:text-gray-900 mr-3"
+                    title="상세보기"
+                  >
+                    <EyeIcon className="w-5 h-5" />
+                  </button>
+                  <button
                     onClick={() => handleOpenModal(examiner)}
                     className="text-blue-600 hover:text-blue-900 mr-3"
+                    title="수정"
                   >
                     <PencilIcon className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => handleDelete(examiner._id, examiner.name)}
                     className="text-red-600 hover:text-red-900"
+                    title="삭제"
                   >
                     <TrashIcon className="w-5 h-5" />
                   </button>
@@ -436,6 +463,158 @@ export default function ExaminersPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Detail Modal - 상세보기 */}
+      {showDetailModal && viewingExaminer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">심사관 상세 정보</h2>
+
+              <div className="space-y-6">
+                {/* 프로필 이미지 */}
+                <div className="flex justify-center">
+                  {viewingExaminer.imageUrl ? (
+                    <img
+                      src={viewingExaminer.imageUrl}
+                      alt={viewingExaminer.name}
+                      className="w-48 h-48 rounded-full object-cover border-4 border-blue-100"
+                    />
+                  ) : (
+                    <div className="w-48 h-48 rounded-full bg-gray-200 flex items-center justify-center border-4 border-gray-100">
+                      <UserIcon className="w-24 h-24 text-gray-400" />
+                    </div>
+                  )}
+                </div>
+
+                {/* 기본 정보 */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500 mb-1">이름</label>
+                    <p className="text-base font-semibold text-gray-900">{viewingExaminer.name}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500 mb-1">직책</label>
+                    <p className="text-base text-gray-900">{viewingExaminer.position}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-500 mb-1">회사명</label>
+                    <p className="text-base text-gray-900">{viewingExaminer.companyName}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500 mb-1">카테고리</label>
+                    <p className="text-base text-gray-900">{viewingExaminer.category}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500 mb-1">정렬 순서</label>
+                    <p className="text-base text-gray-900">{viewingExaminer.sortOrder}</p>
+                  </div>
+                </div>
+
+                {/* 전문분야 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-2">전문분야</label>
+                  {viewingExaminer.specialties && viewingExaminer.specialties.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {viewingExaminer.specialties.map((specialty, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+                        >
+                          {specialty}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-400">등록된 전문분야가 없습니다.</p>
+                  )}
+                </div>
+
+                {/* 이미지 URL */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">이미지 URL</label>
+                  <p className="text-sm text-gray-600 break-all bg-gray-50 p-2 rounded">
+                    {viewingExaminer.imageUrl || '없음'}
+                  </p>
+                </div>
+
+                {/* 상태 정보 */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500 mb-1">공개 여부</label>
+                    <p className="text-base">
+                      {viewingExaminer.isPublished ? (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                          공개
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                          비공개
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500 mb-1">사용자 연결</label>
+                    <p className="text-base">
+                      {viewingExaminer.userId ? (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                          연결됨
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                          미연결
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 날짜 정보 */}
+                <div className="border-t pt-4">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <label className="block text-gray-500 mb-1">생성일</label>
+                      <p className="text-gray-700">
+                        {viewingExaminer.createdAt
+                          ? new Date(viewingExaminer.createdAt).toLocaleString('ko-KR')
+                          : '-'}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-gray-500 mb-1">수정일</label>
+                      <p className="text-gray-700">
+                        {viewingExaminer.updatedAt
+                          ? new Date(viewingExaminer.updatedAt).toLocaleString('ko-KR')
+                          : '-'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 닫기 버튼 */}
+              <div className="flex justify-end space-x-3 pt-6 border-t mt-6">
+                <button
+                  onClick={handleCloseDetailModal}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  닫기
+                </button>
+                <button
+                  onClick={() => {
+                    handleCloseDetailModal();
+                    handleOpenModal(viewingExaminer);
+                  }}
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                >
+                  수정하기
+                </button>
+              </div>
             </div>
           </div>
         </div>
