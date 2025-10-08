@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '../../../auth-options';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 // 환경변수 검증 함수

@@ -1,8 +1,8 @@
 import NextAuth from 'next-auth';
-import { authOptions } from '@/lib/auth-options';
+import { authOptions } from '../../../auth-options';
 
-// 기존 authOptions는 lib/auth-options.ts로 이동
-// 여기서는 import해서 사용
+// authOptions를 app 폴더 내부에서 import
+// app/auth-options.ts에서 실제 설정 가져옴
 
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
