@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 사용자 목록 조회
+    console.log('[Admin Users API] Fetching users with filter:', filter);
     const users = await db.collection('users')
       .find(filter)
       .sort({ createdAt: -1 })
@@ -60,8 +61,12 @@ export async function GET(request: NextRequest) {
       })
       .toArray();
 
+    console.log('[Admin Users API] Found users count:', users.length);
+    console.log('[Admin Users API] First user:', users[0]);
+
     // 전체 개수
     const total = await db.collection('users').countDocuments(filter);
+    console.log('[Admin Users API] Total users in DB:', total);
 
     // 각 사용자의 상담 배정 개수 추가
     const usersWithStats = await Promise.all(
