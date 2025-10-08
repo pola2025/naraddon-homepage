@@ -94,3 +94,43 @@ export async function GET() {
     });
   }
 }
+
+export async function POST(request: NextRequest) {
+  // 관리자 권한 확인
+  const adminAuth = request.headers.get('x-admin-auth');
+  if (adminAuth !== 'true') {
+    return NextResponse.json({ message: '권한이 없습니다.' }, { status: 403 });
+  }
+
+  try {
+    await dbConnect();
+    const body = await request.json();
+
+    const newExpert = await Expert.create({
+      name: body.name,
+      position: body.position,
+      companyName: body.companyName,
+      specialties: body.specialties || [],
+      imageKey: body.imageKey,
+      order: body.order || 0,
+      isActive: body.isActive !== undefined ? body.isActive : true,
+    });
+
+    return NextResponse.json({
+      success: true,
+      expert: {
+        _id: newExpert._id.toString(),
+        name: newExpert.name,
+        position: newExpert.position,
+        companyName: newExpert.companyName,
+        specialties: newExpert.specialties,
+        imageKey: newExpert.imageKey,
+        order: newExpert.order,
+        isActive: newExpert.isActive,
+      }
+    }, { status: 201 });
+  } catch (error) {
+    console.error('Error creating expert:', error);
+    return NextResponse.json({ error: '전문가 등록에 실패했습니다.' }, { status: 500 });
+  }
+}

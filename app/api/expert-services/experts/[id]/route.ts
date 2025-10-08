@@ -98,3 +98,79 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
     return NextResponse.json({ message: 'Failed to load expert profile.' }, { status: 500 });
   }
 }
+
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+  const { id } = params;
+
+  // 관리자 권한 확인
+  const adminAuth = request.headers.get('x-admin-auth');
+  if (adminAuth !== 'true') {
+    return NextResponse.json({ message: '권한이 없습니다.' }, { status: 403 });
+  }
+
+  try {
+    await connectDB();
+    const body = await request.json();
+
+    const updateData: any = {};
+    if (body.name !== undefined) updateData.name = body.name;
+    if (body.position !== undefined) updateData.position = body.position;
+    if (body.companyName !== undefined) updateData.companyName = body.companyName;
+    if (body.specialties !== undefined) updateData.specialties = body.specialties;
+    if (body.imageKey !== undefined) updateData.legacyKey = body.imageKey;
+    if (body.order !== undefined) updateData.sortOrder = body.order;
+    if (body.isActive !== undefined) updateData.isPublished = body.isActive;
+
+    let expert;
+    if (isValidObjectId(id)) {
+      expert = await ExpertExaminer.findByIdAndUpdate(id, updateData, { new: true });
+    } else {
+      expert = await ExpertExaminer.findOneAndUpdate({ legacyKey: id }, updateData, { new: true });
+    }
+
+    if (!expert) {
+      return NextResponse.json({ message: '전문가를 찾을 수 없습니다.' }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      expert: mapExaminerToExpertProfile(expert)
+    });
+  } catch (error) {
+    console.error('[expert-services/experts][PATCH]', error);
+    return NextResponse.json({ error: '전문가 수정에 실패했습니다.' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  const { id } = params;
+
+  // 관리자 권한 확인
+  const adminAuth = request.headers.get('x-admin-auth');
+  if (adminAuth !== 'true') {
+    return NextResponse.json({ message: '권한이 없습니다.' }, { status: 403 });
+  }
+
+  try {
+    await connectDB();
+
+    let expert;
+    if (isValidObjectId(id)) {
+      expert = await ExpertExaminer.findByIdAndDelete(id);
+    } else {
+      expert = await ExpertExaminer.findOneAndDelete({ legacyKey: id });
+    }
+
+    if (!expert) {
+      return NextResponse.json({ message: '전문가를 찾을 수 없습니다.' }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: '전문가가 삭제되었습니다.'
+    });
+  } catch (error) {
+    console.error('[expert-services/experts][DELETE]', error);
+    return NextResponse.json({ error: '전문가 삭제에 실패했습니다.' }, { status: 500 });
+  }
+}
