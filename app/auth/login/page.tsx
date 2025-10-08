@@ -13,7 +13,7 @@ import {
   type LegalSection,
 } from '@/lib/legalContent';
 
-type ProviderId = 'naver' | 'kakao';
+type ProviderId = 'naver' | 'kakao' | 'google';
 
 type SocialProvider = {
   id: ProviderId;
@@ -76,13 +76,37 @@ const SOCIAL_PROVIDERS: SocialProvider[] = [
     helperClass: 'text-xs text-[#2c2100] sm:text-sm',
     ctaClass: 'text-[#191600]/70 group-hover:text-[#191600]',
   },
+  {
+    id: 'google',
+    label: 'Google 로그인',
+    helper: 'Google 계정을 연동해 주세요',
+    className:
+      'bg-white text-[#3c4043] border border-slate-200 hover:bg-[#f8f9fa] hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] focus-visible:ring-[#4285F4] focus-visible:ring-offset-white',
+    icon: (
+      <svg
+        width="28"
+        height="28"
+        viewBox="0 0 48 48"
+        role="img"
+        aria-hidden="true"
+        className="rounded-lg border border-[#dadce0] bg-white"
+      >
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.72 1.22 9.22 3.6l6.84-6.84C35.9 2.42 30.51 0 24 0 14.62 0 6.51 5.38 2.56 13.22l8 6.2C12.33 13.54 17.66 9.5 24 9.5z" />
+        <path fill="#4285F4" d="M46.5 24c0-1.63-.15-3.2-.43-4.73H24v9h12.65c-.54 2.92-2.2 5.4-4.69 7.07l7.35 5.71C43.63 37.22 46.5 31.09 46.5 24z" />
+        <path fill="#FBBC05" d="M12.56 26.58a9.04 9.04 0 0 1-.47-2.58c0-.89.17-1.76.47-2.58l-8-6.2A23.88 23.88 0 0 0 0 24c0 3.86.9 7.5 2.56 10.78z" />
+        <path fill="#34A853" d="M24 48c6.48 0 11.92-2.14 15.89-5.82l-7.35-5.71C30.73 38.48 27.59 39.5 24 39.5c-6.34 0-11.67-4.04-13.44-9.5l-8 6.2C6.51 42.62 14.62 48 24 48z" />
+      </svg>
+    ),
+    helperClass: 'text-xs text-slate-500 sm:text-sm',
+    ctaClass: 'text-[#3c4043]/70 group-hover:text-[#3c4043]',
+  },
 ];
 
 function LoginForm() {
   const searchParams = useSearchParams();
   const [modalProvider, setModalProvider] = useState<SocialProvider | null>(null);
   const [legalModal, setLegalModal] = useState<LegalModalType | null>(null);
-  const redirect = searchParams.get('redirect') || '/mypage';
+  const redirect = searchParams.get('redirect') || '/';
   const legalModalSections: LegalSection[] = legalModal
     ? legalModal === 'terms'
       ? TERMS_SECTIONS
@@ -107,13 +131,12 @@ function LoginForm() {
   const handleCloseLegalModal = () => setLegalModal(null);
 
   const handleSocialLogin = async (provider: SocialProvider) => {
-    // 네이버는 실제 로그인 진행, 카카오는 준비 중
+    // 네이버는 실제 로그인 진행
     if (provider.id === 'naver') {
-      // NextAuth signIn 함수 사용
       const { signIn } = await import('next-auth/react');
       signIn('naver', { callbackUrl: redirect });
     } else {
-      // 카카오는 아직 준비 중
+      // 다른 공급자는 모달 표시
       setModalProvider(provider);
       console.info('[login]', provider.id, 'button clicked; redirect target:', redirect);
     }
@@ -136,7 +159,7 @@ function LoginForm() {
             <span className="block text-blue-600">안전하고 빠르게 로그인하세요</span>
           </h1>
           <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
-            별도의 아이디/비밀번호 없이 네이버·카카오 계정으로 바로 이용하실 수 있습니다.
+            별도의 아이디/비밀번호 없이 네이버·카카오·Google 계정으로 바로 이용하실 수 있습니다.
             로그인 후에는 정책자료, 상담내역 등 모든 서비스를 한 곳에서 확인할 수 있어요.
           </p>
         </div>
@@ -167,12 +190,11 @@ function LoginForm() {
                       <span className={provider.helperClass}>{provider.helper}</span>
                     </span>
                   </span>
-                  {provider.id === 'kakao' && (
+                  {provider.id === 'kakao' ? (
                     <span className={`text-xs font-medium uppercase tracking-wider ${provider.ctaClass}`}>
                       준비 중
                     </span>
-                  )}
-                  {provider.id === 'naver' && (
+                  ) : (
                     <svg className="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
@@ -322,19 +344,17 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <>
-      <Suspense
-        fallback={
-          <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="text-center">
-              <div className="inline-block h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900" />
-              <p className="mt-2 text-gray-600">로딩 중...</p>
-            </div>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900" />
+            <p className="mt-2 text-gray-600">로딩 중...</p>
           </div>
-        }
-      >
-        <LoginForm />
-      </Suspense>
-    </>
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }
