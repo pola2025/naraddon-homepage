@@ -38,7 +38,11 @@ export default function AdminExpertServicesPage() {
 
   const fetchExperts = async () => {
     try {
-      const response = await fetch('/api/expert-services/experts');
+      const response = await fetch('/api/expert-services/experts', {
+        headers: {
+          'x-admin-auth': 'true'
+        }
+      });
       const data = await response.json();
       if (data.success) {
         setExperts(data.experts);
@@ -331,8 +335,40 @@ export default function AdminExpertServicesPage() {
               border: '1px solid #eee',
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'center'
+              alignItems: 'center',
+              gap: '15px'
             }}>
+              {/* 이미지 미리보기 */}
+              <div style={{
+                width: '80px',
+                height: '80px',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                flexShrink: 0,
+                background: '#e0e0e0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                {expert.imageUrl || expert.imageKey ? (
+                  <img
+                    src={expert.imageUrl || `/images/examiners/${expert.imageKey}.png`}
+                    alt={expert.name}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover'
+                    }}
+                    onError={(e) => {
+                      // 이미지 로드 실패 시 placeholder 표시
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <span style={{ color: '#999', fontSize: '12px' }}>No Image</span>
+                )}
+              </div>
+
               <div style={{ flex: 1 }}>
                 <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '8px' }}>
                   {expert.name} {expert.position}

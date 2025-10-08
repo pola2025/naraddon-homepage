@@ -1,12 +1,16 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Expert from '@/models/Expert';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     await dbConnect();
 
-    const experts = await Expert.find({ isActive: true })
+    // 관리자 권한이 있으면 모든 전문가, 없으면 활성화된 전문가만
+    const adminAuth = request.headers.get('x-admin-auth');
+    const query = adminAuth === 'true' ? {} : { isActive: true };
+
+    const experts = await Expert.find(query)
       .sort({ order: 1, createdAt: -1 })
       .select('-__v');
 
@@ -21,7 +25,10 @@ export async function GET() {
       imageUrl: `/images/examiners/${expert.imageKey}.png`,
       imageAlt: `${expert.name} 전문가 사진`,
       sortOrder: expert.order,
+      imageKey: expert.imageKey, // admin 페이지용 추가
       legacyKey: expert.imageKey,
+      order: expert.order, // admin 페이지용 추가
+      isActive: expert.isActive, // admin 페이지용 추가
       isPublished: expert.isActive,
     }));
 
