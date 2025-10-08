@@ -43,7 +43,7 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
         },
         {
           name: '사업자 목소리 - 똔톡, 묻고 답하기',
-          href: '/business-voice/admin',
+          href: '/admin/business-voice',
           icon: MicrophoneIcon,
         },
         {
