@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withCsrfProtection } from '@/lib/csrf-middleware';
+import { withAdminSecurity } from '@/lib/csrf-middleware';
 
 // API Route를 동적으로 설정 (환경변수 문제 해결)
 export const dynamic = 'force-dynamic';
 
-export const POST = withCsrfProtection(async (request: NextRequest) => {
+export const POST = withAdminSecurity(async (request: NextRequest) => {
   try {
     const adminPassword = process.env.POLICY_NEWS_PASSWORD;
     if (!adminPassword) {

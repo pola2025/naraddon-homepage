@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyCsrfToken, CSRF_COOKIE_OPTIONS, CSRF_HEADER } from './csrf';
+import { validateRateLimit, RateLimitConfig } from './rate-limit-middleware';
 
 /**
  * CSRF 토큰 검증 미들웨어
@@ -61,6 +62,46 @@ export function withCsrfProtection(
     }
 
     // 검증 통과 시 원래 핸들러 실행
+    return handler(request);
+  };
+}
+
+/**
+ * CSRF + Rate Limiting 통합 보안 미들웨어
+ * 관리자 인증 API에 사용 권장
+ *
+ * @example
+ * ```ts
+ * export const POST = withAdminSecurity(
+ *   async (request) => {
+ *     // CSRF + Rate Limiting 검증 완료
+ *     return NextResponse.json({ success: true });
+ *   },
+ *   { maxRequests: 5, windowSeconds: 60 }
+ * );
+ * ```
+ */
+export function withAdminSecurity(
+  handler: (request: NextRequest) => Promise<NextResponse>,
+  rateLimitConfig: RateLimitConfig = {
+    maxRequests: 5,
+    windowSeconds: 60,
+  }
+) {
+  return async (request: NextRequest) => {
+    // 1. Rate Limit 검증 (먼저 체크)
+    const rateLimitError = validateRateLimit(request, rateLimitConfig);
+    if (rateLimitError) {
+      return rateLimitError;
+    }
+
+    // 2. CSRF 검증
+    const csrfError = validateCsrfToken(request);
+    if (csrfError) {
+      return csrfError;
+    }
+
+    // 3. 검증 통과 시 원래 핸들러 실행
     return handler(request);
   };
 }

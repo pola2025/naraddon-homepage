@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withCsrfProtection } from '@/lib/csrf-middleware';
+import { withAdminSecurity } from '@/lib/csrf-middleware';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,7 +9,7 @@ if (!ADMIN_PASSWORD) {
   console.error('TTONTOK_ADMIN_PASSWORD environment variable is not set.');
 }
 
-export const POST = withCsrfProtection(async (request: NextRequest) => {
+export const POST = withAdminSecurity(async (request: NextRequest) => {
   try {
     const body = await request.json();
     const { password } = body;
