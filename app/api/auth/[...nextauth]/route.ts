@@ -26,13 +26,15 @@ export const authOptions: NextAuthOptions = {
         console.log('[Naver Profile]:', JSON.stringify(profile, null, 2));
 
         // 네이버 API 응답 구조 처리
-        const userData = profile.response || profile;
+        // 네이버는 response 객체 안에 사용자 정보를 반환
+        const userData = profile.response;
 
         return {
           id: userData.id,
-          name: userData.name || userData.nickname || 'Unknown',
-          email: userData.email || `naver_${userData.id}@naraddon.com`,
+          name: userData.name,  // 네이버 가입 시 필수값
+          email: userData.email, // 네이버 가입 시 필수값
           image: userData.profile_image,
+          mobile: userData.mobile, // 연락처도 포함
         };
       },
     },
@@ -96,6 +98,7 @@ export const authOptions: NextAuthOptions = {
                 email: user.email,
                 name: user.name,
                 image: user.image,
+                mobile: (user as any).mobile, // 네이버에서 제공하는 연락처
                 provider: account?.provider,
                 providerId: profile?.id,
                 lastLoginAt: new Date(),
