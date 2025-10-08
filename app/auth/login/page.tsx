@@ -2,7 +2,6 @@
 
 import type { ReactNode } from 'react';
 import { Suspense, useState } from 'react';
-import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -107,18 +106,12 @@ function LoginForm() {
   };
   const handleCloseLegalModal = () => setLegalModal(null);
 
-  const handleSocialLogin = (provider: SocialProvider) => {
-    console.log('[DEBUG] handleSocialLogin called with:', provider.id);
-    console.log('[DEBUG] redirect URL:', redirect);
-
+  const handleSocialLogin = async (provider: SocialProvider) => {
     // 네이버는 실제 로그인 진행, 카카오는 준비 중
     if (provider.id === 'naver') {
-      console.log('[DEBUG] Calling signIn for naver...');
-      // NextAuth signIn 함수 사용 - redirect: true 명시
-      signIn('naver', {
-        callbackUrl: redirect,
-        redirect: true
-      });
+      // NextAuth signIn 함수 사용
+      const { signIn } = await import('next-auth/react');
+      signIn('naver', { callbackUrl: redirect });
     } else {
       // 카카오는 아직 준비 중
       setModalProvider(provider);

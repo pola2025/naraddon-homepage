@@ -49,7 +49,7 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
   },
-  // 디버그 활성화 (임시)
+  // 디버그 활성화
   debug: true,
 };
 
