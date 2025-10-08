@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
 import './admin.css';
 
 interface PolicyNewsItem {
@@ -22,21 +22,24 @@ interface PolicyNewsItem {
 
 export default function PolicyNewsAdminPage() {
   const router = useRouter();
-  const auth = useAdminAuth({
-    apiEndpoint: '/api/policy-news/verify',
-    storageKey: 'policyNewsAuthorized',
-    storageType: 'session'
-  });
+  const { data: session, status } = useSession();
 
-  const [password, setPassword] = useState('');
   const [posts, setPosts] = useState<PolicyNewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // 관리자 권한 체크
+  const isAdmin = session?.user?.role === 'admin' || session?.user?.role === 'super_admin';
+
   useEffect(() => {
-    if (auth.isAuthenticated) {
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin?callbackUrl=/policy-news/admin');
+    } else if (status === 'authenticated' && !isAdmin) {
+      alert('관리자 권한이 필요합니다.');
+      router.push('/');
+    } else if (status === 'authenticated' && isAdmin) {
       fetchPosts();
     }
-  }, [auth.isAuthenticated]);
+  }, [status, isAdmin, router]);
 
   const fetchPosts = async () => {
     setIsLoading(true);
@@ -53,28 +56,14 @@ export default function PolicyNewsAdminPage() {
     }
   };
 
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!password.trim()) {
-      return;
-    }
-
-    const success = await auth.login(password.trim());
-    if (success) {
-      setPassword('');
-      fetchPosts();
-    }
-  };
-
   const handleDelete = async (id: string, title: string) => {
-    const confirmPassword = window.prompt(`"${title}" 게시글을 삭제하시겠습니까?\n\n비밀번호를 입력하세요:`);
-    if (!confirmPassword) return;
+    const confirmDelete = window.confirm(`"${title}" 게시글을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`);
+    if (!confirmDelete) return;
 
     try {
       const response = await fetch(`/api/policy-news/${id}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: confirmPassword })
+        headers: { 'Content-Type': 'application/json' }
       });
 
       if (!response.ok) {
@@ -98,30 +87,24 @@ export default function PolicyNewsAdminPage() {
     }
   };
 
-  if (!auth.isAuthenticated) {
+  // 로딩 중이거나 권한 체크 중
+  if (status === 'loading' || (status === 'authenticated' && !isAdmin)) {
     return (
       <div className="admin-login-container">
-        <form className="admin-login-form" onSubmit={handlePasswordSubmit}>
+        <div className="admin-login-form">
           <h1>정책소식 관리자 페이지</h1>
-          <p>관리자 비밀번호를 입력하세요</p>
-
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="비밀번호"
-            disabled={auth.isLoading}
-            autoFocus
-          />
-
-          {auth.error && <div className="error-message">{auth.error}</div>}
-
-          <button type="submit" disabled={auth.isLoading}>
-            {auth.isLoading ? '확인 중...' : '로그인'}
-          </button>
-        </form>
+          <p>권한을 확인하는 중...</p>
+          <div className="loading">
+            <i className="fas fa-spinner fa-spin"></i>
+          </div>
+        </div>
       </div>
     );
+  }
+
+  // 인증되지 않은 경우 (리다이렉트 처리됨)
+  if (status === 'unauthenticated') {
+    return null;
   }
 
   return (
