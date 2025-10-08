@@ -51,25 +51,11 @@ interface NewReply {
 
 // Admin password is now handled by server-side API
 
-const PREDEFINED_NICKNAMES = {
-  examiners: [
-    '권혁중 심사관', '길진영 심사관', '김범준 심사관', '김수빈 심사관',
-    '김영희 심사관', '김태수 심사관', '김태은 심사관', '박민재 심사관',
-    '박성훈 심사관', '박현숙 심사관', '손지숙 심사관', '양미진 심사관',
-    '이용흔 심사관', '전예진 심사관', '전윤지 심사관', '전지선 심사관',
-    '천명숙 심사관', '태건호 심사관', '팽성희 심사관', '황만규 심사관'
-  ],
-  experts: [
-    '백경우 전문가', '성민석 전문가', '전기홍 전문가', '최일현 전문가'
-  ],
-  general: [
-    '커피한잔', '빵굽는사람', '꽃집사장', '행복가득', '스타트업꿈나무',
-    '청년사업가', '도전하는청년', '카페창업준비', '치킨집사장', '편의점운영',
-    '카페알바생', '예비창업자', '디저트카페', '베이커리카페', '커피매니아',
-    '프랜차이즈관계자', '세무초보', '식당사장', '온라인쇼핑몰', '우산장수',
-    '임대인의고민', '응원합니다', '화이팅', '꽃좋아', '마케팅고민', 'SNS전문가'
-  ]
-};
+interface NicknamesData {
+  examiners: string[];
+  experts: string[];
+  general: string[];
+}
 
 const formatDate = (date: string) => {
   const d = new Date(date);
@@ -105,12 +91,31 @@ export default function BusinessVoiceAdminPage() {
     likeCount: 0
   });
   const [editingReplies, setEditingReplies] = useState<{[key: string]: TtontokReply}>({});
+  const [nicknames, setNicknames] = useState<NicknamesData>({
+    examiners: [],
+    experts: [],
+    general: []
+  });
 
   useEffect(() => {
     if (auth.isAuthenticated) {
       fetchPosts();
+      fetchNicknames();
     }
   }, [auth.isAuthenticated, currentPage, selectedCategory, sortBy]);
+
+  const fetchNicknames = async () => {
+    try {
+      const response = await fetch('/api/business-voice/ttontok/nicknames?activeOnly=true');
+      const data = await response.json();
+      if (data.success && data.grouped) {
+        setNicknames(data.grouped);
+      }
+    } catch (error) {
+      console.error('닉네임 목록 불러오기 실패:', error);
+      // 실패 시 빈 배열 유지
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -577,7 +582,7 @@ export default function BusinessVoiceAdminPage() {
                   >
                     <option value={selectedPost.nickname}>{selectedPost.nickname}</option>
                     <optgroup label="일반 사용자">
-                      {PREDEFINED_NICKNAMES.general.map(name => (
+                      {nicknames.general.map(name => (
                         <option key={name} value={name}>{name}</option>
                       ))}
                     </optgroup>
@@ -706,17 +711,17 @@ export default function BusinessVoiceAdminPage() {
                   >
                     <option value="">작성자 선택</option>
                     <optgroup label="기업심사관">
-                      {PREDEFINED_NICKNAMES.examiners.map(name => (
+                      {nicknames.examiners.map(name => (
                         <option key={name} value={name}>{name}</option>
                       ))}
                     </optgroup>
                     <optgroup label="전문가">
-                      {PREDEFINED_NICKNAMES.experts.map(name => (
+                      {nicknames.experts.map(name => (
                         <option key={name} value={name}>{name}</option>
                       ))}
                     </optgroup>
                     <optgroup label="일반 사용자">
-                      {PREDEFINED_NICKNAMES.general.map(name => (
+                      {nicknames.general.map(name => (
                         <option key={name} value={name}>{name}</option>
                       ))}
                     </optgroup>
