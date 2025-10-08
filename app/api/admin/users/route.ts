@@ -79,12 +79,14 @@ export async function GET(request: NextRequest) {
           email: user.email,
           name: user.name,
           role: user.role || 'user',
-          profile: user.profile,
+          status: user.status || 'active',
+          profile: user.profile || {},
           auditorProfile: user.auditorProfile,
           expertProfile: user.expertProfile,
           examinerId: user.examinerId,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
+          lastLoginAt: user.lastLoginAt,
           assignedConsultations
         };
       })
