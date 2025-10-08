@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 import './page.css';
 
 interface TtontokReply {
@@ -66,32 +67,15 @@ const formatDate = (date: string) => {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
-interface Question {
-  _id: string;
-  title: string;
-  content: string;
-  authorNickname: string;
-  category: string;
-  answers: Answer[];
-  viewCount: number;
-  createdAt: string;
-}
-
-interface Answer {
-  _id: string;
-  content: string;
-  displayName: string;
-  userRole: string;
-  createdAt: string;
-}
-
 export default function BusinessVoiceAdminPage() {
   const router = useRouter();
+  const auth = useAdminAuth({
+    apiEndpoint: '/api/business-voice/admin/auth',
+    storageKey: 'ttontokAdminAuth',
+    storageType: 'local'
+  });
 
-  // 탭 상태
-  const [activeTab, setActiveTab] = useState<'ttontok' | 'qna'>('ttontok');
-
-  // 똔톡 상태
+  const [password, setPassword] = useState('');
   const [posts, setPosts] = useState<TtontokPost[]>([]);
   const [selectedPost, setSelectedPost] = useState<TtontokPost | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -113,21 +97,12 @@ export default function BusinessVoiceAdminPage() {
     general: []
   });
 
-  // Q&A 상태
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
-  const [qnaLoading, setQnaLoading] = useState(false);
-  const [qnaPage, setQnaPage] = useState(1);
-  const [qnaTotalPages, setQnaTotalPages] = useState(1);
-
   useEffect(() => {
-    if (activeTab === 'ttontok') {
+    if (auth.isAuthenticated) {
       fetchPosts();
       fetchNicknames();
-    } else {
-      fetchQuestions();
     }
-  }, [activeTab, currentPage, selectedCategory, sortBy, qnaPage]);
+  }, [auth.isAuthenticated, currentPage, selectedCategory, sortBy]);
 
   const fetchNicknames = async () => {
     try {
@@ -142,7 +117,26 @@ export default function BusinessVoiceAdminPage() {
     }
   };
 
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const success = await auth.login(password);
+    if (success) {
+      setPassword('');
+      fetchPosts();
+    } else if (auth.error) {
+      alert(auth.error);
+    }
+  };
+
+  const handleLogout = () => {
+    auth.logout();
+    setPassword('');
+  };
+
   const fetchPosts = async () => {
+    if (!auth.isAuthenticated) {
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -411,136 +405,43 @@ export default function BusinessVoiceAdminPage() {
     }
   };
 
-  // Q&A 관련 함수들
-  const fetchQuestions = async () => {
-    setQnaLoading(true);
-    try {
-      const response = await fetch(`/api/business-voice/questions?page=${qnaPage}&limit=20`);
-      const data = await response.json();
-      setQuestions(data.questions || []);
-      setQnaTotalPages(data.totalPages || 1);
-    } catch (error) {
-      console.error('질문 목록 불러오기 실패:', error);
-    } finally {
-      setQnaLoading(false);
-    }
-  };
-
-  const fetchQuestionDetail = async (questionId: string) => {
-    try {
-      const response = await fetch(`/api/business-voice/questions/${questionId}`);
-      const data = await response.json();
-      setSelectedQuestion(data);
-    } catch (error) {
-      console.error('질문 상세 불러오기 실패:', error);
-    }
-  };
-
-  const handleDeleteQuestion = async (questionId: string) => {
-    if (!confirm('정말로 이 질문을 삭제하시겠습니까?')) return;
-
-    try {
-      const response = await fetch(`/api/business-voice/questions/${questionId}`, {
-        method: 'DELETE',
-        headers: {
-          'x-admin-auth': 'true'
-        }
-      });
-
-      if (response.ok) {
-        alert('질문이 삭제되었습니다.');
-        setSelectedQuestion(null);
-        fetchQuestions();
-      }
-    } catch (error) {
-      console.error('질문 삭제 실패:', error);
-      alert('질문 삭제에 실패했습니다.');
-    }
-  };
-
-  const handleDeleteAnswer = async (answerId: string) => {
-    if (!confirm('정말로 이 답변을 삭제하시겠습니까?')) return;
-
-    try {
-      const response = await fetch(`/api/business-voice/answers/${answerId}`, {
-        method: 'DELETE',
-        headers: {
-          'x-admin-auth': 'true'
-        }
-      });
-
-      if (response.ok) {
-        alert('답변이 삭제되었습니다.');
-        if (selectedQuestion) {
-          fetchQuestionDetail(selectedQuestion._id);
-        }
-      }
-    } catch (error) {
-      console.error('답변 삭제 실패:', error);
-      alert('답변 삭제에 실패했습니다.');
-    }
-  };
+  if (!auth.isAuthenticated) {
+    return (
+      <div className="admin-container">
+        <div className="login-box">
+          <h1>똔톡 관리자 페이지</h1>
+          <form onSubmit={handleLogin}>
+            <input
+              type="password"
+              placeholder="관리자 비밀번호"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoFocus
+              disabled={auth.isLoading}
+            />
+            <button type="submit" disabled={auth.isLoading}>
+              {auth.isLoading ? '로그인 중...' : '로그인'}
+            </button>
+            {auth.error && <p className="error-message">{auth.error}</p>}
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ padding: '20px' }}>
-      <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>사업자 목소리 관리</h1>
-        <button onClick={() => router.push('/business-voice')} style={{
-          padding: '8px 16px',
-          background: '#4CAF50',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
-        }}>
-          사용자 페이지 보기
-        </button>
+    <div className="admin-container">
+      <div className="admin-header">
+        <h1>똔톡 관리자 페이지</h1>
+        <div className="header-controls">
+          <button onClick={() => router.push('/business-voice')} className="view-site-btn">
+            사용자 페이지 보기
+          </button>
+          <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
+        </div>
       </div>
 
-      {/* 탭 메뉴 */}
-      <div style={{
-        display: 'flex',
-        gap: '10px',
-        marginBottom: '20px',
-        borderBottom: '2px solid #e0e0e0'
-      }}>
-        <button
-          onClick={() => setActiveTab('ttontok')}
-          style={{
-            padding: '12px 24px',
-            background: activeTab === 'ttontok' ? '#2196F3' : 'transparent',
-            color: activeTab === 'ttontok' ? 'white' : '#666',
-            border: 'none',
-            borderBottom: activeTab === 'ttontok' ? '3px solid #2196F3' : 'none',
-            cursor: 'pointer',
-            fontSize: '16px',
-            fontWeight: activeTab === 'ttontok' ? 'bold' : 'normal',
-            transition: 'all 0.3s'
-          }}
-        >
-          똔톡 관리
-        </button>
-        <button
-          onClick={() => setActiveTab('qna')}
-          style={{
-            padding: '12px 24px',
-            background: activeTab === 'qna' ? '#2196F3' : 'transparent',
-            color: activeTab === 'qna' ? 'white' : '#666',
-            border: 'none',
-            borderBottom: activeTab === 'qna' ? '3px solid #2196F3' : 'none',
-            cursor: 'pointer',
-            fontSize: '16px',
-            fontWeight: activeTab === 'qna' ? 'bold' : 'normal',
-            transition: 'all 0.3s'
-          }}
-        >
-          묻고 답하기 관리
-        </button>
-      </div>
-
-      {/* 똔톡 관리 */}
-      {activeTab === 'ttontok' && (
-      <div className="admin-content" style={{ background: 'transparent' }}>
+      <div className="admin-content">
         <div className="posts-section">
           <div className="posts-header">
             <h2>게시글 목록</h2>
@@ -911,126 +812,6 @@ export default function BusinessVoiceAdminPage() {
           </div>
         )}
       </div>
-      )}
-
-      {/* 묻고 답하기 관리 */}
-      {activeTab === 'qna' && (
-      <div className="admin-content" style={{ background: 'transparent' }}>
-        <div className="posts-section">
-          <div className="posts-header">
-            <h2>질문 목록</h2>
-          </div>
-
-          <div className="posts-table">
-            {qnaLoading ? (
-              <div className="loading">로딩 중...</div>
-            ) : (
-              <table>
-                <thead>
-                  <tr>
-                    <th>제목</th>
-                    <th>작성자</th>
-                    <th>카테고리</th>
-                    <th>답변수</th>
-                    <th>조회수</th>
-                    <th>작성일</th>
-                    <th>작업</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {questions.map((question) => (
-                    <tr key={question._id} className={selectedQuestion?._id === question._id ? 'selected' : ''}>
-                      <td>{question.title}</td>
-                      <td>{question.authorNickname}</td>
-                      <td>{question.category}</td>
-                      <td>{question.answers?.length || 0}</td>
-                      <td>{question.viewCount}</td>
-                      <td>{new Date(question.createdAt).toLocaleDateString()}</td>
-                      <td>
-                        <button onClick={() => fetchQuestionDetail(question._id)} className="edit-btn">
-                          상세
-                        </button>
-                        <button onClick={() => handleDeleteQuestion(question._id)} className="delete-btn">
-                          삭제
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-
-          <div className="pagination">
-            <button
-              onClick={() => setQnaPage(Math.max(1, qnaPage - 1))}
-              disabled={qnaPage === 1}
-            >
-              이전
-            </button>
-            <span>{qnaPage} / {qnaTotalPages}</span>
-            <button
-              onClick={() => setQnaPage(Math.min(qnaTotalPages, qnaPage + 1))}
-              disabled={qnaPage === qnaTotalPages}
-            >
-              다음
-            </button>
-          </div>
-        </div>
-
-        {selectedQuestion && (
-          <div className="post-editor">
-            <div className="editor-header">
-              <h2>질문 상세</h2>
-            </div>
-
-            <div className="post-preview">
-              <h3>{selectedQuestion.title}</h3>
-              <div className="post-meta">
-                <span className="author">{selectedQuestion.authorNickname}</span>
-                <span className="category">{selectedQuestion.category}</span>
-                <span className="date">{new Date(selectedQuestion.createdAt).toLocaleString()}</span>
-              </div>
-              <div className="post-stats">
-                <span>조회 {selectedQuestion.viewCount}</span>
-                <span>답변 {selectedQuestion.answers?.length || 0}</span>
-              </div>
-              <div className="post-content">{selectedQuestion.content}</div>
-            </div>
-
-            <div className="replies-section">
-              <h3>답변 관리 ({selectedQuestion.answers?.length || 0})</h3>
-
-              <div className="replies-list">
-                {selectedQuestion.answers?.map((answer) => (
-                  <div key={answer._id} className="reply-item">
-                    <div className="reply-header">
-                      <span className="reply-author">
-                        {answer.displayName}
-                        {answer.userRole === 'examiner' && ' 🏆'}
-                        {answer.userRole === 'expert' && ' ⭐'}
-                      </span>
-                      <span className="reply-date">
-                        {new Date(answer.createdAt).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="reply-content">{answer.content}</div>
-                    <div className="reply-actions">
-                      <button
-                        onClick={() => handleDeleteAnswer(answer._id)}
-                        className="delete-reply-btn"
-                      >
-                        삭제
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-      )}
     </div>
   );
 }
