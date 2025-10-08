@@ -120,29 +120,9 @@ function LoginForm() {
   };
 
   return (
-    <div className={`${styles.loginPage} relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-100 via-blue-50 to-emerald-50 py-16 px-6`}>
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(30,64,175,0.12),transparent_55%),radial-gradient(circle_at_bottom,rgba(16,185,129,0.12),transparent_60%)]"
-      />
-
-      <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center gap-12 lg:flex-row lg:items-start lg:justify-between">
-        <div className="max-w-xl text-center lg:text-left">
-          <span className="inline-flex items-center rounded-full bg-white/70 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-blue-600">
-            Naraddon Sign In
-          </span>
-          <h1 className="mt-6 text-3xl font-extrabold text-slate-900 sm:text-4xl lg:text-5xl">
-            SNS 계정 하나로
-            <span className="block text-blue-600">안전하고 빠르게 로그인하세요</span>
-          </h1>
-          <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
-            별도의 아이디/비밀번호 없이 네이버·카카오 계정으로 바로 이용하실 수 있습니다.
-            로그인 후에는 정책자료, 상담내역 등 모든 서비스를 한 곳에서 확인할 수 있어요.
-          </p>
-        </div>
-
-        <div className="w-full max-w-lg">
-          <div className={`${styles.formContainer} rounded-3xl bg-white/90 px-8 py-10 shadow-2xl ring-1 ring-slate-100 backdrop-blur-sm sm:px-10`}>
+    <div className="relative min-h-screen overflow-hidden bg-white flex items-center justify-center py-16 px-6">
+      <div className="relative w-full max-w-lg">
+          <div className={`${styles.formContainer} rounded-3xl bg-white px-8 py-10 shadow-2xl ring-1 ring-slate-200 sm:px-10`}>
             <div className="mb-8 text-center">
               <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">소셜 로그인</h2>
               <p className="mt-2 text-sm text-slate-500">
@@ -209,7 +189,6 @@ function LoginForm() {
             </div>
           </div>
         </div>
-      </div>
 
       {modalProvider && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-6">
