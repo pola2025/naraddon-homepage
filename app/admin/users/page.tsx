@@ -9,7 +9,9 @@ import {
   FunnelIcon,
   ArrowDownTrayIcon,
   MagnifyingGlassIcon,
-  PlusIcon
+  PlusIcon,
+  EyeIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 // 빈 초기 데이터 (실제 DB에서 로드)
@@ -27,6 +29,8 @@ export default function UsersManagementPage() {
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [viewingUser, setViewingUser] = useState<User | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [examinerModalUser, setExaminerModalUser] = useState<User | null>(null);
   const [examinerAction, setExaminerAction] = useState<'create' | 'link'>('create');
   const [examiners, setExaminers] = useState<Examiner[]>([]);
@@ -366,6 +370,16 @@ export default function UsersManagementPage() {
           searchPlaceholder="이름, 이메일, 회사 검색..."
           actions={(user) => (
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setViewingUser(user);
+                  setShowDetailModal(true);
+                }}
+                className="text-gray-600 hover:text-gray-900"
+                title="상세보기"
+              >
+                <EyeIcon className="w-5 h-5" />
+              </button>
               {user.role !== UserRole.ADMIN && user.role !== 'super_admin' && (
                 <button
                   onClick={() => {
@@ -386,12 +400,6 @@ export default function UsersManagementPage() {
                   심사관 지정
                 </button>
               )}
-              <button
-                onClick={() => setSelectedUser(user)}
-                className="text-blue-600 hover:text-blue-900 text-sm"
-              >
-                상세
-              </button>
             </div>
           )}
         />
@@ -594,6 +602,145 @@ export default function UsersManagementPage() {
                   className="px-4 py-2 text-sm text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:bg-gray-400"
                 >
                   심사관 지정하기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 사용자 상세보기 모달 */}
+      {showDetailModal && viewingUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              {/* 헤더 */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">사용자 상세 정보</h2>
+                <button
+                  onClick={() => setShowDetailModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XMarkIcon className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* 기본 정보 */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">기본 정보</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500 mb-1">이름</label>
+                      <p className="text-base font-semibold text-gray-900">{viewingUser.name}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500 mb-1">이메일</label>
+                      <p className="text-base text-gray-900">{viewingUser.email}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500 mb-1">전화번호</label>
+                      <p className="text-base text-gray-900">{viewingUser.profile.phone || '-'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500 mb-1">회사</label>
+                      <p className="text-base text-gray-900">{viewingUser.profile.company || '-'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 계정 정보 */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">계정 정보</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500 mb-1">등급</label>
+                      <p className="text-base">
+                        <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
+                          viewingUser.role === UserRole.ADMIN ? 'bg-red-100 text-red-800' :
+                          viewingUser.role === UserRole.EXAMINER ? 'bg-purple-100 text-purple-800' :
+                          viewingUser.role === UserRole.EXPERT ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {getRoleLabel(viewingUser.role)}
+                        </span>
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500 mb-1">상태</label>
+                      <p className="text-base">
+                        <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
+                          viewingUser.status === UserStatus.ACTIVE ? 'bg-green-100 text-green-800' :
+                          viewingUser.status === UserStatus.INACTIVE ? 'bg-yellow-100 text-yellow-800' :
+                          viewingUser.status === UserStatus.SUSPENDED ? 'bg-red-100 text-red-800' :
+                          'bg-orange-100 text-orange-800'
+                        }`}>
+                          {getStatusLabel(viewingUser.status)}
+                        </span>
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500 mb-1">가입일</label>
+                      <p className="text-base text-gray-900">
+                        {new Date(viewingUser.createdAt).toLocaleString('ko-KR')}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500 mb-1">최근 접속</label>
+                      <p className="text-base text-gray-900">
+                        {viewingUser.lastLoginAt
+                          ? new Date(viewingUser.lastLoginAt).toLocaleString('ko-KR')
+                          : '-'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 전문 분야 */}
+                {viewingUser.profile.specialty && viewingUser.profile.specialty.length > 0 && (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">전문 분야</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {viewingUser.profile.specialty.map((spec, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+                        >
+                          {spec}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 기업심사관 정보 */}
+                {viewingUser.role === UserRole.EXAMINER && viewingUser.examinerId && (
+                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <h3 className="text-lg font-semibold text-purple-900 mb-3">심사관 정보</h3>
+                    <div className="text-sm text-purple-800">
+                      <p>심사관 ID: {viewingUser.examinerId}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* 배정된 상담 */}
+                {viewingUser.assignedConsultations !== undefined && (
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <h3 className="text-lg font-semibold text-blue-900 mb-2">활동 통계</h3>
+                    <p className="text-sm text-blue-800">
+                      배정된 상담: <span className="font-semibold">{viewingUser.assignedConsultations}건</span>
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* 닫기 버튼 */}
+              <div className="flex justify-end pt-6 border-t mt-6">
+                <button
+                  onClick={() => setShowDetailModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  닫기
                 </button>
               </div>
             </div>
