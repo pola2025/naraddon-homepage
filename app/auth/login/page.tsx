@@ -4,7 +4,6 @@ import type { ReactNode } from 'react';
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import styles from './login.module.css';
 import {
   LEGAL_BUSINESS_INFO,
   LEGAL_EFFECTIVE_DATE,
@@ -120,71 +119,91 @@ function LoginForm() {
   };
 
   return (
-    <div className={styles.loginPage}>
-      {/* Hero Section - Left Side */}
-      <div className={styles.heroSection}>
-        <div className={styles.heroContent}>
-          <h1 className={styles.heroTitle}>
-            나라똔과 함께하는
-            <br />
-            스마트한 정책 관리
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-100 via-blue-50 to-emerald-50 py-16 px-6">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(30,64,175,0.12),transparent_55%),radial-gradient(circle_at_bottom,rgba(16,185,129,0.12),transparent_60%)]"
+      />
+
+      <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center gap-12 lg:flex-row lg:items-start lg:justify-between">
+        <div className="max-w-xl text-center lg:text-left">
+          <span className="inline-flex items-center rounded-full bg-white/70 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-blue-600">
+            Naraddon Sign In
+          </span>
+          <h1 className="mt-6 text-3xl font-extrabold text-slate-900 sm:text-4xl lg:text-5xl">
+            SNS 계정 하나로
+            <span className="block text-blue-600">안전하고 빠르게 로그인하세요</span>
           </h1>
-          <p className={styles.heroSubtitle}>
-            정부 지원사업, 정책 자금, 상담 서비스를
-            <br />
-            한 곳에서 편리하게 이용하세요
+          <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
+            별도의 아이디/비밀번호 없이 네이버·카카오 계정으로 바로 이용하실 수 있습니다.
+            로그인 후에는 정책자료, 상담내역 등 모든 서비스를 한 곳에서 확인할 수 있어요.
           </p>
         </div>
-      </div>
 
-      {/* Form Section - Right Side */}
-      <div className={styles.formSection}>
-        <div className={styles.formContainer}>
-          <div className={styles.formHeader}>
-            <h2 className={styles.formTitle}>로그인</h2>
-            <p className={styles.formSubtitle}>
-              SNS 계정으로 간편하게 시작하세요
+        <div className="w-full max-w-lg">
+          <div className="rounded-3xl bg-white/90 px-8 py-10 shadow-2xl ring-1 ring-slate-100 backdrop-blur-sm sm:px-10">
+            <div className="mb-8 text-center">
+              <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">소셜 로그인</h2>
+              <p className="mt-2 text-sm text-slate-500">
+                사용하고 계신 SNS 계정을 선택해 주세요. 추가 정보 입력 없이 바로 연결됩니다.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              {SOCIAL_PROVIDERS.map((provider) => (
+                <button
+                  key={provider.id}
+                  type="button"
+                  onClick={() => handleSocialLogin(provider)}
+                  className={`group flex w-full items-center justify-between rounded-xl px-5 py-4 text-left shadow-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 ${provider.className}`}
+                >
+                  <span className="flex items-center gap-3">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg text-base font-semibold shadow-sm">
+                      {provider.icon}
+                    </span>
+                    <span className="flex flex-col">
+                      <span className="text-base font-semibold sm:text-lg">{provider.label}</span>
+                      <span className={provider.helperClass}>{provider.helper}</span>
+                    </span>
+                  </span>
+                  {provider.id === 'kakao' ? (
+                    <span className={`text-xs font-medium uppercase tracking-wider ${provider.ctaClass}`}>
+                      준비 중
+                    </span>
+                  ) : (
+                    <svg className="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <p className="mt-6 text-xs text-slate-400">
+              소셜 로그인 시 나라똔 서비스 이용약관과 개인정보 처리방침에 동의하는 것으로 간주됩니다.
             </p>
-          </div>
 
-          <div className={styles.socialButtons}>
-            {SOCIAL_PROVIDERS.map((provider) => (
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400">
               <button
-                key={provider.id}
                 type="button"
-                onClick={() => handleSocialLogin(provider)}
-                className={`${styles.socialButton} ${
-                  provider.id === 'naver' ? styles.naverButton : styles.kakaoButton
-                }`}
+                onClick={() => handleOpenLegalModal('terms')}
+                className="rounded-full px-2 py-1 transition hover:text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
               >
-                {provider.icon}
-                <span>{provider.label}</span>
+                이용약관
               </button>
-            ))}
-          </div>
-
-          <div className={styles.divider}>
-            <span className={styles.dividerText}>소셜 로그인으로 간편 가입</span>
-          </div>
-
-          <div className={styles.legalLinks}>
-            <button
-              type="button"
-              onClick={() => handleOpenLegalModal('terms')}
-              className="link-button"
-            >
-              이용약관
-            </button>
-            <span>·</span>
-            <button
-              type="button"
-              onClick={() => handleOpenLegalModal('privacy')}
-              className="link-button"
-            >
-              개인정보 처리방침
-            </button>
-            <span>·</span>
-            <Link href="/">홈으로</Link>
+              <span aria-hidden="true">·</span>
+              <button
+                type="button"
+                onClick={() => handleOpenLegalModal('privacy')}
+                className="rounded-full px-2 py-1 transition hover:text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              >
+                개인정보 처리방침
+              </button>
+              <span aria-hidden="true">·</span>
+              <Link href="/" className="hover:text-slate-600">
+                홈으로 이동
+              </Link>
+            </div>
           </div>
         </div>
       </div>
