@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import styles from './login.module.css';
 import {
   LEGAL_BUSINESS_INFO,
   LEGAL_EFFECTIVE_DATE,
@@ -119,7 +120,7 @@ function LoginForm() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-100 via-blue-50 to-emerald-50 py-16 px-6">
+    <div className={`${styles.loginPage} relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-100 via-blue-50 to-emerald-50 py-16 px-6`}>
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(30,64,175,0.12),transparent_55%),radial-gradient(circle_at_bottom,rgba(16,185,129,0.12),transparent_60%)]"
@@ -141,7 +142,7 @@ function LoginForm() {
         </div>
 
         <div className="w-full max-w-lg">
-          <div className="rounded-3xl bg-white/90 px-8 py-10 shadow-2xl ring-1 ring-slate-100 backdrop-blur-sm sm:px-10">
+          <div className={`${styles.formContainer} rounded-3xl bg-white/90 px-8 py-10 shadow-2xl ring-1 ring-slate-100 backdrop-blur-sm sm:px-10`}>
             <div className="mb-8 text-center">
               <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">소셜 로그인</h2>
               <p className="mt-2 text-sm text-slate-500">
@@ -149,13 +150,15 @@ function LoginForm() {
               </p>
             </div>
 
-            <div className="space-y-3">
+            <div className={`${styles.socialButtons} space-y-3`}>
               {SOCIAL_PROVIDERS.map((provider) => (
                 <button
                   key={provider.id}
                   type="button"
                   onClick={() => handleSocialLogin(provider)}
-                  className={`group flex w-full items-center justify-between rounded-xl px-5 py-4 text-left shadow-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 ${provider.className}`}
+                  className={`${styles.socialButton} ${
+                    provider.id === 'naver' ? styles.naverButton : styles.kakaoButton
+                  } group flex w-full items-center justify-between rounded-xl px-5 py-4 text-left shadow-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 ${provider.className}`}
                 >
                   <span className="flex items-center gap-3">
                     <span className="flex h-8 w-8 items-center justify-center rounded-lg text-base font-semibold shadow-sm">
