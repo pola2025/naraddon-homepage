@@ -120,10 +120,10 @@ function LoginForm() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50 pt-10 pb-16 px-6" style={{ marginTop: '-80px' }}>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-100 via-blue-50 to-emerald-50 py-16 px-6">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.08),transparent_55%),radial-gradient(circle_at_bottom,rgba(99,102,241,0.08),transparent_60%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(30,64,175,0.12),transparent_55%),radial-gradient(circle_at_bottom,rgba(16,185,129,0.12),transparent_60%)]"
       />
 
       <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center gap-12 lg:flex-row lg:items-start lg:justify-between">

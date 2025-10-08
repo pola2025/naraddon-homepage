@@ -1,0 +1,20 @@
+HTTP/1.1 200 OK
+Accept-Ranges: bytes
+Access-Control-Allow-Origin: *
+Age: 704
+Cache-Control: public, max-age=0, must-revalidate
+Content-Disposition: inline
+Content-Length: 91
+Content-Type: application/json
+Date: Wed, 08 Oct 2025 11:51:53 GMT
+Etag: "a76caf5308d7f9090a8c4b2025dacedb"
+Expires: 0
+Pragma: no-cache
+Server: Vercel
+Set-Cookie: csrf_token=5da50344da81af96c2419b35dde90b628b412589b6ab3ee51551c030237c33ea; Path=/; Expires=Thu, 09 Oct 2025 11:26:02 GMT; Max-Age=86400; Secure; HttpOnly; SameSite=lax
+Strict-Transport-Security: max-age=63072000
+Vary: RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Url
+X-Matched-Path: /api/auth/csrf
+X-Vercel-Cache: HIT
+X-Vercel-Id: icn1::kcd46-1759924313625-9fc296cd61e7
+

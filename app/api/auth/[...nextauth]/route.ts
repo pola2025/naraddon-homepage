@@ -1,57 +1,8 @@
 import NextAuth from 'next-auth';
-import type { NextAuthOptions } from 'next-auth';
+import { authOptions } from '@/lib/auth-options';
 
-// authOptions export 추가 (다른 파일에서 사용)
-export const authOptions: NextAuthOptions = {
-  providers: [
-    {
-      id: 'naver',
-      name: 'Naver',
-      type: 'oauth',
-      clientId: process.env.NAVER_CLIENT_ID!,
-      clientSecret: process.env.NAVER_CLIENT_SECRET!,
-      // 네이버 OAuth URL 설정
-      authorization: 'https://nid.naver.com/oauth2.0/authorize',
-      token: 'https://nid.naver.com/oauth2.0/token',
-      userinfo: 'https://openapi.naver.com/v1/nid/me',
-      // 프로필 매핑
-      profile(profile: any) {
-        return {
-          id: profile.response?.id,
-          name: profile.response?.name,
-          email: profile.response?.email,
-          image: profile.response?.profile_image,
-        };
-      },
-    },
-  ],
-  callbacks: {
-    async jwt({ token, account, profile }) {
-      if (account && profile) {
-        token.provider = 'naver';
-        token.providerId = profile.response?.id;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        (session.user as any).provider = token.provider;
-        (session.user as any).providerId = token.providerId;
-      }
-      return session;
-    },
-  },
-  pages: {
-    signIn: '/auth/login',
-    error: '/auth/error',
-  },
-  secret: process.env.NEXTAUTH_SECRET!,
-  session: {
-    strategy: 'jwt',
-  },
-  // 디버그 활성화
-  debug: true,
-};
+// 기존 authOptions는 lib/auth-options.ts로 이동
+// 여기서는 import해서 사용
 
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

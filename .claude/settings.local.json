@@ -74,7 +74,9 @@
       "Bash(python3:*)",
       "Bash(git remote:*)",
       "Bash(start scripts/welcome-email-preview.html)",
-      "WebSearch"
+      "WebSearch",
+      "WebFetch(domain:vercel.com)",
+      "Bash(powershell:*)"
     ],
     "deny": [],
     "ask": []
