@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 
+// CSRF 헤더 이름 (서버와 동일)
+const CSRF_HEADER = 'x-csrf-token';
+
 export interface AdminAuthConfig {
   /** API 검증 엔드포인트 (예: '/api/expert-services/verify') */
   apiEndpoint: string;
@@ -57,6 +60,7 @@ export function useAdminAuth(config: AdminAuthConfig): AdminAuthState {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [csrfToken, setCsrfToken] = useState<string | null>(null);
 
   // 스토리지 헬퍼 (SSR 안전)
   const getStorage = useCallback(() => {
@@ -105,7 +109,30 @@ export function useAdminAuth(config: AdminAuthConfig): AdminAuthState {
   );
 
   /**
-   * 로그인 함수
+   * CSRF 토큰 가져오기
+   */
+  const fetchCsrfToken = useCallback(async (): Promise<string | null> => {
+    try {
+      const response = await fetch('/api/auth/csrf', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.token) {
+          setCsrfToken(data.token);
+          return data.token;
+        }
+      }
+    } catch (error) {
+      console.error('[useAdminAuth] Failed to fetch CSRF token:', error);
+    }
+    return null;
+  }, []);
+
+  /**
+   * 로그인 함수 (CSRF 보호 적용)
    * @param password 비밀번호
    * @returns 성공 여부
    */
@@ -115,11 +142,23 @@ export function useAdminAuth(config: AdminAuthConfig): AdminAuthState {
       setError(null);
 
       try {
+        // CSRF 토큰 가져오기
+        const token = await fetchCsrfToken();
+
+        // 요청 헤더 구성
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json',
+        };
+
+        // CSRF 토큰이 있으면 헤더에 추가
+        if (token) {
+          headers[CSRF_HEADER] = token;
+        }
+
         const response = await fetch(apiEndpoint, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers,
+          credentials: 'include', // 쿠키 포함
           body: JSON.stringify({ password }),
         });
 
@@ -143,7 +182,7 @@ export function useAdminAuth(config: AdminAuthConfig): AdminAuthState {
         setIsLoading(false);
       }
     },
-    [apiEndpoint, storageKey, setStorageItem]
+    [apiEndpoint, storageKey, setStorageItem, fetchCsrfToken]
   );
 
   /**

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withCsrfProtection } from '@/lib/csrf-middleware';
 
 // API Route를 동적으로 설정
 export const dynamic = 'force-dynamic';
@@ -6,8 +7,8 @@ export const dynamic = 'force-dynamic';
 // 환경변수에서 비밀번호 가져오기 (서버 전용)
 const ADMIN_PASSWORD = process.env.EXPERT_SERVICES_PASSWORD;
 
-// 인증 확인 API
-export async function POST(request: Request) {
+// 인증 확인 API (CSRF 보호 적용)
+export const POST = withCsrfProtection(async (request: NextRequest) => {
   try {
     console.log('[expert-services/verify] POST request received');
 
@@ -50,4 +51,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
+});

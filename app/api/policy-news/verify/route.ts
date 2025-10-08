@@ -1,9 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { withCsrfProtection } from '@/lib/csrf-middleware';
 
 // API Route를 동적으로 설정 (환경변수 문제 해결)
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: Request) {
+export const POST = withCsrfProtection(async (request: NextRequest) => {
   try {
     const adminPassword = process.env.POLICY_NEWS_PASSWORD;
     if (!adminPassword) {
@@ -26,4 +27,4 @@ export async function POST(request: Request) {
     console.error('[policy-news][VERIFY]', error);
     return NextResponse.json({ message: '비밀번호 검증에 실패했습니다.' }, { status: 500 });
   }
-}
+});
