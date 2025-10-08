@@ -120,6 +120,51 @@ export const authOptions: NextAuthOptions = {
     },
     async signIn({ user, account, profile }) {
       console.log('SignIn attempt:', account?.provider);
+
+      try {
+        // 신규 가입자 감지 및 알림
+        if (account && user.email) {
+          const client = await clientPromise;
+          const db = client.db('naraddon');
+
+          // 기존 계정이 있는지 확인 (accounts collection에서 확인)
+          const existingAccount = await db.collection('accounts').findOne({
+            provider: account.provider,
+            providerAccountId: account.providerAccountId
+          });
+
+          // 계정이 없다면 신규 가입자
+          if (!existingAccount) {
+            console.log('🎉 New user registration detected:', user.email);
+
+            // Telegram 알림 발송 (비동기, 실패해도 로그인 진행)
+            fetch(`${process.env.NEXTAUTH_URL || ''}/api/telegram-notify`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                message: `🎉 신규 회원 가입\n\n👤 이름: ${user.name || '미제공'}\n📧 이메일: ${user.email}\n🔑 가입 경로: ${account.provider}\n⏰ ${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}`,
+                type: 'success'
+              })
+            }).catch(err => console.error('Telegram notification failed:', err));
+
+            // 이메일 알림 발송 (관리자에게)
+            fetch(`${process.env.NEXTAUTH_URL || ''}/api/notifications/new-user`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                name: user.name,
+                email: user.email,
+                provider: account.provider,
+                registeredAt: new Date().toISOString()
+              })
+            }).catch(err => console.error('Email notification failed:', err));
+          }
+        }
+      } catch (error) {
+        console.error('SignIn callback notification error:', error);
+        // 알림 실패해도 로그인은 계속 진행
+      }
+
       return true;
     },
     async redirect({ url, baseUrl }) {
