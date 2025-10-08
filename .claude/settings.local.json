@@ -73,7 +73,8 @@
       "Bash(kill:*)",
       "Bash(python3:*)",
       "Bash(git remote:*)",
-      "Bash(start scripts/welcome-email-preview.html)"
+      "Bash(start scripts/welcome-email-preview.html)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []
