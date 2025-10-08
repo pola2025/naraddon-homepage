@@ -198,15 +198,23 @@ export default function UsersManagementPage() {
 
   const fetchExaminers = async () => {
     try {
+      console.log('[fetchExaminers] Fetching examiners...');
       const response = await fetch('/api/admin/examiners');
+      console.log('[fetchExaminers] Response status:', response.status);
+
       if (response.ok) {
         const data = await response.json();
+        console.log('[fetchExaminers] Received data:', data);
+        console.log('[fetchExaminers] Examiners count:', data.examiners?.length || 0);
         setExaminers(data.examiners || []);
       } else {
-        console.error('Failed to fetch examiners:', response.status);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('[fetchExaminers] Failed:', response.status, errorData);
+        alert(`심사관 목록을 불러오는데 실패했습니다: ${errorData.error || response.status}`);
       }
     } catch (error) {
-      console.error('Failed to fetch examiners:', error);
+      console.error('[fetchExaminers] Error:', error);
+      alert('심사관 목록을 불러오는 중 오류가 발생했습니다.');
     }
   };
 
@@ -547,15 +555,28 @@ export default function UsersManagementPage() {
                       onChange={(e) => setSelectedExaminerId(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md"
                     >
-                      <option value="">선택하세요</option>
-                      {examiners
-                        .filter(e => !e.userId) // 이미 연결되지 않은 심사관만
-                        .map((examiner) => (
-                          <option key={examiner._id} value={examiner._id}>
-                            {examiner.name} - {examiner.position} ({examiner.companyName})
-                          </option>
-                        ))}
+                      <option value="">선택하세요 (전체 {examiners.length}명)</option>
+                      {examiners.map((examiner) => (
+                        <option
+                          key={examiner._id}
+                          value={examiner._id}
+                          disabled={!!examiner.userId}
+                        >
+                          {examiner.name} - {examiner.position} ({examiner.companyName})
+                          {examiner.userId ? ' [이미 연결됨]' : ''}
+                        </option>
+                      ))}
                     </select>
+                    {examiners.filter(e => !e.userId).length === 0 && examiners.length > 0 && (
+                      <p className="mt-2 text-sm text-amber-600">
+                        ⚠️ 모든 심사관이 이미 사용자와 연결되어 있습니다.
+                      </p>
+                    )}
+                    {examiners.length === 0 && (
+                      <p className="mt-2 text-sm text-red-600">
+                        ❌ 등록된 심사관이 없습니다.
+                      </p>
+                    )}
                   </div>
                 )}
               </div>

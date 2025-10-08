@@ -18,12 +18,6 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 관리자만 접근 가능
-    const userRole = (session.user as any)?.role;
-    if (userRole !== 'admin' && userRole !== 'super_admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
     const userId = params.id;
     const { newRole, profileData, examinerAction } = await request.json();
 
@@ -36,6 +30,36 @@ export async function PUT(
     // MongoDB 연결
     const client = await clientPromise;
     const db = client.db('naraddon');
+
+    // 현재 로그인한 사용자의 role을 DB에서 확인
+    const currentUser = await db.collection('users').findOne({ email: session.user?.email });
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Current user not found' }, { status: 404 });
+    }
+
+    const userRole = currentUser.role;
+
+    // 관리자만 접근 가능
+    if (userRole !== 'admin' && userRole !== 'super_admin') {
+      return NextResponse.json({
+        error: 'Forbidden - Admin access required',
+        debug: {
+          currentUserEmail: session.user?.email,
+          currentUserRole: userRole
+        }
+      }, { status: 403 });
+    }
+
+    // admin 역할 부여는 super_admin만 가능 (보안 강화)
+    if (newRole === 'admin' && userRole !== 'super_admin') {
+      return NextResponse.json({
+        error: 'Forbidden - Only super_admin can grant admin role',
+        debug: {
+          currentUserRole: userRole,
+          attemptedRole: newRole
+        }
+      }, { status: 403 });
+    }
 
     // 사용자 찾기
     const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
