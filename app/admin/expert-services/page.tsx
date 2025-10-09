@@ -38,7 +38,7 @@ export default function AdminExpertServicesPage() {
 
   const fetchExperts = async () => {
     try {
-      const response = await fetch('/api/expert-services/experts', {
+      const response = await fetch('/api/experts', {
         headers: {
           'x-admin-auth': 'true'
         }
@@ -65,11 +65,12 @@ export default function AdminExpertServicesPage() {
     };
 
     try {
-      const url = editingExpert
-        ? `/api/expert-services/experts/${editingExpert._id}`
-        : '/api/expert-services/experts';
+      const url = '/api/experts';
+      const method = editingExpert ? 'PUT' : 'POST';
 
-      const method = editingExpert ? 'PATCH' : 'POST';
+      const payload = editingExpert
+        ? { ...requestData, id: editingExpert._id }
+        : requestData;
 
       const response = await fetch(url, {
         method,
@@ -77,7 +78,7 @@ export default function AdminExpertServicesPage() {
           'Content-Type': 'application/json',
           'x-admin-auth': 'true'
         },
-        body: JSON.stringify(requestData),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
@@ -116,7 +117,7 @@ export default function AdminExpertServicesPage() {
     }
 
     try {
-      const response = await fetch(`/api/expert-services/experts/${id}`, {
+      const response = await fetch(`/api/experts?id=${id}`, {
         method: 'DELETE',
         headers: {
           'x-admin-auth': 'true'

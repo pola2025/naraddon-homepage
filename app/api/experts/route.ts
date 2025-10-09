@@ -2,15 +2,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Expert from '@/models/Expert';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     await dbConnect();
 
-    const experts = await Expert.find({ isActive: true })
+    // 관리자 권한이 있으면 모든 전문가, 없으면 활성화된 전문가만
+    const adminAuth = request.headers.get('x-admin-auth');
+    const query = adminAuth === 'true' ? {} : { isActive: true };
+
+    const experts = await Expert.find(query)
       .sort({ order: 1, createdAt: -1 })
       .select('-__v');
 
-    return NextResponse.json({ success: true, experts });
+    // Transform to include imageUrl
+    const transformedExperts = experts.map((expert) => {
+      const expertObj = expert.toObject();
+      return {
+        ...expertObj,
+        imageUrl: expertObj.imageUrl || `/images/examiners/${expertObj.imageKey}.png`,
+        imageAlt: `${expertObj.name} 전문가 사진`,
+      };
+    });
+
+    return NextResponse.json({ success: true, experts: transformedExperts });
   } catch (error) {
     console.error('Error fetching experts:', error);
     return NextResponse.json(
@@ -25,8 +39,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { password, ...expertData } = body;
 
-    // Check password
-    if (password !== process.env.EXPERT_SERVICES_PASSWORD) {
+    // Check admin auth header or password
+    const adminAuth = request.headers.get('x-admin-auth');
+    if (adminAuth !== 'true' && password !== process.env.EXPERT_SERVICES_PASSWORD) {
       return NextResponse.json(
         { success: false, error: 'Invalid password' },
         { status: 401 }
@@ -60,8 +75,9 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { password, id, ...updateData } = body;
 
-    // Check password
-    if (password !== process.env.EXPERT_SERVICES_PASSWORD) {
+    // Check admin auth header or password
+    const adminAuth = request.headers.get('x-admin-auth');
+    if (adminAuth !== 'true' && password !== process.env.EXPERT_SERVICES_PASSWORD) {
       return NextResponse.json(
         { success: false, error: 'Invalid password' },
         { status: 401 }
@@ -106,8 +122,9 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get('id');
     const password = searchParams.get('password');
 
-    // Check password
-    if (password !== process.env.EXPERT_SERVICES_PASSWORD) {
+    // Check admin auth header or password
+    const adminAuth = request.headers.get('x-admin-auth');
+    if (adminAuth !== 'true' && password !== process.env.EXPERT_SERVICES_PASSWORD) {
       return NextResponse.json(
         { success: false, error: 'Invalid password' },
         { status: 401 }
