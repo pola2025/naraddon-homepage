@@ -25,6 +25,12 @@ interface DashboardStats {
     tablet: number;
     unknown: number;
   };
+  trafficSourceStats?: {
+    direct: number;
+    search: number;
+    social: number;
+    other: number;
+  };
   topReferrers?: Array<{
     domain: string;
     count: number;
@@ -401,32 +407,73 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* 유입 경로 분석 */}
+                {/* 유입 타입 분석 */}
                 <div className="bg-white rounded-lg shadow">
                   <div className="px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-lg font-semibold text-gray-900">주요 유입 경로 (상위 10개)</h2>
+                    <h2 className="text-lg font-semibold text-gray-900">유입 타입</h2>
                   </div>
                   <div className="p-6">
-                    {stats?.topReferrers && stats.topReferrers.length > 0 ? (
+                    {stats?.trafficSourceStats && (
                       <ResponsiveContainer width="100%" height={300}>
-                        <BarChart
-                          data={stats.topReferrers}
-                          layout="vertical"
-                          margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis type="number" />
-                          <YAxis dataKey="domain" type="category" width={90} />
+                        <PieChart>
+                          <Pie
+                            data={[
+                              { name: '직접 유입', value: stats.trafficSourceStats.direct, color: '#8B5CF6' },
+                              { name: '검색 엔진', value: stats.trafficSourceStats.search, color: '#EC4899' },
+                              { name: 'SNS', value: stats.trafficSourceStats.social, color: '#F59E0B' },
+                              { name: '기타', value: stats.trafficSourceStats.other, color: '#6B7280' },
+                            ].filter(item => item.value > 0)}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={100}
+                            label={(entry) => `${entry.name}: ${entry.value}회`}
+                          >
+                            {[
+                              { name: '직접 유입', value: stats.trafficSourceStats.direct, color: '#8B5CF6' },
+                              { name: '검색 엔진', value: stats.trafficSourceStats.search, color: '#EC4899' },
+                              { name: 'SNS', value: stats.trafficSourceStats.social, color: '#F59E0B' },
+                              { name: '기타', value: stats.trafficSourceStats.other, color: '#6B7280' },
+                            ].filter(item => item.value > 0).map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
                           <Tooltip />
-                          <Bar dataKey="count" fill="#8B5CF6" />
-                        </BarChart>
+                        </PieChart>
                       </ResponsiveContainer>
-                    ) : (
-                      <div className="flex items-center justify-center h-[300px] text-gray-500">
-                        외부 유입 경로 데이터가 없습니다
-                      </div>
                     )}
                   </div>
+                </div>
+              </div>
+
+              {/* 상세 유입 경로 */}
+              <div className="bg-white rounded-lg shadow mb-8">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h2 className="text-lg font-semibold text-gray-900">상세 유입 경로 (상위 10개)</h2>
+                  <p className="text-sm text-gray-500 mt-1">검색 엔진, SNS, 블로그 등 외부 유입 도메인</p>
+                </div>
+                <div className="p-6">
+                  {stats?.topReferrers && stats.topReferrers.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={400}>
+                      <BarChart
+                        data={stats.topReferrers}
+                        layout="vertical"
+                        margin={{ top: 5, right: 30, left: 150, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" />
+                        <YAxis dataKey="domain" type="category" width={140} />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="count" fill="#8B5CF6" name="방문 횟수" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-[400px] text-gray-500">
+                      외부 유입 경로 데이터가 없습니다
+                    </div>
+                  )}
                 </div>
               </div>
 

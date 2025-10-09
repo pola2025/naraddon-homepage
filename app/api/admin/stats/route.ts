@@ -133,7 +133,26 @@ export async function GET(request: NextRequest) {
       unknown: 0
     };
 
+    /**
+     * 유입경로 분석
+     *
+     * @purpose 방문자가 어디서 유입되었는지 분석
+     * @context referer 헤더 기반으로 직접/검색/SNS/기타 분류
+     */
     const referrerStats: { [key: string]: number } = {};
+    const trafficSourceStats: { [key: string]: number } = {
+      direct: 0,      // 직접 유입 (Vercel 포함)
+      search: 0,      // 검색 엔진
+      social: 0,      // SNS
+      other: 0        // 기타
+    };
+
+    // 검색 엔진 도메인
+    const searchEngines = ['google.', 'naver.', 'daum.', 'bing.', 'yahoo.', 'duckduckgo.'];
+    // SNS 도메인
+    const socialMedia = ['instagram.', 'facebook.', 'twitter.', 'linkedin.', 'youtube.', 'kakao.', 't.co'];
+    // Vercel 도메인
+    const vercelDomains = ['vercel.app', 'vercel.com'];
 
     allVisits.forEach((visit: any) => {
       // 디바이스 타입 분석
@@ -156,21 +175,59 @@ export async function GET(request: NextRequest) {
       }
 
       // 유입경로 분석
-      if (visit.referer) {
+      if (!visit.referer || visit.referer === '') {
+        // 직접 유입 (referer 없음)
+        trafficSourceStats.direct++;
+      } else {
         try {
           const refererUrl = new URL(visit.referer);
           const refererDomain = refererUrl.hostname;
 
           // 자체 도메인 필터링 (내부 이동은 제외)
-          if (!refererDomain.includes('naraddon.com') && !refererDomain.includes('localhost')) {
+          if (refererDomain.includes('naraddon.com') || refererDomain.includes('localhost')) {
+            // 내부 이동은 무시
+            return;
+          }
+
+          // Vercel 확인 (직접 유입으로 분류)
+          if (vercelDomains.some(domain => refererDomain.includes(domain))) {
+            trafficSourceStats.direct++;
+            // Vercel은 유입경로 차트에 포함하지 않음
+            return;
+          }
+
+          // 검색 엔진 확인
+          if (searchEngines.some(engine => refererDomain.includes(engine))) {
+            trafficSourceStats.search++;
             if (referrerStats[refererDomain]) {
               referrerStats[refererDomain]++;
             } else {
               referrerStats[refererDomain] = 1;
             }
+            return;
+          }
+
+          // SNS 확인
+          if (socialMedia.some(social => refererDomain.includes(social))) {
+            trafficSourceStats.social++;
+            if (referrerStats[refererDomain]) {
+              referrerStats[refererDomain]++;
+            } else {
+              referrerStats[refererDomain] = 1;
+            }
+            return;
+          }
+
+          // 기타
+          trafficSourceStats.other++;
+          if (referrerStats[refererDomain]) {
+            referrerStats[refererDomain]++;
+          } else {
+            referrerStats[refererDomain] = 1;
           }
         } catch (e) {
-          // URL 파싱 실패 시 무시
+          // URL 파싱 실패 시 기타로 분류
+          trafficSourceStats.other++;
         }
       }
     });
@@ -218,6 +275,7 @@ export async function GET(request: NextRequest) {
         total: totalVisits
       },
       deviceStats,
+      trafficSourceStats,
       topReferrers
     });
   } catch (error) {
@@ -243,6 +301,12 @@ export async function GET(request: NextRequest) {
         desktop: 0,
         tablet: 0,
         unknown: 0
+      },
+      trafficSourceStats: {
+        direct: 0,
+        search: 0,
+        social: 0,
+        other: 0
       },
       topReferrers: [],
       notice: 'MongoDB 연결 대기 중입니다. 잠시 후 새로고침해주세요.'
