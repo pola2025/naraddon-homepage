@@ -35,6 +35,10 @@ interface DashboardStats {
     domain: string;
     count: number;
   }>;
+  topPages?: Array<{
+    pathname: string;
+    count: number;
+  }>;
 }
 
 interface Activity {
@@ -447,33 +451,66 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* 상세 유입 경로 */}
-              <div className="bg-white rounded-lg shadow mb-8">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h2 className="text-lg font-semibold text-gray-900">상세 유입 경로 (상위 10개)</h2>
-                  <p className="text-sm text-gray-500 mt-1">검색 엔진, SNS, 블로그 등 외부 유입 도메인</p>
+              {/* 분석 차트 그리드 */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                {/* 상세 유입 경로 */}
+                <div className="bg-white rounded-lg shadow">
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <h2 className="text-lg font-semibold text-gray-900">상세 유입 경로 (상위 10개)</h2>
+                    <p className="text-sm text-gray-500 mt-1">검색 엔진, SNS, 블로그 등 외부 유입 도메인</p>
+                  </div>
+                  <div className="p-6">
+                    {stats?.topReferrers && stats.topReferrers.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={400}>
+                        <BarChart
+                          data={stats.topReferrers}
+                          layout="vertical"
+                          margin={{ top: 5, right: 30, left: 120, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis type="number" />
+                          <YAxis dataKey="domain" type="category" width={110} />
+                          <Tooltip />
+                          <Legend />
+                          <Bar dataKey="count" fill="#8B5CF6" name="방문 횟수" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex items-center justify-center h-[400px] text-gray-500">
+                        외부 유입 경로 데이터가 없습니다
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="p-6">
-                  {stats?.topReferrers && stats.topReferrers.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={400}>
-                      <BarChart
-                        data={stats.topReferrers}
-                        layout="vertical"
-                        margin={{ top: 5, right: 30, left: 150, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" />
-                        <YAxis dataKey="domain" type="category" width={140} />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="count" fill="#8B5CF6" name="방문 횟수" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="flex items-center justify-center h-[400px] text-gray-500">
-                      외부 유입 경로 데이터가 없습니다
-                    </div>
-                  )}
+
+                {/* 인기 페이지 */}
+                <div className="bg-white rounded-lg shadow">
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <h2 className="text-lg font-semibold text-gray-900">인기 페이지 (상위 10개)</h2>
+                    <p className="text-sm text-gray-500 mt-1">가장 많이 방문된 페이지</p>
+                  </div>
+                  <div className="p-6">
+                    {stats?.topPages && stats.topPages.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={400}>
+                        <BarChart
+                          data={stats.topPages}
+                          layout="vertical"
+                          margin={{ top: 5, right: 30, left: 120, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis type="number" />
+                          <YAxis dataKey="pathname" type="category" width={110} />
+                          <Tooltip />
+                          <Legend />
+                          <Bar dataKey="count" fill="#10B981" name="페이지뷰" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex items-center justify-center h-[400px] text-gray-500">
+                        페이지뷰 데이터가 없습니다
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 

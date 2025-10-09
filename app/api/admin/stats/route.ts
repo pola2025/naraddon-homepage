@@ -238,6 +238,31 @@ export async function GET(request: NextRequest) {
       .slice(0, 10)
       .map(([domain, count]) => ({ domain, count }));
 
+    /**
+     * 페이지뷰 분석
+     *
+     * @purpose 어떤 페이지가 가장 많이 방문되었는지 분석
+     * @context pathname 기반으로 페이지별 방문 횟수 집계
+     */
+    const pageViewStats: { [key: string]: number } = {};
+
+    allVisits.forEach((visit: any) => {
+      if (visit.pathname) {
+        const pathname = visit.pathname;
+        if (pageViewStats[pathname]) {
+          pageViewStats[pathname]++;
+        } else {
+          pageViewStats[pathname] = 1;
+        }
+      }
+    });
+
+    // 상위 10개 페이지만 선택
+    const topPages = Object.entries(pageViewStats)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([pathname, count]) => ({ pathname, count }));
+
     // 최근 활동 통합 및 정렬
     const recentActivities = [
       ...recentUsers.map(user => ({
@@ -276,7 +301,8 @@ export async function GET(request: NextRequest) {
       },
       deviceStats,
       trafficSourceStats,
-      topReferrers
+      topReferrers,
+      topPages
     });
   } catch (error) {
     console.error('Admin stats error:', error);
@@ -309,6 +335,7 @@ export async function GET(request: NextRequest) {
         other: 0
       },
       topReferrers: [],
+      topPages: [],
       notice: 'MongoDB 연결 대기 중입니다. 잠시 후 새로고침해주세요.'
     });
   }
