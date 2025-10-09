@@ -35,52 +35,43 @@ export default function ExaminerDashboard() {
     fetchExaminerStats();
   }, []);
 
+  /**
+   * 심사관 통계 데이터 조회
+   *
+   * @purpose 실시간 심사관 활동 통계를 서버에서 가져오기
+   * @context MongoDB에서 배정된 상담, 완료 상담, 검토 대기, 평균 평점 조회
+   * @note API 엔드포인트: GET /api/examiner/stats
+   */
   const fetchExaminerStats = async () => {
     try {
       setLoading(true);
-      // 실제 API 호출로 교체 필요
-      // const data = await api.get<ExaminerStats>('/examiner/stats')
-      // setStats(data)
+      setError('');
 
-      // 임시 더미 데이터
-      setStats({
-        assignedConsultations: 24,
-        completedConsultations: 156,
-        pendingReviews: 5,
-        averageRating: 4.8,
-        recentConsultations: [
-          {
-            id: '1',
-            clientName: '김대표',
-            companyName: '(주)테크스타트',
-            consultationType: 'R&D 자금 상담',
-            status: 'in_progress',
-            scheduledDate: '2024-01-21 10:00',
-            amount: '5억원',
-          },
-          {
-            id: '2',
-            clientName: '이사장',
-            companyName: '스마트팩토리',
-            consultationType: '수출바우처 상담',
-            status: 'pending',
-            scheduledDate: '2024-01-21 14:00',
-            amount: '3억원',
-          },
-          {
-            id: '3',
-            clientName: '박대표',
-            companyName: '그린에너지',
-            consultationType: '창업지원금 상담',
-            status: 'review',
-            scheduledDate: '2024-01-20 16:00',
-            amount: '1억원',
-          },
-        ],
+      const response = await fetch('/api/examiner/stats', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
       });
+
+      if (!response.ok) {
+        throw new Error(`API 요청 실패: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // API 응답 데이터 검증
+      if (data.notice) {
+        // MongoDB 연결 대기 중인 경우
+        console.warn('[Examiner Dashboard]', data.notice);
+        setError(data.notice);
+      }
+
+      setStats(data);
     } catch (error) {
       console.error('Examiner stats error:', error);
-      setError('대시보드 데이터를 불러오는데 실패했습니다.');
+      setError('대시보드 데이터를 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.');
     } finally {
       setLoading(false);
     }
