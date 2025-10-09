@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { api } from '@/lib/api-client';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,10 +35,18 @@ export default function ExaminerDashboard() {
     fetchExaminerStats();
   }, []);
 
+  /**
+   * 심사관 통계 데이터 조회
+   *
+   * @purpose 실시간 심사관 활동 통계를 서버에서 가져오기
+   * @context MongoDB에서 배정된 상담, 완료 상담, 검토 대기, 평균 평점 조회
+   * @note API 엔드포인트: GET /api/examiner/stats
+   */
   const fetchExaminerStats = async () => {
     try {
       setLoading(true);
-      // 실제 API 호출로 변경
+      setError('');
+
       const response = await fetch('/api/examiner/stats', {
         method: 'GET',
         headers: {
@@ -47,14 +56,22 @@ export default function ExaminerDashboard() {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`API 요청 실패: ${response.status}`);
       }
 
-      const data: ExaminerStats = await response.json();
+      const data = await response.json();
+
+      // API 응답 데이터 검증
+      if (data.notice) {
+        // MongoDB 연결 대기 중인 경우
+        console.warn('[Examiner Dashboard]', data.notice);
+        setError(data.notice);
+      }
+
       setStats(data);
     } catch (error) {
       console.error('Examiner stats error:', error);
-      setError('대시보드 데이터를 불러오는데 실패했습니다.');
+      setError('대시보드 데이터를 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.');
     } finally {
       setLoading(false);
     }
