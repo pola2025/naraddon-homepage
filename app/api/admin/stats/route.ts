@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../auth-options';
 import clientPromise from '@/lib/mongodb-client';
+import { UAParser } from 'ua-parser-js';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,7 +58,8 @@ export async function GET(request: NextRequest) {
       todayVisits,
       yesterdayVisits,
       monthlyVisits,
-      totalVisits
+      totalVisits,
+      allVisits
     ] = await Promise.all([
       // 전체 사용자 수
       db.collection('users').countDocuments(),
@@ -109,8 +111,75 @@ export async function GET(request: NextRequest) {
         .countDocuments({ timestamp: { $gte: thisMonth } }),
 
       // 전체 방문자 수
-      db.collection('page-visits').countDocuments()
+      db.collection('page-visits').countDocuments(),
+
+      // 방문 기록 상세 (디바이스 및 유입경로 분석용)
+      db.collection('page-visits')
+        .find({})
+        .project({ userAgent: 1, referer: 1, timestamp: 1 })
+        .toArray()
     ]);
+
+    /**
+     * 디바이스 타입 분석
+     *
+     * @purpose 방문자의 디바이스 타입(PC/Mobile/Tablet)을 분석하여 통계 제공
+     * @context User-Agent 파싱을 통해 디바이스 타입 식별
+     */
+    const deviceStats: { [key: string]: number } = {
+      mobile: 0,
+      desktop: 0,
+      tablet: 0,
+      unknown: 0
+    };
+
+    const referrerStats: { [key: string]: number } = {};
+
+    allVisits.forEach((visit: any) => {
+      // 디바이스 타입 분석
+      if (visit.userAgent) {
+        const parser = new UAParser(visit.userAgent);
+        const deviceType = parser.getDevice().type;
+
+        if (deviceType === 'mobile') {
+          deviceStats.mobile++;
+        } else if (deviceType === 'tablet') {
+          deviceStats.tablet++;
+        } else if (!deviceType) {
+          // type이 undefined면 일반적으로 desktop
+          deviceStats.desktop++;
+        } else {
+          deviceStats.unknown++;
+        }
+      } else {
+        deviceStats.unknown++;
+      }
+
+      // 유입경로 분석
+      if (visit.referer) {
+        try {
+          const refererUrl = new URL(visit.referer);
+          const refererDomain = refererUrl.hostname;
+
+          // 자체 도메인 필터링 (내부 이동은 제외)
+          if (!refererDomain.includes('naraddon.com') && !refererDomain.includes('localhost')) {
+            if (referrerStats[refererDomain]) {
+              referrerStats[refererDomain]++;
+            } else {
+              referrerStats[refererDomain] = 1;
+            }
+          }
+        } catch (e) {
+          // URL 파싱 실패 시 무시
+        }
+      }
+    });
+
+    // 상위 10개 유입경로만 선택
+    const topReferrers = Object.entries(referrerStats)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([domain, count]) => ({ domain, count }));
 
     // 최근 활동 통합 및 정렬
     const recentActivities = [
@@ -147,7 +216,9 @@ export async function GET(request: NextRequest) {
         yesterday: yesterdayVisits,
         thisMonth: monthlyVisits,
         total: totalVisits
-      }
+      },
+      deviceStats,
+      topReferrers
     });
   } catch (error) {
     console.error('Admin stats error:', error);
@@ -167,6 +238,13 @@ export async function GET(request: NextRequest) {
         thisMonth: 0,
         total: 0
       },
+      deviceStats: {
+        mobile: 0,
+        desktop: 0,
+        tablet: 0,
+        unknown: 0
+      },
+      topReferrers: [],
       notice: 'MongoDB 연결 대기 중입니다. 잠시 후 새로고침해주세요.'
     });
   }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface DashboardStats {
   totalUsers: number;
@@ -18,6 +19,16 @@ interface DashboardStats {
     thisMonth: number;
     total: number;
   };
+  deviceStats?: {
+    mobile: number;
+    desktop: number;
+    tablet: number;
+    unknown: number;
+  };
+  topReferrers?: Array<{
+    domain: string;
+    count: number;
+  }>;
 }
 
 interface Activity {
@@ -345,6 +356,76 @@ export default function AdminDashboard() {
                         {stats?.totalTubeVideos.toLocaleString()}
                       </p>
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 방문 분석 차트 */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                {/* 디바이스 타입 분석 */}
+                <div className="bg-white rounded-lg shadow">
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <h2 className="text-lg font-semibold text-gray-900">디바이스 타입</h2>
+                  </div>
+                  <div className="p-6">
+                    {stats?.deviceStats && (
+                      <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                          <Pie
+                            data={[
+                              { name: '모바일', value: stats.deviceStats.mobile, color: '#3B82F6' },
+                              { name: '데스크톱', value: stats.deviceStats.desktop, color: '#10B981' },
+                              { name: '태블릿', value: stats.deviceStats.tablet, color: '#F59E0B' },
+                              { name: '알 수 없음', value: stats.deviceStats.unknown, color: '#6B7280' },
+                            ].filter(item => item.value > 0)}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={100}
+                            label={(entry) => `${entry.name}: ${entry.value}회`}
+                          >
+                            {[
+                              { name: '모바일', value: stats.deviceStats.mobile, color: '#3B82F6' },
+                              { name: '데스크톱', value: stats.deviceStats.desktop, color: '#10B981' },
+                              { name: '태블릿', value: stats.deviceStats.tablet, color: '#F59E0B' },
+                              { name: '알 수 없음', value: stats.deviceStats.unknown, color: '#6B7280' },
+                            ].filter(item => item.value > 0).map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </div>
+
+                {/* 유입 경로 분석 */}
+                <div className="bg-white rounded-lg shadow">
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <h2 className="text-lg font-semibold text-gray-900">주요 유입 경로 (상위 10개)</h2>
+                  </div>
+                  <div className="p-6">
+                    {stats?.topReferrers && stats.topReferrers.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart
+                          data={stats.topReferrers}
+                          layout="vertical"
+                          margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis type="number" />
+                          <YAxis dataKey="domain" type="category" width={90} />
+                          <Tooltip />
+                          <Bar dataKey="count" fill="#8B5CF6" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex items-center justify-center h-[300px] text-gray-500">
+                        외부 유입 경로 데이터가 없습니다
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
