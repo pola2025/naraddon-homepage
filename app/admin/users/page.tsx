@@ -366,7 +366,10 @@ export default function UsersManagementPage() {
         <DataTable
           data={filteredUsers}
           columns={columns}
-          onRowClick={(user) => setSelectedUser(user)}
+          onRowClick={(user) => {
+            setViewingUser(user);
+            setShowDetailModal(true);
+          }}
           searchPlaceholder="이름, 이메일, 회사 검색..."
           actions={(user) => (
             <div className="flex items-center gap-2">
