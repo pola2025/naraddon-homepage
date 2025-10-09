@@ -371,7 +371,8 @@ export default function UsersManagementPage() {
           actions={(user) => (
             <div className="flex items-center gap-2">
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   setViewingUser(user);
                   setShowDetailModal(true);
                 }}
@@ -382,7 +383,8 @@ export default function UsersManagementPage() {
               </button>
               {user.role !== UserRole.ADMIN && user.role !== 'super_admin' && (
                 <button
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     if (confirm(`${user.name}님을 관리자로 지정하시겠습니까?`)) {
                       handleRoleChangeSubmit(user.id, UserRole.ADMIN);
                     }
@@ -394,7 +396,10 @@ export default function UsersManagementPage() {
               )}
               {user.role !== UserRole.EXAMINER && (
                 <button
-                  onClick={() => setExaminerModalUser(user)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExaminerModalUser(user);
+                  }}
                   className="text-purple-600 hover:text-purple-900 text-sm font-medium"
                 >
                   심사관 지정

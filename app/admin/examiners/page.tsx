@@ -517,9 +517,21 @@ export default function ExaminersPage() {
       {/* Detail Modal - 상세보기 */}
       {showDetailModal && viewingExaminer && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
             <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">심사관 상세 정보</h2>
+              {/* 상단 헤더와 닫기 버튼 */}
+              <div className="flex items-center justify-between mb-6 sticky top-0 bg-white pb-4 border-b">
+                <h2 className="text-xl font-bold text-gray-900">심사관 상세 정보</h2>
+                <button
+                  onClick={handleCloseDetailModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  aria-label="닫기"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
 
               <div className="space-y-6">
                 {/* 프로필 이미지 */}
