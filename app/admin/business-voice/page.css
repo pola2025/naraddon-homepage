@@ -661,6 +661,91 @@
 
   .posts-table th,
   .posts-table td {
-    padding: 8px;
+    padding: 8px 4px;
+    font-size: 12px;
+  }
+
+  /* 테이블 가로 스크롤 개선 */
+  .posts-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    display: block;
+  }
+
+  .posts-table table {
+    min-width: 800px; /* 최소 너비 보장 */
+  }
+
+  /* 중요 컬럼 고정 너비 */
+  .posts-table th:first-child,
+  .posts-table td:first-child {
+    min-width: 40px;
+  }
+
+  /* 제목 컬럼 */
+  .title-cell {
+    min-width: 200px;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* 작은 컬럼들 */
+  .posts-table th:not(:nth-child(2)),
+  .posts-table td:not(:nth-child(2)) {
+    min-width: 80px;
+    white-space: nowrap;
+  }
+}
+
+/* 매우 작은 화면에서 카드 형식으로 전환 */
+@media (max-width: 480px) {
+  .posts-table table,
+  .posts-table thead,
+  .posts-table tbody,
+  .posts-table tr,
+  .posts-table th,
+  .posts-table td {
+    display: block;
+  }
+
+  .posts-table thead {
+    display: none;
+  }
+
+  .posts-table tr {
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    background: white;
+  }
+
+  .posts-table td {
+    padding: 8px 10px;
+    border: none;
+    position: relative;
+    padding-left: 50%;
+    text-align: right;
+  }
+
+  .posts-table td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 10px;
+    font-weight: 600;
+    text-align: left;
+  }
+
+  .title-cell {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* 버튼들 */
+  .posts-table .edit-btn,
+  .posts-table .delete-btn {
+    width: 100%;
+    margin: 5px 0;
   }
 }
