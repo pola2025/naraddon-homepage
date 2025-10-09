@@ -12,7 +12,8 @@ import {
   CogIcon,
   ArrowRightOnRectangleIcon,
   BriefcaseIcon,
-  ShieldCheckIcon
+  ShieldCheckIcon,
+  DocumentTextIcon
 } from '@heroicons/react/24/outline';
 
 interface AdminSidebarProps {
@@ -41,6 +42,11 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
           name: '정책소식',
           href: '/policy-news/admin',
           icon: NewspaperIcon,
+        },
+        {
+          name: '정책분석',
+          href: '/admin/policy-analysis',
+          icon: DocumentTextIcon,
         },
         {
           name: '사업자 목소리 - 똔톡, 묻고 답하기',
