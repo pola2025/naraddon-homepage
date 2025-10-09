@@ -53,22 +53,33 @@ export const authOptions: NextAuthOptions = {
         const existingUser = await usersCollection.findOne({ email: user.email });
 
         if (existingUser) {
-          // 기존 사용자 업데이트 (최근 로그인 시간 등)
+          // 기존 사용자 업데이트 (최근 로그인 시간 + 전화번호)
+          const mobile = (profile as any)?.response?.mobile || (profile as any)?.response?.mobile_e164;
+
+          const updateData: any = {
+            lastLoginAt: new Date(),
+            updatedAt: new Date(),
+          };
+
+          // 전화번호가 있으면 추가
+          if (mobile) {
+            updateData.mobile = mobile;
+          }
+
           await usersCollection.updateOne(
             { email: user.email },
-            {
-              $set: {
-                lastLoginAt: new Date(),
-                updatedAt: new Date(),
-              }
-            }
+            { $set: updateData }
           );
-          console.log('[Auth] Updated existing user:', user.email);
+          console.log('[Auth] Updated existing user:', user.email, 'Mobile:', mobile || 'N/A');
         } else {
           // 신규 사용자 생성
+          // 네이버 프로필에서 전화번호 추출
+          const mobile = (profile as any)?.response?.mobile || (profile as any)?.response?.mobile_e164;
+
           const newUser = {
             email: user.email,
             name: user.name || '사용자',
+            mobile: mobile, // 네이버 OAuth에서 받은 전화번호
             provider: account?.provider || 'naver',
             providerId: (profile as any)?.response?.id || user.id,
             role: 'user', // 기본 역할
@@ -82,7 +93,7 @@ export const authOptions: NextAuthOptions = {
           };
 
           await usersCollection.insertOne(newUser);
-          console.log('[Auth] Created new user:', user.email);
+          console.log('[Auth] Created new user:', user.email, 'Mobile:', mobile || 'N/A');
         }
 
         return true;
