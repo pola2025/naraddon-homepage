@@ -42,6 +42,11 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
           icon: NewspaperIcon,
         },
         {
+          name: '정책분석',
+          href: '/admin/policy-analysis',
+          icon: NewspaperIcon,
+        },
+        {
           name: '사업자 목소리 - 똔톡, 묻고 답하기',
           href: '/admin/business-voice',
           icon: MicrophoneIcon,
