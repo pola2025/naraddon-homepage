@@ -62,6 +62,13 @@ export default function AdminPolicyAnalysisPage() {
   });
   const [submitting, setSubmitting] = useState(false);
 
+  // 조회수 조정 관련 상태
+  const [showViewsModal, setShowViewsModal] = useState(false);
+  const [viewsPost, setViewsPost] = useState<PolicyAnalysisPost | null>(null);
+  const [newViews, setNewViews] = useState(0);
+  const [viewsPassword, setViewsPassword] = useState('');
+  const [updatingViews, setUpdatingViews] = useState(false);
+
   useEffect(() => {
     fetchPosts();
     fetchExaminers();
@@ -221,6 +228,92 @@ export default function AdminPolicyAnalysisPage() {
     }
   };
 
+  /**
+   * 조회수 조정 모달 열기
+   *
+   * @purpose 관리자가 게시글 조회수를 직접 수정할 수 있도록 함
+   * @context 조회수를 클릭하면 모달이 열리고 새로운 조회수 입력 가능
+   */
+  const handleViewsClick = (post: PolicyAnalysisPost) => {
+    setViewsPost(post);
+    setNewViews(post.views);
+    setViewsPassword('');
+    setShowViewsModal(true);
+  };
+
+  /**
+   * 조회수 업데이트
+   *
+   * @purpose 입력받은 조회수로 게시글 업데이트
+   * @context 기존 게시글 데이터를 먼저 조회하고 views만 변경하여 PUT
+   * @note 비밀번호 검증 필요, 기존 데이터 보존
+   */
+  const handleViewsUpdate = async () => {
+    if (!viewsPost) return;
+    if (!viewsPassword.trim()) {
+      alert('비밀번호를 입력해주세요.');
+      return;
+    }
+    if (newViews < 0) {
+      alert('조회수는 0 이상이어야 합니다.');
+      return;
+    }
+
+    setUpdatingViews(true);
+    try {
+      // 먼저 기존 게시글 전체 데이터 조회
+      const getResponse = await fetch(`/api/policy-analysis/${viewsPost._id}`);
+      const getData = await getResponse.json();
+
+      if (!getResponse.ok || !getData.post) {
+        alert('게시글 정보를 불러오는데 실패했습니다.');
+        setUpdatingViews(false);
+        return;
+      }
+
+      const currentPost = getData.post;
+
+      // 기존 데이터를 유지하면서 views만 변경
+      const response = await fetch(`/api/policy-analysis/${viewsPost._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: currentPost.title,
+          content: currentPost.content,
+          category: currentPost.category,
+          excerpt: currentPost.excerpt || '',
+          thumbnail: currentPost.thumbnail || '',
+          tags: currentPost.tags || [],
+          examinerKey: currentPost.examiner?.key,
+          isStructured: currentPost.isStructured,
+          sections: currentPost.sections || [],
+          images: currentPost.images || [],
+          views: newViews,
+          password: viewsPassword.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('조회수가 업데이트되었습니다.');
+        setShowViewsModal(false);
+        setViewsPost(null);
+        setViewsPassword('');
+        fetchPosts();
+      } else {
+        alert(data.message || '조회수 업데이트에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Error updating views:', error);
+      alert('조회수 업데이트 중 오류가 발생했습니다.');
+    } finally {
+      setUpdatingViews(false);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     try {
       return new Date(dateString).toLocaleDateString('ko-KR', {
@@ -317,7 +410,18 @@ export default function AdminPolicyAnalysisPage() {
                     <div style={{ fontSize: '12px', color: '#999' }}>{post.examiner.companyName}</div>
                   </td>
                   <td style={{ padding: '12px', fontSize: '14px' }}>{post.category}</td>
-                  <td style={{ padding: '12px', textAlign: 'center', fontSize: '14px' }}>
+                  <td
+                    style={{
+                      padding: '12px',
+                      textAlign: 'center',
+                      fontSize: '14px',
+                      color: '#2196F3',
+                      cursor: 'pointer',
+                      textDecoration: 'underline'
+                    }}
+                    onClick={() => handleViewsClick(post)}
+                    title="클릭하여 조회수 수정"
+                  >
                     {post.views.toLocaleString()}
                   </td>
                   <td style={{ padding: '12px', textAlign: 'center', fontSize: '14px' }}>
@@ -571,6 +675,121 @@ export default function AdminPolicyAnalysisPage() {
                 }}
               >
                 {submitting ? '등록 중...' : '등록'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 조회수 조정 모달 */}
+      {showViewsModal && viewsPost && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '24px',
+            width: '90%',
+            maxWidth: '500px',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+          }}>
+            <h2 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: '600' }}>
+              조회수 조정
+            </h2>
+            <p style={{ marginBottom: '16px', color: '#666', fontSize: '14px' }}>
+              &quot;{viewsPost.title}&quot;
+            </p>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>
+                새 조회수
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={newViews}
+                onChange={(e) => setNewViews(parseInt(e.target.value) || 0)}
+                placeholder="조회수를 입력하세요"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '1px solid #ddd',
+                  borderRadius: '6px',
+                  fontSize: '14px'
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !updatingViews) {
+                    handleViewsUpdate();
+                  }
+                }}
+              />
+            </div>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>
+                관리자 비밀번호
+              </label>
+              <input
+                type="password"
+                value={viewsPassword}
+                onChange={(e) => setViewsPassword(e.target.value)}
+                placeholder="비밀번호를 입력하세요"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '1px solid #ddd',
+                  borderRadius: '6px',
+                  fontSize: '14px'
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !updatingViews) {
+                    handleViewsUpdate();
+                  }
+                }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setShowViewsModal(false);
+                  setViewsPost(null);
+                  setViewsPassword('');
+                }}
+                disabled={updatingViews}
+                style={{
+                  padding: '10px 20px',
+                  background: '#999',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: updatingViews ? 'not-allowed' : 'pointer',
+                  opacity: updatingViews ? 0.6 : 1
+                }}
+              >
+                취소
+              </button>
+              <button
+                onClick={handleViewsUpdate}
+                disabled={updatingViews}
+                style={{
+                  padding: '10px 20px',
+                  background: '#2196F3',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: updatingViews ? 'not-allowed' : 'pointer',
+                  opacity: updatingViews ? 0.6 : 1
+                }}
+              >
+                {updatingViews ? '업데이트 중...' : '업데이트'}
               </button>
             </div>
           </div>

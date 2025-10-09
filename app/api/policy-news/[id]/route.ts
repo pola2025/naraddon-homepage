@@ -59,7 +59,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { title, content, category, excerpt, thumbnail, tags, isMain, isPinned, badge } = body;
+    const { title, content, category, excerpt, thumbnail, tags, isMain, isPinned, badge, views } = body;
 
     if (!title || !title.trim() || !content || !content.trim()) {
       return NextResponse.json({ message: '제목과 내용을 입력해주세요.' }, { status: 400 });
@@ -76,19 +76,31 @@ export async function PUT(request: Request, { params }: RouteParams) {
           .filter(Boolean)
       : [];
 
+    /**
+     * 업데이트 데이터 생성
+     *
+     * @purpose 관리자가 게시글 수정 시 조회수도 함께 업데이트 가능하도록 함
+     * @context views가 제공된 경우에만 업데이트
+     */
+    const updateData: any = {
+      title: title.trim(),
+      content,
+      category: category?.trim() || '기타',
+      excerpt: excerpt?.trim() || '',
+      thumbnail: thumbnail?.trim() || '',
+      tags: normalizedTags,
+      isMain: Boolean(isMain),
+      isPinned: Boolean(isPinned),
+      badge: badge?.trim() || '',
+    };
+
+    if (typeof views === 'number' && views >= 0) {
+      updateData.views = views;
+    }
+
     const updated = await PolicyNewsPost.findByIdAndUpdate(
       params.id,
-      {
-        title: title.trim(),
-        content,
-        category: category?.trim() || '기타',
-        excerpt: excerpt?.trim() || '',
-        thumbnail: thumbnail?.trim() || '',
-        tags: normalizedTags,
-        isMain: Boolean(isMain),
-        isPinned: Boolean(isPinned),
-        badge: badge?.trim() || '',
-      },
+      updateData,
       { new: true }
     ).lean();
 

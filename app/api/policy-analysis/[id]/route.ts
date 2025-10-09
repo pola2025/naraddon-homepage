@@ -67,7 +67,8 @@ export async function PUT(request: Request, { params }: RouteParams) {
       examinerKey,
       isStructured,
       sections,
-      images
+      images,
+      views
     } = body;
 
     // 비밀번호 검증
@@ -150,6 +151,16 @@ export async function PUT(request: Request, { params }: RouteParams) {
       sections: normalizedSections,
       images: normalizedImages,
     };
+
+    /**
+     * 조회수 업데이트
+     *
+     * @purpose 관리자가 조회수를 직접 조정할 수 있도록 함
+     * @context views 값이 제공된 경우에만 업데이트
+     */
+    if (typeof views === 'number' && views >= 0) {
+      updateData.views = views;
+    }
 
     // examiner 정보가 있는 경우에만 업데이트
     if (examinerData) {
