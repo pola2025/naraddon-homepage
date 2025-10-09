@@ -648,7 +648,7 @@ export default function UsersManagementPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-500 mb-1">전화번호</label>
-                      <p className="text-base text-gray-900">{viewingUser.profile.phone || '-'}</p>
+                      <p className="text-base text-gray-900">{viewingUser.mobile || '-'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-500 mb-1">회사</label>

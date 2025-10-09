@@ -78,6 +78,7 @@ export async function GET(request: NextRequest) {
           _id: user._id.toString(),
           email: user.email,
           name: user.name,
+          mobile: user.mobile, // 네이버 OAuth에서 받은 전화번호
           role: user.role || 'user',
           status: user.status || 'active',
           profile: user.profile || {},

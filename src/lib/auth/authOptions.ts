@@ -122,10 +122,30 @@ export const authOptions: NextAuthOptions = {
       console.log('SignIn attempt:', account?.provider);
 
       try {
-        // 신규 가입자 감지 및 알림
         if (account && user.email) {
           const client = await clientPromise;
           const db = client.db('naraddon');
+
+          // 네이버 로그인 시 전화번호 정보 저장
+          if (account.provider === 'naver' && profile) {
+            const naverProfile = profile as any;
+            const mobile = naverProfile.response?.mobile || naverProfile.response?.mobile_e164;
+
+            if (mobile) {
+              // users 컬렉션에 mobile 필드 업데이트
+              await db.collection('users').updateOne(
+                { email: user.email },
+                {
+                  $set: {
+                    mobile: mobile,
+                    updatedAt: new Date()
+                  }
+                },
+                { upsert: true }
+              );
+              console.log('✅ Mobile number saved:', mobile);
+            }
+          }
 
           // 기존 계정이 있는지 확인 (accounts collection에서 확인)
           const existingAccount = await db.collection('accounts').findOne({

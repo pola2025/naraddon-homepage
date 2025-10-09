@@ -25,6 +25,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  mobile?: string;  // 네이버 OAuth에서 받은 전화번호
   role: UserRole;
   status: UserStatus;
   provider: LoginProvider;
