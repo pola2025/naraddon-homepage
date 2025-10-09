@@ -71,6 +71,11 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
       icon: ShieldCheckIcon,
     },
     {
+      name: '심사관 대시보드',
+      href: '/admin/examiner-dashboards',
+      icon: ChartBarIcon,
+    },
+    {
       name: '통계',
       href: '/admin/analytics',
       icon: ChartBarIcon,

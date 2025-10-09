@@ -10,6 +10,8 @@ export const dynamic = 'force-dynamic';
  *
  * @purpose 기업심사관의 상담 활동 통계 제공
  * @context 심사관은 자신에게 배정된 상담의 현황을 실시간으로 확인
+ *          관리자는 examinerEmail 파라미터로 특정 심사관의 통계 조회 가능
+ * @query examinerEmail - (관리자 전용) 조회할 심사관의 이메일
  * @returns 배정된 상담, 완료 상담, 검토 대기, 평균 평점, 최근 상담 목록
  */
 export async function GET(request: NextRequest) {
@@ -40,12 +42,30 @@ export async function GET(request: NextRequest) {
       }, { status: 403 });
     }
 
+    // 조회할 심사관 이메일 결정
+    // 관리자는 URL 파라미터로 특정 심사관 조회 가능
+    const { searchParams } = new URL(request.url);
+    const requestedExaminerEmail = searchParams.get('examinerEmail');
+
+    let targetEmail = userEmail;
+
+    // 관리자가 특정 심사관의 데이터를 요청한 경우
+    if (requestedExaminerEmail && (userRole === 'admin' || userRole === 'super_admin')) {
+      targetEmail = requestedExaminerEmail;
+      console.log('[Examiner Stats API] Admin requesting stats for:', targetEmail);
+    } else if (requestedExaminerEmail && userRole === 'examiner') {
+      // 심사관은 다른 심사관의 데이터를 조회할 수 없음
+      return NextResponse.json({
+        error: 'Forbidden - Examiners can only view their own stats'
+      }, { status: 403 });
+    }
+
     // MongoDB 연결
     const client = await clientPromise;
     const db = client.db('naraddon');
     const consultationsCollection = db.collection('consultations');
 
-    // 병렬로 통계 데이터 수집
+    // 병렬로 통계 데이터 수집 (targetEmail로 조회)
     const [
       assignedConsultations,
       completedConsultations,
@@ -54,25 +74,25 @@ export async function GET(request: NextRequest) {
     ] = await Promise.all([
       // 배정된 상담 수 (현재 진행 중인 상담)
       consultationsCollection.countDocuments({
-        assignedStaffId: userEmail,
+        assignedStaffId: targetEmail,
         status: { $in: ['pending', 'in_progress'] }
       }),
 
       // 완료된 상담 수
       consultationsCollection.countDocuments({
-        assignedStaffId: userEmail,
+        assignedStaffId: targetEmail,
         status: 'completed'
       }),
 
       // 검토 대기 상담 수
       consultationsCollection.countDocuments({
-        assignedStaffId: userEmail,
+        assignedStaffId: targetEmail,
         status: 'review'
       }),
 
       // 최근 상담 목록 (5건)
       consultationsCollection
-        .find({ assignedStaffId: userEmail })
+        .find({ assignedStaffId: targetEmail })
         .sort({ createdAt: -1 })
         .limit(5)
         .toArray()
@@ -82,7 +102,7 @@ export async function GET(request: NextRequest) {
     const ratingsResult = await consultationsCollection.aggregate([
       {
         $match: {
-          assignedStaffId: userEmail,
+          assignedStaffId: targetEmail,
           rating: { $exists: true, $ne: null }
         }
       },
