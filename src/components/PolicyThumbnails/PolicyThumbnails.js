@@ -30,8 +30,17 @@ const categoryLabelMap = {
   '기타': '기타',
 };
 
-const PolicyThumbnails = () => {
-  const { items, isLoading, error, refetch } = usePolicyNews({ limit: 8 });
+/**
+ * PolicyThumbnails 컴포넌트
+ *
+ * @param {Array} initialData - 서버에서 미리 가져온 정책소식 데이터 (optional)
+ * @note initialData가 있으면 API 호출 스킵, 없으면 클라이언트에서 fetch
+ */
+const PolicyThumbnails = ({ initialData }) => {
+  const { items, isLoading, error, refetch } = usePolicyNews({
+    limit: 8,
+    initialData // 서버 데이터 전달
+  });
   const thumbnails = useMemo(() => items.slice(0, 8), [items]);
 
   const renderGrid = () => {

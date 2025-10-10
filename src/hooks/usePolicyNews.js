@@ -105,9 +105,26 @@ export const normalizePolicyNewsItem = (post, index = 0, fallbackImages = FALLBA
   };
 };
 
-export const usePolicyNews = ({ limit = 12, fallbackImages = FALLBACK_IMAGES } = {}) => {
-  const [items, setItems] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+/**
+ * usePolicyNews 훅
+ *
+ * @param {Object} options
+ * @param {number} options.limit - 가져올 게시물 수
+ * @param {Array} options.fallbackImages - 대체 이미지 배열
+ * @param {Array} options.initialData - 서버에서 미리 가져온 데이터 (optional)
+ * @returns {Object} { items, isLoading, error, refetch, meta }
+ */
+export const usePolicyNews = ({ limit = 12, fallbackImages = FALLBACK_IMAGES, initialData } = {}) => {
+  // initialData가 있으면 normalize하여 사용, 없으면 빈 배열
+  const normalized = useMemo(() => {
+    if (initialData && Array.isArray(initialData) && initialData.length > 0) {
+      return initialData.map((post, index) => normalizePolicyNewsItem(post, index, fallbackImages));
+    }
+    return [];
+  }, [initialData, fallbackImages]);
+
+  const [items, setItems] = useState(normalized);
+  const [isLoading, setIsLoading] = useState(!initialData); // initialData 있으면 로딩 안함
   const [error, setError] = useState('');
 
   const fetchPolicyNews = useCallback(async () => {
@@ -145,6 +162,11 @@ export const usePolicyNews = ({ limit = 12, fallbackImages = FALLBACK_IMAGES } =
   }, [fallbackImages, limit]);
 
   useEffect(() => {
+    // initialData가 있으면 API 호출 스킵
+    if (initialData && Array.isArray(initialData) && initialData.length > 0) {
+      return;
+    }
+
     let abortController = new AbortController();
 
     const execute = async () => {
@@ -157,7 +179,7 @@ export const usePolicyNews = ({ limit = 12, fallbackImages = FALLBACK_IMAGES } =
     return () => {
       abortController.abort();
     };
-  }, [fetchPolicyNews]);
+  }, [fetchPolicyNews, initialData]);
 
   const refetch = useCallback(() => {
     return fetchPolicyNews();

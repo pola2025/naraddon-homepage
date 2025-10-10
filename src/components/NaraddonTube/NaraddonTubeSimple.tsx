@@ -19,9 +19,19 @@ interface TubeEntry {
 
 const INITIAL_VIDEO_COUNT = 4; // 초기에 보여줄 비디오 개수
 
-const NaraddonTubeSimple = () => {
-  const [entries, setEntries] = useState<TubeEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+/**
+ * NaraddonTubeSimple 컴포넌트
+ *
+ * @param {Array} initialData - 서버에서 미리 가져온 영상 데이터 (optional)
+ * @note initialData가 있으면 API 호출 스킵, 없으면 클라이언트에서 fetch
+ */
+interface NaraddonTubeSimpleProps {
+  initialData?: TubeEntry[];
+}
+
+const NaraddonTubeSimple: React.FC<NaraddonTubeSimpleProps> = ({ initialData }) => {
+  const [entries, setEntries] = useState<TubeEntry[]>(initialData || []);
+  const [loading, setLoading] = useState(!initialData); // initialData 있으면 로딩 안함
   const [isExpanded, setIsExpanded] = useState(false);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
 
@@ -37,6 +47,11 @@ const NaraddonTubeSimple = () => {
   const displayVideos = isExpanded ? allVideos : allVideos.slice(0, INITIAL_VIDEO_COUNT);
 
   useEffect(() => {
+    // initialData가 있으면 API 호출 스킵
+    if (initialData && Array.isArray(initialData) && initialData.length > 0) {
+      return;
+    }
+
     const fetchVideos = async () => {
       try {
         setLoading(true);
@@ -54,7 +69,7 @@ const NaraddonTubeSimple = () => {
     };
 
     fetchVideos();
-  }, []);
+  }, [initialData]);
 
   const handleVideoClick = (youtubeId: string) => {
     setPlayingVideo(youtubeId);

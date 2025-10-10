@@ -27,7 +27,13 @@ const SectionLoader = () => (
   </div>
 );
 
-function Home() {
+/**
+ * Home 컴포넌트
+ *
+ * @param {Array} initialPolicyNews - 서버에서 미리 가져온 정책소식 데이터
+ * @param {Array} initialTubeVideos - 서버에서 미리 가져온 나라똔튜브 데이터
+ */
+function Home({ initialPolicyNews = [], initialTubeVideos = [] }) {
   // 초기값은 false로 설정 (서버/클라이언트 일치)
   const [showIntro, setShowIntro] = useState(false);
 
@@ -207,10 +213,10 @@ function Home() {
             <TrustSection />
           </Suspense>
           <Suspense fallback={<SectionLoader />}>
-            <PolicyThumbnails />
+            <PolicyThumbnails initialData={initialPolicyNews} />
           </Suspense>
           <Suspense fallback={<SectionLoader />}>
-            <NaraddonTube />
+            <NaraddonTube initialData={initialTubeVideos} />
           </Suspense>
           <Suspense fallback={<SectionLoader />}>
             <SaveSection />
