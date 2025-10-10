@@ -194,11 +194,13 @@ export default function AdminAnalyticsPage() {
     }
   };
 
-  // 퍼널 차트 데이터 변환
-  const funnelChartData = funnelData?.steps.map(step => ({
-    name: step.name,
-    value: step.count,
-  })) || [];
+  // 퍼널 차트 데이터 변환 (안전하게)
+  const funnelChartData = funnelData?.steps
+    ?.filter(step => step && step.name && typeof step.count === 'number')
+    .map(step => ({
+      name: step.name,
+      value: step.count,
+    })) || [];
 
   return (
     <div className="space-y-6 pb-12">
@@ -340,7 +342,7 @@ export default function AdminAnalyticsPage() {
               </Grid>
             )}
 
-            {funnelData && funnelData.steps && funnelData.steps.length > 0 && (
+            {funnelData && funnelData.steps && funnelData.steps.length > 0 && funnelChartData.length > 0 && (
               <Card className="mt-6">
                 <Title>퍼널 단계별 사용자 수</Title>
                 <BarList data={funnelChartData} className="mt-4" />
@@ -356,11 +358,14 @@ export default function AdminAnalyticsPage() {
                 <Text className="text-gray-500 mt-4">캠페인 데이터가 없습니다</Text>
               ) : (
                 <BarList
-                  data={campaigns.slice(0, 5).map(c => ({
-                    name: `${c.utmSource} / ${c.utmMedium}`,
-                    value: c.sessions,
-                    href: '#',
-                  }))}
+                  data={campaigns
+                    .slice(0, 5)
+                    .filter(c => c && c.utmSource && c.utmMedium && typeof c.sessions === 'number')
+                    .map(c => ({
+                      name: `${c.utmSource} / ${c.utmMedium}`,
+                      value: c.sessions,
+                      href: '#',
+                    }))}
                   className="mt-4"
                 />
               )}
@@ -372,10 +377,13 @@ export default function AdminAnalyticsPage() {
                 <Text className="text-gray-500 mt-4">페이지 데이터가 없습니다</Text>
               ) : (
                 <BarList
-                  data={landingPages.slice(0, 5).map(p => ({
-                    name: p.pathname,
-                    value: p.visits,
-                  }))}
+                  data={landingPages
+                    .slice(0, 5)
+                    .filter(p => p && p.pathname && typeof p.visits === 'number')
+                    .map(p => ({
+                      name: p.pathname,
+                      value: p.visits,
+                    }))}
                   className="mt-4"
                 />
               )}
@@ -383,12 +391,12 @@ export default function AdminAnalyticsPage() {
           </Grid>
 
           {/* 실시간 분당 트래픽 */}
-          {realtimeData && realtimeData.minutelyTraffic.length > 0 && (
+          {realtimeData && realtimeData.minutelyTraffic && realtimeData.minutelyTraffic.length > 0 && (
             <Card>
               <Title>⚡ 실시간 분당 트래픽 (최근 10분)</Title>
               <LineChart
                 className="mt-4"
-                data={realtimeData.minutelyTraffic}
+                data={realtimeData.minutelyTraffic.filter(t => t && t.time && typeof t.count === 'number')}
                 index="time"
                 categories={["count"]}
                 colors={["blue"]}
@@ -399,28 +407,42 @@ export default function AdminAnalyticsPage() {
           )}
 
           {/* 현재 인기 페이지 & 유입 경로 */}
-          {realtimeData && (
+          {realtimeData && realtimeData.topPages && realtimeData.topReferrers && (
             <Grid numItems={1} numItemsLg={2} className="gap-6">
               <Card>
                 <Title>🌟 현재 인기 페이지</Title>
-                <BarList
-                  data={realtimeData.topPages.slice(0, 5).map(p => ({
-                    name: p.pathname,
-                    value: p.count
-                  }))}
-                  className="mt-4"
-                />
+                {realtimeData.topPages.length === 0 ? (
+                  <Text className="text-gray-500 mt-4">데이터가 없습니다</Text>
+                ) : (
+                  <BarList
+                    data={realtimeData.topPages
+                      .slice(0, 5)
+                      .filter(p => p && p.pathname && typeof p.count === 'number')
+                      .map(p => ({
+                        name: p.pathname || '알 수 없음',
+                        value: p.count
+                      }))}
+                    className="mt-4"
+                  />
+                )}
               </Card>
 
               <Card>
                 <Title>🔗 주요 유입 경로</Title>
-                <BarList
-                  data={realtimeData.topReferrers.slice(0, 5).map(r => ({
-                    name: r.referer.length > 40 ? r.referer.substring(0, 40) + '...' : r.referer,
-                    value: r.count
-                  }))}
-                  className="mt-4"
-                />
+                {realtimeData.topReferrers.length === 0 ? (
+                  <Text className="text-gray-500 mt-4">데이터가 없습니다</Text>
+                ) : (
+                  <BarList
+                    data={realtimeData.topReferrers
+                      .slice(0, 5)
+                      .filter(r => r && r.referer && typeof r.count === 'number')
+                      .map(r => ({
+                        name: r.referer && r.referer.length > 40 ? r.referer.substring(0, 40) + '...' : (r.referer || '직접 접속'),
+                        value: r.count
+                      }))}
+                    className="mt-4"
+                  />
+                )}
               </Card>
             </Grid>
           )}
