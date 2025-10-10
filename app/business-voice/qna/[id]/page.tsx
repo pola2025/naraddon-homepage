@@ -44,7 +44,7 @@ interface Answer {
 export default function QnADetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [question, setQuestion] = useState<Question | null>(null);
   const [answerContent, setAnswerContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -155,11 +155,57 @@ export default function QnADetailPage() {
     });
   };
 
-  if (isLoading) {
+  /**
+   * 로그인 권한 체크
+   *
+   * @purpose 가입자만 묻고 답하기 게시글 열람 가능
+   * @context 로그인하지 않은 사용자는 로그인 페이지로 리다이렉트
+   */
+  if (status === 'loading' || isLoading) {
     return (
       <div className="qna-detail-page">
         <div className="container">
           <div className="loading">로딩 중...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session || !session.user) {
+    return (
+      <div className="qna-detail-page">
+        <div className="auth-required-container">
+          <div className="auth-card">
+            <div className="auth-icon-wrapper">
+              <i className="fas fa-hand-wave"></i>
+            </div>
+            <h2 className="auth-title">안녕하세요 대표님!</h2>
+            <p className="auth-message">
+              기업에 꼭 필요한 자금문제를<br />
+              지금 나라똔에서 해결하세요.
+            </p>
+            <div className="auth-divider"></div>
+            <p className="auth-description">
+              본 서비스는 나라똔 회원만 이용할 수 있습니다.<br />
+              가입 후 이용하시면 바로 확인 가능합니다.
+            </p>
+            <div className="auth-buttons">
+              <button
+                className="auth-button primary"
+                onClick={() => router.push('/auth/login?callbackUrl=' + encodeURIComponent(window.location.pathname))}
+              >
+                <i className="fas fa-user-plus"></i>
+                <span>회원가입 / 로그인</span>
+              </button>
+              <button
+                className="auth-button secondary"
+                onClick={() => router.push('/business-voice/qna')}
+              >
+                <i className="fas fa-arrow-left"></i>
+                <span>목록으로 돌아가기</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );

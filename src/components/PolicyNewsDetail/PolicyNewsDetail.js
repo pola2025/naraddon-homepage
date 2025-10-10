@@ -179,7 +179,7 @@ const PolicyNewsDetail = () => {
             <div className="auth-icon-wrapper">
               <i className="fas fa-hand-wave"></i>
             </div>
-            <h2 className="auth-title">안녕하세요 대표님,</h2>
+            <h2 className="auth-title">안녕하세요 대표님!</h2>
             <p className="auth-message">
               기업에 꼭 필요한 자금문제를<br />
               지금 나라똔에서 해결하세요.
