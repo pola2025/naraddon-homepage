@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
-import { LuClipboardList, LuCheckCircle, LuEye, LuStar, LuClock, LuDollarSign } from 'react-icons/lu';
+import { LuClipboardList, LuCheckCircle, LuEye, LuClock, LuDollarSign } from 'react-icons/lu';
 
 /**
  * 관리자가 특정 심사관의 대시보드를 조회하는 페이지
@@ -191,7 +191,7 @@ export default function AdminExaminerDashboardPage() {
         ) : (
           <>
             {/* 통계 카드 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center text-blue-600 mb-2">
                   <LuClipboardList className="mr-2" size={18} />
@@ -219,16 +219,6 @@ export default function AdminExaminerDashboardPage() {
                 </div>
                 <p className="text-2xl font-semibold text-gray-900">
                   {stats?.pendingReviews ?? 0}
-                </p>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center text-yellow-600 mb-2">
-                  <LuStar className="mr-2" size={18} />
-                  <p className="text-sm font-medium">평균 평점</p>
-                </div>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {stats?.averageRating ?? 0}
                 </p>
               </div>
             </div>

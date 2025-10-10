@@ -36,7 +36,7 @@ export default function AdminExaminerDashboards() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortField, setSortField] = useState<'name' | 'company' | 'assigned' | 'completed' | 'pending' | 'rating'>('name');
+  const [sortField, setSortField] = useState<'name' | 'company' | 'assigned' | 'completed' | 'pending'>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
@@ -151,9 +151,6 @@ export default function AdminExaminerDashboards() {
           break;
         case 'pending':
           compareValue = (stats[a._id]?.pendingReviews ?? 0) - (stats[b._id]?.pendingReviews ?? 0);
-          break;
-        case 'rating':
-          compareValue = (stats[a._id]?.averageRating ?? 0) - (stats[b._id]?.averageRating ?? 0);
           break;
       }
 
@@ -302,13 +299,6 @@ export default function AdminExaminerDashboards() {
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSort('rating')}
-                    >
-                      평점 <SortIcon field="rating" />
-                    </th>
-                    <th
-                      scope="col"
                       className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
                       액션
@@ -318,7 +308,7 @@ export default function AdminExaminerDashboards() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredAndSortedExaminers.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
                         검색 결과가 없습니다.
                       </td>
                     </tr>
@@ -368,15 +358,6 @@ export default function AdminExaminerDashboards() {
                             {examinerStats ? (
                               <span className="text-sm font-semibold text-purple-600">
                                 {examinerStats.pendingReviews}
-                              </span>
-                            ) : (
-                              <span className="text-sm text-gray-400">-</span>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-center">
-                            {examinerStats ? (
-                              <span className="text-sm font-semibold text-yellow-600">
-                                {examinerStats.averageRating || 0}
                               </span>
                             ) : (
                               <span className="text-sm text-gray-400">-</span>
