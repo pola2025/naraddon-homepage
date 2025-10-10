@@ -8,25 +8,15 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import './certified-examiners.css';
 
-// 심사관 데이터 - 16명 전체
-const allExaminers = [
-  { name: '이용흔', company: '제이제이에스 기업지원센터', filename: 'lee-yong-heun.jpg' },
-  { name: '김수빈', company: '주식회사 유에스이노웨이브', filename: 'kim-su-bin.jpg' },
-  { name: '태건호', company: '경영지원컨설팅', filename: 'tae-gun-ho.jpg' },
-  { name: '박민재', company: '푸른중소기업경영컨설팅', filename: 'park-min-jae.jpg' },
-  { name: '양미진', company: '에스제이파트너스', filename: 'yang-mi-jin.jpg' },
-  { name: '전예진', company: '비젠파트너스', filename: 'jeon-ye-jin.jpg' },
-  { name: '전지선', company: '제이티엘파트너스', filename: 'jeon-ji-sun.jpg' },
-  { name: '김범준', company: '에스제이파트너스', filename: 'kim-beom-jun.jpg' },
-  { name: '김영희', company: '세움기업지원센터', filename: 'kim-young-hee.jpg' },
-  { name: '김태은', company: '가나안 기업지원센터', filename: 'kim-tae-eun.jpg' },
-  { name: '박성훈', company: '비즈스카이', filename: 'park-sung-hoon.jpg' },
-  { name: '박현숙', company: '케이피제이', filename: 'park-hyun-sook.jpg' },
-  { name: '손지숙', company: '손스타컴퍼니', filename: 'son-ji-sook.jpg' },
-  { name: '전윤지', company: '열린정책자금연구소', filename: 'jeon-yoon-ji.jpg' },
-  { name: '팽성희', company: '기업성장지원플랫폼', filename: 'paeng-sung-hee.jpg' },
-  { name: '황만규', company: '바른경영지원센터', filename: 'hwang-man-gyu.jpg' }
-];
+// 심사관 인터페이스
+interface Examiner {
+  name: string;
+  company: string;
+  imageUrl: string;
+  position?: string;
+  category?: string;
+  specialties?: string[];
+}
 
 // Fisher-Yates 셔플 알고리즘
 const shuffleArray = (array: any[]) => {
@@ -42,16 +32,35 @@ export default function CertifiedExaminersPage() {
   const [visibleCount, setVisibleCount] = useState(6);
   const [isExpanded, setIsExpanded] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // 클라이언트 사이드에서만 랜덤 정렬
-  const [featuredExaminers, setFeaturedExaminers] = useState(allExaminers);
-  const [gridExaminers, setGridExaminers] = useState(allExaminers);
+  // 심사관 데이터 (API에서 가져옴)
+  const [allExaminers, setAllExaminers] = useState<Examiner[]>([]);
+  const [featuredExaminers, setFeaturedExaminers] = useState<Examiner[]>([]);
+  const [gridExaminers, setGridExaminers] = useState<Examiner[]>([]);
 
+  // API에서 심사관 데이터 가져오기
   useEffect(() => {
-    setMounted(true);
-    // 클라이언트에서만 랜덤 정렬 실행
-    setFeaturedExaminers(shuffleArray(allExaminers));
-    setGridExaminers(shuffleArray(allExaminers));
+    const fetchExaminers = async () => {
+      try {
+        const response = await fetch('/api/certified-examiners');
+        const data = await response.json();
+
+        if (data.success && data.examiners) {
+          setAllExaminers(data.examiners);
+          // 클라이언트에서만 랜덤 정렬 실행
+          setFeaturedExaminers(shuffleArray(data.examiners));
+          setGridExaminers(shuffleArray(data.examiners));
+        }
+      } catch (error) {
+        console.error('Failed to fetch examiners:', error);
+      } finally {
+        setLoading(false);
+        setMounted(true);
+      }
+    };
+
+    fetchExaminers();
   }, []);
 
   const handleShowMore = () => {
@@ -204,7 +213,7 @@ export default function CertifiedExaminersPage() {
                   </div>
                   <div className="main-card-image">
                     <img
-                      src={`/images/examiners/${examiner.filename}`}
+                      src={examiner.imageUrl || '/images/default-examiner.png'}
                       alt={`${examiner.name}_${examiner.company}`}
                       loading="lazy"
                     />
@@ -235,14 +244,14 @@ export default function CertifiedExaminersPage() {
                 </div>
                 <div className="grid-card-image">
                   <img
-                    src={`/images/examiners/${examiner.filename}`}
+                    src={examiner.imageUrl || '/images/default-examiner.png'}
                     alt={`${examiner.name}_${examiner.company}`}
                   />
                 </div>
                 <div className="info-block">
                   <div className="name-block">{examiner.name}</div>
                   <div className="company-block">{examiner.company}</div>
-                  <button className="premium-cta">상담 신청하기</button>
+                  <button className="premium-cta" onClick={handleConsultationClick}>상담 신청하기</button>
                 </div>
               </div>
             ))}
