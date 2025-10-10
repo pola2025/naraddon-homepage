@@ -6,7 +6,11 @@ import clientPromise from '@/lib/mongodb-client';
  *
  * @purpose 사용자의 페이지 방문 기록을 MongoDB에 저장
  * @context 관리자 대시보드의 방문 통계를 위해 사용
- * @decision 클라이언트에서 호출하는 단순한 POST 요청으로 구현
+ * @decision
+ * - 클라이언트에서 호출하는 단순한 POST 요청으로 구현
+ * - document.referrer를 클라이언트에서 전송받아 실제 유입 경로 추적
+ * - UTM 파라미터로 마케팅 캠페인 추적
+ * - 세션 기반 첫 방문 유입 경로 저장
  */
 export async function POST(request: NextRequest) {
   try {
@@ -17,11 +21,15 @@ export async function POST(request: NextRequest) {
                'unknown';
 
     const userAgent = request.headers.get('user-agent') || 'unknown';
-    const referer = request.headers.get('referer') || '';
 
-    // 요청 본문에서 pathname 가져오기
+    // 요청 본문에서 데이터 가져오기
     const body = await request.json();
-    const { pathname } = body;
+    const {
+      pathname,
+      referrer = '',
+      firstReferrer = '',
+      utmParams = {}
+    } = body;
 
     if (!pathname) {
       return NextResponse.json(
@@ -39,7 +47,14 @@ export async function POST(request: NextRequest) {
       pathname,
       ip,
       userAgent,
-      referer,
+      // 클라이언트에서 받은 실제 유입 경로 (document.referrer)
+      referer: referrer,
+      // 세션 기반 첫 방문 유입 경로
+      firstReferrer: firstReferrer,
+      // UTM 파라미터 (마케팅 캠페인 추적)
+      utmSource: utmParams.source || '',
+      utmMedium: utmParams.medium || '',
+      utmCampaign: utmParams.campaign || '',
       timestamp: new Date(),
       createdAt: new Date(),
     });
