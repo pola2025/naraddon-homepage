@@ -674,91 +674,83 @@ export default function ExaminersPage() {
       {/* Detail Modal - 상세보기 */}
       {showDetailModal && viewingExaminer && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-4 sm:p-5">
+          <div className="bg-white rounded-lg max-w-lg w-full max-h-[75vh] overflow-y-auto">
+            <div className="p-3">
               {/* 상단 헤더와 닫기 버튼 */}
-              <div className="flex items-center justify-between mb-4 sticky top-0 bg-white pb-3 border-b z-10">
-                <h2 className="text-lg font-bold text-gray-900">심사관 상세 정보</h2>
+              <div className="flex items-center justify-between mb-2 sticky top-0 bg-white pb-2 border-b z-10">
+                <h2 className="text-base font-bold text-gray-900">심사관 상세 정보</h2>
                 <button
                   onClick={handleCloseDetailModal}
                   className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
                   aria-label="닫기"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-2.5">
                 {/* 프로필 이미지 - 사각형, 원본 비율, 작은 크기 */}
-                <div className="flex justify-center">
+                <div className="flex justify-center py-1">
                   {viewingExaminer.imageUrl ? (
                     <img
                       src={viewingExaminer.imageUrl}
                       alt={viewingExaminer.name}
-                      className="w-20 h-24 rounded-md object-cover border-2 border-blue-100"
+                      className="w-16 h-20 rounded object-cover border border-blue-100"
                     />
                   ) : (
-                    <div className="w-20 h-24 rounded-md bg-gray-200 flex items-center justify-center border-2 border-gray-100">
-                      <UserIcon className="w-10 h-10 text-gray-400" />
+                    <div className="w-16 h-20 rounded bg-gray-200 flex items-center justify-center border border-gray-100">
+                      <UserIcon className="w-8 h-8 text-gray-400" />
                     </div>
                   )}
                 </div>
 
                 {/* 기본 정보 */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-0.5">이름</label>
-                    <p className="text-sm font-semibold text-gray-900">{viewingExaminer.name}</p>
+                    <label className="block text-[10px] font-medium text-gray-500 mb-0.5">이름</label>
+                    <p className="text-xs font-semibold text-gray-900">{viewingExaminer.name}</p>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-0.5">직책</label>
-                    <p className="text-sm text-gray-900">{viewingExaminer.position}</p>
+                    <label className="block text-[10px] font-medium text-gray-500 mb-0.5">직책</label>
+                    <p className="text-xs text-gray-900">{viewingExaminer.position}</p>
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-xs font-medium text-gray-500 mb-0.5">회사명</label>
-                    <p className="text-sm text-gray-900">{viewingExaminer.companyName}</p>
+                    <label className="block text-[10px] font-medium text-gray-500 mb-0.5">회사명</label>
+                    <p className="text-xs text-gray-900">{viewingExaminer.companyName}</p>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-0.5">카테고리</label>
-                    <p className="text-sm text-gray-900">{viewingExaminer.category}</p>
+                    <label className="block text-[10px] font-medium text-gray-500 mb-0.5">카테고리</label>
+                    <p className="text-xs text-gray-900">{viewingExaminer.category}</p>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-0.5">정렬 순서</label>
-                    <p className="text-sm text-gray-900">{viewingExaminer.sortOrder}</p>
+                    <label className="block text-[10px] font-medium text-gray-500 mb-0.5">순서</label>
+                    <p className="text-xs text-gray-900">{viewingExaminer.sortOrder}</p>
                   </div>
                 </div>
 
                 {/* 전문분야 */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1.5">전문분야</label>
+                  <label className="block text-[10px] font-medium text-gray-500 mb-1">전문분야</label>
                   {viewingExaminer.specialties && viewingExaminer.specialties.length > 0 ? (
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap gap-1">
                       {viewingExaminer.specialties.map((specialty, idx) => (
                         <span
                           key={idx}
-                          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                          className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-800"
                         >
                           {specialty}
                         </span>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-gray-400">등록된 전문분야가 없습니다.</p>
+                    <p className="text-[10px] text-gray-400">없음</p>
                   )}
                 </div>
 
-                {/* 이미지 URL */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-0.5">이미지 URL</label>
-                  <p className="text-xs text-gray-600 break-all bg-gray-50 p-1.5 rounded">
-                    {viewingExaminer.imageUrl || '없음'}
-                  </p>
-                </div>
-
                 {/* 상태 정보 */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block text-xs font-medium text-gray-500 mb-0.5">공개 여부</label>
                     <p className="text-sm">
@@ -790,21 +782,21 @@ export default function ExaminersPage() {
                 </div>
 
                 {/* 날짜 정보 */}
-                <div className="border-t pt-3">
-                  <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="border-t pt-2">
+                  <div className="grid grid-cols-2 gap-2 text-[10px]">
                     <div>
-                      <label className="block text-gray-500 mb-0.5">생성일</label>
+                      <label className="block text-gray-500 mb-0.5">생성</label>
                       <p className="text-gray-700">
                         {viewingExaminer.createdAt
-                          ? new Date(viewingExaminer.createdAt).toLocaleString('ko-KR')
+                          ? new Date(viewingExaminer.createdAt).toLocaleDateString('ko-KR')
                           : '-'}
                       </p>
                     </div>
                     <div>
-                      <label className="block text-gray-500 mb-0.5">수정일</label>
+                      <label className="block text-gray-500 mb-0.5">수정</label>
                       <p className="text-gray-700">
                         {viewingExaminer.updatedAt
-                          ? new Date(viewingExaminer.updatedAt).toLocaleString('ko-KR')
+                          ? new Date(viewingExaminer.updatedAt).toLocaleDateString('ko-KR')
                           : '-'}
                       </p>
                     </div>
@@ -813,74 +805,56 @@ export default function ExaminersPage() {
 
                 {/* 활동점수 (관리자 전용) */}
                 {viewingExaminer.userId && (
-                  <div className="border-t pt-3">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-3">활동점수 (관리자 전용)</h3>
+                  <div className="border-t pt-2">
+                    <h3 className="text-xs font-semibold text-gray-900 mb-2">활동점수</h3>
                     {loadingActivity ? (
                       <div className="flex justify-center py-8">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                       </div>
                     ) : activityScore ? (
-                      <div className="space-y-2.5">
+                      <div className="space-y-1.5">
                         {/* 총점 */}
-                        <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-3 text-white">
-                          <div className="text-xs opacity-90 mb-0.5">총 활동점수</div>
-                          <div className="text-2xl font-bold">{activityScore.totalScore.toLocaleString()}점</div>
+                        <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded p-2 text-white">
+                          <div className="text-[10px] opacity-90">총점</div>
+                          <div className="text-lg font-bold">{activityScore.totalScore.toLocaleString()}점</div>
                         </div>
 
                         {/* 활동 세부 내역 */}
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="bg-gray-50 p-2.5 rounded-lg">
-                            <div className="text-[10px] text-gray-500 mb-0.5">페이지 방문</div>
-                            <div className="text-sm font-semibold text-gray-900">
-                              {activityScore.activities.pageVisits}회
-                            </div>
-                            <div className="text-[10px] text-blue-600 mt-0.5">
-                              +{activityScore.scoreBreakdown.pageVisits}점
+                        <div className="grid grid-cols-3 gap-1.5">
+                          <div className="bg-gray-50 p-1.5 rounded">
+                            <div className="text-[9px] text-gray-500">방문</div>
+                            <div className="text-xs font-semibold text-gray-900">
+                              {activityScore.activities.pageVisits}
                             </div>
                           </div>
-                          <div className="bg-gray-50 p-2.5 rounded-lg">
-                            <div className="text-[10px] text-gray-500 mb-0.5">게시글 작성</div>
-                            <div className="text-sm font-semibold text-gray-900">
-                              {activityScore.activities.postsCreated}개
-                            </div>
-                            <div className="text-[10px] text-blue-600 mt-0.5">
-                              +{activityScore.scoreBreakdown.postsCreated}점
+                          <div className="bg-gray-50 p-1.5 rounded">
+                            <div className="text-[9px] text-gray-500">게시글</div>
+                            <div className="text-xs font-semibold text-gray-900">
+                              {activityScore.activities.postsCreated}
                             </div>
                           </div>
-                          <div className="bg-gray-50 p-2.5 rounded-lg">
-                            <div className="text-[10px] text-gray-500 mb-0.5">댓글 작성</div>
-                            <div className="text-sm font-semibold text-gray-900">
-                              {activityScore.activities.commentsCreated}개
-                            </div>
-                            <div className="text-[10px] text-blue-600 mt-0.5">
-                              +{activityScore.scoreBreakdown.commentsCreated}점
+                          <div className="bg-gray-50 p-1.5 rounded">
+                            <div className="text-[9px] text-gray-500">댓글</div>
+                            <div className="text-xs font-semibold text-gray-900">
+                              {activityScore.activities.commentsCreated}
                             </div>
                           </div>
-                          <div className="bg-gray-50 p-2.5 rounded-lg">
-                            <div className="text-[10px] text-gray-500 mb-0.5">상담 배정</div>
-                            <div className="text-sm font-semibold text-gray-900">
-                              {activityScore.activities.consultationsAssigned}건
-                            </div>
-                            <div className="text-[10px] text-blue-600 mt-0.5">
-                              +{activityScore.scoreBreakdown.consultationsAssigned}점
+                          <div className="bg-gray-50 p-1.5 rounded">
+                            <div className="text-[9px] text-gray-500">배정</div>
+                            <div className="text-xs font-semibold text-gray-900">
+                              {activityScore.activities.consultationsAssigned}
                             </div>
                           </div>
-                          <div className="bg-gray-50 p-2.5 rounded-lg">
-                            <div className="text-[10px] text-gray-500 mb-0.5">상담 완료</div>
-                            <div className="text-sm font-semibold text-gray-900">
-                              {activityScore.activities.consultationsCompleted}건
-                            </div>
-                            <div className="text-[10px] text-blue-600 mt-0.5">
-                              +{activityScore.scoreBreakdown.consultationsCompleted}점
+                          <div className="bg-gray-50 p-1.5 rounded">
+                            <div className="text-[9px] text-gray-500">완료</div>
+                            <div className="text-xs font-semibold text-gray-900">
+                              {activityScore.activities.consultationsCompleted}
                             </div>
                           </div>
-                          <div className="bg-gray-50 p-2.5 rounded-lg">
-                            <div className="text-[10px] text-gray-500 mb-0.5">로그인</div>
-                            <div className="text-sm font-semibold text-gray-900">
-                              {activityScore.activities.loginCount}회
-                            </div>
-                            <div className="text-[10px] text-blue-600 mt-0.5">
-                              +{activityScore.scoreBreakdown.loginCount}점
+                          <div className="bg-gray-50 p-1.5 rounded">
+                            <div className="text-[9px] text-gray-500">로그인</div>
+                            <div className="text-xs font-semibold text-gray-900">
+                              {activityScore.activities.loginCount}
                             </div>
                           </div>
                         </div>
@@ -900,10 +874,10 @@ export default function ExaminersPage() {
               </div>
 
               {/* 닫기 버튼 */}
-              <div className="flex justify-end space-x-2 pt-3 border-t mt-3">
+              <div className="flex justify-end space-x-1.5 pt-2 border-t mt-2">
                 <button
                   onClick={handleCloseDetailModal}
-                  className="px-3 py-1.5 border border-gray-300 rounded-md text-xs font-medium text-gray-700 hover:bg-gray-50"
+                  className="px-2 py-1 border border-gray-300 rounded text-[10px] font-medium text-gray-700 hover:bg-gray-50"
                 >
                   닫기
                 </button>
@@ -912,9 +886,9 @@ export default function ExaminersPage() {
                     handleCloseDetailModal();
                     handleOpenModal(viewingExaminer);
                   }}
-                  className="px-3 py-1.5 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-blue-600 hover:bg-blue-700"
+                  className="px-2 py-1 border border-transparent rounded shadow-sm text-[10px] font-medium text-white bg-blue-600 hover:bg-blue-700"
                 >
-                  수정하기
+                  수정
                 </button>
               </div>
             </div>
