@@ -3,6 +3,9 @@ import clientPromise from '@/lib/mongodb-client';
 
 export const dynamic = 'force-dynamic';
 
+// 캐시 설정: 5분간 유효
+export const revalidate = 300;
+
 /**
  * GET /api/certified-examiners - 공개된 심사관 목록 조회
  *
@@ -10,13 +13,21 @@ export const dynamic = 'force-dynamic';
  * @context isPublished=true인 심사관만 반환
  * @security 인증 불필요 (공개 API)
  * @returns 심사관 이름, 회사명, 이미지 URL
+ * @performance 인덱스 사용, 5분 캐싱
  */
 export async function GET() {
+  const startTime = Date.now();
+
   try {
     const client = await clientPromise;
     const db = client.db('naraddon');
 
-    // isPublished=true인 심사관만 조회
+    // 성능 모니터링: DB 연결 시간
+    const dbConnectTime = Date.now() - startTime;
+    console.log(`[Certified Examiners API] DB connect: ${dbConnectTime}ms`);
+
+    // isPublished=true인 심사관만 조회 (인덱스 사용)
+    const queryStartTime = Date.now();
     const examiners = await db.collection('expert-examiners')
       .find({ isPublished: true })
       .project({
@@ -29,6 +40,9 @@ export async function GET() {
       })
       .toArray();
 
+    const queryTime = Date.now() - queryStartTime;
+    console.log(`[Certified Examiners API] Query: ${queryTime}ms`);
+
     // 프론트엔드 형식으로 변환
     const formattedExaminers = examiners.map(examiner => ({
       name: examiner.name,
@@ -39,13 +53,26 @@ export async function GET() {
       specialties: examiner.specialties || []
     }));
 
-    return NextResponse.json({
-      success: true,
-      examiners: formattedExaminers,
-      total: formattedExaminers.length
-    });
+    const totalTime = Date.now() - startTime;
+    console.log(`[Certified Examiners API] Total: ${totalTime}ms, Count: ${formattedExaminers.length}`);
+
+    return NextResponse.json(
+      {
+        success: true,
+        examiners: formattedExaminers,
+        total: formattedExaminers.length
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        },
+      }
+    );
   } catch (error) {
     console.error('[Certified Examiners API] Error:', error);
+    const totalTime = Date.now() - startTime;
+    console.error(`[Certified Examiners API] Failed after ${totalTime}ms`);
+
     return NextResponse.json(
       {
         success: false,
