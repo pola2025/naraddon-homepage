@@ -138,10 +138,8 @@ export async function POST(request: NextRequest) {
     await s3Client.send(uploadCommand);
     debugSteps.push('20. Upload successful');
 
-    // CDN URL 생성
-    const cdnUrl = ACCOUNT_ID
-      ? `https://pub-${ACCOUNT_ID}.r2.dev/${fileName}`
-      : buildR2ObjectUrl(fileName, BUCKET_NAME);
+    // 공개 CDN URL 생성 (buildR2ObjectUrl 사용)
+    const cdnUrl = buildR2ObjectUrl(fileName, BUCKET_NAME);
 
     console.log('[Upload Examiner] Image uploaded:', {
       fileName,

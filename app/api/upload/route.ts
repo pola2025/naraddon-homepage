@@ -50,6 +50,10 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(arrayBuffer);
 
     const s3Client = getR2Client();
+
+    // 원본 파일명을 Base64로 인코딩 (한글/특수문자 지원)
+    const originalNameBase64 = Buffer.from(file.name, 'utf-8').toString('base64');
+
     const uploadCommand = new PutObjectCommand({
       Bucket: BUCKET_NAME,
       Key: fileName,
@@ -57,16 +61,16 @@ export async function POST(request: NextRequest) {
       ContentType: file.type,
       CacheControl: 'max-age=31536000',
       Metadata: {
-        uploadedAt: new Date().toISOString(),
-        originalName: file.name,
+        'uploaded-at': new Date().toISOString(),
+        'original-name-b64': originalNameBase64,
+        'purpose': 'ttontok-image'
       },
     });
 
     await s3Client.send(uploadCommand);
 
-    const cdnUrl = ACCOUNT_ID
-      ? `https://pub-${ACCOUNT_ID}.r2.dev/${fileName}`
-      : buildR2ObjectUrl(fileName, BUCKET_NAME);
+    // 공개 CDN URL 생성 (buildR2ObjectUrl 사용)
+    const cdnUrl = buildR2ObjectUrl(fileName, BUCKET_NAME);
 
     return NextResponse.json({
       success: true,

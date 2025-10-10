@@ -285,23 +285,23 @@ export default function UsersManagementPage() {
   return (
     <div className="space-y-6 pb-12">
       {/* 헤더 */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">회원 관리</h1>
           <p className="mt-1 text-sm text-gray-500">
             전체 회원 {users.length}명 | 활성 {users.filter(u => u.status === UserStatus.ACTIVE).length}명
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <button
             onClick={() => setViewMode(viewMode === 'table' ? 'cards' : 'table')}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 whitespace-nowrap"
           >
             {viewMode === 'table' ? '카드 보기' : '테이블 보기'}
           </button>
           <button
             onClick={handleExport}
-            className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="inline-flex items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 whitespace-nowrap"
           >
             <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
             엑셀 다운로드

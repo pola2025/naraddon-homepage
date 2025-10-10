@@ -199,7 +199,7 @@ export default function CertifiedExaminersPage() {
               disableOnInteraction: false,
               pauseOnMouseEnter: true,
             }}
-            loop={true}
+            loop={featuredExaminers.length >= 2}
             effect="slide"
             grabCursor={true}
             className="main-swiper"

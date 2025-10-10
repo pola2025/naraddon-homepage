@@ -323,7 +323,7 @@ export default function ExaminersPage() {
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">심사관 관리</h1>
           <p className="mt-1 text-sm text-gray-500">
@@ -332,7 +332,7 @@ export default function ExaminersPage() {
         </div>
         <button
           onClick={() => handleOpenModal()}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+          className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 whitespace-nowrap"
         >
           <PlusIcon className="w-5 h-5 mr-2" />
           심사관 추가
