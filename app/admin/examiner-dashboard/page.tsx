@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
-import { LuClipboardList, LuCheckCircle, LuEye, LuClock, LuDollarSign } from 'react-icons/lu';
+import { LuClipboardList, LuCheckCircle2, LuEye, LuClock, LuDollarSign } from 'react-icons/lu';
 
 /**
  * 관리자가 특정 심사관의 대시보드를 조회하는 페이지
@@ -204,7 +204,7 @@ export default function AdminExaminerDashboardPage() {
 
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center text-green-600 mb-2">
-                  <LuCheckCircle className="mr-2" size={18} />
+                  <LuCheckCircle2 className="mr-2" size={18} />
                   <p className="text-sm font-medium">완료된 상담</p>
                 </div>
                 <p className="text-2xl font-semibold text-gray-900">
