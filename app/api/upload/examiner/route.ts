@@ -3,6 +3,7 @@ import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
+import clientPromise from '@/lib/mongodb-client';
 
 import { buildR2ObjectUrl, getR2Client, isR2Configured } from '@/lib/r2';
 
@@ -31,8 +32,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 관리자 권한 확인
-    const userRole = (session.user as any)?.role;
+    // MongoDB 연결하여 사용자 role 확인
+    const client = await clientPromise;
+    const db = client.db('naraddon');
+
+    const currentUser = await db.collection('users').findOne({ email: session.user?.email });
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Current user not found' }, { status: 404 });
+    }
+
+    const userRole = currentUser.role;
+
+    // 관리자만 접근 가능
     if (userRole !== 'admin' && userRole !== 'super_admin') {
       return NextResponse.json(
         { error: 'Forbidden - Admin access required' },
@@ -119,8 +130,24 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('[Upload Examiner] Upload failed:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
+    console.error('[Upload Examiner] Error details:', {
+      message: errorMessage,
+      stack: errorStack,
+      env: {
+        hasR2Bucket: !!BUCKET_NAME,
+        hasAccountId: !!ACCOUNT_ID,
+        r2Configured: isR2Configured()
+      }
+    });
+
     return NextResponse.json(
-      { error: '이미지 업로드 중 오류가 발생했습니다.' },
+      {
+        error: '이미지 업로드 중 오류가 발생했습니다.',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      },
       { status: 500 }
     );
   }
