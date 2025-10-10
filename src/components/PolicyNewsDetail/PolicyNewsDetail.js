@@ -174,28 +174,37 @@ const PolicyNewsDetail = () => {
   if (!session || !session.user) {
     return (
       <div className="policy-news-detail">
-        <div className="error-container">
-          <i className="fas fa-hand-wave" style={{ fontSize: '48px', color: '#667eea', marginBottom: '16px' }}></i>
-          <h2 style={{ marginBottom: '8px' }}>안녕하세요 대표님,</h2>
-          <p className="error-message" style={{ fontSize: '16px', lineHeight: '1.6', marginBottom: '20px' }}>
-            기업에 꼭 필요한 자금문제를<br />
-            지금 나라똔에서 해결하세요.
-          </p>
-          <p className="error-message" style={{ fontSize: '14px', color: '#64748b' }}>
-            본 서비스는 나라똔 회원만 이용할 수 있습니다.<br />
-            가입 후 이용하시면 바로 확인 가능합니다.
-          </p>
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '24px', justifyContent: 'center' }}>
-            <button
-              className="back-button"
-              onClick={() => router.push('/auth/login?callbackUrl=' + encodeURIComponent(window.location.pathname))}
-              style={{ background: '#667eea', color: 'white' }}
-            >
-              <i className="fas fa-user-plus"></i> 회원가입 / 로그인
-            </button>
-            <button className="back-button" onClick={() => router.push('/policy-news')}>
-              <i className="fas fa-arrow-left"></i> 목록으로 돌아가기
-            </button>
+        <div className="auth-required-container">
+          <div className="auth-card">
+            <div className="auth-icon-wrapper">
+              <i className="fas fa-hand-wave"></i>
+            </div>
+            <h2 className="auth-title">안녕하세요 대표님,</h2>
+            <p className="auth-message">
+              기업에 꼭 필요한 자금문제를<br />
+              지금 나라똔에서 해결하세요.
+            </p>
+            <div className="auth-divider"></div>
+            <p className="auth-description">
+              본 서비스는 나라똔 회원만 이용할 수 있습니다.<br />
+              가입 후 이용하시면 바로 확인 가능합니다.
+            </p>
+            <div className="auth-buttons">
+              <button
+                className="auth-button primary"
+                onClick={() => router.push('/auth/login?callbackUrl=' + encodeURIComponent(window.location.pathname))}
+              >
+                <i className="fas fa-user-plus"></i>
+                <span>회원가입 / 로그인</span>
+              </button>
+              <button
+                className="auth-button secondary"
+                onClick={() => router.push('/policy-news')}
+              >
+                <i className="fas fa-arrow-left"></i>
+                <span>목록으로 돌아가기</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

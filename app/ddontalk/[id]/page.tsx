@@ -289,33 +289,37 @@ export default function DDonTalkDetailPage() {
   if (!session || !session.user) {
     return (
       <div className="ddontalk-detail-container">
-        <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
-          <i className="fas fa-hand-wave" style={{ fontSize: '48px', color: '#667eea', marginBottom: '1rem' }}></i>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>안녕하세요 대표님,</h2>
-          <p style={{ fontSize: '16px', lineHeight: '1.6', marginBottom: '1rem' }}>
-            기업에 꼭 필요한 자금문제를<br />
-            지금 나라똔에서 해결하세요.
-          </p>
-          <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '2rem' }}>
-            본 서비스는 나라똔 회원만 이용할 수 있습니다.<br />
-            가입 후 이용하시면 바로 확인 가능합니다.
-          </p>
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-            <button
-              onClick={() => router.push('/auth/login?callbackUrl=' + encodeURIComponent(window.location.pathname))}
-              style={{
-                padding: '0.75rem 1.5rem',
-                background: '#667eea',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontWeight: '500'
-              }}
-            >
-              <i className="fas fa-user-plus"></i> 회원가입 / 로그인
-            </button>
-            <Link href="/business-voice#ttontok-section" style={{ padding: '0.75rem 1.5rem' }}>목록으로 돌아가기</Link>
+        <div className="auth-required-container">
+          <div className="auth-card">
+            <div className="auth-icon-wrapper">
+              <i className="fas fa-hand-wave"></i>
+            </div>
+            <h2 className="auth-title">안녕하세요 대표님,</h2>
+            <p className="auth-message">
+              기업에 꼭 필요한 자금문제를<br />
+              지금 나라똔에서 해결하세요.
+            </p>
+            <div className="auth-divider"></div>
+            <p className="auth-description">
+              본 서비스는 나라똔 회원만 이용할 수 있습니다.<br />
+              가입 후 이용하시면 바로 확인 가능합니다.
+            </p>
+            <div className="auth-buttons">
+              <button
+                className="auth-button primary"
+                onClick={() => router.push('/auth/login?callbackUrl=' + encodeURIComponent(window.location.pathname))}
+              >
+                <i className="fas fa-user-plus"></i>
+                <span>회원가입 / 로그인</span>
+              </button>
+              <button
+                className="auth-button secondary"
+                onClick={() => router.push('/business-voice#ttontok-section')}
+              >
+                <i className="fas fa-arrow-left"></i>
+                <span>목록으로 돌아가기</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
