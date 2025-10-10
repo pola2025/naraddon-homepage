@@ -338,7 +338,8 @@ export default function TtontokDetailPage() {
   if (status === 'loading' || isLoading) {
     return (
       <div className="ttontok-detail-loading">
-        <div className="loading-spinner">로딩 중...</div>
+        <div className="loading-spinner"></div>
+        <p>로딩 중...</p>
       </div>
     );
   }

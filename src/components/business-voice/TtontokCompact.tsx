@@ -133,12 +133,12 @@ export default function TtontokCompact() {
               return (
                 <Link key={post.id} href={`/business-voice/ttontok/${post.id}`} className="ttontok-best-card">
                   <div className="best-badge">BEST</div>
-                  <h4 className="best-title">
+                  <div className="best-header-title">
                     <span className={`category-badge category-${post.category}`}>
                       {CATEGORY_LABELS[post.category]}
                     </span>
-                    {post.title}
-                  </h4>
+                    <h4 className="best-title">{post.title}</h4>
+                  </div>
                   <div className="best-author">
                     <span className="author-date">{formatDate(post.createdAt)}</span>
                     <span className="author-name">{post.nickname}</span>

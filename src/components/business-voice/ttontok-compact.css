@@ -115,15 +115,22 @@
   font-weight: 500;
 }
 
+.best-header-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
 .best-title {
   font-size: 1.125rem;
   font-weight: 700;
   color: #0f172a;
-  margin: 0 0 4px 0;
+  margin: 0;
   line-height: 1.4;
-  display: flex;
-  align-items: center;
-  gap: 16px;
+  flex: 1;
+  min-width: 0;
 }
 
 .best-author {
@@ -562,10 +569,12 @@
     padding: 3px 12px;
   }
 
+  .best-header-title {
+    gap: 8px;
+  }
+
   .best-title {
     font-size: 1rem;
-    flex-wrap: wrap;
-    gap: 8px;
   }
 
   .best-content {
@@ -739,6 +748,10 @@
 
   .ttontok-best-card {
     padding: 16px;
+  }
+
+  .best-header-title {
+    gap: 6px;
   }
 
   .best-title {
