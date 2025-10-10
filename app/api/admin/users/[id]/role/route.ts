@@ -62,6 +62,36 @@ export async function PUT(
       updatedAt: new Date()
     };
 
+    // 기업심사관에서 다른 역할로 전환 시 (역할 해제)
+    if (user.role === 'examiner' && newRole !== 'examiner') {
+      // 배정된 상담이 있는지 확인
+      const assignedConsultations = await db.collection('consultations').countDocuments({
+        assignedStaffId: user.email,
+        status: { $in: ['pending', 'assigned', 'in_progress', 'review'] }
+      });
+
+      if (assignedConsultations > 0) {
+        return NextResponse.json({
+          error: `현재 ${assignedConsultations}건의 상담이 배정되어 있습니다. 먼저 다른 담당자에게 재배정해주세요.`,
+          assignedConsultations
+        }, { status: 400 });
+      }
+
+      // expert-examiners에서 userId 제거
+      if (user.examinerId) {
+        await db.collection('expert-examiners').updateOne(
+          { _id: new ObjectId(user.examinerId) },
+          {
+            $unset: { userId: '' },
+            $set: { updatedAt: new Date() }
+          }
+        );
+      }
+
+      // users에서 examinerId 제거
+      updateData.$unset = { examinerId: '' };
+    }
+
     // 기업심사관(examiner)으로 전환 시
     if (newRole === 'examiner' && examinerAction) {
       if (examinerAction.action === 'create') {
