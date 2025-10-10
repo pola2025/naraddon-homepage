@@ -31,10 +31,40 @@
     --layout-section-gap: 32px;
   }
 
+  /* 히어로 섹션 모바일 최적화 - 사업자 목소리와 동일한 설정 */
   .policy-analysis-container .expert-hero {
     margin-top: calc(-1 * var(--business-voice-header-offset));
     padding-top: calc(var(--business-voice-header-offset) + var(--business-voice-hero-top-padding) - 40px);
     padding-bottom: var(--business-voice-hero-bottom-padding);
+  }
+
+  .policy-analysis-container .expert-hero .max-w-3xl h1 {
+    font-size: 1.75rem;
+    line-height: 1.3;
+    margin-bottom: 1rem;
+  }
+
+  .policy-analysis-container .expert-hero .max-w-3xl p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+
+  /* 히어로 버튼 모바일 최적화 - 터치 영역 확대 */
+  .policy-analysis-container .expert-hero .mt-10 {
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .policy-analysis-container .expert-hero .mt-10 a {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 

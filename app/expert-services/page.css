@@ -379,13 +379,17 @@
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   white-space: nowrap;
   box-shadow: 0 -2px 10px rgba(102, 126, 234, 0.15);
+  will-change: transform, box-shadow, filter;
 }
 
 .consult-cta:hover {
-  box-shadow: 0 -4px 15px rgba(102, 126, 234, 0.25);
+  background: linear-gradient(135deg, #7c8bf5 0%, #8a5db8 100%);
+  box-shadow: 0 -6px 20px rgba(102, 126, 234, 0.35);
+  transform: translateY(-2px);
+  filter: brightness(1.1);
 }
 
 .carousel-control {
@@ -478,58 +482,60 @@
     width: 100%;
     margin-bottom: 20px;
     opacity: 0;
-    transform: translateY(20px) scale(0.95);
-    animation: mobileCardFadeIn 0.5s ease forwards;
+    transform: translate3d(0, 20px, 0) scale(0.95);
+    animation: mobileCardFadeIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    will-change: transform, opacity;
   }
 
   .expert-card-horizontal[data-position="center"] {
-    animation-delay: 0.1s;
+    animation-delay: 0.05s;
   }
 
   .expert-card-horizontal[data-position="side"] {
     position: absolute;
     opacity: 0;
     pointer-events: none;
-    transform: translateY(30px) scale(0.9);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translate3d(0, 30px, 0) scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+    will-change: transform, opacity;
   }
 
-  /* 카드 전환 애니메이션 */
+  /* 카드 전환 애니메이션 - GPU 가속 최적화 */
   @keyframes mobileCardFadeIn {
     0% {
       opacity: 0;
-      transform: translateY(20px) scale(0.95);
+      transform: translate3d(0, 20px, 0) scale(0.95);
     }
     100% {
       opacity: 1;
-      transform: translateY(0) scale(1);
+      transform: translate3d(0, 0, 0) scale(1);
     }
   }
 
-  /* 카드 나가는 애니메이션 */
+  /* 카드 나가는 애니메이션 - GPU 가속 최적화 */
   @keyframes mobileCardFadeOut {
     0% {
       opacity: 1;
-      transform: translateY(0) scale(1);
+      transform: translate3d(0, 0, 0) scale(1);
     }
     100% {
       opacity: 0;
-      transform: translateY(-20px) scale(0.95);
+      transform: translate3d(0, -20px, 0) scale(0.95);
     }
   }
 
   /* fade-out 클래스 적용 시 */
   .expert-card-horizontal.fade-out {
-    animation: mobileCardFadeOut 0.3s ease forwards;
+    animation: mobileCardFadeOut 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
 
-  /* 모바일 카드 호버 효과 */
+  /* 모바일 카드 터치 효과 - 더 부드럽게 */
   .expert-card-horizontal[data-position="center"] {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
   }
 
   .expert-card-horizontal[data-position="center"]:active {
-    transform: scale(0.98);
+    transform: translate3d(0, 0, 0) scale(0.98);
   }
 
   .card-image-section {

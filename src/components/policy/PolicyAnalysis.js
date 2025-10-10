@@ -514,7 +514,7 @@ const PolicyAnalysis = () => {
               POLICY ANALYSIS
             </span>
             <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-              나라똔의 정확한 정책분석으로
+              나라똔의 정확한 정책분석
               <span className="block text-blue-600">사업 성공의 길을 찾으세요</span>
             </h1>
             <p className="mt-6 text-lg leading-7 text-slate-600">
