@@ -131,7 +131,9 @@ function ConsultationHero() {
             <span className="block text-blue-600">맞춤 전문가가 함께합니다</span>
           </h1>
           <p className="mt-6 text-lg leading-7 text-slate-600">
-            정책자금 특화 심사관이 기업 상황을 분석하고 최적의 전략을 제안합니다.
+            정책자금 특화 심사관이
+            <br />
+            기업 상황을 분석하고 최적의 전략을 제안합니다.
             <br />
             무료 상담 신청 시 24시간 이내로 연락드립니다.
           </p>
@@ -204,9 +206,13 @@ function FaqSection() {
           <span className="consultation-request__faq-badge">정책자금 100문 100답</span>
           <h2 className="consultation-request__faq-title">사업하면서 반드시<br />알아야 하는 100가지 필독!</h2>
           <p className="consultation-request__faq-description">
-            정책자금 제도, 자격 조건, 준비 서류까지 한눈에 확인하세요.
+            정책자금 제도, 자격 조건,
             <br />
-            필요한 내용을 빠르게 찾을 수 있도록 항목별로 정리했습니다.
+            준비 서류까지 한눈에 확인하세요.
+            <br />
+            필요한 내용을 빠르게 찾을 수 있도록
+            <br />
+            항목별로 정리했습니다.
           </p>
         </div>
         <div className="consultation-request__faq-grid">
