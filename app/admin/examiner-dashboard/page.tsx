@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { LuClipboardList, LuCheckCircle2, LuEye, LuClock, LuDollarSign } from 'react-icons/lu';
 
 /**
  * 로딩 스피너 컴포넌트 (인라인)
@@ -219,30 +218,21 @@ export default function AdminExaminerDashboardPage() {
             {/* 통계 카드 */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center text-blue-600 mb-2">
-                  <LuClipboardList className="mr-2" size={18} />
-                  <p className="text-sm font-medium">배정된 상담</p>
-                </div>
+                <p className="text-sm font-medium text-blue-600 mb-2">📋 배정된 상담</p>
                 <p className="text-2xl font-semibold text-gray-900">
                   {stats?.assignedConsultations ?? 0}
                 </p>
               </div>
 
               <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center text-green-600 mb-2">
-                  <LuCheckCircle2 className="mr-2" size={18} />
-                  <p className="text-sm font-medium">완료된 상담</p>
-                </div>
+                <p className="text-sm font-medium text-green-600 mb-2">✅ 완료된 상담</p>
                 <p className="text-2xl font-semibold text-gray-900">
                   {stats?.completedConsultations ?? 0}
                 </p>
               </div>
 
               <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center text-purple-600 mb-2">
-                  <LuEye className="mr-2" size={18} />
-                  <p className="text-sm font-medium">검토 대기</p>
-                </div>
+                <p className="text-sm font-medium text-purple-600 mb-2">👁️ 검토 대기</p>
                 <p className="text-2xl font-semibold text-gray-900">
                   {stats?.pendingReviews ?? 0}
                 </p>
@@ -275,16 +265,8 @@ export default function AdminExaminerDashboardPage() {
                             {consultation.consultationType}
                           </p>
                           <div className="mt-2 flex items-center space-x-4 text-xs text-gray-500">
-                            <span className="flex items-center">
-                              <LuClock className="mr-1" size={14} />
-                              {consultation.scheduledDate}
-                            </span>
-                            {consultation.amount && (
-                              <span className="flex items-center">
-                                <LuDollarSign className="mr-1" size={14} />
-                                {consultation.amount}
-                              </span>
-                            )}
+                            <span>🕐 {consultation.scheduledDate}</span>
+                            {consultation.amount && <span>💰 {consultation.amount}</span>}
                           </div>
                         </div>
                         <div className="flex items-center space-x-3">
