@@ -38,6 +38,7 @@ export default function AdminExaminerDashboardPage() {
 
   const [stats, setStats] = useState<ExaminerStats | null>(null);
   const [examinerName, setExaminerName] = useState<string>('');
+  const [examinerCompany, setExaminerCompany] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -70,10 +71,15 @@ export default function AdminExaminerDashboardPage() {
         const data = await response.json();
         const examiner = data.examiners?.find((e: any) => e.email === examinerEmail);
         if (examiner) {
-          const name = examiner.name || '이름 없음';
-          const company = examiner.companyName || '회사 정보 없음';
-          setExaminerName(`${name} (${company})`);
+          setExaminerName(examiner.name || '이름 없음');
+          setExaminerCompany(examiner.companyName || '회사 정보 없음');
+        } else {
+          setExaminerName('심사관 정보 없음');
+          setExaminerCompany('');
         }
+      } else {
+        setExaminerName('심사관 정보 없음');
+        setExaminerCompany('');
       }
     } catch (error) {
       console.error('Error fetching examiner info:', error);
@@ -158,10 +164,21 @@ export default function AdminExaminerDashboardPage() {
           >
             ← 심사관 목록으로 돌아가기
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {examinerName || '로딩 중...'} 대시보드
-          </h1>
-          <p className="mt-2 text-gray-600">{examinerEmail || ''}</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {examinerName ? `${examinerName} 심사관` : '로딩 중...'}
+              </h1>
+              <div className="mt-2 space-y-1">
+                {examinerCompany && (
+                  <p className="text-lg text-gray-600">{examinerCompany}</p>
+                )}
+                {examinerEmail && (
+                  <p className="text-sm text-gray-500">{examinerEmail}</p>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
         {loading ? (
