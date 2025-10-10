@@ -6,9 +6,9 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
 
 /**
- * 관리자용 심사관별 대시보드 페이지 (테이블 형식)
+ * 관리자용 심사관 상담관리 페이지 (테이블 형식)
  *
- * @purpose 관리자가 모든 심사관의 대시보드를 조회
+ * @purpose 관리자가 모든 심사관의 상담 활동을 조회
  * @context 심사관 목록을 테이블로 표시하고 검색 기능 제공
  * @note 관리자 권한 필요, 검색 기능으로 이름/이메일/회사명 검색 가능
  */
@@ -208,7 +208,7 @@ export default function AdminExaminerDashboards() {
           >
             ← 관리자 대시보드로 돌아가기
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">심사관별 대시보드</h1>
+          <h1 className="text-3xl font-bold text-gray-900">심사관 상담관리</h1>
           <p className="mt-2 text-gray-600">
             모든 심사관의 상담 활동 통계를 조회합니다.
           </p>

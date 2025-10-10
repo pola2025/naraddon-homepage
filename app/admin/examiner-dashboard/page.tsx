@@ -32,7 +32,7 @@ function LoadingSpinner({ message, fullScreen }: { message?: string; fullScreen?
 }
 
 /**
- * 관리자가 특정 심사관의 대시보드를 조회하는 페이지
+ * 관리자가 특정 심사관의 상담을 관리하는 페이지
  *
  * @purpose 관리자가 선택한 심사관의 상담 활동 통계 및 최근 상담 내역 조회
  * @context URL 파라미터로 examinerEmail을 받아 해당 심사관의 데이터를 API로 조회
@@ -171,7 +171,7 @@ export default function AdminExaminerDashboardPage() {
           </div>
           <div className="mt-4">
             <Link href="/admin/examiner-dashboards" className="text-blue-600 hover:text-blue-500">
-              ← 심사관 목록으로 돌아가기
+              ← 심사관 상담관리로 돌아가기
             </Link>
           </div>
         </div>
@@ -188,7 +188,7 @@ export default function AdminExaminerDashboardPage() {
             href="/admin/examiner-dashboards"
             className="text-blue-600 hover:text-blue-500 mb-4 inline-block"
           >
-            ← 심사관 목록으로 돌아가기
+            ← 심사관 상담관리로 돌아가기
           </Link>
           <div className="flex items-center justify-between">
             <div>

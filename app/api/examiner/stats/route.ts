@@ -6,7 +6,7 @@ import clientPromise from '@/lib/mongodb-client';
 export const dynamic = 'force-dynamic';
 
 /**
- * GET /api/examiner/stats - 심사관 대시보드 통계
+ * GET /api/examiner/stats - 심사관 상담관리 통계
  *
  * @purpose 기업심사관의 상담 활동 통계 제공
  * @context 심사관은 자신에게 배정된 상담의 현황을 실시간으로 확인
