@@ -68,9 +68,9 @@ export async function GET(request: NextRequest) {
     const client = await clientPromise;
     const db = client.db('naraddon');
 
-    // 퍼널 데이터 계산
-    const funnelData = await Promise.all(
-      funnel.steps.map(async (step, index) => {
+    // 퍼널 데이터 계산 - 먼저 count만 계산
+    const stepCounts = await Promise.all(
+      funnel.steps.map(async (step) => {
         let count = 0;
 
         if (step.page) {
@@ -89,26 +89,32 @@ export async function GET(request: NextRequest) {
           count = await db.collection('conversions').countDocuments(query);
         }
 
-        // 전환율 계산 (이전 단계 대비)
-        let conversionRate = 0;
-        if (index > 0 && funnelData[index - 1]) {
-          const previousCount = funnelData[index - 1].count;
-          if (previousCount > 0) {
-            conversionRate = (count / previousCount) * 100;
-          }
-        } else if (index === 0) {
-          conversionRate = 100; // 첫 단계는 항상 100%
-        }
-
         return {
           id: step.id,
           name: step.name,
           count,
-          conversionRate: Math.round(conversionRate * 100) / 100,
-          dropOffRate: Math.round((100 - conversionRate) * 100) / 100,
         };
       })
     );
+
+    // 전환율 및 이탈률 계산
+    const funnelData = stepCounts.map((step, index) => {
+      let conversionRate = 0;
+      if (index === 0) {
+        conversionRate = 100; // 첫 단계는 항상 100%
+      } else if (index > 0) {
+        const previousCount = stepCounts[index - 1].count;
+        if (previousCount > 0) {
+          conversionRate = (step.count / previousCount) * 100;
+        }
+      }
+
+      return {
+        ...step,
+        conversionRate: Math.round(conversionRate * 100) / 100,
+        dropOffRate: Math.round((100 - conversionRate) * 100) / 100,
+      };
+    });
 
     // 전체 퍼널 전환율 계산
     const totalConversionRate =

@@ -242,25 +242,25 @@ export default function AdminAnalyticsPage() {
               <Card decoration="top" decorationColor="blue">
                 <Text>현재 접속자</Text>
                 <Metric className="text-blue-600">
-                  {realtimeData?.summary.activeSessions || 0}
+                  {realtimeData?.summary?.activeSessions || 0}
                 </Metric>
               </Card>
               <Card decoration="top" decorationColor="green">
                 <Text>오늘 페이지뷰</Text>
                 <Metric className="text-green-600">
-                  {realtimeData?.summary.pageViewsInRange.toLocaleString() || 0}
+                  {(realtimeData?.summary?.pageViewsInRange || 0).toLocaleString()}
                 </Metric>
               </Card>
               <Card decoration="top" decorationColor="purple">
                 <Text>오늘 전환</Text>
                 <Metric className="text-purple-600">
-                  {realtimeData?.summary.conversionsInRange || 0}
+                  {realtimeData?.summary?.conversionsInRange || 0}
                 </Metric>
               </Card>
               <Card decoration="top" decorationColor="orange">
                 <Text>전환율</Text>
                 <Metric className="text-orange-600">
-                  {realtimeData?.summary.conversionRate.toFixed(2) || 0}%
+                  {(realtimeData?.summary?.conversionRate || 0).toFixed(2)}%
                 </Metric>
               </Card>
             </Grid>
