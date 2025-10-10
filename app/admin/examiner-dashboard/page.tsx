@@ -2,9 +2,35 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
 import { LuClipboardList, LuCheckCircle2, LuEye, LuClock, LuDollarSign } from 'react-icons/lu';
+
+/**
+ * 로딩 스피너 컴포넌트 (인라인)
+ *
+ * @purpose LoadingSpinner import 문제 해결을 위한 인라인 구현
+ */
+function LoadingSpinner({ message, fullScreen }: { message?: string; fullScreen?: boolean }) {
+  const spinner = (
+    <div className="flex flex-col items-center justify-center">
+      <div className="relative w-12 h-12">
+        <div className="absolute inset-0 rounded-full border-4 border-gray-200"></div>
+        <div className="absolute inset-0 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"></div>
+      </div>
+      {message && <p className="mt-4 text-gray-600 text-sm">{message}</p>}
+    </div>
+  );
+
+  if (fullScreen) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+        {spinner}
+      </div>
+    );
+  }
+
+  return spinner;
+}
 
 /**
  * 관리자가 특정 심사관의 대시보드를 조회하는 페이지
