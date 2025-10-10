@@ -217,15 +217,8 @@ export default function AdminExaminerDashboards() {
         {/* 검색 바 */}
         <div className="mb-6">
           <div className="relative">
-            <input
-              type="text"
-              placeholder="심사관 이름, 이메일, 회사명으로 검색..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
             <svg
-              className="absolute left-3 top-3.5 h-5 w-5 text-gray-400"
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -237,6 +230,13 @@ export default function AdminExaminerDashboards() {
                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
               />
             </svg>
+            <input
+              type="text"
+              placeholder="심사관 이름, 이메일, 회사명으로 검색..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
           </div>
           {searchTerm && (
             <p className="mt-2 text-sm text-gray-600">
