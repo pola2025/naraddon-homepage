@@ -85,6 +85,11 @@ export default function AdminExaminerDashboards() {
    */
   const fetchAllStats = async (examiners: Examiner[]) => {
     const statsPromises = examiners.map(async (examiner) => {
+      // 이메일이 없는 심사관은 통계 조회 생략
+      if (!examiner.email) {
+        return null;
+      }
+
       try {
         const response = await fetch(`/api/examiner/stats?examinerEmail=${encodeURIComponent(examiner.email)}`, {
           credentials: 'include'
