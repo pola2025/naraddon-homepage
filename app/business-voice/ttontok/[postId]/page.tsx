@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import './page.css';
 
@@ -101,6 +102,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 export default function TtontokDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { data: session, status } = useSession();
   const postId = params.postId as string;
 
   const [post, setPost] = useState<TtontokPost | null>(null);
@@ -327,10 +329,45 @@ export default function TtontokDetailPage() {
     return `${year}.${month}.${day} ${hours}:${minutes}`;
   };
 
-  if (isLoading) {
+  /**
+   * 로그인 권한 체크
+   *
+   * @purpose 가입자만 똔톡 게시글 열람 가능
+   * @context 로그인하지 않은 사용자는 로그인 페이지로 리다이렉트
+   */
+  if (status === 'loading' || isLoading) {
     return (
       <div className="ttontok-detail-loading">
         <div className="loading-spinner">로딩 중...</div>
+      </div>
+    );
+  }
+
+  if (!session || !session.user) {
+    return (
+      <div className="ttontok-detail-error">
+        <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+          <i className="fas fa-lock" style={{ fontSize: '48px', color: '#667eea', marginBottom: '1rem' }}></i>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>로그인이 필요합니다</h2>
+          <p style={{ color: '#6b7280', marginBottom: '2rem' }}>똔톡 게시글은 가입한 회원만 열람할 수 있습니다.</p>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+            <button
+              onClick={() => router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.pathname))}
+              style={{
+                padding: '0.75rem 1.5rem',
+                background: '#667eea',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: '500'
+              }}
+            >
+              <i className="fas fa-sign-in-alt"></i> 로그인하기
+            </button>
+            <Link href="/business-voice" className="back-to-list">목록으로 돌아가기</Link>
+          </div>
+        </div>
       </div>
     );
   }
