@@ -125,6 +125,7 @@ export default function AdminAnalyticsPage() {
   const [realtimeData, setRealtimeData] = useState<RealtimeData | null>(null);
 
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // 탭 변경 시 데이터 로드
   useEffect(() => {
@@ -150,6 +151,7 @@ export default function AdminAnalyticsPage() {
    */
   const loadTabData = async () => {
     setLoading(true);
+    setError(null);
     try {
       switch (activeTab) {
         case 'funnel':
@@ -179,16 +181,28 @@ export default function AdminAnalyticsPage() {
       }
     } catch (error) {
       console.error('Failed to load tab data:', error);
+      setError('데이터를 불러오는 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
   };
 
   const fetchFunnelData = async () => {
-    const response = await fetch(`/api/analytics/funnel?type=${selectedFunnel}`);
-    const data = await response.json();
-    if (data.success) {
-      setFunnelData(data.funnel);
+    try {
+      const response = await fetch(`/api/analytics/funnel?type=${selectedFunnel}`);
+      if (!response.ok) {
+        throw new Error(`API 에러: ${response.status}`);
+      }
+      const data = await response.json();
+      if (data.success && data.funnel) {
+        setFunnelData(data.funnel);
+      } else {
+        setFunnelData(null);
+      }
+    } catch (error) {
+      console.error('퍼널 데이터 로드 실패:', error);
+      setFunnelData(null);
+      throw error;
     }
   };
 
@@ -290,6 +304,29 @@ export default function AdminAnalyticsPage() {
               <TabPanel>
                 {loading ? (
                   <LoadingSpinner message="퍼널 데이터 로딩 중..." />
+                ) : error ? (
+                  <div className="mt-6">
+                    <Card>
+                      <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
+                        <Text className="font-semibold text-red-900">⚠️ 데이터 로드 실패</Text>
+                        <Text className="text-red-700 mt-2">{error}</Text>
+                        <Text className="text-red-600 mt-2 text-sm">
+                          API 엔드포인트를 확인하거나 잠시 후 다시 시도해주세요.
+                        </Text>
+                      </div>
+                    </Card>
+                  </div>
+                ) : !funnelData || !funnelData.steps || funnelData.steps.length === 0 ? (
+                  <div className="mt-6">
+                    <Card>
+                      <div className="p-6 bg-gray-50 border border-gray-200 rounded-lg text-center">
+                        <Text className="font-semibold text-gray-700">📊 퍼널 데이터 없음</Text>
+                        <Text className="text-gray-600 mt-2">
+                          선택한 퍼널 타입에 대한 데이터가 아직 없습니다.
+                        </Text>
+                      </div>
+                    </Card>
+                  </div>
                 ) : (
                   <div className="space-y-6 mt-6">
                     {/* 퍼널 선택 */}
@@ -313,16 +350,16 @@ export default function AdminAnalyticsPage() {
                     <Grid numItems={1} numItemsSm={3} className="gap-6">
                       <Card>
                         <Text>전체 전환율</Text>
-                        <Metric>{funnelData?.totalConversionRate.toFixed(2)}%</Metric>
+                        <Metric>{funnelData.totalConversionRate.toFixed(2)}%</Metric>
                         <Flex className="mt-4">
                           <Text>
                             <Badge color="blue">
-                              {funnelData?.steps[0]?.count.toLocaleString()} 시작
+                              {funnelData.steps[0].count.toLocaleString()} 시작
                             </Badge>
                           </Text>
                           <Text>
                             <Badge color="green">
-                              {funnelData?.steps[funnelData.steps.length - 1]?.count.toLocaleString()} 완료
+                              {funnelData.steps[funnelData.steps.length - 1].count.toLocaleString()} 완료
                             </Badge>
                           </Text>
                         </Flex>
@@ -331,15 +368,15 @@ export default function AdminAnalyticsPage() {
                       <Card>
                         <Text>최대 이탈 단계</Text>
                         <Metric>
-                          {funnelData?.steps.reduce((max, step) =>
+                          {funnelData.steps.reduce((max, step) =>
                             step.dropOffRate > max.dropOffRate ? step : max
-                          , funnelData.steps[0])?.name || '-'}
+                          , funnelData.steps[0]).name}
                         </Metric>
                         <Flex className="mt-4">
                           <Badge color="red">
-                            {funnelData?.steps.reduce((max, step) =>
+                            {funnelData.steps.reduce((max, step) =>
                               step.dropOffRate > max.dropOffRate ? step : max
-                            , funnelData.steps[0])?.dropOffRate.toFixed(1)}% 이탈
+                            , funnelData.steps[0]).dropOffRate.toFixed(1)}% 이탈
                           </Badge>
                         </Flex>
                       </Card>
@@ -347,7 +384,7 @@ export default function AdminAnalyticsPage() {
                       <Card>
                         <Text>평균 단계별 전환율</Text>
                         <Metric>
-                          {funnelData?.steps.length
+                          {funnelData.steps.length > 1
                             ? (
                                 funnelData.steps
                                   .slice(1)
@@ -369,7 +406,7 @@ export default function AdminAnalyticsPage() {
                       <Card>
                         <Title>단계별 전환율</Title>
                         <div className="mt-4 space-y-3">
-                          {funnelData?.steps.map((step, index) => (
+                          {funnelData.steps.map((step, index) => (
                             <div key={step.id}>
                               <Flex>
                                 <Text>{step.name}</Text>
@@ -418,7 +455,7 @@ export default function AdminAnalyticsPage() {
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
-                            {funnelData?.steps.map((step, index) => {
+                            {funnelData.steps.map((step, index) => {
                               const dropOffCount = index > 0
                                 ? funnelData.steps[index - 1].count - step.count
                                 : 0;
@@ -462,7 +499,7 @@ export default function AdminAnalyticsPage() {
                     <Card>
                       <Title>개선 제안</Title>
                       <div className="mt-4 space-y-3">
-                        {funnelData?.steps.map((step, index) => {
+                        {funnelData.steps.map((step, index) => {
                           if (step.dropOffRate > 50 && index > 0) {
                             return (
                               <div
