@@ -18,6 +18,10 @@ interface Examiner {
   specialties?: string[];
 }
 
+interface CertifiedExaminersPageProps {
+  initialExaminers: Examiner[];
+}
+
 // Fisher-Yates 셔플 알고리즘
 const shuffleArray = (array: any[]) => {
   const shuffled = [...array];
@@ -28,39 +32,20 @@ const shuffleArray = (array: any[]) => {
   return shuffled;
 };
 
-export default function CertifiedExaminersPage() {
+export default function CertifiedExaminersPage({ initialExaminers = [] }: CertifiedExaminersPageProps) {
   const [visibleCount, setVisibleCount] = useState(6);
   const [isExpanded, setIsExpanded] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // 이제 로딩 없음
 
-  // 심사관 데이터 (API에서 가져옴)
-  const [allExaminers, setAllExaminers] = useState<Examiner[]>([]);
-  const [featuredExaminers, setFeaturedExaminers] = useState<Examiner[]>([]);
-  const [gridExaminers, setGridExaminers] = useState<Examiner[]>([]);
+  // 서버에서 받은 데이터를 클라이언트에서 랜덤 정렬
+  const [allExaminers] = useState<Examiner[]>(initialExaminers);
+  const [featuredExaminers] = useState<Examiner[]>(shuffleArray(initialExaminers));
+  const [gridExaminers] = useState<Examiner[]>(shuffleArray(initialExaminers));
 
-  // API에서 심사관 데이터 가져오기
+  // 마운트 상태만 관리
   useEffect(() => {
-    const fetchExaminers = async () => {
-      try {
-        const response = await fetch('/api/certified-examiners');
-        const data = await response.json();
-
-        if (data.success && data.examiners) {
-          setAllExaminers(data.examiners);
-          // 클라이언트에서만 랜덤 정렬 실행
-          setFeaturedExaminers(shuffleArray(data.examiners));
-          setGridExaminers(shuffleArray(data.examiners));
-        }
-      } catch (error) {
-        console.error('Failed to fetch examiners:', error);
-      } finally {
-        setLoading(false);
-        setMounted(true);
-      }
-    };
-
-    fetchExaminers();
+    setMounted(true);
   }, []);
 
   const handleShowMore = () => {
