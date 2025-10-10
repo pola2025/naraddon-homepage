@@ -39,6 +39,12 @@ interface DashboardStats {
     pathname: string;
     count: number;
   }>;
+  marketingStats?: {
+    totalSessions: number;
+    avgPageViews: number;
+    avgTimeSpent: number;
+    bounceRate: number;
+  };
 }
 
 interface Activity {
@@ -281,6 +287,115 @@ export default function AdminDashboard() {
                         {stats?.totalTubeVideos.toLocaleString()}
                       </p>
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 마케팅 통계 */}
+              <div className="bg-white rounded-lg shadow mb-8">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h2 className="text-lg font-semibold text-gray-900">마케팅 통계</h2>
+                  <p className="text-sm text-gray-500 mt-1">방문자 행동 분석 및 인게이지먼트 지표</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6">
+                  <div className="text-center">
+                    <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mx-auto mb-3">
+                      <svg
+                        className="h-6 w-6 text-blue-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                        />
+                      </svg>
+                    </div>
+                    <p className="text-sm font-medium text-gray-500">총 세션</p>
+                    <p className="text-2xl font-semibold text-gray-900 mt-1">
+                      {stats?.marketingStats?.totalSessions.toLocaleString() || '0'}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">고유 방문 세션 수</p>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mx-auto mb-3">
+                      <svg
+                        className="h-6 w-6 text-green-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                    </div>
+                    <p className="text-sm font-medium text-gray-500">평균 페이지뷰</p>
+                    <p className="text-2xl font-semibold text-gray-900 mt-1">
+                      {stats?.marketingStats?.avgPageViews.toFixed(1) || '0'}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">세션당 평균 페이지</p>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full mx-auto mb-3">
+                      <svg
+                        className="h-6 w-6 text-purple-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                    <p className="text-sm font-medium text-gray-500">평균 체류시간</p>
+                    <p className="text-2xl font-semibold text-gray-900 mt-1">
+                      {(() => {
+                        const seconds = stats?.marketingStats?.avgTimeSpent || 0;
+                        if (seconds < 60) {
+                          return `${seconds}초`;
+                        }
+                        const minutes = Math.floor(seconds / 60);
+                        const remainingSeconds = seconds % 60;
+                        return `${minutes}분 ${remainingSeconds}초`;
+                      })()}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">세션당 평균 시간</p>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-full mx-auto mb-3">
+                      <svg
+                        className="h-6 w-6 text-orange-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                        />
+                      </svg>
+                    </div>
+                    <p className="text-sm font-medium text-gray-500">이탈률</p>
+                    <p className="text-2xl font-semibold text-gray-900 mt-1">
+                      {stats?.marketingStats?.bounceRate.toFixed(1) || '0'}%
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">1페이지만 본 비율</p>
                   </div>
                 </div>
               </div>

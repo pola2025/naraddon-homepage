@@ -11,6 +11,8 @@ import clientPromise from '@/lib/mongodb-client';
  * - document.referrer를 클라이언트에서 전송받아 실제 유입 경로 추적
  * - UTM 파라미터로 마케팅 캠페인 추적
  * - 세션 기반 첫 방문 유입 경로 저장
+ * - 세션 ID와 페이지뷰 카운트 저장
+ * - 생성된 visit ID 반환하여 체류시간 업데이트에 사용
  */
 export async function POST(request: NextRequest) {
   try {
@@ -28,6 +30,8 @@ export async function POST(request: NextRequest) {
       pathname,
       referrer = '',
       firstReferrer = '',
+      sessionId = '',
+      pageViewCount = 1,
       utmParams = {}
     } = body;
 
@@ -43,7 +47,7 @@ export async function POST(request: NextRequest) {
     const db = client.db('naraddon');
     const visitsCollection = db.collection('page-visits');
 
-    await visitsCollection.insertOne({
+    const result = await visitsCollection.insertOne({
       pathname,
       ip,
       userAgent,
@@ -51,15 +55,25 @@ export async function POST(request: NextRequest) {
       referer: referrer,
       // 세션 기반 첫 방문 유입 경로
       firstReferrer: firstReferrer,
+      // 세션 ID (방문자별 고유 식별자)
+      sessionId: sessionId,
+      // 세션 내 페이지뷰 카운트
+      pageViewCount: pageViewCount,
       // UTM 파라미터 (마케팅 캠페인 추적)
       utmSource: utmParams.source || '',
       utmMedium: utmParams.medium || '',
       utmCampaign: utmParams.campaign || '',
+      // 체류시간 (나중에 업데이트됨)
+      timeSpent: 0,
       timestamp: new Date(),
       createdAt: new Date(),
     });
 
-    return NextResponse.json({ success: true });
+    // 생성된 visit ID 반환
+    return NextResponse.json({
+      success: true,
+      visitId: result.insertedId.toString()
+    });
   } catch (error) {
     console.error('[track-visit] Error:', error);
 

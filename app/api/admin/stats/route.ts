@@ -285,6 +285,53 @@ export async function GET(request: NextRequest) {
 
     const videoCount = totalTubeVideos.length > 0 ? totalTubeVideos[0].total : 0;
 
+    /**
+     * 마케팅 통계 계산
+     *
+     * @purpose 세션별 페이지뷰, 체류시간, 바운스율 분석
+     * @context sessionId 기반으로 방문자 행동 분석
+     */
+    // 세션별로 데이터 그룹화
+    const sessionData = await db.collection('page-visits')
+      .find({ sessionId: { $exists: true, $ne: '' } })
+      .project({ sessionId: 1, pageViewCount: 1, timeSpent: 1 })
+      .toArray();
+
+    // 세션별로 그룹화하여 최대 페이지뷰와 총 체류시간 계산
+    const sessionMap: { [key: string]: { maxPageView: number; totalTimeSpent: number } } = {};
+
+    sessionData.forEach((visit: any) => {
+      const sid = visit.sessionId;
+      if (!sessionMap[sid]) {
+        sessionMap[sid] = { maxPageView: 0, totalTimeSpent: 0 };
+      }
+      // 세션 내 최대 페이지뷰 (마지막 페이지의 pageViewCount)
+      if (visit.pageViewCount > sessionMap[sid].maxPageView) {
+        sessionMap[sid].maxPageView = visit.pageViewCount;
+      }
+      // 세션 내 모든 페이지의 체류시간 합산
+      sessionMap[sid].totalTimeSpent += (visit.timeSpent || 0);
+    });
+
+    const sessions = Object.values(sessionMap);
+    const totalSessions = sessions.length;
+
+    // 평균 페이지뷰 계산
+    const avgPageViews = totalSessions > 0
+      ? sessions.reduce((sum, session) => sum + session.maxPageView, 0) / totalSessions
+      : 0;
+
+    // 평균 체류시간 계산 (초 단위)
+    const avgTimeSpent = totalSessions > 0
+      ? sessions.reduce((sum, session) => sum + session.totalTimeSpent, 0) / totalSessions
+      : 0;
+
+    // 바운스율 계산 (1페이지만 보고 나간 세션 비율)
+    const bouncedSessions = sessions.filter(session => session.maxPageView === 1).length;
+    const bounceRate = totalSessions > 0
+      ? (bouncedSessions / totalSessions) * 100
+      : 0;
+
     return NextResponse.json({
       totalUsers,
       totalConsultations,
@@ -302,7 +349,14 @@ export async function GET(request: NextRequest) {
       deviceStats,
       trafficSourceStats,
       topReferrers,
-      topPages
+      topPages,
+      // 마케팅 통계 추가
+      marketingStats: {
+        totalSessions,
+        avgPageViews: Math.round(avgPageViews * 100) / 100, // 소수점 2자리
+        avgTimeSpent: Math.round(avgTimeSpent), // 초 단위 (정수)
+        bounceRate: Math.round(bounceRate * 100) / 100, // 퍼센트, 소수점 2자리
+      },
     });
   } catch (error) {
     console.error('Admin stats error:', error);
@@ -336,6 +390,12 @@ export async function GET(request: NextRequest) {
       },
       topReferrers: [],
       topPages: [],
+      marketingStats: {
+        totalSessions: 0,
+        avgPageViews: 0,
+        avgTimeSpent: 0,
+        bounceRate: 0,
+      },
       notice: 'MongoDB 연결 대기 중입니다. 잠시 후 새로고침해주세요.'
     });
   }
