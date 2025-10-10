@@ -276,6 +276,10 @@ export default function ExaminersPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('[Image Upload] Full error response:', errorData);
+        console.error('[Image Upload] Debug steps:', errorData.debug);
+        console.error('[Image Upload] Last step:', errorData.lastStep);
+        console.error('[Image Upload] Error message:', errorData.message);
         throw new Error(errorData.error || '업로드 실패');
       }
 
