@@ -16,7 +16,7 @@ import Link from 'next/link';
 interface Examiner {
   _id: string;
   name: string;
-  email: string;
+  email: string | null;
   companyName: string;
   legacyKey?: string;
 }
@@ -127,7 +127,7 @@ export default function AdminExaminerDashboards() {
       const searchLower = searchTerm.toLowerCase();
       return (
         examiner.name.toLowerCase().includes(searchLower) ||
-        examiner.email.toLowerCase().includes(searchLower) ||
+        (examiner.email && examiner.email.toLowerCase().includes(searchLower)) ||
         examiner.companyName.toLowerCase().includes(searchLower)
       );
     });
@@ -187,7 +187,11 @@ export default function AdminExaminerDashboards() {
     );
   };
 
-  const handleViewDashboard = (examinerEmail: string) => {
+  const handleViewDashboard = (examinerEmail: string | null) => {
+    if (!examinerEmail) {
+      alert('이 심사관의 이메일 정보가 없습니다.');
+      return;
+    }
     router.push(`/admin/examiner-dashboard?examinerEmail=${encodeURIComponent(examinerEmail)}`);
   };
 
@@ -339,7 +343,7 @@ export default function AdminExaminerDashboards() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-500">
-                              {examiner.email}
+                              {examiner.email || '이메일 없음'}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -384,7 +388,12 @@ export default function AdminExaminerDashboards() {
                                 e.stopPropagation();
                                 handleViewDashboard(examiner.email);
                               }}
-                              className="text-blue-600 hover:text-blue-900 font-medium text-sm"
+                              disabled={!examiner.email}
+                              className={`font-medium text-sm ${
+                                examiner.email
+                                  ? 'text-blue-600 hover:text-blue-900'
+                                  : 'text-gray-400 cursor-not-allowed'
+                              }`}
                             >
                               상세보기
                             </button>

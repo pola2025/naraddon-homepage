@@ -43,20 +43,31 @@ export async function GET(request: NextRequest) {
       .sort({ sortOrder: 1, createdAt: -1 })
       .toArray();
 
-    // 응답 데이터 포맷팅
-    const formattedExaminers = examiners.map(examiner => ({
-      _id: examiner._id.toString(),
-      name: examiner.name,
-      position: examiner.position,
-      companyName: examiner.companyName,
-      category: examiner.category,
-      specialties: examiner.specialties || [],
-      imageUrl: examiner.imageUrl,
-      userId: examiner.userId,
-      isPublished: examiner.isPublished,
-      sortOrder: examiner.sortOrder,
-      createdAt: examiner.createdAt,
-      updatedAt: examiner.updatedAt
+    // userId로 users 컬렉션에서 이메일 조회
+    const formattedExaminers = await Promise.all(examiners.map(async (examiner) => {
+      let email = null;
+
+      // userId가 있으면 users 컬렉션에서 이메일 조회
+      if (examiner.userId) {
+        const user = await db.collection('users').findOne({ _id: examiner.userId });
+        email = user?.email || null;
+      }
+
+      return {
+        _id: examiner._id.toString(),
+        name: examiner.name,
+        email: email, // 이메일 추가
+        position: examiner.position,
+        companyName: examiner.companyName,
+        category: examiner.category,
+        specialties: examiner.specialties || [],
+        imageUrl: examiner.imageUrl,
+        userId: examiner.userId,
+        isPublished: examiner.isPublished,
+        sortOrder: examiner.sortOrder,
+        createdAt: examiner.createdAt,
+        updatedAt: examiner.updatedAt
+      };
     }));
 
     return NextResponse.json({
