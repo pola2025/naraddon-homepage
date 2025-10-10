@@ -1,16 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
 
 /**
- * 관리자용 심사관별 대시보드 페이지
+ * 관리자용 심사관별 대시보드 페이지 (테이블 형식)
  *
  * @purpose 관리자가 모든 심사관의 대시보드를 조회
- * @context 심사관 목록을 표시하고 각 심사관의 통계를 확인
- * @note 관리자 권한 필요
+ * @context 심사관 목록을 테이블로 표시하고 검색 기능 제공
+ * @note 관리자 권한 필요, 검색 기능으로 이름/이메일/회사명 검색 가능
  */
 
 interface Examiner {
@@ -35,7 +35,9 @@ export default function AdminExaminerDashboards() {
   const [stats, setStats] = useState<Record<string, ExaminerStats>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedExaminer, setSelectedExaminer] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortField, setSortField] = useState<'name' | 'company' | 'assigned' | 'completed' | 'pending' | 'rating'>('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
     fetchExaminers();
@@ -116,8 +118,76 @@ export default function AdminExaminerDashboards() {
     setStats(statsMap);
   };
 
+  /**
+   * 검색 및 정렬된 심사관 목록
+   */
+  const filteredAndSortedExaminers = useMemo(() => {
+    // 검색 필터링
+    let filtered = examiners.filter((examiner) => {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        examiner.name.toLowerCase().includes(searchLower) ||
+        examiner.email.toLowerCase().includes(searchLower) ||
+        examiner.companyName.toLowerCase().includes(searchLower)
+      );
+    });
+
+    // 정렬
+    filtered.sort((a, b) => {
+      let compareValue = 0;
+
+      switch (sortField) {
+        case 'name':
+          compareValue = a.name.localeCompare(b.name);
+          break;
+        case 'company':
+          compareValue = a.companyName.localeCompare(b.companyName);
+          break;
+        case 'assigned':
+          compareValue = (stats[a._id]?.assignedConsultations ?? 0) - (stats[b._id]?.assignedConsultations ?? 0);
+          break;
+        case 'completed':
+          compareValue = (stats[a._id]?.completedConsultations ?? 0) - (stats[b._id]?.completedConsultations ?? 0);
+          break;
+        case 'pending':
+          compareValue = (stats[a._id]?.pendingReviews ?? 0) - (stats[b._id]?.pendingReviews ?? 0);
+          break;
+        case 'rating':
+          compareValue = (stats[a._id]?.averageRating ?? 0) - (stats[b._id]?.averageRating ?? 0);
+          break;
+      }
+
+      return sortDirection === 'asc' ? compareValue : -compareValue;
+    });
+
+    return filtered;
+  }, [examiners, stats, searchTerm, sortField, sortDirection]);
+
+  /**
+   * 정렬 핸들러
+   */
+  const handleSort = (field: typeof sortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  /**
+   * 정렬 아이콘 표시
+   */
+  const SortIcon = ({ field }: { field: typeof sortField }) => {
+    if (sortField !== field) return null;
+    return (
+      <span className="ml-1">
+        {sortDirection === 'asc' ? '↑' : '↓'}
+      </span>
+    );
+  };
+
   const handleViewDashboard = (examinerEmail: string) => {
-    // 심사관 이메일을 쿼리 파라미터로 전달하여 대시보드 페이지로 이동
     router.push(`/admin/examiner-dashboard?examinerEmail=${encodeURIComponent(examinerEmail)}`);
   };
 
@@ -138,6 +208,37 @@ export default function AdminExaminerDashboards() {
           </p>
         </div>
 
+        {/* 검색 바 */}
+        <div className="mb-6">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="심사관 이름, 이메일, 회사명으로 검색..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <svg
+              className="absolute left-3 top-3.5 h-5 w-5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
+          {searchTerm && (
+            <p className="mt-2 text-sm text-gray-600">
+              검색 결과: {filteredAndSortedExaminers.length}명
+            </p>
+          )}
+        </div>
+
         {loading ? (
           <LoadingSpinner message="심사관 정보를 불러오는 중..." fullScreen={false} />
         ) : error ? (
@@ -149,71 +250,165 @@ export default function AdminExaminerDashboards() {
             <p className="text-gray-500">등록된 심사관이 없습니다.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {examiners.map((examiner) => {
-              const examinerStats = stats[examiner._id];
-              return (
-                <div
-                  key={examiner._id}
-                  className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow cursor-pointer"
-                  onClick={() => handleViewDashboard(examiner.email)}
-                >
-                  <div className="p-6">
-                    {/* 심사관 정보 */}
-                    <div className="mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900">{examiner.name}</h3>
-                      <p className="text-sm text-gray-600">{examiner.companyName}</p>
-                      <p className="text-xs text-gray-500 mt-1">{examiner.email}</p>
-                    </div>
-
-                    {/* 통계 정보 */}
-                    {examinerStats ? (
-                      <div className="space-y-3 border-t pt-4">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">배정된 상담</span>
-                          <span className="text-lg font-semibold text-blue-600">
-                            {examinerStats.assignedConsultations}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">완료된 상담</span>
-                          <span className="text-lg font-semibold text-green-600">
-                            {examinerStats.completedConsultations}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">검토 대기</span>
-                          <span className="text-lg font-semibold text-purple-600">
-                            {examinerStats.pendingReviews}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">평균 평점</span>
-                          <span className="text-lg font-semibold text-yellow-600">
-                            {examinerStats.averageRating || 0}
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center text-sm text-gray-500 py-4">
-                        통계 로딩 중...
-                      </div>
-                    )}
-
-                    {/* 버튼 */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleViewDashboard(examiner.email);
-                      }}
-                      className="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort('name')}
                     >
-                      상세 대시보드 보기
-                    </button>
-                  </div>
+                      심사관 <SortIcon field="name" />
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort('company')}
+                    >
+                      회사 <SortIcon field="company" />
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      이메일
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort('assigned')}
+                    >
+                      배정 <SortIcon field="assigned" />
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort('completed')}
+                    >
+                      완료 <SortIcon field="completed" />
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort('pending')}
+                    >
+                      검토대기 <SortIcon field="pending" />
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort('rating')}
+                    >
+                      평점 <SortIcon field="rating" />
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      액션
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredAndSortedExaminers.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
+                        검색 결과가 없습니다.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredAndSortedExaminers.map((examiner) => {
+                      const examinerStats = stats[examiner._id];
+                      return (
+                        <tr
+                          key={examiner._id}
+                          className="hover:bg-gray-50 cursor-pointer"
+                          onClick={() => handleViewDashboard(examiner.email)}
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">
+                              {examiner.name}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">
+                              {examiner.companyName}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-500">
+                              {examiner.email}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            {examinerStats ? (
+                              <span className="text-sm font-semibold text-blue-600">
+                                {examinerStats.assignedConsultations}
+                              </span>
+                            ) : (
+                              <span className="text-sm text-gray-400">-</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            {examinerStats ? (
+                              <span className="text-sm font-semibold text-green-600">
+                                {examinerStats.completedConsultations}
+                              </span>
+                            ) : (
+                              <span className="text-sm text-gray-400">-</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            {examinerStats ? (
+                              <span className="text-sm font-semibold text-purple-600">
+                                {examinerStats.pendingReviews}
+                              </span>
+                            ) : (
+                              <span className="text-sm text-gray-400">-</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            {examinerStats ? (
+                              <span className="text-sm font-semibold text-yellow-600">
+                                {examinerStats.averageRating || 0}
+                              </span>
+                            ) : (
+                              <span className="text-sm text-gray-400">-</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewDashboard(examiner.email);
+                              }}
+                              className="text-blue-600 hover:text-blue-900 font-medium text-sm"
+                            >
+                              상세보기
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* 통계 요약 */}
+            {filteredAndSortedExaminers.length > 0 && (
+              <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                <div className="flex justify-between items-center text-sm text-gray-600">
+                  <span>총 {filteredAndSortedExaminers.length}명의 심사관</span>
+                  <span>
+                    전체 배정: {Object.values(stats).reduce((sum, s) => sum + (s.assignedConsultations || 0), 0)} |
+                    전체 완료: {Object.values(stats).reduce((sum, s) => sum + (s.completedConsultations || 0), 0)}
+                  </span>
                 </div>
-              );
-            })}
+              </div>
+            )}
           </div>
         )}
       </div>

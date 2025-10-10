@@ -48,8 +48,11 @@ export default function AdminExaminerDashboardPage() {
       return;
     }
 
-    fetchExaminerInfo();
-    fetchExaminerStats();
+    const fetchData = async () => {
+      await Promise.all([fetchExaminerInfo(), fetchExaminerStats()]);
+    };
+
+    fetchData();
   }, [examinerEmail]);
 
   /**
@@ -67,7 +70,9 @@ export default function AdminExaminerDashboardPage() {
         const data = await response.json();
         const examiner = data.examiners?.find((e: any) => e.email === examinerEmail);
         if (examiner) {
-          setExaminerName(`${examiner.name} (${examiner.companyName})`);
+          const name = examiner.name || '이름 없음';
+          const company = examiner.companyName || '회사 정보 없음';
+          setExaminerName(`${name} (${company})`);
         }
       }
     } catch (error) {
@@ -154,9 +159,9 @@ export default function AdminExaminerDashboardPage() {
             ← 심사관 목록으로 돌아가기
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">
-            {examinerName || '심사관'} 대시보드
+            {examinerName || '로딩 중...'} 대시보드
           </h1>
-          <p className="mt-2 text-gray-600">{examinerEmail}</p>
+          <p className="mt-2 text-gray-600">{examinerEmail || ''}</p>
         </div>
 
         {loading ? (
@@ -189,7 +194,7 @@ export default function AdminExaminerDashboardPage() {
                   <div className="ml-5">
                     <p className="text-sm font-medium text-gray-500">배정된 상담</p>
                     <p className="text-2xl font-semibold text-gray-900">
-                      {stats?.assignedConsultations}
+                      {stats?.assignedConsultations ?? 0}
                     </p>
                   </div>
                 </div>
@@ -215,7 +220,7 @@ export default function AdminExaminerDashboardPage() {
                   <div className="ml-5">
                     <p className="text-sm font-medium text-gray-500">완료된 상담</p>
                     <p className="text-2xl font-semibold text-gray-900">
-                      {stats?.completedConsultations}
+                      {stats?.completedConsultations ?? 0}
                     </p>
                   </div>
                 </div>
@@ -247,7 +252,7 @@ export default function AdminExaminerDashboardPage() {
                   <div className="ml-5">
                     <p className="text-sm font-medium text-gray-500">검토 대기</p>
                     <p className="text-2xl font-semibold text-gray-900">
-                      {stats?.pendingReviews}
+                      {stats?.pendingReviews ?? 0}
                     </p>
                   </div>
                 </div>
@@ -272,7 +277,7 @@ export default function AdminExaminerDashboardPage() {
                   </div>
                   <div className="ml-5">
                     <p className="text-sm font-medium text-gray-500">평균 평점</p>
-                    <p className="text-2xl font-semibold text-gray-900">{stats?.averageRating}</p>
+                    <p className="text-2xl font-semibold text-gray-900">{stats?.averageRating ?? 0}</p>
                   </div>
                 </div>
               </div>
