@@ -673,8 +673,8 @@ export default function ExaminersPage() {
 
       {/* Detail Modal - 상세보기 */}
       {showDetailModal && viewingExaminer && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className="bg-white rounded-lg max-w-xl w-full max-h-[85vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-4 sm:p-5">
               {/* 상단 헤더와 닫기 버튼 */}
               <div className="flex items-center justify-between mb-4 sticky top-0 bg-white pb-3 border-b z-10">
@@ -691,17 +691,17 @@ export default function ExaminersPage() {
               </div>
 
               <div className="space-y-4">
-                {/* 프로필 이미지 */}
+                {/* 프로필 이미지 - 사각형, 원본 비율, 작은 크기 */}
                 <div className="flex justify-center">
                   {viewingExaminer.imageUrl ? (
                     <img
                       src={viewingExaminer.imageUrl}
                       alt={viewingExaminer.name}
-                      className="w-28 h-28 rounded-full object-cover border-4 border-blue-100"
+                      className="w-20 h-24 rounded-md object-cover border-2 border-blue-100"
                     />
                   ) : (
-                    <div className="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center border-4 border-gray-100">
-                      <UserIcon className="w-14 h-14 text-gray-400" />
+                    <div className="w-20 h-24 rounded-md bg-gray-200 flex items-center justify-center border-2 border-gray-100">
+                      <UserIcon className="w-10 h-10 text-gray-400" />
                     </div>
                   )}
                 </div>
