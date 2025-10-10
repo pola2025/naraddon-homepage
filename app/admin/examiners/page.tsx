@@ -61,7 +61,7 @@ export default function ExaminersPage() {
     specialties: [] as string[],
     imageUrl: '',
     isPublished: true,
-    sortOrder: 999
+    sortOrder: 100 // 기본값: 100 (낮을수록 먼저 표시)
   });
 
   useEffect(() => {
@@ -102,6 +102,12 @@ export default function ExaminersPage() {
       });
       setPreviewImage(examiner.imageUrl || '');
     } else {
+      // 새 심사관 추가 시: 현재 최대 sortOrder + 10
+      const maxSortOrder = examiners.length > 0
+        ? Math.max(...examiners.map(e => e.sortOrder || 0))
+        : 0;
+      const nextSortOrder = maxSortOrder + 10;
+
       setEditingExaminer(null);
       setFormData({
         name: '',
@@ -111,7 +117,7 @@ export default function ExaminersPage() {
         specialties: [],
         imageUrl: '',
         isPublished: true,
-        sortOrder: 999
+        sortOrder: nextSortOrder
       });
       setPreviewImage('');
     }
@@ -620,9 +626,14 @@ export default function ExaminersPage() {
                   <input
                     type="number"
                     value={formData.sortOrder}
-                    onChange={(e) => setFormData({ ...formData, sortOrder: parseInt(e.target.value) })}
+                    onChange={(e) => setFormData({ ...formData, sortOrder: parseInt(e.target.value) || 0 })}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    min="0"
+                    step="10"
                   />
+                  <p className="mt-1 text-xs text-gray-500">
+                    숫자가 낮을수록 앞에 표시됩니다 (예: 10 → 20 → 30)
+                  </p>
                 </div>
 
                 <div className="flex items-center">
