@@ -25,10 +25,17 @@
   margin-bottom: 0;
 }
 
+@media (max-width: 1024px) {
+  .policy-analysis-container {
+    --business-voice-header-offset: 120px;
+  }
+}
+
 @media (max-width: 768px) {
   .policy-analysis-container {
     --layout-horizontal-padding: 16px;
     --layout-section-gap: 32px;
+    --business-voice-header-offset: 110px;
   }
 
   /* 히어로 섹션 모바일 최적화 - 사업자 목소리와 동일한 설정 */
