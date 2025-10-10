@@ -116,6 +116,10 @@ export async function POST(request: NextRequest) {
     const s3Client = getR2Client();
 
     debugSteps.push('18. Creating upload command');
+
+    // 원본 파일명을 Base64로 인코딩 (한글/특수문자 지원)
+    const originalNameBase64 = Buffer.from(file.name, 'utf-8').toString('base64');
+
     const uploadCommand = new PutObjectCommand({
       Bucket: BUCKET_NAME,
       Key: fileName,
@@ -123,10 +127,10 @@ export async function POST(request: NextRequest) {
       ContentType: file.type,
       CacheControl: 'max-age=31536000', // 1년
       Metadata: {
-        uploadedAt: new Date().toISOString(),
-        uploadedBy: session.user?.email || 'unknown',
-        originalName: file.name,
-        purpose: 'examiner-profile'
+        'uploaded-at': new Date().toISOString(),
+        'uploaded-by': (session.user?.email || 'unknown').replace(/[^\x20-\x7E]/g, ''),
+        'original-name-b64': originalNameBase64,
+        'purpose': 'examiner-profile'
       }
     });
 
