@@ -72,10 +72,10 @@ export async function GET(request: NextRequest) {
       pendingReviews,
       recentConsultations
     ] = await Promise.all([
-      // 배정된 상담 수 (현재 진행 중인 상담)
+      // 배정된 상담 수 (배정됨 + 진행중)
       consultationsCollection.countDocuments({
         assignedStaffId: targetEmail,
-        status: { $in: ['pending', 'in_progress'] }
+        status: { $in: ['assigned', 'in_progress'] }
       }),
 
       // 완료된 상담 수
