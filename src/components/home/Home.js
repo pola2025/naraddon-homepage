@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import './Home.css';
 import HeroSection from './components/HeroSection/index';
