@@ -317,7 +317,7 @@ export default function ExaminersPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
