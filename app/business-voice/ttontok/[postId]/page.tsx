@@ -348,9 +348,16 @@ export default function TtontokDetailPage() {
     return (
       <div className="ttontok-detail-error">
         <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
-          <i className="fas fa-lock" style={{ fontSize: '48px', color: '#667eea', marginBottom: '1rem' }}></i>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>회원가입 후 이용 가능합니다</h2>
-          <p style={{ color: '#6b7280', marginBottom: '2rem' }}>똔톡은 나라똔 회원만 이용할 수 있는 서비스입니다.</p>
+          <i className="fas fa-hand-wave" style={{ fontSize: '48px', color: '#667eea', marginBottom: '1rem' }}></i>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>안녕하세요 대표님,</h2>
+          <p style={{ fontSize: '16px', lineHeight: '1.6', marginBottom: '1rem' }}>
+            기업에 꼭 필요한 자금문제를<br />
+            지금 나라똔에서 해결하세요.
+          </p>
+          <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '2rem' }}>
+            본 서비스는 나라똔 회원만 이용할 수 있습니다.<br />
+            가입 후 이용하시면 바로 확인 가능합니다.
+          </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
             <button
               onClick={() => router.push('/auth/login?callbackUrl=' + encodeURIComponent(window.location.pathname))}

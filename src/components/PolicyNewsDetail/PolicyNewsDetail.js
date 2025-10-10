@@ -175,9 +175,16 @@ const PolicyNewsDetail = () => {
     return (
       <div className="policy-news-detail">
         <div className="error-container">
-          <i className="fas fa-lock" style={{ fontSize: '48px', color: '#667eea', marginBottom: '16px' }}></i>
-          <h2>회원가입 후 이용 가능합니다</h2>
-          <p className="error-message">정책소식은 나라똔 회원만 이용할 수 있는 서비스입니다.</p>
+          <i className="fas fa-hand-wave" style={{ fontSize: '48px', color: '#667eea', marginBottom: '16px' }}></i>
+          <h2 style={{ marginBottom: '8px' }}>안녕하세요 대표님,</h2>
+          <p className="error-message" style={{ fontSize: '16px', lineHeight: '1.6', marginBottom: '20px' }}>
+            기업에 꼭 필요한 자금문제를<br />
+            지금 나라똔에서 해결하세요.
+          </p>
+          <p className="error-message" style={{ fontSize: '14px', color: '#64748b' }}>
+            본 서비스는 나라똔 회원만 이용할 수 있습니다.<br />
+            가입 후 이용하시면 바로 확인 가능합니다.
+          </p>
           <div style={{ display: 'flex', gap: '1rem', marginTop: '24px', justifyContent: 'center' }}>
             <button
               className="back-button"

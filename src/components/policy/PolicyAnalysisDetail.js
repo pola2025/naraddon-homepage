@@ -335,9 +335,16 @@ const PolicyAnalysisDetail = ({ postId }) => {
     return (
       <div className="policy-analysis-detail">
         <div className="detail-container error">
-          <i className="fas fa-lock"></i>
-          <h2>회원가입 후 이용 가능합니다</h2>
-          <p>정책분석은 나라똔 회원만 이용할 수 있는 서비스입니다.</p>
+          <i className="fas fa-hand-wave" style={{ fontSize: '48px', color: '#4F46E5', marginBottom: '16px' }}></i>
+          <h2 style={{ marginBottom: '8px' }}>안녕하세요 대표님,</h2>
+          <p style={{ fontSize: '16px', lineHeight: '1.6', marginBottom: '20px' }}>
+            기업에 꼭 필요한 자금문제를<br />
+            지금 나라똔에서 해결하세요.
+          </p>
+          <p style={{ fontSize: '14px', color: '#64748b' }}>
+            본 서비스는 나라똔 회원만 이용할 수 있습니다.<br />
+            가입 후 이용하시면 바로 확인 가능합니다.
+          </p>
           <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
             <button
               className="back-button"
