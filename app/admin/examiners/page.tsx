@@ -50,6 +50,8 @@ export default function ExaminersPage() {
   const [viewingExaminer, setViewingExaminer] = useState<Examiner | null>(null);
   const [activityScore, setActivityScore] = useState<ActivityScore | null>(null);
   const [loadingActivity, setLoadingActivity] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string>('');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -98,6 +100,7 @@ export default function ExaminersPage() {
         isPublished: examiner.isPublished,
         sortOrder: examiner.sortOrder
       });
+      setPreviewImage(examiner.imageUrl || '');
     } else {
       setEditingExaminer(null);
       setFormData({
@@ -110,6 +113,7 @@ export default function ExaminersPage() {
         isPublished: true,
         sortOrder: 999
       });
+      setPreviewImage('');
     }
     setShowModal(true);
   };
@@ -117,6 +121,8 @@ export default function ExaminersPage() {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingExaminer(null);
+    setPreviewImage('');
+    setUploadingImage(false);
   };
 
   const handleViewDetail = async (examiner: Examiner) => {
@@ -218,6 +224,82 @@ export default function ExaminersPage() {
       ...prev,
       specialties: prev.specialties.filter((_, i) => i !== index)
     }));
+  };
+
+  /**
+   * 이미지 파일 업로드 핸들러
+   *
+   * @purpose 선택한 이미지 파일을 Cloudflare R2에 업로드
+   * @context 파일 선택 시 자동으로 업로드 진행
+   */
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 파일 타입 검증
+    if (!file.type.startsWith('image/')) {
+      alert('이미지 파일만 업로드 가능합니다.');
+      return;
+    }
+
+    // 파일 크기 검증 (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('파일 크기는 5MB 이하여야 합니다.');
+      return;
+    }
+
+    try {
+      setUploadingImage(true);
+
+      // 미리보기 생성
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      // FormData 생성
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+
+      // API 호출
+      const response = await fetch('/api/upload/examiner', {
+        method: 'POST',
+        body: uploadFormData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '업로드 실패');
+      }
+
+      const data = await response.json();
+
+      // 업로드된 URL을 formData에 설정
+      setFormData(prev => ({
+        ...prev,
+        imageUrl: data.url
+      }));
+
+      console.log('[Image Upload] Success:', data.url);
+    } catch (error) {
+      console.error('[Image Upload] Error:', error);
+      alert(error instanceof Error ? error.message : '이미지 업로드 중 오류가 발생했습니다.');
+      setPreviewImage('');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  /**
+   * 이미지 제거 핸들러
+   */
+  const handleImageRemove = () => {
+    setFormData(prev => ({
+      ...prev,
+      imageUrl: ''
+    }));
+    setPreviewImage('');
   };
 
   if (isLoading) {
@@ -462,15 +544,75 @@ export default function ExaminersPage() {
                   </button>
                 </div>
 
+                {/* 이미지 업로드 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">이미지 URL</label>
-                  <input
-                    type="text"
-                    value={formData.imageUrl}
-                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    placeholder="/images/examiners/name.jpg"
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">프로필 이미지</label>
+
+                  {/* 미리보기 또는 기존 이미지 */}
+                  {(previewImage || formData.imageUrl) && (
+                    <div className="mb-4 relative inline-block">
+                      <img
+                        src={previewImage || formData.imageUrl}
+                        alt="Preview"
+                        className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleImageRemove}
+                        className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 shadow-lg"
+                        title="이미지 제거"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* 파일 업로드 버튼 */}
+                  <div className="flex items-center space-x-3">
+                    <label className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      {uploadingImage ? '업로드 중...' : '이미지 선택'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        disabled={uploadingImage}
+                        className="hidden"
+                      />
+                    </label>
+
+                    {uploadingImage && (
+                      <div className="flex items-center text-sm text-gray-500">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                        업로드 중...
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="mt-2 text-xs text-gray-500">
+                    JPG, PNG, WebP, GIF 파일 (최대 5MB)
+                  </p>
+
+                  {/* URL 직접 입력 (선택사항) */}
+                  <details className="mt-3">
+                    <summary className="text-xs text-gray-600 cursor-pointer hover:text-gray-900">
+                      또는 URL 직접 입력
+                    </summary>
+                    <input
+                      type="text"
+                      value={formData.imageUrl}
+                      onChange={(e) => {
+                        setFormData({ ...formData, imageUrl: e.target.value });
+                        setPreviewImage(e.target.value);
+                      }}
+                      className="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                      placeholder="https://example.com/image.jpg"
+                    />
+                  </details>
                 </div>
 
                 <div>
