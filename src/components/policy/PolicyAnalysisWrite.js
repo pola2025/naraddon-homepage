@@ -2,11 +2,13 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 import './PolicyAnalysisWrite.css';
 
 const PolicyAnalysisWrite = () => {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const fileInputRef = useRef(null);
   const [adminPosts, setAdminPosts] = useState([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
@@ -248,6 +250,31 @@ const PolicyAnalysisWrite = () => {
   const [isLoadingExaminers, setIsLoadingExaminers] = useState(false);
   const [examinerError, setExaminerError] = useState('');
 
+  /**
+   * 세션 기반 권한 체크
+   *
+   * @purpose 로그인 상태 및 기업심사관 권한 확인
+   * @context examiner role을 가진 사용자만 정책분석 작성 가능
+   */
+  useEffect(() => {
+    if (status === 'loading') return;
+
+    // 로그인하지 않았으면 로그인 페이지로
+    if (!session) {
+      alert('로그인이 필요합니다.');
+      router.push('/auth/signin?callbackUrl=/policy-analysis/write');
+      return;
+    }
+
+    // examiner 또는 admin 권한이 없으면 접근 차단
+    const userRole = session.user?.role;
+    if (userRole !== 'examiner' && userRole !== 'admin') {
+      alert('정책분석은 인증된 기업심사관만 작성할 수 있습니다.');
+      router.push('/policy-analysis');
+      return;
+    }
+  }, [session, status, router]);
+
   // 카테고리 변경 시 섹션 초기화
   useEffect(() => {
     const currentCategory = categoryFields[formData.category];
@@ -314,16 +341,36 @@ const PolicyAnalysisWrite = () => {
     loadExaminers();
   }, []);
 
+  /**
+   * 로그인한 심사관 자동 선택
+   *
+   * @purpose 로그인한 사용자와 연결된 examiner를 자동으로 선택
+   * @context session.user.id와 examiner.userId를 매칭하여 자동 선택
+   */
   useEffect(() => {
-    if (!formData.examinerKey && examinerOptions.length > 0) {
+    if (!session || !examinerOptions.length || formData.examinerKey) return;
+
+    const userId = session.user?.id;
+    if (!userId) return;
+
+    // 현재 로그인한 사용자와 연결된 심사관 찾기
+    const matchedExaminer = examinerOptions.find(examiner => examiner.userId === userId);
+
+    if (matchedExaminer) {
+      const optionValue = matchedExaminer._id || matchedExaminer.legacyKey || matchedExaminer.imageKey;
+      if (optionValue) {
+        setFormData((prev) => ({ ...prev, examinerKey: optionValue }));
+        console.log('[PolicyAnalysisWrite] Auto-selected examiner:', matchedExaminer.name);
+      }
+    } else {
+      // 매칭되는 심사관이 없으면 첫 번째 선택 (admin용)
       const firstExaminer = examinerOptions[0];
-      const optionValue =
-        (firstExaminer && (firstExaminer._id || firstExaminer.legacyKey || firstExaminer.imageKey)) || '';
+      const optionValue = firstExaminer?._id || firstExaminer?.legacyKey || firstExaminer?.imageKey;
       if (optionValue) {
         setFormData((prev) => ({ ...prev, examinerKey: optionValue }));
       }
     }
-  }, [examinerOptions, formData.examinerKey]);
+  }, [session, examinerOptions, formData.examinerKey]);
 
   // 임시 저장 상태
   const [isSaved, setIsSaved] = useState(false);
@@ -442,7 +489,6 @@ const PolicyAnalysisWrite = () => {
   // 태그 관리
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState([]);
-  const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleTagInput = (e) => {
@@ -526,14 +572,13 @@ const PolicyAnalysisWrite = () => {
 
     for (const image of formData.images) {
       if (image.file) {
-        const formData = new FormData();
-        formData.append('file', image.file);
-        formData.append('password', password.trim());
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', image.file);
 
         try {
           const response = await fetch('/api/policy-analysis/uploads', {
             method: 'POST',
-            body: formData,
+            body: uploadFormData,
           });
 
           if (response.ok) {
@@ -580,18 +625,12 @@ const PolicyAnalysisWrite = () => {
       return;
     }
 
-    const password = prompt('게시글 비밀번호를 입력해주세요.');
-    if (!password) {
-      return;
-    }
-
     try {
       const response = await fetch(`/api/policy-analysis/${postId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ password }),
       });
 
       const result = await response.json();
@@ -657,11 +696,6 @@ ${missingSections.join(', ')}`);
       return;
     }
 
-    if (!password.trim()) {
-      alert('게시글 비밀번호를 입력해주세요.');
-      return;
-    }
-
     const excerpt = finalContent
       .replace(/[#*`>\-]/g, ' ')
       .replace(/\s+/g, ' ')
@@ -676,7 +710,6 @@ ${missingSections.join(', ')}`);
       const thumbnailUrl = uploadedImages[formData.thumbnailIndex]?.url || '';
 
       const payload = {
-        password: password.trim(),
         title: formData.title.trim(),
         category: formData.category,
         excerpt,
@@ -1182,21 +1215,6 @@ ${missingSections.join(', ')}`);
                 </div>
               </div>
             )}
-          </div>
-
-          {/* 게시글 비밀번호 */}
-          <div className="form-group password-group">
-            <label htmlFor="policy-password">
-              게시글 비밀번호 <span className="required">*</span>
-            </label>
-            <input
-              type="password"
-              id="policy-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="환경변수에 등록된 비밀번호를 입력하세요"
-              required
-            />
           </div>
 
           {/* 하단 버튼 */}

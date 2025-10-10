@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/authOptions';
 import connectDB from '@/lib/mongodb';
 import PolicyAnalysisPost from '@/models/PolicyAnalysisPost';
 import ExpertExaminer from '@/models/ExpertExaminer';
@@ -97,14 +99,30 @@ export async function POST(request: NextRequest) {
     console.log('[policy-analysis][POST] Headers:', request.headers.get('content-type'));
     console.log('[policy-analysis][POST] Method:', request.method);
 
-    const adminPassword = process.env.POLICY_ANALYSIS_PASSWORD;
-    if (!adminPassword) {
-      console.error('[policy-analysis][POST] POLICY_ANALYSIS_PASSWORD not set');
+    /**
+     * 세션 기반 권한 검증
+     *
+     * @purpose NextAuth 세션을 통한 사용자 인증 및 권한 확인
+     * @context examiner 또는 admin 역할을 가진 사용자만 정책분석 작성 가능
+     */
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user) {
       return NextResponse.json(
-        { message: '정책분석 게시판 비밀번호가 설정되지 않았습니다.' },
-        { status: 500 }
+        { message: '로그인이 필요합니다.' },
+        { status: 401 }
       );
     }
+
+    const userRole = session.user.role;
+    if (userRole !== 'examiner' && userRole !== 'admin') {
+      return NextResponse.json(
+        { message: '정책분석은 인증된 기업심사관만 작성할 수 있습니다.' },
+        { status: 403 }
+      );
+    }
+
+    console.log('[policy-analysis][POST] User authenticated:', session.user.email, 'Role:', userRole);
 
     const body = (await request.json()) as CreatePayload;
     console.log('[policy-analysis][POST] Body parsed:', {
@@ -113,7 +131,6 @@ export async function POST(request: NextRequest) {
       examinerKey: body.examinerKey
     });
     const {
-      password,
       title,
       category,
       excerpt,
@@ -125,18 +142,6 @@ export async function POST(request: NextRequest) {
       images,
       examinerKey,
     } = body;
-
-    const trimmedPassword = password?.trim();
-    const hasValidAccessCookie =
-      request.cookies.get(ACCESS_COOKIE)?.value === buildCookieValue(adminPassword);
-
-    if (trimmedPassword && trimmedPassword !== adminPassword) {
-      return NextResponse.json({ message: '비밀번호가 일치하지 않습니다.' }, { status: 401 });
-    }
-
-    if (!trimmedPassword && !hasValidAccessCookie) {
-      return NextResponse.json({ message: '비밀번호 인증이 필요합니다.' }, { status: 401 });
-    }
 
     if (!title || !title.trim()) {
       return NextResponse.json({ message: '제목을 입력해주세요.' }, { status: 400 });

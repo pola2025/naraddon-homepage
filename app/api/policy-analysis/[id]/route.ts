@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/authOptions';
 import connectDB from '@/lib/mongodb';
 import PolicyAnalysisPost from '@/models/PolicyAnalysisPost';
 import ExpertExaminer from '@/models/ExpertExaminer';
@@ -43,11 +45,26 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 export async function PUT(request: Request, { params }: RouteParams) {
   try {
-    const adminPassword = process.env.POLICY_ANALYSIS_PASSWORD;
-    if (!adminPassword) {
+    /**
+     * 세션 기반 권한 검증 (수정)
+     *
+     * @purpose NextAuth 세션을 통한 사용자 인증 및 권한 확인
+     * @context examiner 또는 admin 역할을 가진 사용자만 정책분석 수정 가능
+     */
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user) {
       return NextResponse.json(
-        { message: '정책분석 게시판 비밀번호가 설정되지 않았습니다.' },
-        { status: 500 }
+        { message: '로그인이 필요합니다.' },
+        { status: 401 }
+      );
+    }
+
+    const userRole = session.user.role;
+    if (userRole !== 'examiner' && userRole !== 'admin') {
+      return NextResponse.json(
+        { message: '정책분석은 인증된 기업심사관만 수정할 수 있습니다.' },
+        { status: 403 }
       );
     }
 
@@ -57,7 +74,6 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
     const body = await request.json();
     const {
-      password,
       title,
       content,
       category,
@@ -70,12 +86,6 @@ export async function PUT(request: Request, { params }: RouteParams) {
       images,
       views
     } = body;
-
-    // 비밀번호 검증
-    const trimmedPassword = password?.trim();
-    if (!trimmedPassword || trimmedPassword !== adminPassword) {
-      return NextResponse.json({ message: '비밀번호가 일치하지 않습니다.' }, { status: 401 });
-    }
 
     if (!title || !title.trim() || !content || !content.trim()) {
       return NextResponse.json({ message: '제목과 내용을 입력해주세요.' }, { status: 400 });
@@ -189,25 +199,31 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
 export async function DELETE(request: Request, { params }: RouteParams) {
   try {
-    const adminPassword = process.env.POLICY_ANALYSIS_PASSWORD;
-    if (!adminPassword) {
+    /**
+     * 세션 기반 권한 검증 (삭제)
+     *
+     * @purpose NextAuth 세션을 통한 사용자 인증 및 권한 확인
+     * @context examiner 또는 admin 역할을 가진 사용자만 정책분석 삭제 가능
+     */
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user) {
       return NextResponse.json(
-        { message: '정책분석 게시판 비밀번호가 설정되지 않았습니다.' },
-        { status: 500 }
+        { message: '로그인이 필요합니다.' },
+        { status: 401 }
+      );
+    }
+
+    const userRole = session.user.role;
+    if (userRole !== 'examiner' && userRole !== 'admin') {
+      return NextResponse.json(
+        { message: '정책분석은 인증된 기업심사관만 삭제할 수 있습니다.' },
+        { status: 403 }
       );
     }
 
     if (!mongoose.Types.ObjectId.isValid(params.id)) {
       return NextResponse.json({ message: '존재하지 않는 게시글입니다.' }, { status: 404 });
-    }
-
-    const body = await request.json().catch(() => ({}));
-    const { password } = body as { password?: string };
-
-    // 비밀번호 검증 (trim 처리 추가)
-    const trimmedPassword = password?.trim();
-    if (!trimmedPassword || trimmedPassword !== adminPassword) {
-      return NextResponse.json({ message: '비밀번호가 일치하지 않습니다.' }, { status: 401 });
     }
 
     await connectDB();
