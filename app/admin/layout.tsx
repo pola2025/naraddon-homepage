@@ -178,7 +178,7 @@ export default function AdminLayout({
       <AdminSidebar onLogout={handleLogout} />
       <div className="flex-1 flex flex-col overflow-hidden">
         {pathname !== '/admin/dashboard' && <AdminHeader />}
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-6 pb-16 overflow-auto">
           {children}
         </main>
       </div>

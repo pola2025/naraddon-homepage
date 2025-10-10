@@ -150,7 +150,7 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
         })}
       </nav>
 
-      <div className="p-4 border-t">
+      <div className="p-4 pb-6 border-t">
         <button
           onClick={onLogout}
           className="flex items-center w-full px-3 py-2 text-sm font-medium text-red-600 rounded-md hover:bg-red-50"
