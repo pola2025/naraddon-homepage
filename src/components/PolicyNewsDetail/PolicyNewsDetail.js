@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import './PolicyNewsDetail.css';
 
@@ -28,6 +29,7 @@ const formatDate = (value) => {
 const PolicyNewsDetail = () => {
   const router = useRouter();
   const params = useParams();
+  const { data: session, status } = useSession();
   const [post, setPost] = useState(null);
   const [relatedNews, setRelatedNews] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -152,12 +154,42 @@ const PolicyNewsDetail = () => {
 
   const plainTags = useMemo(() => (Array.isArray(post?.tags) ? post.tags : []), [post]);
 
-  if (isLoading) {
+  /**
+   * 로그인 권한 체크
+   *
+   * @purpose 가입자만 정책소식 게시글 열람 가능
+   * @context 로그인하지 않은 사용자는 로그인 페이지로 리다이렉트
+   */
+  if (status === 'loading' || isLoading) {
     return (
       <div className="policy-news-detail">
         <div className="loading-container">
           <div className="loading-spinner"></div>
           <p>콘텐츠를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session || !session.user) {
+    return (
+      <div className="policy-news-detail">
+        <div className="error-container">
+          <i className="fas fa-lock" style={{ fontSize: '48px', color: '#667eea', marginBottom: '16px' }}></i>
+          <h2>로그인이 필요합니다</h2>
+          <p className="error-message">정책소식 게시글은 가입한 회원만 열람할 수 있습니다.</p>
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '24px', justifyContent: 'center' }}>
+            <button
+              className="back-button"
+              onClick={() => router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.pathname))}
+              style={{ background: '#667eea', color: 'white' }}
+            >
+              <i className="fas fa-sign-in-alt"></i> 로그인하기
+            </button>
+            <button className="back-button" onClick={() => router.push('/policy-news')}>
+              <i className="fas fa-arrow-left"></i> 목록으로 돌아가기
+            </button>
+          </div>
         </div>
       </div>
     );

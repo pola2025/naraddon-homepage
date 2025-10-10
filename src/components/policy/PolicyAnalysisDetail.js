@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { FiUsers, FiDollarSign, FiFileText, FiCheckCircle, FiCalendar, FiInfo } from 'react-icons/fi';
 import './PolicyAnalysisDetail.css';
 
@@ -113,6 +114,7 @@ const convertMarkdownToHtml = (markdown) => {
 
 const PolicyAnalysisDetail = ({ postId }) => {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [post, setPost] = useState(null);
   const [relatedPosts, setRelatedPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -247,9 +249,26 @@ const PolicyAnalysisDetail = ({ postId }) => {
 
   const renderedContent = useMemo(() => convertMarkdownToHtml(post?.content || ''), [post?.content]);
 
+  /**
+   * 세션 기반 삭제 핸들러
+   *
+   * @purpose 비밀번호 대신 세션 권한으로 삭제
+   * @context examiner 또는 admin만 삭제 가능
+   */
   const handleDelete = async () => {
-    const password = window.prompt('게시글 비밀번호를 입력해주세요.');
-    if (!password) {
+    if (!session || !session.user) {
+      alert('로그인이 필요합니다.');
+      router.push('/auth/signin');
+      return;
+    }
+
+    const userRole = session.user.role;
+    if (userRole !== 'examiner' && userRole !== 'admin') {
+      alert('정책분석은 인증된 기업심사관만 삭제할 수 있습니다.');
+      return;
+    }
+
+    if (!confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
       return;
     }
 
@@ -259,7 +278,6 @@ const PolicyAnalysisDetail = ({ postId }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ password }),
       });
 
       const result = await response.json();
@@ -296,12 +314,44 @@ const PolicyAnalysisDetail = ({ postId }) => {
       .catch(() => alert('링크 복사에 실패했습니다.'));
   };
 
-  if (isLoading) {
+  /**
+   * 로그인 권한 체크
+   *
+   * @purpose 가입자만 정책분석 게시글 열람 가능
+   * @context 로그인하지 않은 사용자는 로그인 페이지로 리다이렉트
+   */
+  if (status === 'loading' || isLoading) {
     return (
       <div className="policy-analysis-detail">
         <div className="detail-container loading">
           <i className="fas fa-spinner fa-spin"></i>
           <p>정책분석 게시글을 불러오는 중입니다...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session || !session.user) {
+    return (
+      <div className="policy-analysis-detail">
+        <div className="detail-container error">
+          <i className="fas fa-lock"></i>
+          <h2>로그인이 필요합니다</h2>
+          <p>정책분석 게시글은 가입한 회원만 열람할 수 있습니다.</p>
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+            <button
+              className="back-button"
+              onClick={() => router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.pathname))}
+              style={{ background: '#4F46E5', color: 'white' }}
+            >
+              <i className="fas fa-sign-in-alt"></i>
+              로그인하기
+            </button>
+            <button className="back-button" onClick={() => router.push('/policy-analysis')}>
+              <i className="fas fa-list"></i>
+              목록으로 돌아가기
+            </button>
+          </div>
         </div>
       </div>
     );
