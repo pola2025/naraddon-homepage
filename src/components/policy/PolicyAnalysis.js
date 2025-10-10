@@ -518,7 +518,9 @@ const PolicyAnalysis = () => {
               <span className="block text-blue-600">사업 성공의 길을 찾으세요</span>
             </h1>
             <p className="mt-6 text-lg leading-7 text-slate-600">
-              최신 정책 동향과 지원사업 데이터를 분석해 사업에 필요한 정보를 제공합니다
+              최신 정책 동향과 지원사업 데이터를
+              <br />
+              분석해 사업에 필요한 정보를 제공합니다
               <span className="block">신속한 정책 매칭과 실행 전략을 안내합니다</span>
             </p>
             <div className="mt-10 flex flex-wrap items-center gap-6">
