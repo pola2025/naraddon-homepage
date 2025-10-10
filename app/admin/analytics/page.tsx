@@ -10,7 +10,7 @@ import Link from 'next/link';
  */
 export default function AdminAnalyticsPage() {
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto pb-12">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">분석</h1>
         <p className="mt-2 text-gray-600">

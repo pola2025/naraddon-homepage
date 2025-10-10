@@ -78,7 +78,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">
       {/* 대시보드 전용 헤더 */}
       <header className="bg-white shadow-sm border-b">
         <div className="px-6 py-4">
