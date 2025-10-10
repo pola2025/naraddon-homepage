@@ -291,11 +291,11 @@ export default function DDonTalkDetailPage() {
       <div className="ddontalk-detail-container">
         <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
           <i className="fas fa-lock" style={{ fontSize: '48px', color: '#667eea', marginBottom: '1rem' }}></i>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>로그인이 필요합니다</h2>
-          <p style={{ color: '#6b7280', marginBottom: '2rem' }}>묻고답하기 게시글은 가입한 회원만 열람할 수 있습니다.</p>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>회원가입 후 이용 가능합니다</h2>
+          <p style={{ color: '#6b7280', marginBottom: '2rem' }}>묻고답하기는 나라똔 회원만 이용할 수 있는 서비스입니다.</p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
             <button
-              onClick={() => router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.pathname))}
+              onClick={() => router.push('/auth/login?callbackUrl=' + encodeURIComponent(window.location.pathname))}
               style={{
                 padding: '0.75rem 1.5rem',
                 background: '#667eea',
@@ -306,7 +306,7 @@ export default function DDonTalkDetailPage() {
                 fontWeight: '500'
               }}
             >
-              <i className="fas fa-sign-in-alt"></i> 로그인하기
+              <i className="fas fa-user-plus"></i> 회원가입 / 로그인
             </button>
             <Link href="/business-voice#ttontok-section" style={{ padding: '0.75rem 1.5rem' }}>목록으로 돌아가기</Link>
           </div>

@@ -336,16 +336,16 @@ const PolicyAnalysisDetail = ({ postId }) => {
       <div className="policy-analysis-detail">
         <div className="detail-container error">
           <i className="fas fa-lock"></i>
-          <h2>로그인이 필요합니다</h2>
-          <p>정책분석 게시글은 가입한 회원만 열람할 수 있습니다.</p>
+          <h2>회원가입 후 이용 가능합니다</h2>
+          <p>정책분석은 나라똔 회원만 이용할 수 있는 서비스입니다.</p>
           <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
             <button
               className="back-button"
-              onClick={() => router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.pathname))}
+              onClick={() => router.push('/auth/login?callbackUrl=' + encodeURIComponent(window.location.pathname))}
               style={{ background: '#4F46E5', color: 'white' }}
             >
-              <i className="fas fa-sign-in-alt"></i>
-              로그인하기
+              <i className="fas fa-user-plus"></i>
+              회원가입 / 로그인
             </button>
             <button className="back-button" onClick={() => router.push('/policy-analysis')}>
               <i className="fas fa-list"></i>

@@ -176,15 +176,15 @@ const PolicyNewsDetail = () => {
       <div className="policy-news-detail">
         <div className="error-container">
           <i className="fas fa-lock" style={{ fontSize: '48px', color: '#667eea', marginBottom: '16px' }}></i>
-          <h2>로그인이 필요합니다</h2>
-          <p className="error-message">정책소식 게시글은 가입한 회원만 열람할 수 있습니다.</p>
+          <h2>회원가입 후 이용 가능합니다</h2>
+          <p className="error-message">정책소식은 나라똔 회원만 이용할 수 있는 서비스입니다.</p>
           <div style={{ display: 'flex', gap: '1rem', marginTop: '24px', justifyContent: 'center' }}>
             <button
               className="back-button"
-              onClick={() => router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.pathname))}
+              onClick={() => router.push('/auth/login?callbackUrl=' + encodeURIComponent(window.location.pathname))}
               style={{ background: '#667eea', color: 'white' }}
             >
-              <i className="fas fa-sign-in-alt"></i> 로그인하기
+              <i className="fas fa-user-plus"></i> 회원가입 / 로그인
             </button>
             <button className="back-button" onClick={() => router.push('/policy-news')}>
               <i className="fas fa-arrow-left"></i> 목록으로 돌아가기
