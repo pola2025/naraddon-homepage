@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import clientPromise from '@/lib/mongodb-client';
+import { ObjectId } from 'mongodb';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,8 +50,22 @@ export async function GET(request: NextRequest) {
 
       // userId가 있으면 users 컬렉션에서 이메일 조회
       if (examiner.userId) {
-        const user = await db.collection('users').findOne({ _id: examiner.userId });
-        email = user?.email || null;
+        try {
+          // userId가 string이면 ObjectId로 변환, 이미 ObjectId면 그대로 사용
+          const userIdQuery = typeof examiner.userId === 'string'
+            ? new ObjectId(examiner.userId)
+            : examiner.userId;
+
+          const user = await db.collection('users').findOne({ _id: userIdQuery });
+          email = user?.email || null;
+
+          // 디버깅용 로그 (임시)
+          if (!user) {
+            console.log(`[Examiners API] User not found for examiner ${examiner.name}, userId:`, examiner.userId);
+          }
+        } catch (error) {
+          console.error(`[Examiners API] Error fetching user for examiner ${examiner.name}:`, error);
+        }
       }
 
       return {
@@ -62,7 +77,7 @@ export async function GET(request: NextRequest) {
         category: examiner.category,
         specialties: examiner.specialties || [],
         imageUrl: examiner.imageUrl,
-        userId: examiner.userId,
+        userId: examiner.userId?.toString() || null,
         isPublished: examiner.isPublished,
         sortOrder: examiner.sortOrder,
         createdAt: examiner.createdAt,
