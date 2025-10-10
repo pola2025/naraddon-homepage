@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 /**
  * 페이지 방문 추적 컴포넌트
@@ -15,10 +15,10 @@ import { usePathname, useSearchParams } from 'next/navigation';
  * - UTM 파라미터로 마케팅 캠페인 추적
  * - 세션 기반 첫 방문 유입 경로 저장
  * - 실패해도 사용자 경험에 영향 없도록 에러 무시
+ * - window.location을 사용해 Suspense boundary 문제 회피
  */
 export default function PageVisitTracker() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     // 관리자 페이지나 API 경로는 추적하지 않음
@@ -34,10 +34,11 @@ export default function PageVisitTracker() {
         // 실제 유입 경로 (document.referrer)
         const referrer = document.referrer || '';
 
-        // UTM 파라미터 추출
-        const utmSource = searchParams?.get('utm_source') || '';
-        const utmMedium = searchParams?.get('utm_medium') || '';
-        const utmCampaign = searchParams?.get('utm_campaign') || '';
+        // UTM 파라미터 추출 (window.location 사용)
+        const urlParams = new URLSearchParams(window.location.search);
+        const utmSource = urlParams.get('utm_source') || '';
+        const utmMedium = urlParams.get('utm_medium') || '';
+        const utmCampaign = urlParams.get('utm_campaign') || '';
 
         // 세션 기반 첫 방문 유입 경로 저장
         const sessionKey = 'naraddon_first_referrer';
@@ -72,7 +73,7 @@ export default function PageVisitTracker() {
     };
 
     trackVisit();
-  }, [pathname, searchParams]); // pathname이나 검색 파라미터 변경될 때마다 실행
+  }, [pathname]); // pathname 변경될 때마다 실행
 
   // UI를 렌더링하지 않음
   return null;
