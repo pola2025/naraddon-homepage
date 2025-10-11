@@ -216,16 +216,46 @@ function resolveSensConfig(notification) {
 }
 
 function buildSummaryText(submission, submittedAtText) {
+  // 상담 유형에 따른 태그 설정
+  var title = '📨 신규 상담 신청';
+  if (submission.consultType === '전문가 상담') {
+    title = '📨 [전문가 상담접수]';
+  } else if (submission.consultType === '기업심사관 상담') {
+    title = '📨 [기업심사관 상담접수]';
+  }
+
   const lines = [
-    '📨 신규 상담 신청',
+    title,
     '• 접수시각: ' + submittedAtText,
     '• 이름/회사명: ' + (submission.name || '-'),
     '• 연락처: ' + (submission.phone || '-'),
-    '• 지역: ' + (submission.region || '-'),
-    '• 상담희망분야: ' + (submission.consultType || '-'),
-    '• 상담희망시간: ' + (submission.desiredTime || '-') +
-      ' (' + (submission.preferredTime || '-') + ')',
   ];
+
+  // 지역 정보는 기업심사관 상담일 때만 추가
+  if (submission.consultType === '기업심사관 상담' && submission.region) {
+    lines.push('• 지역: ' + submission.region);
+  }
+
+  // 전문가 상담일 때는 상담 분야 표시
+  if (submission.consultType === '전문가 상담' && submission.consultField) {
+    lines.push('• 상담분야: ' + submission.consultField);
+  } else {
+    lines.push('• 상담희망분야: ' + (submission.consultType || '-'));
+  }
+
+  // 상담 희망 시간
+  var timeInfo = (submission.desiredTime || '-') + ' (' + (submission.preferredTime || '-') + ')';
+  lines.push('• 상담희망시간: ' + timeInfo);
+
+  // 기업심사관 상담일 때는 추가 정보 표시
+  if (submission.consultType === '기업심사관 상담') {
+    if (submission.annualRevenue) {
+      lines.push('• 연매출: ' + submission.annualRevenue);
+    }
+    if (submission.employeeCount) {
+      lines.push('• 직원수: ' + submission.employeeCount);
+    }
+  }
 
   if (submission.message) {
     lines.push('• 문의사항: ' + submission.message);
@@ -235,21 +265,44 @@ function buildSummaryText(submission, submittedAtText) {
 }
 
 function buildEmailBody(submission, submittedAtText, meta) {
+  // 상담 유형에 따른 제목
+  var emailTitle = '신규 상담 신청이 접수되었습니다.';
+  if (submission.consultType === '전문가 상담') {
+    emailTitle = '[전문가 상담접수] 신규 상담 신청이 접수되었습니다.';
+  } else if (submission.consultType === '기업심사관 상담') {
+    emailTitle = '[기업심사관 상담접수] 신규 상담 신청이 접수되었습니다.';
+  }
+
   const rows = [
     ['접수시각', submittedAtText],
     ['이름/회사명', submission.name || '-'],
     ['연락처', submission.phone || '-'],
-    ['지역', submission.region || '-'],
-    ['상담희망분야', submission.consultType || '-'],
-    ['희망 상담 시간', submission.desiredTime || '-'],
-    ['상담 희망 시기', submission.preferredTime || '-'],
-    ['연매출', submission.annualRevenue || '-'],
-    ['직원 수', submission.employeeCount || '-'],
-    ['사업자번호', submission.businessNumber || '-'],
-    ['이메일', submission.email || '-'],
-    ['개인정보 수집 동의', submission.privacyConsent ? '동의' : '미동의'],
-    ['마케팅 수신 동의', submission.marketingConsent ? '동의' : '미동의'],
   ];
+
+  // 지역 정보는 기업심사관 상담일 때만 추가
+  if (submission.consultType === '기업심사관 상담') {
+    rows.push(['지역', submission.region || '-']);
+  }
+
+  // 전문가 상담일 때는 상담 분야, 아니면 상담희망분야
+  if (submission.consultType === '전문가 상담' && submission.consultField) {
+    rows.push(['상담분야', submission.consultField]);
+  }
+  rows.push(['상담희망분야', submission.consultType || '-']);
+
+  rows.push(['희망 상담 시간', submission.desiredTime || '-']);
+  rows.push(['상담 희망 시기', submission.preferredTime || '-']);
+
+  // 기업심사관 상담일 때만 추가 정보 표시
+  if (submission.consultType === '기업심사관 상담') {
+    rows.push(['연매출', submission.annualRevenue || '-']);
+    rows.push(['직원 수', submission.employeeCount || '-']);
+  }
+
+  rows.push(['사업자번호', submission.businessNumber || '-']);
+  rows.push(['이메일', submission.email || '-']);
+  rows.push(['개인정보 수집 동의', submission.privacyConsent ? '동의' : '미동의']);
+  rows.push(['마케팅 수신 동의', submission.marketingConsent ? '동의' : '미동의']);
 
   if (submission.message) {
     rows.push(['문의사항', submission.message]);
@@ -284,7 +337,7 @@ function buildEmailBody(submission, submittedAtText, meta) {
 
   return (
     '<div style="font-family:Segoe UI,Helvetica,Arial,sans-serif;font-size:14px;color:#0f172a;">' +
-    '<h2 style="margin:0 0 16px;font-size:18px;">신규 상담 신청이 접수되었습니다.</h2>' +
+    '<h2 style="margin:0 0 16px;font-size:18px;">' + emailTitle + '</h2>' +
     '<table style="border-collapse:collapse;min-width:360px;">' +
     tableRows +
     '</table>' +

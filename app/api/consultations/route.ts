@@ -212,24 +212,31 @@ export async function POST(request: NextRequest) {
     });
 
     if (GOOGLE_APPS_SCRIPT_WEBHOOK_URL) {
+      // 기본 submission 데이터
+      const submissionData: Record<string, any> = {
+        name: consultation.userName,
+        phone: consultation.userPhone,
+        email: consultation.userEmail,
+        company: consultation.companyName,
+        message: consultation.message,
+        consultType: consultation.consultationType,
+        consultField: convertConsultationField(consultation.consultationField || ''),
+        preferredTime: convertPreferredTime(consultation.preferredTime || ''),
+        businessNumber: consultation.businessNumber,
+        privacyConsent: true,
+        marketingConsent: data.marketingConsent || false
+      };
+
+      // 기업심사관 상담인 경우에만 추가 정보 포함
+      if (data.isAuditorConsultation) {
+        submissionData.annualRevenue = convertAnnualRevenue(consultation.annualRevenue || '');
+        submissionData.employeeCount = convertEmployeeCount(consultation.employeeCount || '');
+        submissionData.desiredTime = data.desiredTime || consultation.preferredTime || '';
+        submissionData.region = data.region || '';
+      }
+
       const webhookPayload: Record<string, unknown> = {
-        submission: {
-          name: consultation.userName,
-          phone: consultation.userPhone,
-          email: consultation.userEmail,
-          company: consultation.companyName,
-          message: consultation.message,
-          consultType: consultation.consultationType,
-          consultField: convertConsultationField(consultation.consultationField || ''),
-          preferredTime: convertPreferredTime(consultation.preferredTime || ''),
-          annualRevenue: convertAnnualRevenue(consultation.annualRevenue || ''),
-          employeeCount: convertEmployeeCount(consultation.employeeCount || ''),
-          desiredTime: data.desiredTime || consultation.preferredTime || '',  // 상담희망시간 추가
-          region: data.region || '',
-          businessNumber: consultation.businessNumber,
-          privacyConsent: true,
-          marketingConsent: data.marketingConsent || false
-        },
+        submission: submissionData,
         submittedAt: new Date().toISOString(),
         meta: {
           consultationId: result.insertedId,
