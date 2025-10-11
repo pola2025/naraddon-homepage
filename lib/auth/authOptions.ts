@@ -126,6 +126,19 @@ export const authOptions: NextAuthOptions = {
           const client = await clientPromise;
           const db = client.db('naraddon');
 
+          // 모든 로그인 시 lastLoginAt 업데이트
+          await db.collection('users').updateOne(
+            { email: user.email },
+            {
+              $set: {
+                lastLoginAt: new Date(),
+                updatedAt: new Date()
+              }
+            },
+            { upsert: true }
+          );
+          console.log('✅ Last login time updated:', user.email);
+
           // 네이버 로그인 시 전화번호 정보 저장
           if (account.provider === 'naver' && profile) {
             const naverProfile = profile as any;
