@@ -74,19 +74,21 @@ export default function ExaminerBlacklistPage() {
   const [memoContent, setMemoContent] = useState('');
   const [isAddingMemo, setIsAddingMemo] = useState(false);
 
-  // 권한 체크
+  // 권한 체크 (기업심사관 및 관리자)
   useEffect(() => {
     if (status === 'loading') return;
 
-    if (!session || session.user?.role !== 'examiner') {
-      alert('기업심사관만 접근 가능합니다.');
+    const allowedRoles = ['examiner', 'admin', 'super_admin'];
+    if (!session || !allowedRoles.includes(session.user?.role)) {
+      alert('접근 권한이 없습니다.');
       router.push('/');
     }
   }, [session, status, router]);
 
   // 데이터 조회
   useEffect(() => {
-    if (session?.user?.role === 'examiner') {
+    const allowedRoles = ['examiner', 'admin', 'super_admin'];
+    if (session?.user?.role && allowedRoles.includes(session.user.role)) {
       fetchEntries();
     }
   }, [session]);
@@ -301,7 +303,8 @@ export default function ExaminerBlacklistPage() {
     );
   }
 
-  if (!session || session.user?.role !== 'examiner') {
+  const allowedRoles = ['examiner', 'admin', 'super_admin'];
+  if (!session || !allowedRoles.includes(session.user?.role)) {
     return null;
   }
 
