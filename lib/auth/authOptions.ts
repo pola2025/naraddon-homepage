@@ -127,12 +127,16 @@ export const authOptions: NextAuthOptions = {
           const db = client.db('naraddon');
 
           // 모든 로그인 시 lastLoginAt 업데이트
+          // $setOnInsert: 신규 생성 시에만 createdAt 설정 (기존 문서에는 영향 없음)
           await db.collection('users').updateOne(
             { email: user.email },
             {
               $set: {
                 lastLoginAt: new Date(),
                 updatedAt: new Date()
+              },
+              $setOnInsert: {
+                createdAt: new Date()
               }
             },
             { upsert: true }
@@ -152,6 +156,9 @@ export const authOptions: NextAuthOptions = {
                   $set: {
                     mobile: mobile,
                     updatedAt: new Date()
+                  },
+                  $setOnInsert: {
+                    createdAt: new Date()
                   }
                 },
                 { upsert: true }
