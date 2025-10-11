@@ -38,6 +38,7 @@ interface Consultation {
 
   // 상담 정보
   consultationType: string;
+  consultationField?: string;
   message: string;
   preferredDate?: Date;
   preferredTime?: string;
@@ -73,6 +74,18 @@ interface Staff {
   specialty?: string[];
   assignedCount?: number;
 }
+
+const convertConsultationField = (value: string): string => {
+  const map: Record<string, string> = {
+    'legal': '법무·특허',
+    'tax': '세무·회계',
+    'labor': '인사·노무',
+    'marketing': '마케팅·브랜딩',
+    'tech': '기술·IT',
+    'strategy': '경영전략'
+  };
+  return map[value] || value;
+};
 
 export default function AdminConsultationsPage() {
   const { data: session, status } = useSession();
@@ -460,9 +473,14 @@ export default function AdminConsultationsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm font-medium text-gray-900">
                         {consultation.consultationType}
                       </div>
+                      {consultation.consultationField && (
+                        <div className="text-xs text-indigo-600 mt-1">
+                          {convertConsultationField(consultation.consultationField)}
+                        </div>
+                      )}
                       {consultation.customerType === CustomerType.MEMBER ? (
                         <span className="text-xs text-blue-600">회원</span>
                       ) : (

@@ -72,9 +72,24 @@ function convertPreferredTime(value: string): string {
   const map: Record<string, string> = {
     'immediate': '즉시 상담',
     'today': '오늘 중',
+    'week': '1주 이내',
+    'two_weeks': '2주 이내',
+    'month': '1개월 이내',
     'weekday': '평일',
     'weekend': '주말',
     'anytime': '상관없음'
+  };
+  return map[value] || value;
+}
+
+function convertConsultationField(value: string): string {
+  const map: Record<string, string> = {
+    'legal': '법무·특허',
+    'tax': '세무·회계',
+    'labor': '인사·노무',
+    'marketing': '마케팅·브랜딩',
+    'tech': '기술·IT',
+    'strategy': '경영전략'
   };
   return map[value] || value;
 }
@@ -152,6 +167,7 @@ export async function POST(request: NextRequest) {
 
       // 상담 정보
       consultationType: data.isAuditorConsultation ? '기업심사관 상담' : (data.consultationType || '전문가 상담'),
+      consultationField: data.consultationField, // 전문가 상담 분야 (법무·특허, 세무·회계 등)
       message: data.message || '',
       preferredDate: data.preferredDate ? new Date(data.preferredDate) : undefined,
       preferredTime: data.preferredTime || data.desiredTime,
@@ -204,6 +220,7 @@ export async function POST(request: NextRequest) {
           company: consultation.companyName,
           message: consultation.message,
           consultType: consultation.consultationType,
+          consultField: convertConsultationField(consultation.consultationField || ''),
           preferredTime: convertPreferredTime(consultation.preferredTime || ''),
           annualRevenue: convertAnnualRevenue(consultation.annualRevenue || ''),
           employeeCount: convertEmployeeCount(consultation.employeeCount || ''),
