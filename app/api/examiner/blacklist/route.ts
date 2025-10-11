@@ -74,7 +74,7 @@ async function checkDuplicate(data: {
  */
 export async function POST(request: NextRequest) {
   try {
-    // 1. 세션 확인 (기업심사관만 접근 가능)
+    // 1. 세션 확인 (기업심사관 및 관리자 접근 가능)
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user) {
@@ -84,9 +84,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (session.user.role !== 'examiner') {
+    const allowedRoles = ['examiner', 'admin', 'super_admin'];
+    if (!allowedRoles.includes(session.user.role)) {
       return NextResponse.json(
-        { error: '기업심사관만 접근 가능합니다.' },
+        { error: '접근 권한이 없습니다.' },
         { status: 403 }
       );
     }
@@ -158,7 +159,7 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    // 1. 세션 확인 (기업심사관만 접근 가능)
+    // 1. 세션 확인 (기업심사관 및 관리자 접근 가능)
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user) {
@@ -168,9 +169,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (session.user.role !== 'examiner') {
+    const allowedRoles = ['examiner', 'admin', 'super_admin'];
+    if (!allowedRoles.includes(session.user.role)) {
       return NextResponse.json(
-        { error: '기업심사관만 접근 가능합니다.' },
+        { error: '접근 권한이 없습니다.' },
         { status: 403 }
       );
     }
