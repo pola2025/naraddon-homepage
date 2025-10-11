@@ -5,6 +5,17 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
+interface TubeVideo {
+  _id: string;
+  videos: Array<{
+    title: string;
+    youtubeId: string;
+  }>;
+  isPublished: boolean;
+  sortOrder: number;
+  createdAt?: string;
+}
+
 interface DashboardStats {
   totalUsers: number;
   totalConsultations: number;
@@ -60,8 +71,15 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // 나라똔튜브 관리
+  const [tubeVideos, setTubeVideos] = useState<TubeVideo[]>([]);
+  const [tubeLoading, setTubeLoading] = useState(false);
+  const [tubeError, setTubeError] = useState('');
+  const [updatingVideoId, setUpdatingVideoId] = useState<string | null>(null);
+
   useEffect(() => {
     fetchDashboardStats();
+    fetchTubeVideos();
   }, []);
 
   const fetchDashboardStats = async () => {
@@ -80,6 +98,100 @@ export default function AdminDashboard() {
       setError('대시보드 데이터를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTubeVideos = async () => {
+    try {
+      setTubeLoading(true);
+      setTubeError('');
+      const response = await fetch('/api/naraddon-tube?includeDraft=true');
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch tube videos');
+      }
+
+      const data = await response.json();
+      if (data.entries && Array.isArray(data.entries)) {
+        setTubeVideos(data.entries);
+      }
+    } catch (error) {
+      console.error('Tube videos error:', error);
+      setTubeError('나라똔튜브 데이터를 불러오는데 실패했습니다.');
+    } finally {
+      setTubeLoading(false);
+    }
+  };
+
+  const handleTogglePublish = async (videoId: string, currentStatus: boolean) => {
+    try {
+      setUpdatingVideoId(videoId);
+      const video = tubeVideos.find(v => v._id === videoId);
+      if (!video) return;
+
+      const response = await fetch('/api/naraddon-tube/update', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          entryId: videoId,
+          isPublished: !currentStatus,
+          title: video.videos[0]?.title,
+          youtubeUrl: video.videos[0]?.youtubeId,
+          sortOrder: video.sortOrder,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update video');
+      }
+
+      // 로컬 상태 업데이트
+      setTubeVideos(prev =>
+        prev.map(v =>
+          v._id === videoId ? { ...v, isPublished: !currentStatus } : v
+        )
+      );
+    } catch (error) {
+      console.error('Toggle publish error:', error);
+      alert('공개 상태 변경에 실패했습니다.');
+    } finally {
+      setUpdatingVideoId(null);
+    }
+  };
+
+  const handleUpdateSortOrder = async (videoId: string, newSortOrder: number) => {
+    try {
+      setUpdatingVideoId(videoId);
+      const video = tubeVideos.find(v => v._id === videoId);
+      if (!video) return;
+
+      const response = await fetch('/api/naraddon-tube/update', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          entryId: videoId,
+          isPublished: video.isPublished,
+          title: video.videos[0]?.title,
+          youtubeUrl: video.videos[0]?.youtubeId,
+          sortOrder: newSortOrder,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update sort order');
+      }
+
+      // 로컬 상태 업데이트
+      setTubeVideos(prev =>
+        prev.map(v =>
+          v._id === videoId ? { ...v, sortOrder: newSortOrder } : v
+        ).sort((a, b) => a.sortOrder - b.sortOrder)
+      );
+    } catch (error) {
+      console.error('Update sort order error:', error);
+      alert('순서 변경에 실패했습니다.');
+    } finally {
+      setUpdatingVideoId(null);
     }
   };
 
@@ -544,6 +656,85 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
+              {/* 나라똔튜브 관리 */}
+              <div className="bg-white rounded-lg shadow mb-8">
+                <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">나라똔튜브 관리</h2>
+                    <p className="text-sm text-gray-500 mt-1">영상 공개 상태 및 노출 순서를 관리합니다</p>
+                  </div>
+                  <Link
+                    href="/admin/naraddon-tube"
+                    className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 rounded-md hover:bg-blue-50"
+                  >
+                    전체 관리
+                  </Link>
+                </div>
+                <div className="p-6">
+                  {tubeLoading ? (
+                    <div className="text-center py-8 text-gray-500">로딩 중...</div>
+                  ) : tubeError ? (
+                    <div className="text-center py-8 text-red-500">{tubeError}</div>
+                  ) : tubeVideos.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">등록된 영상이 없습니다</div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">위치</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">제목</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">YouTube ID</th>
+                            <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">순서</th>
+                            <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">공개</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {tubeVideos
+                            .sort((a, b) => a.sortOrder - b.sortOrder)
+                            .map((video, index) => (
+                            <tr key={video._id} className={updatingVideoId === video._id ? 'opacity-50' : ''}>
+                              <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {index + 1}번
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-900">
+                                {video.videos[0]?.title || '-'}
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                                {video.videos[0]?.youtubeId || '-'}
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap text-center">
+                                <input
+                                  type="number"
+                                  value={video.sortOrder}
+                                  onChange={(e) => handleUpdateSortOrder(video._id, Number(e.target.value))}
+                                  disabled={updatingVideoId === video._id}
+                                  className="w-20 px-2 py-1 text-sm text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                                  min="0"
+                                />
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap text-center">
+                                <button
+                                  onClick={() => handleTogglePublish(video._id, video.isPublished)}
+                                  disabled={updatingVideoId === video._id}
+                                  className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full transition-colors disabled:opacity-50 ${
+                                    video.isPublished
+                                      ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                                      : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                                  }`}
+                                >
+                                  {video.isPublished ? '공개' : '비공개'}
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* 빠른 메뉴 */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <div className="bg-white rounded-lg shadow">
@@ -613,7 +804,7 @@ export default function AdminDashboard() {
                       </Link>
 
                       <Link
-                        href="/naraddon-tube/admin"
+                        href="/admin/naraddon-tube"
                         className="flex items-center p-3 rounded-lg hover:bg-gray-50 border border-gray-200"
                       >
                         <svg
@@ -629,7 +820,7 @@ export default function AdminDashboard() {
                             d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
                           />
                         </svg>
-                        <span className="text-sm font-medium text-gray-900">나라돈 튜브</span>
+                        <span className="text-sm font-medium text-gray-900">나라똔튜브</span>
                       </Link>
 
                       <Link
