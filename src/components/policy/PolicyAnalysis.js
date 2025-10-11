@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { FiCheckCircle } from 'react-icons/fi';
 import PolicyNewsSection from '../PolicyNewsSection/PolicyNewsSection';
 import './PolicyAnalysis.css';
@@ -183,6 +184,7 @@ const normalizePost = (rawPost, index) => {
 
 const PolicyAnalysis = () => {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [posts, setPosts] = useState([]);
   const [topPosts, setTopPosts] = useState([]);
   const [currentTopIndex, setCurrentTopIndex] = useState(0);
@@ -197,18 +199,29 @@ const PolicyAnalysis = () => {
   const [isWriteAuthorized, setIsWriteAuthorized] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
+  /**
+   * 세션 기반 권한 체크
+   *
+   * @purpose examiner, admin, super_admin role은 비밀번호 없이 작성 가능
+   * @context 로그인한 사용자의 role을 확인하여 자동 인증
+   */
   useEffect(() => {
-    // body에 클래스 추가 제거 - 높이 문제 해결
-    // document.body.classList.add('page-policy-analysis');
+    if (status === 'loading') return;
 
-    // 모바일 감지
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
+    // 세션에 examiner, admin, super_admin role이 있으면 자동 인증
+    if (session && session.user) {
+      const userRole = session.user.role;
+      if (userRole === 'examiner' || userRole === 'admin' || userRole === 'super_admin') {
+        setIsWriteAuthorized(true);
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('policyAnalysisAuthorized', 'true');
+        }
+        console.log('[PolicyAnalysis] Auto-authorized via session:', userRole);
+        return;
+      }
+    }
 
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-
+    // 세션 인증 실패 시 기존 로직 (비밀번호 방식) 사용
     if (typeof window !== 'undefined') {
       if (sessionStorage.getItem('policyAnalysisAuthorized') === 'true') {
         setIsWriteAuthorized(true);
@@ -234,6 +247,19 @@ const PolicyAnalysis = () => {
     };
 
     void checkExistingAccess();
+  }, [session, status]);
+
+  useEffect(() => {
+    // body에 클래스 추가 제거 - 높이 문제 해결
+    // document.body.classList.add('page-policy-analysis');
+
+    // 모바일 감지
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
 
     return () => {
       window.removeEventListener('resize', checkMobile);
