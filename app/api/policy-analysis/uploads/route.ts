@@ -6,6 +6,10 @@ import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 
 import crypto from 'crypto';
 
+import { getServerSession } from 'next-auth';
+
+import { authOptions } from '@/lib/auth/authOptions';
+
 import { getR2Client, sanitizeFileName, buildR2ObjectUrl, isR2Configured } from '@/lib/r2';
 
 import { getAdminPasswordOrThrow, hasValidAccess } from '@/app/api/policy-analysis/_access';
@@ -56,55 +60,60 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let adminPassword: string;
+    /**
+     * 세션 기반 권한 검증
+     *
+     * @purpose NextAuth 세션을 통한 사용자 인증 (기업심사관/관리자)
+     * @context examiner 또는 admin 역할이 있으면 비밀번호 없이 업로드 가능
+     */
+    const session = await getServerSession(authOptions);
 
-    try {
+    let isAuthorized = false;
 
-      adminPassword = getAdminPasswordOrThrow();
-
-    } catch (error) {
-
-      console.error('[policy-analysis][UPLOAD][missing password]', error);
-
-      return NextResponse.json(
-
-        { message: '정책분석 글 비밀번호가 설정되어 있지 않습니다.' },
-
-        { status: 500 }
-
-      );
-
+    // 세션이 있고 examiner 또는 admin 역할이면 인증 통과
+    if (session && session.user) {
+      const userRole = session.user.role;
+      if (userRole === 'examiner' || userRole === 'admin' || userRole === 'super_admin') {
+        isAuthorized = true;
+        console.log('[policy-analysis][UPLOAD] Authorized via session:', session.user.email, 'Role:', userRole);
+      }
     }
 
+    // 세션 인증이 실패했으면 비밀번호 방식으로 폴백
+    if (!isAuthorized) {
+      let adminPassword: string;
 
+      try {
+        adminPassword = getAdminPasswordOrThrow();
+      } catch (error) {
+        console.error('[policy-analysis][UPLOAD][missing password]', error);
+        return NextResponse.json(
+          { message: '인증이 필요합니다. 로그인하거나 비밀번호를 입력해주세요.' },
+          { status: 401 }
+        );
+      }
 
+      const formData = await request.formData();
+      const password = formData.get('password');
+      const trimmedPassword = typeof password === 'string' ? password.trim() : undefined;
+
+      if (trimmedPassword && trimmedPassword !== adminPassword) {
+        return NextResponse.json({ message: '비밀번호가 일치하지 않습니다.' }, { status: 401 });
+      }
+
+      if (!hasValidAccess(request, trimmedPassword)) {
+        return NextResponse.json({ message: '비밀번호 검증이 필요합니다.' }, { status: 401 });
+      }
+    }
+
+    // 인증 완료 후 파일 업로드 처리
     const formData = await request.formData();
-
-    const password = formData.get('password');
 
     const uploader = formData.get('uploader');
 
     const sourceUrl = formData.get('sourceUrl');
 
     const file = formData.get('file');
-
-
-
-    const trimmedPassword = typeof password === 'string' ? password.trim() : undefined;
-
-    if (trimmedPassword && trimmedPassword !== adminPassword) {
-
-      return NextResponse.json({ message: '비밀번호가 일치하지 않습니다.' }, { status: 401 });
-
-    }
-
-
-
-    if (!hasValidAccess(request, trimmedPassword)) {
-
-      return NextResponse.json({ message: '비밀번호 검증이 필요합니다.' }, { status: 401 });
-
-    }
 
 
 
@@ -209,27 +218,24 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    let adminPassword: string;
+    /**
+     * 세션 기반 권한 검증 (DELETE)
+     *
+     * @purpose NextAuth 세션을 통한 사용자 인증 (기업심사관/관리자)
+     * @context examiner 또는 admin 역할이 있으면 비밀번호 없이 삭제 가능
+     */
+    const session = await getServerSession(authOptions);
 
-    try {
+    let isAuthorized = false;
 
-      adminPassword = getAdminPasswordOrThrow();
-
-    } catch (error) {
-
-      console.error('[policy-analysis][UPLOAD][missing password]', error);
-
-      return NextResponse.json(
-
-        { message: '정책분석 글 비밀번호가 설정되어 있지 않습니다.' },
-
-        { status: 500 }
-
-      );
-
+    // 세션이 있고 examiner 또는 admin 역할이면 인증 통과
+    if (session && session.user) {
+      const userRole = session.user.role;
+      if (userRole === 'examiner' || userRole === 'admin' || userRole === 'super_admin') {
+        isAuthorized = true;
+        console.log('[policy-analysis][UPLOAD][DELETE] Authorized via session:', session.user.email, 'Role:', userRole);
+      }
     }
-
-
 
     const body = (await request.json()) as { key?: string; password?: string | null };
 
@@ -237,27 +243,32 @@ export async function DELETE(request: NextRequest) {
 
     const trimmedPassword = password?.trim() || undefined;
 
+    // 세션 인증이 실패했으면 비밀번호 방식으로 폴백
+    if (!isAuthorized) {
+      let adminPassword: string;
 
+      try {
+        adminPassword = getAdminPasswordOrThrow();
+      } catch (error) {
+        console.error('[policy-analysis][UPLOAD][missing password]', error);
+        return NextResponse.json(
+          { message: '인증이 필요합니다. 로그인하거나 비밀번호를 입력해주세요.' },
+          { status: 401 }
+        );
+      }
+
+      if (trimmedPassword && trimmedPassword !== adminPassword) {
+        return NextResponse.json({ message: '비밀번호가 일치하지 않습니다.' }, { status: 401 });
+      }
+
+      if (!hasValidAccess(request, trimmedPassword)) {
+        return NextResponse.json({ message: '비밀번호 검증이 필요합니다.' }, { status: 401 });
+      }
+    }
 
     if (!key) {
 
       return NextResponse.json({ message: '삭제할 파일 키가 필요합니다.' }, { status: 400 });
-
-    }
-
-
-
-    if (trimmedPassword && trimmedPassword !== adminPassword) {
-
-      return NextResponse.json({ message: '비밀번호가 일치하지 않습니다.' }, { status: 401 });
-
-    }
-
-
-
-    if (!hasValidAccess(request, trimmedPassword)) {
-
-      return NextResponse.json({ message: '비밀번호 검증이 필요합니다.' }, { status: 401 });
 
     }
 
