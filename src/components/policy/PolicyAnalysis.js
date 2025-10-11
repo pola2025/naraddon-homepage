@@ -806,14 +806,17 @@ const PolicyAnalysis = () => {
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', maxWidth: 'var(--layout-max-width, 1280px)', margin: '-10px auto 20px', paddingLeft: 'var(--layout-padding-inline)', paddingRight: 'var(--layout-padding-inline)' }}>
-        <button
-          className="write-button"
-          onClick={handleWriteClick}
-        >
-          <i className="fas fa-pencil-alt"></i> 정책분석 작성하기
-        </button>
-      </div>
+      {/* 정책분석 작성하기 버튼 - examiner/admin/super_admin만 표시 */}
+      {session && session.user && (session.user.role === 'examiner' || session.user.role === 'admin' || session.user.role === 'super_admin') && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', maxWidth: 'var(--layout-max-width, 1280px)', margin: '-10px auto 20px', paddingLeft: 'var(--layout-padding-inline)', paddingRight: 'var(--layout-padding-inline)' }}>
+          <button
+            className="write-button"
+            onClick={handleWriteClick}
+          >
+            <i className="fas fa-pencil-alt"></i> 정책분석 작성하기
+          </button>
+        </div>
+      )}
 
       <section className="policy-analysis__cta-section" aria-labelledby="policy-analysis-cta-title">
         <div className="policy-analysis__cta-container">
