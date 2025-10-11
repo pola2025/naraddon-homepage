@@ -13,7 +13,8 @@ import {
   ArrowRightOnRectangleIcon,
   BriefcaseIcon,
   ShieldCheckIcon,
-  DocumentTextIcon
+  DocumentTextIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 
 interface AdminSidebarProps {
@@ -67,8 +68,19 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
     },
     {
       name: '심사관 관리',
-      href: '/admin/examiners',
-      icon: ShieldCheckIcon,
+      type: 'group',
+      items: [
+        {
+          name: '심사관 목록',
+          href: '/admin/examiners',
+          icon: ShieldCheckIcon,
+        },
+        {
+          name: '블랙리스트',
+          href: '/admin/examiners/blacklist',
+          icon: ExclamationTriangleIcon,
+        },
+      ],
     },
     {
       name: '심사관 상담관리',
