@@ -126,11 +126,11 @@ function LoginForm() {
         <span className="inline-flex items-center rounded-full bg-blue-50 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-blue-600">
           Naraddon Sign In
         </span>
-        <h1 className="mt-6 text-3xl font-extrabold text-slate-900 sm:text-4xl lg:text-5xl">
+        <h1 className="mt-6 text-4xl font-extrabold text-slate-900 sm:text-5xl lg:text-6xl">
           SNS 계정 하나로
           <span className="block text-blue-600">안전하고 빠르게 로그인하세요</span>
         </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+        <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl">
           별도의 아이디/비밀번호 없이 네이버·카카오 계정으로 바로 이용하실 수 있습니다.
           로그인 후에는 정책자료, 상담내역 등 모든 서비스를 한 곳에서 확인할 수 있어요.
         </p>
@@ -170,9 +170,7 @@ function LoginForm() {
                       준비 중
                     </span>
                   ) : (
-                    <svg className="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+                    <i className="fas fa-arrow-right text-white/70" aria-hidden="true" />
                   )}
                 </button>
               ))}
