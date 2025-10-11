@@ -36,7 +36,7 @@ function doPost(e) {
 }
 
 function isAuthorized(payload) {
-  const expectedSecret = getScriptProperty('WEBHOOK_SECRET');
+  const expectedSecret = getScriptProperty('GAS_WEBAPP_SECRET');
   if (!expectedSecret) {
     return true;
   }
@@ -186,12 +186,12 @@ function resolveEmailRecipients(notification) {
   if (notification && Array.isArray(notification.emails) && notification.emails.length) {
     return notification.emails.filter(Boolean);
   }
-  return getPropertyList('NOTIFICATION_EMAILS');
+  return getPropertyList('MAIL_RECIPIENTS');
 }
 
 function resolveTelegramConfig(notification) {
   const raw = (notification && notification.telegram) || {};
-  const token = raw.botToken || getScriptProperty('TELEGRAM_BOT_TOKEN');
+  const token = raw.botToken || getScriptProperty('TELEGRAM_TOKEN');
   const chatId = raw.chatId || getScriptProperty('TELEGRAM_CHAT_ID');
   const enabled =
     typeof raw.enabled === 'boolean' ? raw.enabled : Boolean(token && chatId);
@@ -467,9 +467,9 @@ function checkSettings() {
   Logger.log('=== 설정 확인 ===');
   Logger.log('SPREADSHEET_ID: ' + (getScriptProperty('SPREADSHEET_ID') || '없음'));
   Logger.log('TARGET_SHEET_NAME: ' + (getScriptProperty('TARGET_SHEET_NAME') || '기본 시트'));
-  Logger.log('NOTIFICATION_EMAILS: ' + (getScriptProperty('NOTIFICATION_EMAILS') || '없음'));
-  Logger.log('WEBHOOK_SECRET: ' + (getScriptProperty('WEBHOOK_SECRET') ? '설정됨' : '없음'));
-  Logger.log('TELEGRAM_BOT_TOKEN: ' + (getScriptProperty('TELEGRAM_BOT_TOKEN') ? '설정됨' : '없음'));
+  Logger.log('MAIL_RECIPIENTS: ' + (getScriptProperty('MAIL_RECIPIENTS') || '없음'));
+  Logger.log('GAS_WEBAPP_SECRET: ' + (getScriptProperty('GAS_WEBAPP_SECRET') ? '설정됨' : '없음'));
+  Logger.log('TELEGRAM_TOKEN: ' + (getScriptProperty('TELEGRAM_TOKEN') ? '설정됨' : '없음'));
   Logger.log('TELEGRAM_CHAT_ID: ' + (getScriptProperty('TELEGRAM_CHAT_ID') || '없음'));
   Logger.log('NAVER_SENS_ENABLED: ' + (getScriptProperty('NAVER_SENS_ENABLED') || 'false'));
   Logger.log('NAVER_SENS_SERVICE_ID: ' + (getScriptProperty('NAVER_SENS_SERVICE_ID') || '없음'));
