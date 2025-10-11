@@ -309,7 +309,7 @@ export default function ExaminerDashboard() {
               </div>
 
               {/* 빠른 메뉴 */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <Link
                   href="/examiner/consultations"
                   className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
@@ -387,6 +387,33 @@ export default function ExaminerDashboard() {
                     <div className="ml-4">
                       <h3 className="text-lg font-medium text-gray-900">보고서 작성</h3>
                       <p className="mt-1 text-sm text-gray-500">상담 결과 보고서 관리</p>
+                    </div>
+                  </div>
+                </Link>
+
+                <Link
+                  href="/examiner/blacklist"
+                  className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
+                >
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <svg
+                        className="h-8 w-8 text-red-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        />
+                      </svg>
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-lg font-medium text-gray-900">블랙리스트</h3>
+                      <p className="mt-1 text-sm text-gray-500">문제 고객 정보 관리</p>
                     </div>
                   </div>
                 </Link>
