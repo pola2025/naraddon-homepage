@@ -496,7 +496,7 @@ const NaraddonTubeAdminPage: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">공개 상태</label>
               <label className="flex items-center justify-between px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50">
                 <span className="text-sm text-gray-700">
-                  {form.isPublished ? '바로 공개' : '임시 저장'}
+                  {form.isPublished ? '공개' : '비공개'}
                 </span>
                 <input
                   type="checkbox"
@@ -656,7 +656,7 @@ const NaraddonTubeAdminPage: React.FC = () => {
                               : 'bg-gray-100 text-gray-800'
                           }`}
                         >
-                          {entry.isPublished ? '공개' : '임시'}
+                          {entry.isPublished ? '공개' : '비공개'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
