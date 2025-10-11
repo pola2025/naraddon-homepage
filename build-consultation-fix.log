@@ -1,0 +1,470 @@
+
+> naraddon-nextjs@0.1.6 build
+> next build
+
+   ▲ Next.js 14.1.0
+   - Environments: .env.production.local, .env.local, .env.production
+   - Experiments (use at your own risk):
+     · cpus
+     · instrumentationHook
+
+   Creating an optimized production build ...
+warn  - It seems like you don't have a global error handler set up. It is recommended that you add a global-error.js file with Sentry instrumentation so that React rendering errors are reported to Sentry. Read more: https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/#react-render-errors-in-app-router (you can suppress this warning by setting SENTRY_SUPPRESS_GLOBAL_ERROR_HANDLER_FILE_WARNING=1 as environment variable)
+[@sentry/nextjs] DEPRECATION WARNING: It is recommended renaming your `sentry.client.config.ts` file, or moving its content to `instrumentation-client.ts`. When using Turbopack `sentry.client.config.ts` will no longer work. Read more about the `instrumentation-client.ts` file: https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation-client
+
+[1m[33mwarn[39m[22m - As of Tailwind CSS v3.3, the `@tailwindcss/line-clamp` plugin is now included by default.
+[1m[33mwarn[39m[22m - Remove it from the `plugins` array in your configuration to eliminate this warning.
+ ⚠ Compiled with warnings
+
+./app/api/admin/users/[id]/upgrade/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/admin/users/[id]/upgrade/route.ts
+
+./app/api/admin/users/[id]/upgrade/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/admin/users/[id]/upgrade/route.ts
+
+./app/api/auth/logout/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/auth/logout/route.ts
+
+./app/api/consultations/[id]/assign/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/consultations/[id]/assign/route.ts
+
+./app/api/consultations/[id]/review/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/consultations/[id]/review/route.ts
+
+./app/api/consultations/[id]/review/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/consultations/[id]/review/route.ts
+
+./app/api/consultations/[id]/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/consultations/[id]/route.ts
+
+./app/api/consultations/[id]/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/consultations/[id]/route.ts
+
+./app/api/consultations/[id]/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/consultations/[id]/route.ts
+
+./app/api/consultations/[id]/status/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/consultations/[id]/status/route.ts
+
+./app/api/consultations/[id]/status/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/consultations/[id]/status/route.ts
+
+./app/api/consultations/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/consultations/route.ts
+
+./app/api/consultations/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/consultations/route.ts
+
+./app/api/naraddon-tube/get-password/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/naraddon-tube/get-password/route.ts
+
+./app/api/users/[id]/activities/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/users/[id]/activities/route.ts
+
+./app/api/users/[id]/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/users/[id]/route.ts
+
+./app/api/users/[id]/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/users/[id]/route.ts
+
+./app/api/users/[id]/stats/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/users/[id]/stats/route.ts
+
+./sentry.server.config.ts
+Attempted import error: 'prismaIntegration' is not exported from '@sentry/nextjs' (imported as 'Sentry').
+
+Import trace for requested module:
+./sentry.server.config.ts
+
+./sentry.server.config.ts
+Attempted import error: 'prismaIntegration' is not exported from '@sentry/nextjs' (imported as 'Sentry').
+
+Import trace for requested module:
+./sentry.server.config.ts
+
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+MongoDB URI optimized for Vercel environment
+MongoDB URI is set, attempting connection...
+MongoDB connection attempt 1/3...
+(node:51844) [MONGOOSE] Warning: Duplicate schema index on {"nickname":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✅ Naver OAuth configured successfully
+NAVER_CLIENT_ID: kBmnf...
+[S3Client] Successfully initialized with endpoint: https://b520cb8ed3989e8182bdb020ade36495.r2.cloudflarestorage.com
+MongoDB connection successful!
+   Generating static pages (0/101) ...
+[Analytics/Campaigns] Error: ex [Error]: Dynamic server usage: Page couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at Object.eP [as staticGenerationBailout] (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:29358)
+    at i (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:34692)
+    at Object.get (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:34788)
+    at u (E:\Naraddon\homepage\.next\server\app\api\analytics\campaigns\route.js:1:1172)
+    at E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:42490
+    at E:\Naraddon\homepage\node_modules\next\dist\server\lib\trace\tracer.js:133:36
+    at NoopContextManager.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
+    at ContextAPI.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
+    at NoopTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
+    at ProxyTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24) {
+  description: "Page couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+[Analytics/Cohorts] Error: ex [Error]: Dynamic server usage: Page couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at Object.eP [as staticGenerationBailout] (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:29358)
+    at i (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:34692)
+    at Object.get (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:34788)
+    at u (E:\Naraddon\homepage\.next\server\app\api\analytics\cohorts\route.js:1:1172)
+    at E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:42490
+    at E:\Naraddon\homepage\node_modules\next\dist\server\lib\trace\tracer.js:133:36
+    at NoopContextManager.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
+    at ContextAPI.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
+    at NoopTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
+    at ProxyTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24) {
+  description: "Page couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+[Analytics/Funnel] Error: ex [Error]: Dynamic server usage: Page couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at Object.eP [as staticGenerationBailout] (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:29358)
+    at i (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:34692)
+    at Object.get (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:34788)
+    at m (E:\Naraddon\homepage\.next\server\app\api\analytics\funnel\route.js:1:1851)
+    at E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:42490
+    at E:\Naraddon\homepage\node_modules\next\dist\server\lib\trace\tracer.js:133:36
+    at NoopContextManager.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
+    at ContextAPI.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
+    at NoopTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
+    at ProxyTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24) {
+  description: "Page couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+[Analytics/ExitPages] Error: ex [Error]: Dynamic server usage: Page couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at Object.eP [as staticGenerationBailout] (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:29358)
+    at i (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:34692)
+    at Object.get (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:34788)
+    at c (E:\Naraddon\homepage\.next\server\app\api\analytics\exit-pages\route.js:1:1171)
+    at E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:42490
+    at E:\Naraddon\homepage\node_modules\next\dist\server\lib\trace\tracer.js:133:36
+    at NoopContextManager.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
+    at ContextAPI.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
+    at NoopTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
+    at ProxyTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24) {
+  description: "Page couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+[Analytics/LandingPages] Error: ex [Error]: Dynamic server usage: Page couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at Object.eP [as staticGenerationBailout] (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:29358)
+    at i (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:34692)
+    at Object.get (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:34788)
+    at u (E:\Naraddon\homepage\.next\server\app\api\analytics\landing-pages\route.js:1:1173)
+    at E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:42490
+    at E:\Naraddon\homepage\node_modules\next\dist\server\lib\trace\tracer.js:133:36
+    at NoopContextManager.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
+    at ContextAPI.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
+    at NoopTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
+    at ProxyTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24) {
+  description: "Page couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+[Analytics/TimeTraffic] Error: ex [Error]: Dynamic server usage: Page couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at Object.eP [as staticGenerationBailout] (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:29358)
+    at i (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:34692)
+    at Object.get (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:34788)
+    at u (E:\Naraddon\homepage\.next\server\app\api\analytics\time-traffic\route.js:1:1172)
+    at E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:42490
+    at E:\Naraddon\homepage\node_modules\next\dist\server\lib\trace\tracer.js:133:36
+    at NoopContextManager.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
+    at ContextAPI.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
+    at NoopTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
+    at ProxyTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24) {
+  description: "Page couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+[Analytics/Realtime] Error: ex [Error]: Dynamic server usage: Page couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at Object.eP [as staticGenerationBailout] (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:29358)
+    at i (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:34692)
+    at Object.get (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:34788)
+    at d (E:\Naraddon\homepage\.next\server\app\api\analytics\realtime\route.js:1:1179)
+    at E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:42490
+    at E:\Naraddon\homepage\node_modules\next\dist\server\lib\trace\tracer.js:133:36
+    at NoopContextManager.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
+    at ContextAPI.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
+    at NoopTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
+    at ProxyTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24) {
+  description: "Page couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+[Analytics/UserJourney] Error: ex [Error]: Dynamic server usage: Page couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at Object.eP [as staticGenerationBailout] (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:29358)
+    at i (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:34692)
+    at Object.get (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:34788)
+    at d (E:\Naraddon\homepage\.next\server\app\api\analytics\user-journey\route.js:1:1173)
+    at E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:42490
+    at E:\Naraddon\homepage\node_modules\next\dist\server\lib\trace\tracer.js:133:36
+    at NoopContextManager.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
+    at ContextAPI.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
+    at NoopTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
+    at ProxyTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24) {
+  description: "Page couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+   Generating static pages (25/101) 
+[get-password] error: n [Error]: Dynamic server usage: Page couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at d (E:\Naraddon\homepage\.next\server\chunks\436.js:1:4458)
+    at u (E:\Naraddon\homepage\.next\server\chunks\436.js:1:1573)
+    at a (E:\Naraddon\homepage\.next\server\chunks\5759.js:30:18632)
+    at p (E:\Naraddon\homepage\.next\server\app\api\naraddon-tube\get-password\route.js:1:2496)
+    at E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:42490
+    at E:\Naraddon\homepage\node_modules\next\dist\server\lib\trace\tracer.js:133:36
+    at NoopContextManager.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
+    at ContextAPI.with (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
+    at NoopTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
+    at ProxyTracer.startActiveSpan (E:\Naraddon\homepage\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24) {
+  description: "Page couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+   Generating static pages (50/101) 
+Sitemap generation error: TypeError: (intermediate value).db is not a function
+    at m (E:\Naraddon\homepage\.next\server\app\sitemap.xml\route.js:1:2076)
+    at async b (E:\Naraddon\homepage\.next\server\app\sitemap.xml\route.js:1:3575)
+    at async E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:42484
+    at async eI.execute (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:32486)
+    at async eI.handle (E:\Naraddon\homepage\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:43737)
+    at async exportAppRoute (E:\Naraddon\homepage\node_modules\next\dist\export\routes\app-route.js:77:26)
+    at async exportPageImpl (E:\Naraddon\homepage\node_modules\next\dist\export\worker.js:175:20)
+    at async E:\Naraddon\homepage\node_modules\next\dist\export\worker.js:239:16
+    at async Span.traceAsyncFn (E:\Naraddon\homepage\node_modules\next\dist\trace\trace.js:151:20)
+    at async Object.exportPage (E:\Naraddon\homepage\node_modules\next\dist\export\worker.js:238:20)
+   Generating static pages (75/101) 
+ ✓ Generating static pages (101/101) 
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                        Size     First Load JS
+┌ ○ /                                              3.21 kB         217 kB
+├ ○ /_not-found                                    1.05 kB         215 kB
+├ ○ /403                                           355 B           216 kB
+├ ○ /admin                                         743 B           214 kB
+├ ○ /admin/analytics                               12.7 kB         226 kB
+├ ○ /admin/business-voice                          5.13 kB         219 kB
+├ ○ /admin/consultations                           6.84 kB         230 kB
+├ λ /admin/consultations/[id]                      7.74 kB         231 kB
+├ ○ /admin/dashboard                               112 kB          328 kB
+├ ○ /admin/examiner-dashboard                      2.5 kB          218 kB
+├ ○ /admin/examiner-dashboards                     3.3 kB          219 kB
+├ ○ /admin/examiners                               6.2 kB          220 kB
+├ ○ /admin/expert-services                         2.71 kB         216 kB
+├ ○ /admin/login                                   2.06 kB         227 kB
+├ ○ /admin/logs                                    5.48 kB         228 kB
+├ ○ /admin/naraddon-tube                           4.43 kB         218 kB
+├ ○ /admin/policy-analysis                         3.95 kB         220 kB
+├ ○ /admin/settings                                1.17 kB         217 kB
+├ ○ /admin/users                                   8.63 kB         230 kB
+├ λ /api/admin/check-session                       0 B                0 B
+├ λ /api/admin/customer-cards                      0 B                0 B
+├ λ /api/admin/examiners                           0 B                0 B
+├ λ /api/admin/examiners/[id]                      0 B                0 B
+├ λ /api/admin/examiners/[id]/activities           0 B                0 B
+├ λ /api/admin/grant-role                          0 B                0 B
+├ λ /api/admin/login                               0 B                0 B
+├ λ /api/admin/logout                              0 B                0 B
+├ λ /api/admin/logs                                0 B                0 B
+├ λ /api/admin/stats                               0 B                0 B
+├ λ /api/admin/users                               0 B                0 B
+├ λ /api/admin/users/[id]/role                     0 B                0 B
+├ λ /api/admin/users/[id]/upgrade                  0 B                0 B
+├ λ /api/analytics/campaigns                       0 B                0 B
+├ λ /api/analytics/cohorts                         0 B                0 B
+├ λ /api/analytics/conversions                     0 B                0 B
+├ λ /api/analytics/exit-pages                      0 B                0 B
+├ λ /api/analytics/funnel                          0 B                0 B
+├ λ /api/analytics/landing-pages                   0 B                0 B
+├ λ /api/analytics/realtime                        0 B                0 B
+├ λ /api/analytics/time-traffic                    0 B                0 B
+├ λ /api/analytics/user-journey                    0 B                0 B
+├ λ /api/auth/[...nextauth]                        0 B                0 B
+├ λ /api/auth/blacklist                            0 B                0 B
+├ λ /api/auth/error                                0 B                0 B
+├ λ /api/auth/login                                0 B                0 B
+├ λ /api/auth/logout                               0 B                0 B
+├ λ /api/auth/register                             0 B                0 B
+├ λ /api/business-voice/admin/auth                 0 B                0 B
+├ λ /api/business-voice/answers/[answerId]         0 B                0 B
+├ λ /api/business-voice/interview-videos           0 B                0 B
+├ λ /api/business-voice/interview-videos/[id]      0 B                0 B
+├ λ /api/business-voice/interview-videos/upload    0 B                0 B
+├ λ /api/business-voice/interview-videos/verify    0 B                0 B
+├ λ /api/business-voice/interviews                 0 B                0 B
+├ λ /api/business-voice/interviews/[id]            0 B                0 B
+├ λ /api/business-voice/questions                  0 B                0 B
+├ λ /api/business-voice/questions/[id]             0 B                0 B
+├ λ /api/business-voice/questions/[id]/answers     0 B                0 B
+├ λ /api/business-voice/replies/reorder            0 B                0 B
+├ λ /api/business-voice/ttontok                    0 B                0 B
+├ λ /api/business-voice/ttontok/[postId]           0 B                0 B
+├ λ /api/business-voice/ttontok/[postId]/replies   0 B                0 B
+├ λ /api/business-voice/ttontok/nicknames          0 B                0 B
+├ λ /api/business-voice/ttontok/replies/[replyId]  0 B                0 B
+├ λ /api/business/verify                           0 B                0 B
+├ λ /api/certified-examiners                       0 B                0 B
+├ λ /api/claude-monitor                            0 B                0 B
+├ λ /api/codex-verify                              0 B                0 B
+├ λ /api/consultation/quick-submit                 0 B                0 B
+├ λ /api/consultations                             0 B                0 B
+├ λ /api/consultations/[id]                        0 B                0 B
+├ λ /api/consultations/[id]/assign                 0 B                0 B
+├ λ /api/consultations/[id]/review                 0 B                0 B
+├ λ /api/consultations/[id]/status                 0 B                0 B
+├ λ /api/ddontalk                                  0 B                0 B
+├ λ /api/ddontalk/[id]                             0 B                0 B
+├ λ /api/ddontalk/[id]/comment                     0 B                0 B
+├ λ /api/ddontalk/[id]/comments                    0 B                0 B
+├ λ /api/ddontalk/[id]/like                        0 B                0 B
+├ λ /api/ddontalk/[id]/likes                       0 B                0 B
+├ λ /api/debug/env                                 0 B                0 B
+├ λ /api/examiner/stats                            0 B                0 B
+├ λ /api/expert-services/assets/delete             0 B                0 B
+├ λ /api/expert-services/assets/presign            0 B                0 B
+├ λ /api/expert-services/examiners                 0 B                0 B
+├ λ /api/expert-services/examiners/[id]            0 B                0 B
+├ λ /api/expert-services/examiners/[id]/profile    0 B                0 B
+├ λ /api/expert-services/examiners/cleanup         0 B                0 B
+├ λ /api/expert-services/examiners/verify          0 B                0 B
+├ λ /api/expert-services/experts                   0 B                0 B
+├ λ /api/expert-services/experts/[id]              0 B                0 B
+├ λ /api/experts                                   0 B                0 B
+├ λ /api/git-execute                               0 B                0 B
+├ ○ /api/health                                    0 B                0 B
+├ λ /api/naraddon-tube                             0 B                0 B
+├ λ /api/naraddon-tube/assets/delete               0 B                0 B
+├ λ /api/naraddon-tube/assets/presign              0 B                0 B
+├ λ /api/naraddon-tube/delete                      0 B                0 B
+├ λ /api/naraddon-tube/examiners                   0 B                0 B
+├ λ /api/naraddon-tube/examiners/[id]              0 B                0 B
+├ λ /api/naraddon-tube/get-password                0 B                0 B
+├ λ /api/naraddon-tube/update                      0 B                0 B
+├ λ /api/naraddon-tube/verify                      0 B                0 B
+├ λ /api/notifications/new-user                    0 B                0 B
+├ λ /api/notifications/welcome-email               0 B                0 B
+├ λ /api/policy-analysis                           0 B                0 B
+├ λ /api/policy-analysis/[id]                      0 B                0 B
+├ λ /api/policy-analysis/access                    0 B                0 B
+├ λ /api/policy-analysis/uploads                   0 B                0 B
+├ λ /api/policy-news                               0 B                0 B
+├ λ /api/policy-news/[id]                          0 B                0 B
+├ λ /api/policy-news/upload-image                  0 B                0 B
+├ λ /api/telegram-notify                           0 B                0 B
+├ ○ /api/test-user                                 0 B                0 B
+├ λ /api/track-visit                               0 B                0 B
+├ λ /api/track-visit/time-spent                    0 B                0 B
+├ λ /api/ttontok/posts                             0 B                0 B
+├ λ /api/ttontok/posts/[id]                        0 B                0 B
+├ λ /api/ttontok/verify                            0 B                0 B
+├ λ /api/upload                                    0 B                0 B
+├ λ /api/upload/examiner                           0 B                0 B
+├ λ /api/users/[id]                                0 B                0 B
+├ λ /api/users/[id]/activities                     0 B                0 B
+├ λ /api/users/[id]/stats                          0 B                0 B
+├ ○ /auth/error                                    1.11 kB         215 kB
+├ ○ /auth/login                                    5.19 kB         221 kB
+├ ○ /business-voice                                7.22 kB         238 kB
+├ ○ /business-voice/admin                          5.19 kB         219 kB
+├ ○ /business-voice/qna                            1.62 kB         218 kB
+├ λ /business-voice/qna/[id]                       2.88 kB         228 kB
+├ ○ /business-voice/qna/write                      2.33 kB         228 kB
+├ λ /business-voice/ttontok/[postId]               5.98 kB         231 kB
+├ ○ /business-voice/ttontok/write                  2.99 kB         228 kB
+├ ○ /certified-examiners                           31.8 kB         245 kB
+├ ○ /consultation                                  538 B           214 kB
+├ ○ /consultation-request                          17.3 kB         233 kB
+├ λ /ddontalk/[id]                                 3.81 kB         229 kB
+├ λ /examiner/consultation/[id]                    3.44 kB         229 kB
+├ ○ /examiner/consultations                        3.25 kB         228 kB
+├ ○ /examiner/dashboard                            3.81 kB         229 kB
+├ ○ /examiner/reports                              3.83 kB         229 kB
+├ ○ /examiner/schedule                             3.24 kB         228 kB
+├ ○ /expert-services                               5.38 kB         221 kB
+├ ○ /expert-services/admin                         3.16 kB         217 kB
+├ ○ /experts                                       3.93 kB         220 kB
+├ ○ /my-consultations                              6.67 kB         232 kB
+├ ○ /mypage                                        11.7 kB         242 kB
+├ ○ /naraddon-tube/admin                           3.82 kB         217 kB
+├ ○ /policy-analysis                               1.14 kB         215 kB
+├ λ /policy-analysis/[id]                          466 B           230 kB
+├ λ /policy-analysis/[id]/edit                     3.07 kB         217 kB
+├ ○ /policy-analysis/detail                        679 B           230 kB
+├ ○ /policy-analysis/write                         7.39 kB         230 kB
+├ ○ /policy-news                                   6.68 kB         220 kB
+├ λ /policy-news/[id]                              3.85 kB         229 kB
+├ λ /policy-news/[id]/edit                         2.9 kB          217 kB
+├ ○ /policy-news/admin                             2.97 kB         228 kB
+├ ○ /policy-news/write                             4.65 kB         218 kB
+├ ○ /robots.txt                                    0 B                0 B
+├ ○ /sitemap.xml                                   0 B                0 B
+├ ○ /ttontok                                       4.31 kB         220 kB
+├ λ /ttontok/[id]                                  1.87 kB         218 kB
+├ ○ /ttontok/write                                 3.11 kB         217 kB
+└ ○ /voice                                         50.6 kB         264 kB
++ First Load JS shared by all                      214 kB
+  ├ chunks/254-117833205997465a.js                 117 kB
+  ├ chunks/52774a7f-336a2e9deb6bc9bc.js            38.9 kB
+  ├ chunks/fd9d1056-1fee603ba8929d47.js            53.5 kB
+  └ other shared chunks (total)                    4.41 kB
+
+
+○  (Static)   prerendered as static content
+λ  (Dynamic)  server-rendered on demand using Node.js
+

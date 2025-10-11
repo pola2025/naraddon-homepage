@@ -10,22 +10,40 @@ import {
   ConsultationPhase
 } from '@/types/consultation.types';
 
-// 웹훅 관련 환경변수 - 기업심사관(AUDITOR) 용 사용
+// 웹훅 관련 환경변수 - 전문가/기업심사관 분리
 // 환경변수에서 따옴표와 공백 제거 (Vercel 환경변수 입력 실수 방지)
-const rawWebhookUrl = process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL_AUDITOR || process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL || '';
-const GOOGLE_APPS_SCRIPT_WEBHOOK_URL = rawWebhookUrl.trim().replace(/^["']|["']$/g, '');
 
-const rawNotificationEmails = process.env.CONSULTATION_NOTIFICATION_EMAILS_AUDITOR || process.env.CONSULTATION_NOTIFICATION_EMAILS || '';
-const CONSULTATION_NOTIFICATION_EMAILS = rawNotificationEmails.trim().replace(/^["']|["']$/g, '');
+// 전문가 상담용 웹훅
+const rawExpertWebhookUrl = process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL_EXPERT || process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL || '';
+const EXPERT_WEBHOOK_URL = rawExpertWebhookUrl.trim().replace(/^["']|["']$/g, '');
 
-const rawTelegramToken = process.env.TELEGRAM_BOT_TOKEN_AUDITOR || '';
-const TELEGRAM_BOT_TOKEN = rawTelegramToken.trim().replace(/^["']|["']$/g, '');
+const rawExpertNotificationEmails = process.env.CONSULTATION_NOTIFICATION_EMAILS_EXPERT || process.env.CONSULTATION_NOTIFICATION_EMAILS || '';
+const EXPERT_NOTIFICATION_EMAILS = rawExpertNotificationEmails.trim().replace(/^["']|["']$/g, '');
 
-const rawTelegramChatId = process.env.TELEGRAM_CHAT_ID_AUDITOR || '';
-const TELEGRAM_CHAT_ID = rawTelegramChatId.trim().replace(/^["']|["']$/g, '');
+const rawExpertTelegramToken = process.env.TELEGRAM_BOT_TOKEN_EXPERT || '';
+const EXPERT_TELEGRAM_BOT_TOKEN = rawExpertTelegramToken.trim().replace(/^["']|["']$/g, '');
 
-const rawWebhookSecret = process.env.CONSULTATION_WEBHOOK_SECRET_AUDITOR || '';
-const CONSULTATION_WEBHOOK_SECRET = rawWebhookSecret.trim().replace(/^["']|["']$/g, '');
+const rawExpertTelegramChatId = process.env.TELEGRAM_CHAT_ID_EXPERT || '';
+const EXPERT_TELEGRAM_CHAT_ID = rawExpertTelegramChatId.trim().replace(/^["']|["']$/g, '');
+
+const rawExpertWebhookSecret = process.env.CONSULTATION_WEBHOOK_SECRET_EXPERT || '';
+const EXPERT_WEBHOOK_SECRET = rawExpertWebhookSecret.trim().replace(/^["']|["']$/g, '');
+
+// 기업심사관 상담용 웹훅
+const rawAuditorWebhookUrl = process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL_AUDITOR || '';
+const AUDITOR_WEBHOOK_URL = rawAuditorWebhookUrl.trim().replace(/^["']|["']$/g, '');
+
+const rawAuditorNotificationEmails = process.env.CONSULTATION_NOTIFICATION_EMAILS_AUDITOR || '';
+const AUDITOR_NOTIFICATION_EMAILS = rawAuditorNotificationEmails.trim().replace(/^["']|["']$/g, '');
+
+const rawAuditorTelegramToken = process.env.TELEGRAM_BOT_TOKEN_AUDITOR || '';
+const AUDITOR_TELEGRAM_BOT_TOKEN = rawAuditorTelegramToken.trim().replace(/^["']|["']$/g, '');
+
+const rawAuditorTelegramChatId = process.env.TELEGRAM_CHAT_ID_AUDITOR || '';
+const AUDITOR_TELEGRAM_CHAT_ID = rawAuditorTelegramChatId.trim().replace(/^["']|["']$/g, '');
+
+const rawAuditorWebhookSecret = process.env.CONSULTATION_WEBHOOK_SECRET_AUDITOR || '';
+const AUDITOR_WEBHOOK_SECRET = rawAuditorWebhookSecret.trim().replace(/^["']|["']$/g, '');
 
 function parseEmailList(raw: string): string[] {
   return raw
@@ -202,16 +220,26 @@ export async function POST(request: NextRequest) {
     let notificationsForwarded = false;
     let notificationError: string | undefined;
 
+    // 상담 유형에 따라 웹훅 URL 선택
+    const isExpertConsultation = consultation.consultationType === '전문가 상담';
+    const WEBHOOK_URL = isExpertConsultation ? EXPERT_WEBHOOK_URL : AUDITOR_WEBHOOK_URL;
+    const NOTIFICATION_EMAILS = isExpertConsultation ? EXPERT_NOTIFICATION_EMAILS : AUDITOR_NOTIFICATION_EMAILS;
+    const TELEGRAM_BOT_TOKEN = isExpertConsultation ? EXPERT_TELEGRAM_BOT_TOKEN : AUDITOR_TELEGRAM_BOT_TOKEN;
+    const TELEGRAM_CHAT_ID = isExpertConsultation ? EXPERT_TELEGRAM_CHAT_ID : AUDITOR_TELEGRAM_CHAT_ID;
+    const WEBHOOK_SECRET = isExpertConsultation ? EXPERT_WEBHOOK_SECRET : AUDITOR_WEBHOOK_SECRET;
+
     console.log('[Webhook Debug] Environment check:', {
-      url: !!GOOGLE_APPS_SCRIPT_WEBHOOK_URL,
-      urlLength: GOOGLE_APPS_SCRIPT_WEBHOOK_URL?.length,
-      secret: !!CONSULTATION_WEBHOOK_SECRET,
-      secretPrefix: CONSULTATION_WEBHOOK_SECRET?.substring(0, 10),
+      consultationType: consultation.consultationType,
+      isExpertConsultation,
+      url: !!WEBHOOK_URL,
+      urlLength: WEBHOOK_URL?.length,
+      secret: !!WEBHOOK_SECRET,
+      secretPrefix: WEBHOOK_SECRET?.substring(0, 10),
       telegram: !!TELEGRAM_BOT_TOKEN,
       chatId: !!TELEGRAM_CHAT_ID
     });
 
-    if (GOOGLE_APPS_SCRIPT_WEBHOOK_URL) {
+    if (WEBHOOK_URL) {
       // 기본 submission 데이터
       const submissionData: Record<string, any> = {
         name: consultation.userName,
@@ -240,10 +268,10 @@ export async function POST(request: NextRequest) {
         submittedAt: new Date().toISOString(),
         meta: {
           consultationId: result.insertedId,
-          source: 'consultation-request-form'
+          source: isExpertConsultation ? 'expert-services' : 'consultation-request-form'
         },
         notification: {
-          emails: parseEmailList(CONSULTATION_NOTIFICATION_EMAILS),
+          emails: parseEmailList(NOTIFICATION_EMAILS),
           telegram: {
             enabled: Boolean(TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID),
             botToken: TELEGRAM_BOT_TOKEN,
@@ -252,17 +280,17 @@ export async function POST(request: NextRequest) {
         }
       };
 
-      if (CONSULTATION_WEBHOOK_SECRET) {
+      if (WEBHOOK_SECRET) {
         (webhookPayload as { auth?: { secret: string } }).auth = {
-          secret: CONSULTATION_WEBHOOK_SECRET,
+          secret: WEBHOOK_SECRET,
         };
       }
 
       try {
-        console.log('[Webhook Debug] Sending to:', GOOGLE_APPS_SCRIPT_WEBHOOK_URL);
+        console.log('[Webhook Debug] Sending to:', WEBHOOK_URL);
         console.log('[Webhook Debug] Payload has auth:', !!webhookPayload.auth);
 
-        const response = await fetch(GOOGLE_APPS_SCRIPT_WEBHOOK_URL, {
+        const response = await fetch(WEBHOOK_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -295,7 +323,8 @@ export async function POST(request: NextRequest) {
         console.error('Webhook error details:', notificationError);
       }
     } else {
-      notificationError = 'GOOGLE_APPS_SCRIPT_WEBHOOK_URL 환경변수가 설정되지 않았습니다.';
+      const webhookType = isExpertConsultation ? '전문가' : '기업심사관';
+      notificationError = `${webhookType} 웹훅 URL 환경변수가 설정되지 않았습니다.`;
       console.warn(notificationError);
     }
 

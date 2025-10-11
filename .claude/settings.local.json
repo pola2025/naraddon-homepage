@@ -82,7 +82,10 @@
       "Bash(else echo \"No src verify endpoint found\")",
       "Bash(start http://localhost:3001/scripts/check-session-api.html)",
       "Bash(for file in app/admin/*/page.tsx)",
-      "Bash(do echo \"=== $file ===\")"
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(if not exist \"E:\\AI development\" mkdir \"E:\\AI development\")",
+      "WebFetch(domain:github.com)",
+      "Bash(exit 0)"
     ],
     "deny": [],
     "ask": []
