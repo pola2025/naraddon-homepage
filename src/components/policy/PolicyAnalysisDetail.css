@@ -56,6 +56,7 @@
   backdrop-filter: blur(10px);
   position: relative;
   z-index: 1;
+  font-size: 48px;
 }
 
 .auth-icon-wrapper i {
@@ -64,7 +65,7 @@
 }
 
 .auth-title {
-  font-size: 28px;
+  font-size: 36px;
   font-weight: 700;
   color: white;
   margin: 0 0 16px 0;
@@ -179,11 +180,15 @@
   }
 
   .auth-title {
-    font-size: 24px;
+    font-size: 28px;
   }
 
   .auth-message {
     font-size: 16px;
+  }
+
+  .auth-icon-wrapper {
+    font-size: 40px;
   }
 
   .auth-buttons {

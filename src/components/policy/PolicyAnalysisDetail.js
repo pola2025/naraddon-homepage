@@ -337,7 +337,7 @@ const PolicyAnalysisDetail = ({ postId }) => {
         <div className="auth-required-container">
           <div className="auth-card">
             <div className="auth-icon-wrapper">
-              <i className="fas fa-hand-wave"></i>
+              👋
             </div>
             <h2 className="auth-title">안녕하세요 대표님!</h2>
             <p className="auth-message">
