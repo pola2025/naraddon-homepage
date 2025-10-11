@@ -10,7 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/authOptions';
+import { authOptions } from '@/lib/auth/authOptions';
 import connectDB from '@/lib/mongodb';
 import ExaminerBlacklist from '@/models/ExaminerBlacklist';
 
