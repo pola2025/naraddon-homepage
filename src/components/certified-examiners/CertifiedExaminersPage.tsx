@@ -38,15 +38,17 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false); // 이제 로딩 없음
 
-  // 서버에서 받은 데이터를 클라이언트에서 랜덤 정렬
+  // Hydration 오류 방지: 서버에서는 원본 데이터 사용, 클라이언트에서만 랜덤 정렬
   const [allExaminers] = useState<Examiner[]>(initialExaminers);
-  const [featuredExaminers] = useState<Examiner[]>(shuffleArray(initialExaminers));
-  const [gridExaminers] = useState<Examiner[]>(shuffleArray(initialExaminers));
+  const [featuredExaminers, setFeaturedExaminers] = useState<Examiner[]>(initialExaminers);
+  const [gridExaminers, setGridExaminers] = useState<Examiner[]>(initialExaminers);
 
-  // 마운트 상태만 관리
+  // 마운트 후 클라이언트에서만 랜덤 정렬
   useEffect(() => {
     setMounted(true);
-  }, []);
+    setFeaturedExaminers(shuffleArray(initialExaminers));
+    setGridExaminers(shuffleArray(initialExaminers));
+  }, [initialExaminers]);
 
   const handleShowMore = () => {
     if (visibleCount < gridExaminers.length) {
@@ -104,10 +106,21 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
     createStars();
     hideLoader();
 
-    // Ripple 효과
+    // 마우스 추적 glow 효과
     const buttons = document.querySelectorAll('.premium-cta');
     buttons.forEach(button => {
-      button.addEventListener('click', function(e: any) {
+      const handleMouseMove = (e: any) => {
+        const target = e.currentTarget as HTMLElement;
+        const rect = target.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        target.style.setProperty('--mx', x + 'px');
+        target.style.setProperty('--my', y + 'px');
+      };
+
+      // Ripple 효과 및 페이지 이동
+      const handleClick = (e: any) => {
         const target = e.currentTarget as HTMLElement;
         const ripple = document.createElement('span');
         ripple.className = 'ripple';
@@ -129,7 +142,10 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
 
         // 상담 신청 페이지로 이동
         window.location.href = '/consultation-request';
-      });
+      };
+
+      button.addEventListener('mousemove', handleMouseMove);
+      button.addEventListener('click', handleClick);
     });
   }, []);
 
@@ -206,7 +222,9 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
                   <div className="info-block">
                     <div className="name-block">{examiner.name}</div>
                     <div className="company-block">{examiner.company}</div>
-                    <button className="premium-cta" onClick={handleConsultationClick}>상담 신청하기</button>
+                    <button className="premium-cta" onClick={handleConsultationClick}>
+                      <span className="button-text">상담 신청하기</span>
+                    </button>
                   </div>
                 </div>
               </SwiperSlide>
@@ -236,7 +254,9 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
                 <div className="info-block">
                   <div className="name-block">{examiner.name}</div>
                   <div className="company-block">{examiner.company}</div>
-                  <button className="premium-cta" onClick={handleConsultationClick}>상담 신청하기</button>
+                  <button className="premium-cta" onClick={handleConsultationClick}>
+                    <span className="button-text">상담 신청하기</span>
+                  </button>
                 </div>
               </div>
             ))}
