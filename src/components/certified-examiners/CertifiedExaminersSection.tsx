@@ -4,24 +4,63 @@ import React, { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import ExaminerCard from './ExaminerCard';
-import { Examiner, ExaminersData } from '@/types/examiner';
-import examinersDataJson from '@/../../examiners_data.json';
+import { Examiner } from '@/types/examiner';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import styles from './CertifiedExaminersSection.module.css';
 
+/**
+ * 인증 기업심사관 섹션 컴포넌트
+ *
+ * @purpose MongoDB에서 공개된 심사관 목록을 가져와 표시
+ * @context 관리자 대시보드에서 추가/수정된 심사관 실시간 반영
+ * @decision 정적 JSON 대신 API를 호출하여 최신 데이터 유지
+ */
 export default function CertifiedExaminersSection() {
   const [examiners, setExaminers] = useState<Examiner[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  /**
+   * 심사관 데이터 가져오기
+   *
+   * @purpose API를 통해 MongoDB에서 공개된 심사관 목록 조회
+   * @context isPublished=true인 심사관만 표시
+   */
   useEffect(() => {
-    const data = examinersDataJson as ExaminersData;
-    setExaminers(data.examiners);
-    setLoading(false);
+    const fetchExaminers = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/certified-examiners');
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch examiners');
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.examiners) {
+          // sortOrder로 정렬
+          const sortedExaminers = data.examiners.sort((a: Examiner, b: Examiner) =>
+            (a.sortOrder || 0) - (b.sortOrder || 0)
+          );
+          setExaminers(sortedExaminers);
+        } else {
+          throw new Error(data.error || 'Invalid response format');
+        }
+      } catch (error) {
+        console.error('Failed to fetch examiners:', error);
+        setError(error instanceof Error ? error.message : 'Failed to load examiners');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExaminers();
   }, []);
 
   const filteredExaminers = examiners.filter(examiner => {
@@ -51,6 +90,17 @@ export default function CertifiedExaminersSection() {
     return (
       <div className={styles.loader}>
         <div className={styles.loaderRing}></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.error}>
+        <p>심사관 목록을 불러오는데 실패했습니다.</p>
+        <button onClick={() => window.location.reload()} className={styles.retryBtn}>
+          다시 시도
+        </button>
       </div>
     );
   }

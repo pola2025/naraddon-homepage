@@ -20,8 +20,14 @@ export default function ExaminerCard({ examiner, variant = 'grid' }: ExaminerCar
     startup: '창업지원'
   };
 
-  // 이미지 경로 처리 - public 폴더의 이미지 사용
-  const imageName = `${examiner.name}_${examiner.companyName}.jpg`;
+  /**
+   * 이미지 URL 처리
+   *
+   * @purpose MongoDB에 저장된 imageUrl 사용 (Cloudflare R2 또는 외부 URL)
+   * @context 관리자 대시보드에서 업로드한 이미지 표시
+   * @decision imageUrl이 없으면 기본 placeholder 표시
+   */
+  const imageUrl = examiner.imageUrl || '/images/default-examiner.jpg';
 
   return (
     <div className={`${styles.card} ${styles[variant]}`}>
@@ -32,9 +38,14 @@ export default function ExaminerCard({ examiner, variant = 'grid' }: ExaminerCar
 
       <div className={styles.cardImage}>
         <img
-          src={`/${imageName}`}
-          alt={`${examiner.name}_${examiner.companyName}`}
+          src={imageUrl}
+          alt={`${examiner.name} - ${examiner.companyName}`}
           loading="lazy"
+          onError={(e) => {
+            // 이미지 로드 실패 시 기본 이미지로 대체
+            const target = e.target as HTMLImageElement;
+            target.src = '/images/default-examiner.jpg';
+          }}
         />
       </div>
 

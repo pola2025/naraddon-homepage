@@ -43,14 +43,17 @@ export async function GET() {
     const queryTime = Date.now() - queryStartTime;
     console.log(`[Certified Examiners API] Query: ${queryTime}ms`);
 
-    // 프론트엔드 형식으로 변환
+    // 프론트엔드 형식으로 변환 (MongoDB 문서 형식 유지)
     const formattedExaminers = examiners.map(examiner => ({
+      _id: examiner._id.toString(),
       name: examiner.name,
-      company: examiner.companyName,
+      companyName: examiner.companyName,
       imageUrl: examiner.imageUrl || '',
       position: examiner.position || '인증 기업심사관',
       category: examiner.category || 'funding',
-      specialties: examiner.specialties || []
+      specialties: examiner.specialties || [],
+      isPublished: true,
+      sortOrder: examiner.sortOrder || 0
     }));
 
     const totalTime = Date.now() - startTime;
