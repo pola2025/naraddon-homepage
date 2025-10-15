@@ -163,3 +163,94 @@ export async function PUT(
     );
   }
 }
+
+/**
+ * DELETE /api/users/[id] - 사용자 계정 탈퇴
+ *
+ * @purpose 사용자가 계정을 탈퇴하고 탈퇴 사유를 수집
+ * @context 게시글/댓글은 보존하고 계정 정보만 삭제
+ * @security 본인 계정만 탈퇴 가능, 인증 필수
+ * @note 탈퇴 사유는 withdrawal_reasons 컬렉션에 저장
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // 1. 세션 확인 - 인증된 사용자만 탈퇴 가능
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // 2. URL 디코딩
+    const userId = decodeURIComponent(params.id);
+
+    // 3. 본인 계정만 탈퇴 가능 검증
+    if (session.user?.email !== userId && (session.user as any)?.id !== userId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // 4. 요청 바디에서 탈퇴 사유 추출
+    const body = await request.json();
+    const { reason, feedback } = body;
+
+    // 5. 탈퇴 사유 필수 검증
+    if (!reason || reason.trim() === '') {
+      return NextResponse.json(
+        { error: '탈퇴 사유를 입력해주세요' },
+        { status: 400 }
+      );
+    }
+
+    // 6. MongoDB 연결
+    const client = await clientPromise;
+    const db = client.db('naraddon');
+
+    // 7. 탈퇴할 사용자 정보 조회
+    const user = await db.collection('users').findOne({
+      email: session.user?.email
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // 8. 탈퇴 사유 저장 (분석 및 서비스 개선용)
+    await db.collection('withdrawal_reasons').insertOne({
+      userId: user._id,
+      email: user.email,
+      name: user.name,
+      role: (user as any).role || 'user',
+      reason: reason.trim(),
+      feedback: feedback?.trim() || null,
+      withdrawnAt: new Date(),
+      userCreatedAt: user.createdAt,
+    });
+
+    // 9. 사용자 계정 삭제 (게시글/댓글은 보존)
+    const deleteResult = await db.collection('users').deleteOne({
+      email: session.user?.email
+    });
+
+    if (deleteResult.deletedCount === 0) {
+      return NextResponse.json(
+        { error: '계정 삭제에 실패했습니다' },
+        { status: 500 }
+      );
+    }
+
+    // 10. 성공 응답
+    return NextResponse.json({
+      success: true,
+      message: '계정이 성공적으로 탈퇴되었습니다',
+      withdrawnAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Failed to delete user:', error);
+    return NextResponse.json(
+      { error: '계정 탈퇴 처리 중 오류가 발생했습니다' },
+      { status: 500 }
+    );
+  }
+}

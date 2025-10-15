@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import ProfileCard from '@/components/profile/ProfileCard';
 import ProfileEditModal from './ProfileEditModal';
 import ProfileCompletionModal from '@/components/profile/ProfileCompletionModal';
+import WithdrawalModal from '@/components/ui/WithdrawalModal';
 import { User, UserRole, UserStatus, isProfileComplete } from '@/types/user.types';
 import { UserActivity, UserStats, ActivityType, ContentType, ReactionType } from '@/types/activity.types';
 import {
@@ -38,6 +39,7 @@ export default function MyPage() {
   const [activeTab, setActiveTab] = useState<'profile' | 'activity' | 'stats' | 'settings' | 'admin'>('profile');
   const [isEditMode, setIsEditMode] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
   const [activityFilter, setActivityFilter] = useState<'all' | ActivityType>('all');
   const [showProfileAlert, setShowProfileAlert] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
@@ -739,7 +741,12 @@ export default function MyPage() {
                         </p>
                       </div>
                       <div className="text-sm text-red-600 mt-4">
-                        <button className="hover:text-red-700">계정 탈퇴</button>
+                        <button
+                          onClick={() => setIsWithdrawalModalOpen(true)}
+                          className="hover:text-red-700 font-medium transition-colors"
+                        >
+                          계정 탈퇴
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -756,6 +763,15 @@ export default function MyPage() {
           user={user}
           onClose={() => setIsEditModalOpen(false)}
           onSave={handleProfileUpdate}
+        />
+      )}
+
+      {/* 회원 탈퇴 모달 */}
+      {user && (
+        <WithdrawalModal
+          isOpen={isWithdrawalModalOpen}
+          onClose={() => setIsWithdrawalModalOpen(false)}
+          userEmail={user.email}
         />
       )}
     </div>
