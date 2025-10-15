@@ -5,8 +5,8 @@ export interface ConsultationReview {
   consultationId: string;
 
   // 평가 대상
-  auditorId: string;          // 평가 대상 기업심사관 ID
-  auditorName: string;         // 기업심사관 이름
+  examinerId: string;          // 평가 대상 기업심사관 ID
+  examinerName: string;         // 기업심사관 이름
 
   // 평가자 정보
   reviewerId: string;          // 평가 작성자 ID
@@ -80,9 +80,9 @@ export const RATING_TEXT = {
 };
 
 // 심사관 통계
-export interface AuditorStats {
-  auditorId: string;
-  auditorName: string;
+export interface ExaminerStats {
+  examinerId: string;
+  examinerName: string;
 
   // 평가 통계
   totalReviews: number;

@@ -22,7 +22,7 @@ export async function PUT(
     const { newRole, profileData, examinerAction } = await request.json();
 
     // 유효한 역할인지 확인
-    const validRoles = ['user', 'auditor', 'examiner', 'expert', 'admin'];
+    const validRoles = ['user', 'examiner', 'expert', 'admin'];
     if (!validRoles.includes(newRole)) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
     }
@@ -130,20 +130,6 @@ export async function PUT(
           }
         );
       }
-    }
-
-    // 기업심사관(auditor) - 레거시 지원
-    if (newRole === 'auditor' && profileData) {
-      updateData['auditorProfile'] = {
-        specialty: profileData.specialty || [],
-        experience: profileData.experience || 0,
-        certifications: profileData.certifications || [],
-        introduction: profileData.introduction || '',
-        availableTime: profileData.availableTime || '',
-        consultationFee: profileData.consultationFee || '',
-        profileImage: profileData.profileImage || '',
-        isPublic: profileData.isPublic !== false
-      };
     }
 
     // 전문가로 전환 시

@@ -151,7 +151,7 @@ export default function AdminConsultationsPage() {
 
   const fetchStaffList = async () => {
     try {
-      const response = await fetch('/api/admin/users?role=auditor,expert,examiner');
+      const response = await fetch('/api/admin/users?role=expert,examiner');
       const data = await response.json();
 
       // API 응답에서 users 배열 추출
@@ -162,7 +162,7 @@ export default function AdminConsultationsPage() {
           email: user.email,
           name: user.name || user.email,
           role: user.role,
-          specialty: user.auditorProfile?.specialty || user.expertProfile?.specialty,
+          specialty: user.examinerProfile?.specialty || user.expertProfile?.specialty,
           assignedCount: user.assignedConsultations || 0
         })));
       }
@@ -560,8 +560,7 @@ export default function AdminConsultationsPage() {
                       <option value="">선택하세요</option>
                       {staffList.map((staff) => {
                         let roleLabel = '전문가';
-                        if (staff.role === 'auditor') roleLabel = '기업심사관(Auditor)';
-                        else if (staff.role === 'examiner') roleLabel = '기업심사관';
+                        if (staff.role === 'examiner') roleLabel = '기업심사관';
 
                         return (
                           <option key={staff.email} value={staff.email}>

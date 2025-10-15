@@ -51,7 +51,7 @@ export enum MemoType {
 
 // 담당자 역할
 export enum StaffRole {
-  AUDITOR = 'auditor',           // 기업심사관
+  EXAMINER = 'examiner',         // 기업심사관
   ADMIN = 'admin',               // 관리자
   SUPER_ADMIN = 'super_admin'    // 최고 관리자
 }

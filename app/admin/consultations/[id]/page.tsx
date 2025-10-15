@@ -123,7 +123,7 @@ export default function ConsultationDetailPage() {
     const userEmail = session.user?.email;
 
     // 관리자, 기업심사관, 전문가만 접근 가능
-    if (userRole !== 'admin' && userRole !== 'super_admin' && userRole !== 'auditor' && userRole !== 'expert') {
+    if (userRole !== 'admin' && userRole !== 'super_admin' && userRole !== 'examiner' && userRole !== 'expert') {
       router.push('/');
       return;
     }

@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     // 쿼리 파라미터 처리
     const { searchParams } = new URL(request.url);
-    const roleParam = searchParams.get('role'); // e.g., "auditor,expert,examiner"
+    const roleParam = searchParams.get('role'); // e.g., "expert,examiner"
     const searchQuery = searchParams.get('search');
     const limit = parseInt(searchParams.get('limit') || '100');
     const skip = parseInt(searchParams.get('skip') || '0');
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
           role: user.role || 'user',
           status: user.status || 'active',
           profile: user.profile || {},
-          auditorProfile: user.auditorProfile,
+          examinerProfile: user.examinerProfile || user.auditorProfile, // 하위 호환성 지원
           expertProfile: user.expertProfile,
           examinerId: user.examinerId,
           createdAt: user.createdAt,

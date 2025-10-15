@@ -46,7 +46,7 @@ export async function PUT(
 
     // 담당자 정보 확인
     const staff = await db.collection('users').findOne({ email: staffId });
-    const validRoles = ['auditor', 'expert', 'examiner'];
+    const validRoles = ['expert', 'examiner'];
 
     if (!staff || !validRoles.includes(staff.role)) {
       return NextResponse.json(

@@ -85,7 +85,16 @@
       "Bash(do echo \"=== $file ===\")",
       "Bash(if not exist \"E:\\AI development\" mkdir \"E:\\AI development\")",
       "WebFetch(domain:github.com)",
-      "Bash(exit 0)"
+      "Bash(exit 0)",
+      "Bash(printf \"https://script.google.com/macros/s/AKfycbwoFgz1gL4jz3cd0SuvcZUaS6m89lIZ9rkdxvKhT0hMphPj9fs8g6b6Y4TCvCejqO_1FQ/exec\")",
+      "Bash(if [ -f .env.local ])",
+      "Bash(then grep \"MONGODB_URI\" .env.local)",
+      "Bash(else echo \".env.local not found\")",
+      "Bash(mongosh:*)",
+      "Bash(PORT=3001 npm run dev:*)",
+      "Bash(start http://localhost:3001/admin/examiners)",
+      "Bash(npm run lint)",
+      "Bash(npm run backup:full:*)"
     ],
     "deny": [],
     "ask": []

@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const userRole = (session.user as any)?.role;
 
     // 관리자 또는 기업심사관만 접근 가능
-    if (userRole !== 'admin' && userRole !== 'auditor') {
+    if (userRole !== 'admin' && userRole !== 'examiner') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     // 필터 조건 생성
     const filter: any = {};
 
-    if (userRole === 'auditor') {
+    if (userRole === 'examiner') {
       // 기업심사관은 자신에게 배정된 카드만 조회
       filter.assignedStaffId = session.user?.email;
     } else if (staffId) {
