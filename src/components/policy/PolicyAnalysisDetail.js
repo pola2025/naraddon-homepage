@@ -253,7 +253,7 @@ const PolicyAnalysisDetail = ({ postId }) => {
    * 세션 기반 삭제 핸들러
    *
    * @purpose 비밀번호 대신 세션 권한으로 삭제
-   * @context examiner 또는 admin만 삭제 가능
+   * @context examiner, admin, super_admin만 삭제 가능
    */
   const handleDelete = async () => {
     if (!session || !session.user) {
@@ -263,8 +263,8 @@ const PolicyAnalysisDetail = ({ postId }) => {
     }
 
     const userRole = session.user.role;
-    if (userRole !== 'examiner' && userRole !== 'admin') {
-      alert('정책분석은 인증된 기업심사관만 삭제할 수 있습니다.');
+    if (userRole !== 'examiner' && userRole !== 'admin' && userRole !== 'super_admin') {
+      alert('정책분석 삭제 권한이 없습니다. (관리자 또는 기업심사관만 가능)');
       return;
     }
 
