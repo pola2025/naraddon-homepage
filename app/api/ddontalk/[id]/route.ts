@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/authOptions';
 import connectDB from '@/lib/mongodb';
 import DDonTalk from '@/models/DDonTalk';
 
@@ -41,6 +43,29 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    /**
+     * 세션 기반 권한 검증 (수정)
+     *
+     * @purpose NextAuth 세션을 통한 사용자 인증 및 권한 확인
+     * @context admin 또는 super_admin 역할을 가진 사용자만 똔톡 수정 가능
+     */
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { success: false, error: '로그인이 필요합니다.' },
+        { status: 401 }
+      );
+    }
+
+    const userRole = (session.user as any)?.role;
+    if (userRole !== 'admin' && userRole !== 'super_admin') {
+      return NextResponse.json(
+        { success: false, error: '똔톡 수정 권한이 없습니다. (관리자만 가능)' },
+        { status: 403 }
+      );
+    }
+
     await connectDB();
 
     const body = await request.json();
@@ -77,6 +102,29 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    /**
+     * 세션 기반 권한 검증 (삭제)
+     *
+     * @purpose NextAuth 세션을 통한 사용자 인증 및 권한 확인
+     * @context admin 또는 super_admin 역할을 가진 사용자만 똔톡 삭제 가능
+     */
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { success: false, error: '로그인이 필요합니다.' },
+        { status: 401 }
+      );
+    }
+
+    const userRole = (session.user as any)?.role;
+    if (userRole !== 'admin' && userRole !== 'super_admin') {
+      return NextResponse.json(
+        { success: false, error: '똔톡 삭제 권한이 없습니다. (관리자만 가능)' },
+        { status: 403 }
+      );
+    }
+
     await connectDB();
 
     const post = await DDonTalk.findByIdAndDelete(params.id);
