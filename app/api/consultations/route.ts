@@ -140,10 +140,10 @@ export async function GET(request: NextRequest) {
     const userEmail = session.user?.email;
     const userRole = (session.user as any)?.role;
 
-    if (userRole === 'user') {
-      // 일반 사용자는 자신의 상담만 조회
+    if (userRole === 'user' || userRole === 'company') {
+      // 일반 사용자와 기업회원은 자신의 상담만 조회
       filter.userEmail = userEmail;
-    } else if (userRole === 'auditor') {
+    } else if (userRole === 'examiner') {
       // 기업심사관은 자신에게 배정된 상담만 조회
       filter.assignedStaffId = userEmail;
     }

@@ -126,15 +126,15 @@ export default function ProfileCompletionModal({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-full items-center justify-center p-4">
+      <div className="flex min-h-screen items-center justify-center p-4 sm:p-6 md:p-8">
         {/* 백드롭 */}
         <div
           className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
           onClick={canDismiss ? handleTemporaryDismiss : undefined}
         />
 
-        {/* 모달 */}
-        <div className="relative w-full max-w-2xl bg-white rounded-lg shadow-xl">
+        {/* 모달 - 화면 안에 들어가도록 max-h 추가 */}
+        <div className="relative w-full max-w-2xl max-h-[90vh] bg-white rounded-lg shadow-xl overflow-y-auto">
           <div className="flex items-center justify-between p-6 border-b">
             <div className="flex items-center">
               <ExclamationTriangleIcon className="h-6 w-6 text-yellow-500 mr-3" />
