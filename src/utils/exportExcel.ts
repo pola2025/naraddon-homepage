@@ -97,8 +97,8 @@ export async function exportExaminersToExcel(
   examiners: Examiner[]
 ): Promise<Blob> {
   // 엑셀 데이터 행 생성
-  const excelData: ExcelRow[] = examiners.map((examiner) => ({
-    순서: examiner.sortOrder,
+  const excelData: ExcelRow[] = examiners.map((examiner, index) => ({
+    순서: index + 1,
     이름: examiner.name,
     직책: examiner.position,
     회사명: examiner.companyName,
@@ -116,7 +116,7 @@ export async function exportExaminersToExcel(
 
   // 컬럼 너비 설정
   const columnWidths = [
-    { wch: 8 },  // 순서
+    { wch: 6 },  // 순서 (1~23 정도이므로 좁게)
     { wch: 12 }, // 이름
     { wch: 20 }, // 직책
     { wch: 20 }, // 회사명
