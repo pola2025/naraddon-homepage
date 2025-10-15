@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { PlusIcon, PencilIcon, TrashIcon, UserIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, TrashIcon, UserIcon, EyeIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
+import { exportAndDownloadExaminers } from '@/utils/exportExcel';
 
 interface Examiner {
   _id: string;
@@ -312,6 +313,28 @@ export default function ExaminersPage() {
     setPreviewImage('');
   };
 
+  /**
+   * 엑셀 다운로드 핸들러
+   *
+   * @purpose 현재 심사관 목록을 엑셀 파일로 내보내기
+   * @context 버튼 클릭 시 즉시 엑셀 파일 다운로드 시작
+   * @note 로딩 상태를 관리하여 중복 클릭 방지
+   */
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportExcel = async () => {
+    try {
+      setIsExporting(true);
+      await exportAndDownloadExaminers(examiners);
+      alert('엑셀 파일 다운로드가 완료되었습니다.');
+    } catch (error) {
+      console.error('[Excel Export] Error:', error);
+      alert('엑셀 파일 생성에 실패했습니다.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -330,13 +353,24 @@ export default function ExaminersPage() {
             인증 기업심사관을 관리합니다
           </p>
         </div>
-        <button
-          onClick={() => handleOpenModal()}
-          className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 whitespace-nowrap"
-        >
-          <PlusIcon className="w-5 h-5 mr-2" />
-          심사관 추가
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={handleExportExcel}
+            disabled={isExporting || examiners.length === 0}
+            className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            title={examiners.length === 0 ? '내보낼 심사관이 없습니다' : '엑셀로 내보내기'}
+          >
+            <DocumentArrowDownIcon className="w-5 h-5 mr-2" />
+            {isExporting ? '내보내는 중...' : '엑셀 다운로드'}
+          </button>
+          <button
+            onClick={() => handleOpenModal()}
+            className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 whitespace-nowrap"
+          >
+            <PlusIcon className="w-5 h-5 mr-2" />
+            심사관 추가
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
