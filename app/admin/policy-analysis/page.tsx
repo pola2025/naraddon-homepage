@@ -8,8 +8,8 @@ import Link from 'next/link';
  * 정책분석 게시글 관리 페이지
  *
  * @purpose 관리자가 정책분석 게시글을 관리하는 페이지
- * @context 관리자가 기업심사관을 선택하여 게시글 작성 가능
- * @note 삭제 시 비밀번호 인증 필요 (POLICY_ANALYSIS_PASSWORD 환경변수)
+ * @context NextAuth 세션 기반 인증으로 관리자만 접근 가능
+ * @note 관리자가 기업심사관을 선택하여 게시글 작성/수정/삭제 가능
  */
 
 interface PolicyAnalysisPost {
@@ -45,7 +45,6 @@ export default function AdminPolicyAnalysisPage() {
   // 삭제 관련 상태
   const [selectedPost, setSelectedPost] = useState<PolicyAnalysisPost | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [password, setPassword] = useState('');
   const [deleting, setDeleting] = useState(false);
 
   // 작성 관련 상태
@@ -58,7 +57,6 @@ export default function AdminPolicyAnalysisPage() {
     content: '',
     tags: '',
     examinerKey: '',
-    password: '',
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -66,7 +64,6 @@ export default function AdminPolicyAnalysisPage() {
   const [showViewsModal, setShowViewsModal] = useState(false);
   const [viewsPost, setViewsPost] = useState<PolicyAnalysisPost | null>(null);
   const [newViews, setNewViews] = useState(0);
-  const [viewsPassword, setViewsPassword] = useState('');
   const [updatingViews, setUpdatingViews] = useState(false);
 
   useEffect(() => {
@@ -115,13 +112,19 @@ export default function AdminPolicyAnalysisPage() {
   const handleDeleteClick = (post: PolicyAnalysisPost) => {
     setSelectedPost(post);
     setShowDeleteModal(true);
-    setPassword('');
   };
 
+  /**
+   * 게시글 삭제
+   *
+   * @purpose 세션 기반 인증으로 게시글 삭제
+   * @context NextAuth 세션을 통해 권한 확인 (관리자만 가능)
+   * @note 비밀번호 인증 제거, 세션 기반으로 변경
+   */
   const handleDelete = async () => {
     if (!selectedPost) return;
-    if (!password.trim()) {
-      alert('비밀번호를 입력해주세요.');
+
+    if (!confirm('정말로 삭제하시겠습니까?')) {
       return;
     }
 
@@ -132,7 +135,6 @@ export default function AdminPolicyAnalysisPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ password: password.trim() }),
       });
 
       const data = await response.json();
@@ -141,7 +143,6 @@ export default function AdminPolicyAnalysisPage() {
         alert('게시글이 삭제되었습니다.');
         setShowDeleteModal(false);
         setSelectedPost(null);
-        setPassword('');
         fetchPosts();
       } else {
         alert(data.message || '삭제에 실패했습니다.');
@@ -158,7 +159,7 @@ export default function AdminPolicyAnalysisPage() {
    * 게시글 작성 함수
    *
    * @purpose 관리자가 기업심사관을 선택하여 정책분석 게시글 작성
-   * @context POLICY_ANALYSIS_PASSWORD로 인증하여 작성
+   * @context 세션 기반 인증으로 관리자 권한 확인
    * @note 선택한 기업심사관이 작성한 것처럼 게시글 등록
    */
   const handleSubmit = async () => {
@@ -172,10 +173,6 @@ export default function AdminPolicyAnalysisPage() {
     }
     if (!formData.examinerKey) {
       alert('기업심사관을 선택해주세요.');
-      return;
-    }
-    if (!formData.password.trim()) {
-      alert('관리자 비밀번호를 입력해주세요.');
       return;
     }
 
@@ -198,7 +195,6 @@ export default function AdminPolicyAnalysisPage() {
           content: formData.content.trim(),
           tags: tagsArray,
           examinerKey: formData.examinerKey,
-          password: formData.password.trim(),
         }),
       });
 
@@ -214,7 +210,6 @@ export default function AdminPolicyAnalysisPage() {
           content: '',
           tags: '',
           examinerKey: '',
-          password: '',
         });
         fetchPosts();
       } else {
@@ -237,7 +232,6 @@ export default function AdminPolicyAnalysisPage() {
   const handleViewsClick = (post: PolicyAnalysisPost) => {
     setViewsPost(post);
     setNewViews(post.views);
-    setViewsPassword('');
     setShowViewsModal(true);
   };
 
@@ -245,15 +239,11 @@ export default function AdminPolicyAnalysisPage() {
    * 조회수 업데이트
    *
    * @purpose 입력받은 조회수로 게시글 업데이트
-   * @context 기존 게시글 데이터를 먼저 조회하고 views만 변경하여 PUT
-   * @note 비밀번호 검증 필요, 기존 데이터 보존
+   * @context 세션 기반 인증으로 관리자 권한 확인
+   * @note 기존 게시글 데이터를 먼저 조회하고 views만 변경하여 PUT
    */
   const handleViewsUpdate = async () => {
     if (!viewsPost) return;
-    if (!viewsPassword.trim()) {
-      alert('비밀번호를 입력해주세요.');
-      return;
-    }
     if (newViews < 0) {
       alert('조회수는 0 이상이어야 합니다.');
       return;
@@ -291,7 +281,6 @@ export default function AdminPolicyAnalysisPage() {
           sections: currentPost.sections || [],
           images: currentPost.images || [],
           views: newViews,
-          password: viewsPassword.trim(),
         }),
       });
 
@@ -301,7 +290,6 @@ export default function AdminPolicyAnalysisPage() {
         alert('조회수가 업데이트되었습니다.');
         setShowViewsModal(false);
         setViewsPost(null);
-        setViewsPassword('');
         fetchPosts();
       } else {
         alert(data.message || '조회수 업데이트에 실패했습니다.');
@@ -612,26 +600,6 @@ export default function AdminPolicyAnalysisPage() {
                   }}
                 />
               </div>
-
-              {/* 관리자 비밀번호 */}
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>
-                  관리자 비밀번호 <span style={{ color: '#f44336' }}>*</span>
-                </label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  placeholder="비밀번호를 입력하세요"
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    border: '1px solid #ddd',
-                    borderRadius: '6px',
-                    fontSize: '14px'
-                  }}
-                />
-              </div>
             </div>
 
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '24px' }}>
@@ -645,7 +613,6 @@ export default function AdminPolicyAnalysisPage() {
                     content: '',
                     tags: '',
                     examinerKey: '',
-                    password: '',
                   });
                 }}
                 disabled={submitting}
@@ -733,35 +700,11 @@ export default function AdminPolicyAnalysisPage() {
                 }}
               />
             </div>
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>
-                관리자 비밀번호
-              </label>
-              <input
-                type="password"
-                value={viewsPassword}
-                onChange={(e) => setViewsPassword(e.target.value)}
-                placeholder="비밀번호를 입력하세요"
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #ddd',
-                  borderRadius: '6px',
-                  fontSize: '14px'
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !updatingViews) {
-                    handleViewsUpdate();
-                  }
-                }}
-              />
-            </div>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
               <button
                 onClick={() => {
                   setShowViewsModal(false);
                   setViewsPost(null);
-                  setViewsPassword('');
                 }}
                 disabled={updatingViews}
                 style={{
@@ -827,35 +770,11 @@ export default function AdminPolicyAnalysisPage() {
             <p style={{ marginBottom: '16px', color: '#f44336', fontSize: '14px' }}>
               이 작업은 되돌릴 수 없습니다.
             </p>
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>
-                관리자 비밀번호
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="비밀번호를 입력하세요"
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #ddd',
-                  borderRadius: '6px',
-                  fontSize: '14px'
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !deleting) {
-                    handleDelete();
-                  }
-                }}
-              />
-            </div>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
               <button
                 onClick={() => {
                   setShowDeleteModal(false);
                   setSelectedPost(null);
-                  setPassword('');
                 }}
                 disabled={deleting}
                 style={{
