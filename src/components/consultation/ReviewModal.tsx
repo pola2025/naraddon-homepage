@@ -9,7 +9,7 @@ interface ReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   consultationId: string;
-  auditorName: string;
+  examinerName: string;
   onSubmit: (review: any) => void;
 }
 
@@ -17,7 +17,7 @@ export default function ReviewModal({
   isOpen,
   onClose,
   consultationId,
-  auditorName,
+  examinerName,
   onSubmit
 }: ReviewModalProps) {
   const [ratings, setRatings] = useState({
@@ -105,7 +105,7 @@ export default function ReviewModal({
             <div>
               <h2 className="text-xl font-semibold">상담 평가하기</h2>
               <p className="text-sm text-gray-500 mt-1">
-                {auditorName} 심사관님의 상담은 어떠셨나요?
+                {examinerName} 심사관님의 상담은 어떠셨나요?
               </p>
             </div>
             <button

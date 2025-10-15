@@ -46,7 +46,7 @@ export async function PUT(
 
     // 담당자 정보 확인
     const staff = await db.collection('users').findOne({ email: staffId });
-    if (!staff || (staff.role !== 'auditor' && staff.role !== 'expert')) {
+    if (!staff || (staff.role !== 'examiner' && staff.role !== 'expert')) {
       return NextResponse.json(
         { error: '유효하지 않은 담당자입니다.' },
         { status: 400 }

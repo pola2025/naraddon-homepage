@@ -756,7 +756,7 @@ function QuickConsultForm() {
         annualRevenue: form.annualRevenue,
         employeeCount: form.employeeCount,
         desiredTime: form.desiredTime,
-        isAuditorConsultation: true // 기업심사관 상담 표시
+        isExaminerConsultation: true // 기업심사관 상담 표시
       };
 
       const response = await fetch('/api/consultations', {

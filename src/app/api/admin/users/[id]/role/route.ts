@@ -25,7 +25,7 @@ export async function PUT(
     const { newRole, profileData } = await request.json();
 
     // 유효한 역할인지 확인
-    const validRoles = ['user', 'auditor', 'expert', 'admin'];
+    const validRoles = ['user', 'examiner', 'expert', 'admin'];
     if (!validRoles.includes(newRole)) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
     }
@@ -41,8 +41,8 @@ export async function PUT(
     };
 
     // 기업심사관으로 전환 시 추가 프로필 정보
-    if (newRole === 'auditor' && profileData) {
-      updateData['auditorProfile'] = {
+    if (newRole === 'examiner' && profileData) {
+      updateData['examinerProfile'] = {
         specialty: profileData.specialty || [],
         experience: profileData.experience || 0,
         certifications: profileData.certifications || [],

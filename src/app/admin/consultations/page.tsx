@@ -138,7 +138,7 @@ export default function AdminConsultationsPage() {
 
   const fetchStaffList = async () => {
     try {
-      const response = await fetch('/api/admin/users?role=auditor,expert');
+      const response = await fetch('/api/admin/users?role=examiner,expert');
       const data = await response.json();
 
       if (response.ok && Array.isArray(data)) {
@@ -146,7 +146,7 @@ export default function AdminConsultationsPage() {
           email: user.email,
           name: user.name || user.email,
           role: user.role,
-          specialty: user.auditorProfile?.specialty || user.expertProfile?.specialty,
+          specialty: user.examinerProfile?.specialty || user.expertProfile?.specialty,
           assignedCount: user.assignedConsultations || 0
         })));
       }
@@ -539,7 +539,7 @@ export default function AdminConsultationsPage() {
                       <option value="">선택하세요</option>
                       {staffList.map((staff) => (
                         <option key={staff.email} value={staff.email}>
-                          {staff.name} ({staff.role === 'auditor' ? '기업심사관' : '전문가'})
+                          {staff.name} ({staff.role === 'examiner' ? '기업심사관' : '전문가'})
                           - 현재 {staff.assignedCount}건 담당
                         </option>
                       ))}

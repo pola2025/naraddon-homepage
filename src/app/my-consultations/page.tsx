@@ -393,7 +393,7 @@ export default function MyConsultationsPage() {
               isOpen={reviewModalOpen}
               onClose={() => setReviewModalOpen(false)}
               consultationId={selectedConsultation.id}
-              auditorName={selectedConsultation.examinerName || '담당자'}
+              examinerName={selectedConsultation.examinerName || '담당자'}
               onSubmit={handleSubmitReview}
             />
           )}

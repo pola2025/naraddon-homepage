@@ -37,7 +37,7 @@ export async function GET(
         .find({ consultationId: params.id })
         .toArray();
       return NextResponse.json(reviews);
-    } else if (userRole === 'auditor' && consultation.assignedStaffId === userEmail) {
+    } else if (userRole === 'examiner' && consultation.assignedStaffId === userEmail) {
       // 기업심사관은 자신에 대한 리뷰 조회 불가
       return NextResponse.json({ error: '본인에 대한 리뷰는 조회할 수 없습니다.' }, { status: 403 });
     } else if (consultation.userEmail === userEmail) {
@@ -114,11 +114,11 @@ export async function POST(
     }
 
     // 담당 심사관 정보
-    const auditor = await db.collection('users').findOne({
+    const examiner = await db.collection('users').findOne({
       email: consultation.assignedStaffId
     });
 
-    if (!auditor) {
+    if (!examiner) {
       return NextResponse.json(
         { error: '담당 심사관 정보를 찾을 수 없습니다.' },
         { status: 404 }
@@ -128,8 +128,8 @@ export async function POST(
     // 리뷰 생성
     const review: ConsultationReview = {
       consultationId: params.id,
-      auditorId: consultation.assignedStaffId,
-      auditorName: consultation.assignedStaffName || auditor.name,
+      examinerId: consultation.assignedStaffId,
+      examinerName: consultation.assignedStaffName || examiner.name,
       reviewerId: userEmail || '',
       reviewerName: session.user?.name || '',
       reviewerEmail: userEmail || '',
@@ -145,7 +145,7 @@ export async function POST(
     const result = await db.collection('reviews').insertOne(review);
 
     // 심사관 통계 업데이트
-    await updateAuditorStats(db, consultation.assignedStaffId);
+    await updateExaminerStats(db, consultation.assignedStaffId);
 
     // 상담에 리뷰 완료 플래그 추가
     await db.collection('consultations').updateOne(
@@ -168,11 +168,11 @@ export async function POST(
 }
 
 // 심사관 통계 업데이트 함수
-async function updateAuditorStats(db: any, auditorId: string) {
+async function updateExaminerStats(db: any, examinerId: string) {
   try {
     // 해당 심사관의 모든 리뷰 조회
     const reviews = await db.collection('reviews')
-      .find({ auditorId })
+      .find({ examinerId })
       .toArray();
 
     if (reviews.length === 0) return;
@@ -207,17 +207,17 @@ async function updateAuditorStats(db: any, auditorId: string) {
 
     // 심사관 프로필 업데이트
     await db.collection('users').updateOne(
-      { email: auditorId },
+      { email: examinerId },
       {
         $set: {
-          'auditorProfile.averageRatings': avgRatings,
-          'auditorProfile.totalReviews': reviews.length,
-          'auditorProfile.recommendationRate': recommendationRate,
-          'auditorProfile.lastReviewedAt': new Date()
+          'examinerProfile.averageRatings': avgRatings,
+          'examinerProfile.totalReviews': reviews.length,
+          'examinerProfile.recommendationRate': recommendationRate,
+          'examinerProfile.lastReviewedAt': new Date()
         }
       }
     );
   } catch (error) {
-    console.error('Failed to update auditor stats:', error);
+    console.error('Failed to update examiner stats:', error);
   }
 }

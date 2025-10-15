@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     if (userRole === 'user') {
       // 일반 사용자는 자신의 상담만 조회
       filter.userEmail = userEmail;
-    } else if (userRole === 'auditor') {
+    } else if (userRole === 'examiner') {
       // 기업심사관은 자신에게 배정된 상담만 조회
       filter.assignedStaffId = userEmail;
     }
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       businessNumber: data.businessNumber || '',
 
       // 상담 정보
-      consultationType: data.isAuditorConsultation ? '기업심사관 상담' : (data.consultationType || '전문가 상담'),
+      consultationType: data.isExaminerConsultation ? '기업심사관 상담' : (data.consultationType || '전문가 상담'),
       message: data.message || '',
       preferredDate: data.preferredDate ? new Date(data.preferredDate) : undefined,
       preferredTime: data.preferredTime || data.desiredTime,
@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
       const rawWebhookUrl = process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL || 'https://script.google.com/macros/s/AKfycbyzrH3BgdAyqyqw-Mzk013BGkCAZEPnej_Jd7DpN_0g-hKP8qJH85aEdCFlSHxRY3ybZQ/exec';
       const webhookUrl = rawWebhookUrl.trim().replace(/^["']|["']$/g, '');
 
-      const rawWebhookSecret = process.env.CONSULTATION_WEBHOOK_SECRET_AUDITOR || '';
+      const rawWebhookSecret = process.env.CONSULTATION_WEBHOOK_SECRET_EXAMINER || '';
       const webhookSecret = rawWebhookSecret.trim().replace(/^["']|["']$/g, '');
 
       console.log('[상담신청 웹훅] 환경 체크:', {
@@ -217,7 +217,7 @@ export async function POST(request: NextRequest) {
         submittedAt: new Date().toISOString(),
         meta: {
           source: consultation.source,
-          isAuditorConsultation: data.isAuditorConsultation || false
+          isExaminerConsultation: data.isExaminerConsultation || false
         },
         notification: {
           emails: process.env.CONSULTATION_NOTIFICATION_EMAILS?.split(',') || ['jjk_naraddon@naver.com'],
