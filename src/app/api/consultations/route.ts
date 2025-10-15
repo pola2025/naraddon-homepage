@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
       console.log('[상담신청 웹훅] 환경 체크:', {
         webhookUrlExists: !!process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL,
         webhookUrlLength: webhookUrl.length,
-        webhookSecretExists: !!process.env.CONSULTATION_WEBHOOK_SECRET_AUDITOR,
+        webhookSecretExists: !!process.env.CONSULTATION_WEBHOOK_SECRET_EXAMINER,
         webhookSecretLength: webhookSecret.length,
         isProduction: process.env.NODE_ENV === 'production'
       });

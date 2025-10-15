@@ -30,20 +30,20 @@ const rawExpertWebhookSecret = process.env.CONSULTATION_WEBHOOK_SECRET_EXPERT ||
 const EXPERT_WEBHOOK_SECRET = rawExpertWebhookSecret.trim().replace(/^["']|["']$/g, '');
 
 // 기업심사관 상담용 웹훅
-const rawAuditorWebhookUrl = process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL_AUDITOR || '';
-const AUDITOR_WEBHOOK_URL = rawAuditorWebhookUrl.trim().replace(/^["']|["']$/g, '');
+const rawExaminerWebhookUrl = process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL_EXAMINER || '';
+const EXAMINER_WEBHOOK_URL = rawExaminerWebhookUrl.trim().replace(/^["']|["']$/g, '');
 
-const rawAuditorNotificationEmails = process.env.CONSULTATION_NOTIFICATION_EMAILS_AUDITOR || '';
-const AUDITOR_NOTIFICATION_EMAILS = rawAuditorNotificationEmails.trim().replace(/^["']|["']$/g, '');
+const rawExaminerNotificationEmails = process.env.CONSULTATION_NOTIFICATION_EMAILS_EXAMINER || '';
+const EXAMINER_NOTIFICATION_EMAILS = rawExaminerNotificationEmails.trim().replace(/^["']|["']$/g, '');
 
-const rawAuditorTelegramToken = process.env.TELEGRAM_BOT_TOKEN_AUDITOR || '';
-const AUDITOR_TELEGRAM_BOT_TOKEN = rawAuditorTelegramToken.trim().replace(/^["']|["']$/g, '');
+const rawExaminerTelegramToken = process.env.TELEGRAM_BOT_TOKEN_EXAMINER || '';
+const EXAMINER_TELEGRAM_BOT_TOKEN = rawExaminerTelegramToken.trim().replace(/^["']|["']$/g, '');
 
-const rawAuditorTelegramChatId = process.env.TELEGRAM_CHAT_ID_AUDITOR || '';
-const AUDITOR_TELEGRAM_CHAT_ID = rawAuditorTelegramChatId.trim().replace(/^["']|["']$/g, '');
+const rawExaminerTelegramChatId = process.env.TELEGRAM_CHAT_ID_EXAMINER || '';
+const EXAMINER_TELEGRAM_CHAT_ID = rawExaminerTelegramChatId.trim().replace(/^["']|["']$/g, '');
 
-const rawAuditorWebhookSecret = process.env.CONSULTATION_WEBHOOK_SECRET_AUDITOR || '';
-const AUDITOR_WEBHOOK_SECRET = rawAuditorWebhookSecret.trim().replace(/^["']|["']$/g, '');
+const rawExaminerWebhookSecret = process.env.CONSULTATION_WEBHOOK_SECRET_EXAMINER || '';
+const EXAMINER_WEBHOOK_SECRET = rawExaminerWebhookSecret.trim().replace(/^["']|["']$/g, '');
 
 function parseEmailList(raw: string): string[] {
   return raw
@@ -184,7 +184,7 @@ export async function POST(request: NextRequest) {
       businessNumber: data.businessNumber || '',
 
       // 상담 정보
-      consultationType: data.isAuditorConsultation ? '기업심사관 상담' : (data.consultationType || '전문가 상담'),
+      consultationType: data.isExaminerConsultation ? '기업심사관 상담' : (data.consultationType || '전문가 상담'),
       consultationField: data.consultationField, // 전문가 상담 분야 (법무·특허, 세무·회계 등)
       message: data.message || '',
       preferredDate: data.preferredDate ? new Date(data.preferredDate) : undefined,
@@ -222,11 +222,11 @@ export async function POST(request: NextRequest) {
 
     // 상담 유형에 따라 웹훅 URL 선택
     const isExpertConsultation = consultation.consultationType === '전문가 상담';
-    const WEBHOOK_URL = isExpertConsultation ? EXPERT_WEBHOOK_URL : AUDITOR_WEBHOOK_URL;
-    const NOTIFICATION_EMAILS = isExpertConsultation ? EXPERT_NOTIFICATION_EMAILS : AUDITOR_NOTIFICATION_EMAILS;
-    const TELEGRAM_BOT_TOKEN = isExpertConsultation ? EXPERT_TELEGRAM_BOT_TOKEN : AUDITOR_TELEGRAM_BOT_TOKEN;
-    const TELEGRAM_CHAT_ID = isExpertConsultation ? EXPERT_TELEGRAM_CHAT_ID : AUDITOR_TELEGRAM_CHAT_ID;
-    const WEBHOOK_SECRET = isExpertConsultation ? EXPERT_WEBHOOK_SECRET : AUDITOR_WEBHOOK_SECRET;
+    const WEBHOOK_URL = isExpertConsultation ? EXPERT_WEBHOOK_URL : EXAMINER_WEBHOOK_URL;
+    const NOTIFICATION_EMAILS = isExpertConsultation ? EXPERT_NOTIFICATION_EMAILS : EXAMINER_NOTIFICATION_EMAILS;
+    const TELEGRAM_BOT_TOKEN = isExpertConsultation ? EXPERT_TELEGRAM_BOT_TOKEN : EXAMINER_TELEGRAM_BOT_TOKEN;
+    const TELEGRAM_CHAT_ID = isExpertConsultation ? EXPERT_TELEGRAM_CHAT_ID : EXAMINER_TELEGRAM_CHAT_ID;
+    const WEBHOOK_SECRET = isExpertConsultation ? EXPERT_WEBHOOK_SECRET : EXAMINER_WEBHOOK_SECRET;
 
     console.log('[Webhook Debug] Environment check:', {
       consultationType: consultation.consultationType,
@@ -256,7 +256,7 @@ export async function POST(request: NextRequest) {
       };
 
       // 기업심사관 상담인 경우에만 추가 정보 포함
-      if (data.isAuditorConsultation) {
+      if (data.isExaminerConsultation) {
         submissionData.annualRevenue = convertAnnualRevenue(consultation.annualRevenue || '');
         submissionData.employeeCount = convertEmployeeCount(consultation.employeeCount || '');
         submissionData.desiredTime = data.desiredTime || consultation.preferredTime || '';
