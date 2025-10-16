@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
-import { requirePolicyWriter } from '@/lib/auth/guards';
+import { requirePolicyWriter , handleAuthError } from '@/lib/auth/guards';
 import connectDB from '@/lib/mongodb';
 import PolicyNewsPost from '@/models/PolicyNewsPost';
 
@@ -75,6 +75,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ post }, { status: 201 });
   } catch (error) {
     console.error('[policy-news][POST]', error);
+
+    // 인증/권한 에러 처리
+    const authError = handleAuthError(error);
+    if (authError) return authError;
+
     return NextResponse.json({ message: '게시글을 등록하지 못했습니다.' }, { status: 500 });
   }
 }

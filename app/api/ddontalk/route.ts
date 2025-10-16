@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireLogin } from '@/lib/auth/guards';
+import { requireLogin , handleAuthError } from '@/lib/auth/guards';
 import connectDB from '@/lib/mongodb';
 import DDonTalk from '@/models/DDonTalk';
 
@@ -40,6 +40,10 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('DDonTalk 목록 조회 오류:', error);
+
+    // uc778uc99d/uad8cud55c uc5d0ub7ec ucc98ub9ac
+    const authError = handleAuthError(error);
+    if (authError) return authError;
     return NextResponse.json(
       { success: false, error: '목록을 불러올 수 없습니다.' },
       { status: 500 }
@@ -83,6 +87,10 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
   } catch (error) {
     console.error('DDonTalk 작성 오류:', error);
+
+    // uc778uc99d/uad8cud55c uc5d0ub7ec ucc98ub9ac
+    const authError = handleAuthError(error);
+    if (authError) return authError;
     return NextResponse.json(
       { success: false, error: '게시글 작성에 실패했습니다.' },
       { status: 500 }

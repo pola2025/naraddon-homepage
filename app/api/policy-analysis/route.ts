@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
-import { requirePolicyWriter } from '@/lib/auth/guards';
+import { requirePolicyWriter, handleAuthError } from '@/lib/auth/guards';
 import connectDB from '@/lib/mongodb';
 import PolicyAnalysisPost from '@/models/PolicyAnalysisPost';
 import ExpertExaminer from '@/models/ExpertExaminer';
@@ -227,6 +227,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ post }, { status: 201 });
   } catch (error) {
     console.error('[policy-analysis][POST] Error details:', error);
+
+    // 인증/권한 에러 처리
+    const authError = handleAuthError(error);
+    if (authError) return authError;
+
     const errorMessage = error instanceof Error ? error.message : '정책분석 게시글을 저장하는 중 오류가 발생했습니다.';
     return NextResponse.json(
       { message: errorMessage, error: error instanceof Error ? error.stack : undefined },

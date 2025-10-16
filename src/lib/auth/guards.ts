@@ -17,6 +17,35 @@ export interface AuthUser {
 }
 
 /**
+ * 인증 에러 핸들러
+ *
+ * @purpose catch 블록에서 인증 에러를 체크하고 적절한 Response 반환
+ * @example
+ * catch (error) {
+ *   const authError = handleAuthError(error);
+ *   if (authError) return authError;
+ *   // ... 다른 에러 처리
+ * }
+ */
+export function handleAuthError(error: unknown): NextResponse | null {
+  if (error instanceof Error) {
+    if (error.message === 'UNAUTHENTICATED') {
+      return NextResponse.json(
+        { message: '로그인이 필요합니다.' },
+        { status: 401 }
+      );
+    }
+    if (error.message === 'FORBIDDEN') {
+      return NextResponse.json(
+        { message: '권한이 없습니다. 관리자 또는 기업심사관 역할이 필요합니다.' },
+        { status: 403 }
+      );
+    }
+  }
+  return null;
+}
+
+/**
  * 로그인 필수
  *
  * @purpose 로그인한 사용자만 접근 가능
@@ -26,10 +55,7 @@ export async function requireLogin(): Promise<AuthUser> {
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user || !session.user.email) {
-    throw NextResponse.json(
-      { error: 'unauthenticated', message: '로그인이 필요합니다.' },
-      { status: 401 }
-    );
+    throw new Error('UNAUTHENTICATED');
   }
 
   const user: AuthUser = {
@@ -64,13 +90,7 @@ export async function requireRole(allowedRoles: string[]): Promise<AuthUser> {
       allowedRoles,
     });
 
-    throw NextResponse.json(
-      {
-        error: 'forbidden',
-        message: `권한이 없습니다. ${allowedRoles.join(' 또는 ')} 역할이 필요합니다.`,
-      },
-      { status: 403 }
-    );
+    throw new Error('FORBIDDEN');
   }
 
   console.log('[requireRole] Access granted:', {
@@ -148,13 +168,7 @@ export async function requirePerm(permission: string): Promise<AuthUser> {
       userPerms,
     });
 
-    throw NextResponse.json(
-      {
-        error: 'forbidden',
-        message: `권한이 없습니다. '${permission}' 권한이 필요합니다.`,
-      },
-      { status: 403 }
-    );
+    throw new Error('FORBIDDEN');
   }
 
   console.log('[requirePerm] Permission granted:', {

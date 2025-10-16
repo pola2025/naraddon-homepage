@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Types } from 'mongoose';
-import { requireAdmin } from '@/lib/auth/guards';
+import { requireAdmin , handleAuthError } from '@/lib/auth/guards';
 
 import connectDB from '@/lib/mongodb';
 import TtontokReply from '@/models/TtontokReply';
@@ -77,6 +77,10 @@ export async function PATCH(
     payload = await request.json();
   } catch (error) {
     console.error('[ttontok] invalid update payload', error);
+
+    // uc778uc99d/uad8cud55c uc5d0ub7ec ucc98ub9ac
+    const authError = handleAuthError(error);
+    if (authError) return authError;
     return NextResponse.json({ message: '잘못된 요청입니다.' }, { status: 400 });
   }
 
@@ -139,6 +143,10 @@ export async function PATCH(
     });
   } catch (error) {
     console.error('[ttontok] failed to update reply', error);
+
+    // uc778uc99d/uad8cud55c uc5d0ub7ec ucc98ub9ac
+    const authError = handleAuthError(error);
+    if (authError) return authError;
     return NextResponse.json({ message: '댓글 수정에 실패했습니다.' }, { status: 500 });
   }
 }
@@ -183,6 +191,10 @@ export async function DELETE(
     return NextResponse.json({ message: '댓글이 삭제되었습니다.' });
   } catch (error) {
     console.error('[ttontok] failed to delete reply', error);
+
+    // uc778uc99d/uad8cud55c uc5d0ub7ec ucc98ub9ac
+    const authError = handleAuthError(error);
+    if (authError) return authError;
     return NextResponse.json({ message: '댓글 삭제에 실패했습니다.' }, { status: 500 });
   }
 }

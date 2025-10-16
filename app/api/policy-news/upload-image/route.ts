@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requirePolicyWriter } from '@/lib/auth/guards';
+import { requirePolicyWriter , handleAuthError } from '@/lib/auth/guards';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 // 환경변수 검증 함수
@@ -180,6 +180,10 @@ export async function POST(request: NextRequest) {
     };
 
     console.error('[policy-news-upload] Detailed error:', errorInfo);
+
+    // 인증/권한 에러 처리
+    const authError = handleAuthError(error);
+    if (authError) return authError;
 
     // AWS SDK 특정 에러 처리
     if (error instanceof Error) {

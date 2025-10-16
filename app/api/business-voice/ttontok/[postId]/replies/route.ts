@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Types } from 'mongoose';
-import { requireLogin } from '@/lib/auth/guards';
+import { requireLogin , handleAuthError } from '@/lib/auth/guards';
 
 import connectDB from '@/lib/mongodb';
 import TtontokPost from '@/models/TtontokPost';
@@ -94,6 +94,10 @@ export async function POST(
     payload = await request.json();
   } catch (error) {
     console.error('[ttontok] invalid reply payload', error);
+
+    // uc778uc99d/uad8cud55c uc5d0ub7ec ucc98ub9ac
+    const authError = handleAuthError(error);
+    if (authError) return authError;
     return NextResponse.json({ message: '잘못된 요청입니다.' }, { status: 400 });
   }
 
@@ -135,6 +139,10 @@ export async function POST(
     );
   } catch (error) {
     console.error('[ttontok] failed to create reply', error);
+
+    // uc778uc99d/uad8cud55c uc5d0ub7ec ucc98ub9ac
+    const authError = handleAuthError(error);
+    if (authError) return authError;
     return NextResponse.json({ message: '댓글을 저장하지 못했습니다.' }, { status: 500 });
   }
 }
