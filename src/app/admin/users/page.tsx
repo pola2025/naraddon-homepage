@@ -29,25 +29,38 @@ export default function UsersManagementPage() {
     try {
       setIsLoading(true);
       const response = await fetch('/api/admin/users');
-      if (response.ok) {
-        const data = await response.json();
-        // DB 데이터를 User 타입으로 변환
-        const formattedUsers = data.map((user: any) => ({
-          id: user._id || user.id,
-          email: user.email,
-          name: user.name || '사용자',
-          role: user.role || UserRole.USER,
-          status: user.status || UserStatus.ACTIVE,
-          provider: user.provider || 'naver',
-          profile: user.profile || {},
-          createdAt: new Date(user.createdAt),
-          updatedAt: new Date(user.updatedAt),
-          lastLoginAt: user.lastLoginAt ? new Date(user.lastLoginAt) : undefined
-        }));
-        setUsers(formattedUsers);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('API Error:', errorData);
+        throw new Error(errorData.message || 'Failed to fetch users');
       }
+
+      const data = await response.json();
+      console.log('[Users Page] API Response:', data);
+
+      // API 응답 구조: { users: [...], total, limit, skip }
+      const userList = data.users || [];
+
+      // DB 데이터를 User 타입으로 변환
+      const formattedUsers = userList.map((user: any) => ({
+        id: user._id || user.id,
+        email: user.email,
+        name: user.name || '사용자',
+        role: user.role || UserRole.USER,
+        status: user.status || UserStatus.ACTIVE,
+        provider: user.provider || 'naver',
+        profile: user.profile || {},
+        createdAt: new Date(user.createdAt),
+        updatedAt: new Date(user.updatedAt),
+        lastLoginAt: user.lastLoginAt ? new Date(user.lastLoginAt) : undefined
+      }));
+
+      console.log('[Users Page] Formatted users:', formattedUsers.length);
+      setUsers(formattedUsers);
     } catch (error) {
       console.error('Failed to fetch users:', error);
+      alert('사용자 목록을 불러오는데 실패했습니다. 콘솔을 확인해주세요.');
     } finally {
       setIsLoading(false);
     }
