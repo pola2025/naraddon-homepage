@@ -250,21 +250,16 @@ const PolicyAnalysisDetail = ({ postId }) => {
   const renderedContent = useMemo(() => convertMarkdownToHtml(post?.content || ''), [post?.content]);
 
   /**
-   * 세션 기반 삭제 핸들러
+   * RBAC 기반 삭제 핸들러
    *
-   * @purpose 비밀번호 대신 세션 권한으로 삭제
-   * @context examiner, admin, super_admin만 삭제 가능
+   * @purpose 백엔드 RBAC 권한 체계로 삭제 (requirePolicyWriter)
+   * @context 권한 검증은 백엔드 API에서 수행
+   * @note 프론트엔드는 로그인 여부만 확인하고, 권한은 백엔드가 처리
    */
   const handleDelete = async () => {
     if (!session || !session.user) {
       alert('로그인이 필요합니다.');
       router.push('/auth/signin');
-      return;
-    }
-
-    const userRole = session.user.role;
-    if (userRole !== 'examiner' && userRole !== 'admin' && userRole !== 'super_admin') {
-      alert('권한이 없습니다. 관리자 또는 기업심사관 역할이 필요합니다.');
       return;
     }
 
@@ -280,13 +275,14 @@ const PolicyAnalysisDetail = ({ postId }) => {
         },
       });
 
-      const result = await response.json();
       if (!response.ok) {
+        const result = await response.json().catch(() => ({ message: '게시글 삭제에 실패했습니다.' }));
         alert(result?.message || '게시글 삭제에 실패했습니다.');
         return;
       }
 
-      alert('게시글이 삭제되었습니다.');
+      const result = await response.json();
+      alert(result?.message || '게시글이 삭제되었습니다.');
       router.push('/policy-analysis');
     } catch (error) {
       console.error('정책분석 삭제 오류', error);
