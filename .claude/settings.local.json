@@ -101,7 +101,9 @@
       "Bash(touch:*)",
       "Bash(git restore:*)",
       "Bash(for file in app/api/business-voice/ttontok/route.ts app/api/ddontalk/route.ts app/api/policy-news/route.ts app/api/policy-news/upload-image/route.ts app/api/ddontalk/[id]/comments/route.ts app/api/business-voice/ttontok/[postId]/replies/route.ts app/api/business-voice/ttontok/[postId]/route.ts app/api/business-voice/ttontok/replies/[replyId]/route.ts)",
-      "Bash(do)"
+      "Bash(do)",
+      "Bash(npm run test:rbac:*)",
+      "Bash(npm run check:users:*)"
     ],
     "deny": [],
     "ask": []
