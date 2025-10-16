@@ -41,8 +41,26 @@ export async function loadEffectivePermissions(
       $or: [{ expiresAt: null }, { expiresAt: { $gt: new Date() } }],
     }).populate('roleId');
 
+    // 🔄 Fallback: user_roles 없으면 NextAuth users.role 사용 (기존 사용자 호환)
     if (!userRoles || userRoles.length === 0) {
-      console.log(`[RBAC] No roles found for user: ${userId}`);
+      console.log(`[RBAC] No user_roles found, falling back to users.role for: ${userId}`);
+
+      try {
+        const client = await import('@/lib/mongodb-client').then(m => m.default);
+        const db = (await client).db('naraddon');
+        const user = await db.collection('users').findOne(
+          { _id: new mongoose.Types.ObjectId(userId) },
+          { projection: { role: 1 } }
+        );
+
+        if (user && user.role) {
+          // users.role을 기반으로 권한 매핑 (레거시 호환)
+          return await loadPermissionsByLegacyRole(user.role);
+        }
+      } catch (error) {
+        console.error('[RBAC] Fallback to users.role failed:', error);
+      }
+
       return new Set();
     }
 
@@ -152,6 +170,46 @@ async function loadRolePermissions(roleId: string): Promise<Set<string>> {
     console.error('[RBAC] loadRolePermissions error:', error);
     return new Set();
   }
+}
+
+/**
+ * 레거시 role을 퍼미션으로 매핑 (하위 호환성)
+ *
+ * @purpose NextAuth users.role 필드를 RBAC 퍼미션으로 변환
+ * @param roleName 역할 이름 (admin, super_admin, examiner, user)
+ * @returns Set<string> 퍼미션 코드 집합
+ */
+async function loadPermissionsByLegacyRole(roleName: string): Promise<Set<string>> {
+  const permissions = new Set<string>();
+
+  // user 권한: 기본 읽기
+  permissions.add('policy:analysis:read');
+  permissions.add('policy:news:read');
+  permissions.add('community:post:write');
+
+  // examiner 권한: user + 정책 작성
+  if (roleName === 'examiner' || roleName === 'admin' || roleName === 'super_admin') {
+    permissions.add('policy:analysis:write');
+    permissions.add('policy:news:write');
+    permissions.add('examiner:read');
+  }
+
+  // admin 권한: examiner + 관리
+  if (roleName === 'admin' || roleName === 'super_admin') {
+    permissions.add('user:read');
+    permissions.add('user:manage');
+    permissions.add('user:role:update');
+    permissions.add('examiner:manage');
+    permissions.add('community:post:manage');
+  }
+
+  // super_admin 권한: 모든 권한
+  if (roleName === 'super_admin') {
+    permissions.add('*');
+  }
+
+  console.log(`[RBAC] Loaded ${permissions.size} permissions for legacy role: ${roleName}`);
+  return permissions;
 }
 
 /**
