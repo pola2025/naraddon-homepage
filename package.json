@@ -20,6 +20,7 @@
     "seed:ttontok": "ts-node --transpile-only scripts/seed-ttontok.ts",
     "seed:rbac": "npx tsx scripts/seed-rbac.ts",
     "test:rbac": "npx tsx scripts/test-rbac.ts",
+    "test:cache-invalidation": "npx tsx scripts/test-cache-invalidation.ts",
     "check:users": "npx tsx scripts/check-users.ts",
     "create:indexes": "npx tsx scripts/create-rbac-indexes.ts",
     "benchmark:rbac": "npx tsx scripts/benchmark-rbac-performance.ts",

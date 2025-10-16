@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>프로덕션 API 테스트</title>
+</head>
+<body>
+  <h1>나라똔 프로덕션 API 테스트</h1>
+  
+  <h2>1. Debug Session 테스트</h2>
+  <button onclick="testDebugSession()">세션 확인</button>
+  <pre id="debug-result"></pre>
+  
+  <h2>2. Policy Analysis 작성 테스트</h2>
+  <button onclick="testPolicyAnalysis()">정책분석 작성 시도</button>
+  <pre id="policy-result"></pre>
+  
+  <script>
+    async function testDebugSession() {
+      try {
+        const response = await fetch('https://naraddon.com/api/debug-session', {
+          credentials: 'include'
+        });
+        const data = await response.json();
+        document.getElementById('debug-result').textContent = 
+          `Status: ${response.status}\n` + JSON.stringify(data, null, 2);
+      } catch (error) {
+        document.getElementById('debug-result').textContent = 
+          `Error: ${error.message}`;
+      }
+    }
+    
+    async function testPolicyAnalysis() {
+      try {
+        const response = await fetch('https://naraddon.com/api/policy-analysis', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            title: '테스트 정책분석',
+            content: '테스트 내용',
+            category: '정책'
+          })
+        });
+        const data = await response.json();
+        document.getElementById('policy-result').textContent = 
+          `Status: ${response.status}\n` + JSON.stringify(data, null, 2);
+      } catch (error) {
+        document.getElementById('policy-result').textContent = 
+          `Error: ${error.message}`;
+      }
+    }
+  </script>
+</body>
+</html>

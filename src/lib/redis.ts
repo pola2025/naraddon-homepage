@@ -15,6 +15,8 @@ interface RedisClient {
   set(key: string, value: string, options?: { ex?: number; nx?: boolean }): Promise<string | null>;
   del(...keys: string[]): Promise<number>;
   ping(): Promise<string>;
+  publish(channel: string, message: string): Promise<number>;
+  eval(script: string, numKeys: number, ...args: string[]): Promise<any>;
 }
 
 /**
@@ -102,6 +104,26 @@ class UpstashRedisClient implements RedisClient {
       return 'ERROR';
     }
   }
+
+  async publish(channel: string, message: string): Promise<number> {
+    try {
+      const result = await this.request(['PUBLISH', channel, message]);
+      return result || 0;
+    } catch (error) {
+      console.error('[Redis] PUBLISH error:', error);
+      return 0;
+    }
+  }
+
+  async eval(script: string, numKeys: number, ...args: string[]): Promise<any> {
+    try {
+      const result = await this.request(['EVAL', script, String(numKeys), ...args]);
+      return result;
+    } catch (error) {
+      console.error('[Redis] EVAL error:', error);
+      throw error;
+    }
+  }
 }
 
 /**
@@ -139,8 +161,8 @@ export const RedisKeys = {
  * Redis 캐시 TTL (초)
  */
 export const RedisTTL = {
-  userPermissions: 60, // 1분
+  userPermissions: 300, // 5분 (변경: 1분 → 5분, 보안과 성능 균형)
   rolePermissions: 300, // 5분
-  recoveredUserId: 3600, // 1시간 (세션 복구용)
+  recoveredUserId: 300, // 5분 (변경: 1시간 → 5분, 역할 변경 즉시성 향상)
   recoveryLock: 5, // 5초 (스탬피드 방지용)
 } as const;

@@ -108,7 +108,11 @@
       "Bash(npm run seed:rbac:*)",
       "Bash(npm run create:indexes:*)",
       "Bash(npm run benchmark:rbac:*)",
-      "Bash(npm run migrate:user-roles:*)"
+      "Bash(npm run migrate:user-roles:*)",
+      "Bash(start test-production-api.html)",
+      "Bash(start https://naraddon.com/admin/examiners)",
+      "Bash(start https://vercel.com/mkt9834-4301s-projects/homepage/deployments)",
+      "Bash(npm run test:cache-invalidation:*)"
     ],
     "deny": [],
     "ask": []

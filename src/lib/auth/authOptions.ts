@@ -135,10 +135,14 @@ export const authOptions: NextAuthOptions = {
               // 2-2. 캐시 미스 → DB 조회 (스탬피드 방지)
               if (!userId) {
                 let shouldQuery = true;
+                let lockToken: string | null = null;
 
                 // 락 획득 시도 (Redis 사용 가능한 경우만)
                 if (redis) {
-                  const lockAcquired = await redis.set(lockKey, '1', {
+                  // UUID 토큰 생성 (다른 프로세스의 락과 구분)
+                  lockToken = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+
+                  const lockAcquired = await redis.set(lockKey, lockToken, {
                     nx: true,
                     ex: RedisTTL.recoveryLock
                   });
@@ -174,9 +178,21 @@ export const authOptions: NextAuthOptions = {
                       }
                     }
                   } finally {
-                    // 락 해제
-                    if (redis) {
-                      await redis.del(lockKey);
+                    // 락 해제 (Lua script로 안전하게 - 자신의 락만 삭제)
+                    if (redis && lockToken) {
+                      try {
+                        const luaScript = `
+                          if redis.call("GET", KEYS[1]) == ARGV[1] then
+                            return redis.call("DEL", KEYS[1])
+                          else
+                            return 0
+                          end
+                        `;
+                        await redis.eval(luaScript, 1, lockKey, lockToken);
+                      } catch (error) {
+                        console.error('[Session] Lock release failed:', error);
+                        // 락 해제 실패해도 TTL로 자동 해제됨
+                      }
                     }
                   }
                 }
