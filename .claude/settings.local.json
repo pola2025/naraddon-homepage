@@ -94,7 +94,12 @@
       "Bash(PORT=3001 npm run dev:*)",
       "Bash(start http://localhost:3001/admin/examiners)",
       "Bash(npm run lint)",
-      "Bash(npm run backup:full:*)"
+      "Bash(npm run backup:full:*)",
+      "Bash(sed:*)",
+      "Bash(git -C /e/Naraddon/homepage checkout lib/auth/authOptions.ts)",
+      "Bash(mkdir:*)",
+      "Bash(touch:*)",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []

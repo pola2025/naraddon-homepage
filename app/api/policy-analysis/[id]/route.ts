@@ -60,7 +60,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
       );
     }
 
-    const userRole = session.user.role;
+    const userRole = (session.user as any)?.role;
     if (userRole !== 'examiner' && userRole !== 'admin' && userRole !== 'super_admin') {
       return NextResponse.json(
         { message: '권한이 없습니다. 관리자 또는 기업심사관 역할이 필요합니다.' },
@@ -214,7 +214,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       );
     }
 
-    const userRole = session.user.role;
+    const userRole = (session.user as any)?.role;
     if (userRole !== 'examiner' && userRole !== 'admin' && userRole !== 'super_admin') {
       return NextResponse.json(
         { message: '권한이 없습니다. 관리자 또는 기업심사관 역할이 필요합니다.' },

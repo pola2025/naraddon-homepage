@@ -107,6 +107,14 @@ export async function POST(request: NextRequest) {
      */
     const session = await getServerSession(authOptions);
 
+    console.log('[policy-analysis][POST] Session check:', {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      email: session?.user?.email,
+      role: (session?.user as any)?.role,
+      roleType: typeof (session?.user as any)?.role
+    });
+
     if (!session || !session.user) {
       return NextResponse.json(
         { message: '로그인이 필요합니다.' },
@@ -114,8 +122,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const userRole = session.user.role;
-    if (userRole !== 'examiner' && userRole !== 'admin' && userRole !== 'super_admin') {
+    const userRole = (session.user as any)?.role;
+    const isAdmin = userRole === 'admin';
+    const isSuperAdmin = userRole === 'super_admin';
+    const isExaminer = userRole === 'examiner';
+    const hasPermission = isAdmin || isSuperAdmin || isExaminer;
+
+    console.log('[policy-analysis][POST] Permission check:', {
+      userRole,
+      isAdmin,
+      isSuperAdmin,
+      isExaminer,
+      hasPermission,
+      userEmail: session.user.email
+    });
+
+    if (!hasPermission) {
       return NextResponse.json(
         { message: '권한이 없습니다. 관리자 또는 기업심사관 역할이 필요합니다.' },
         { status: 403 }
