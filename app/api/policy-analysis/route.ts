@@ -78,17 +78,17 @@ interface CreatePayload {
   sections?: Array<{ id: string; title: string; content: string }>;
   tags?: string[];
   thumbnail?: string;
-  images?: Array<{ url: string; name?: string; caption?: string }>;
-  attachments?: Array<{
-    key: string;
-    fileName: string;
-    mimeType?: string;
-    size: number;
-    sourceUrl?: string;
-    cdnUrl?: string;
-    checksum?: string;
-    uploadedBy?: string;
-    uploadedAt?: string;
+  images?: Array<{ url: string; name?: string; caption?: string }>;
+  attachments?: Array<{
+    key: string;
+    fileName: string;
+    mimeType?: string;
+    size: number;
+    sourceUrl?: string;
+    cdnUrl?: string;
+    checksum?: string;
+    uploadedBy?: string;
+    uploadedAt?: string;
   }>;
   examinerKey?: string;
 }
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
     const userRole = session.user.role;
     if (userRole !== 'examiner' && userRole !== 'admin' && userRole !== 'super_admin') {
       return NextResponse.json(
-        { message: '정책분석 작성 권한이 없습니다. (관리자 또는 기업심사관만 가능)' },
+        { message: '권한이 없습니다. 관리자 또는 기업심사관 역할이 필요합니다.' },
         { status: 403 }
       );
     }

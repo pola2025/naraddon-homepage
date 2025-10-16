@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-options';
+import { authOptions } from '@/lib/auth/authOptions';
 import clientPromise from '@/lib/mongodb-client';
 
 import { buildR2ObjectUrl, getR2Client, isR2Configured } from '@/lib/r2';

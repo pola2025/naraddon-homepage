@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-options';
+import { authOptions } from '@/lib/auth/authOptions';
 import clientPromise from '@/lib/mongodb-client';
 
 export const dynamic = 'force-dynamic';

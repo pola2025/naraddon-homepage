@@ -269,7 +269,7 @@ const PolicyAnalysisWrite = () => {
     // examiner 또는 admin 권한이 없으면 접근 차단
     const userRole = session.user?.role;
     if (userRole !== 'examiner' && userRole !== 'admin' && userRole !== 'super_admin') {
-      alert('정책분석 작성 권한이 없습니다. (관리자 또는 기업심사관만 가능)');
+      alert('권한이 없습니다. 관리자 또는 기업심사관 역할이 필요합니다.');
       router.push('/policy-analysis');
       return;
     }

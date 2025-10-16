@@ -1,10 +1,11 @@
 // 회원 타입 정의
 
 export enum UserRole {
-  ADMIN = 'admin',           // 관리자
-  EXAMINER = 'examiner',     // 기업심사관
-  EXPERT = 'expert',         // 전문가
-  USER = 'user'             // 일반 회원 (기업회원 포함)
+  SUPER_ADMIN = 'super_admin', // 최고 관리자
+  ADMIN = 'admin',             // 관리자
+  EXAMINER = 'examiner',       // 기업심사관
+  EXPERT = 'expert',           // 전문가
+  USER = 'user'                // 일반 회원 (기업회원 포함)
 }
 
 export enum UserStatus {

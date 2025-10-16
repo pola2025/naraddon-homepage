@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     // 권한 확인: 관리자 또는 기업심사관만 작성 가능
     const userRole = (session.user as any)?.role;
     if (userRole !== 'admin' && userRole !== 'super_admin' && userRole !== 'examiner') {
-      return NextResponse.json({ message: '정책소식 작성 권한이 없습니다. (관리자 또는 기업심사관만 가능)' }, { status: 403 });
+      return NextResponse.json({ message: '권한이 없습니다. 관리자 또는 기업심사관 역할이 필요합니다.' }, { status: 403 });
     }
 
     const body = await request.json();

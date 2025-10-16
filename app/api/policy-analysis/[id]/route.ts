@@ -63,7 +63,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     const userRole = session.user.role;
     if (userRole !== 'examiner' && userRole !== 'admin' && userRole !== 'super_admin') {
       return NextResponse.json(
-        { message: '정책분석 수정 권한이 없습니다. (관리자 또는 기업심사관만 가능)' },
+        { message: '권한이 없습니다. 관리자 또는 기업심사관 역할이 필요합니다.' },
         { status: 403 }
       );
     }
@@ -217,7 +217,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     const userRole = session.user.role;
     if (userRole !== 'examiner' && userRole !== 'admin' && userRole !== 'super_admin') {
       return NextResponse.json(
-        { message: '정책분석 삭제 권한이 없습니다. (관리자 또는 기업심사관만 가능)' },
+        { message: '권한이 없습니다. 관리자 또는 기업심사관 역할이 필요합니다.' },
         { status: 403 }
       );
     }

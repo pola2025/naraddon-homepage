@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../../auth-options';
+import { authOptions } from '@/lib/auth/authOptions';
 import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import PolicyNewsPost from '@/models/PolicyNewsPost';
@@ -55,7 +55,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     // 권한 확인: 관리자 또는 기업심사관만 수정/삭제 가능
     const userRole = (session.user as any)?.role;
     if (userRole !== 'admin' && userRole !== 'super_admin' && userRole !== 'examiner') {
-      return NextResponse.json({ message: '정책소식 수정 권한이 없습니다. (관리자 또는 기업심사관만 가능)' }, { status: 403 });
+      return NextResponse.json({ message: '권한이 없습니다. 관리자 또는 기업심사관 역할이 필요합니다.' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -131,7 +131,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     // 권한 확인: 관리자 또는 기업심사관만 수정/삭제 가능
     const userRole = (session.user as any)?.role;
     if (userRole !== 'admin' && userRole !== 'super_admin' && userRole !== 'examiner') {
-      return NextResponse.json({ message: '정책소식 수정 권한이 없습니다. (관리자 또는 기업심사관만 가능)' }, { status: 403 });
+      return NextResponse.json({ message: '권한이 없습니다. 관리자 또는 기업심사관 역할이 필요합니다.' }, { status: 403 });
     }
 
     await connectDB();
