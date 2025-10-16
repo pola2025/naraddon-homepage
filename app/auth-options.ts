@@ -110,6 +110,26 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.email = user.email;
       }
+
+      // 🔥 FIX: MongoDB에서 role 조회하여 token에 저장
+      if (token.email) {
+        try {
+          const client = await clientPromise;
+          const db = client.db('naraddon');
+          const dbUser = await db.collection('users').findOne(
+            { email: token.email as string },
+            { projection: { role: 1, _id: 1 } }
+          );
+          if (dbUser) {
+            token.role = dbUser.role || 'user';
+            token.id = dbUser._id.toString();
+            console.log('[JWT Callback] Role set from DB:', token.role);
+          }
+        } catch (error) {
+          console.error('[JWT Callback] Error fetching role:', error);
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
@@ -117,18 +137,11 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).provider = token.provider;
         (session.user as any).providerId = token.providerId;
 
-        // MongoDB에서 사용자 role 가져오기
-        try {
-          const client = await clientPromise;
-          const db = client.db('naraddon');
-          const user = await db.collection('users').findOne({ email: token.email as string });
-          if (user) {
-            (session.user as any).role = user.role;
-            (session.user as any).id = user._id.toString();
-          }
-        } catch (error) {
-          console.error('[Auth] Error fetching user role:', error);
-        }
+        // JWT 토큰에서 role 가져오기 (이미 JWT 콜백에서 DB 조회함)
+        (session.user as any).role = token.role || 'user';
+        (session.user as any).id = token.id;
+
+        console.log('[Session Callback] Role from token:', token.role);
       }
       return session;
     },
