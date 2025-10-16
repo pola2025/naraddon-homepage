@@ -18,6 +18,7 @@
     "backup:full": "node scripts/backup.js full",
     "backup:milestone": "node scripts/backup.js milestone",
     "seed:ttontok": "ts-node --transpile-only scripts/seed-ttontok.ts",
+    "seed:rbac": "ts-node --transpile-only scripts/seed-rbac.ts",
     "dev:3002": "next dev -p 3002",
     "dev": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" next dev",
     "lint": "next lint",
