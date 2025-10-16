@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
 import clientPromise from '@/lib/mongodb-client';
+import { getToken } from 'next-auth/jwt';
 
 /**
  * DEBUG: Session 정보 확인 API
@@ -11,12 +12,20 @@ import clientPromise from '@/lib/mongodb-client';
  */
 export async function GET(request: NextRequest) {
   try {
+    // JWT 토큰 직접 확인
+    const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
+
     // 세션 확인
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json({
         error: 'Unauthorized',
-        message: 'No session found'
+        message: 'No session found',
+        token: token ? {
+          email: token.email,
+          role: token.role,
+          roleType: typeof token.role,
+        } : null
       }, { status: 401 });
     }
 
@@ -29,12 +38,20 @@ export async function GET(request: NextRequest) {
     );
 
     return NextResponse.json({
+      token: token ? {
+        email: token.email,
+        role: token.role,
+        roleType: typeof token.role,
+        id: token.id,
+        sub: token.sub,
+      } : null,
       session: {
         email: session.user.email,
         name: session.user.name,
         role: (session.user as any)?.role,
         roleType: typeof (session.user as any)?.role,
         provider: (session.user as any)?.provider,
+        fullUser: session.user,
       },
       database: dbUser ? {
         email: dbUser.email,
@@ -45,11 +62,14 @@ export async function GET(request: NextRequest) {
         lastLoginAt: dbUser.lastLoginAt,
       } : null,
       comparison: {
+        tokenRole: token?.role,
         sessionRole: (session.user as any)?.role,
         dbRole: dbUser?.role,
-        matches: (session.user as any)?.role === dbUser?.role,
+        tokenMatchesDb: token?.role === dbUser?.role,
+        sessionMatchesDb: (session.user as any)?.role === dbUser?.role,
         isAdmin: (session.user as any)?.role === 'admin' || (session.user as any)?.role === 'super_admin',
         dbIsAdmin: dbUser?.role === 'admin' || dbUser?.role === 'super_admin',
+        tokenIsAdmin: token?.role === 'admin' || token?.role === 'super_admin',
       },
       timestamp: new Date().toISOString(),
     });

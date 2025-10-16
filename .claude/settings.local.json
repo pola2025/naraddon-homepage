@@ -112,7 +112,8 @@
       "Bash(start test-production-api.html)",
       "Bash(start https://naraddon.com/admin/examiners)",
       "Bash(start https://vercel.com/mkt9834-4301s-projects/homepage/deployments)",
-      "Bash(npm run test:cache-invalidation:*)"
+      "Bash(npm run test:cache-invalidation:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []
