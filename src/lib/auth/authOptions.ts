@@ -86,9 +86,12 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, account, profile }) {
       try {
         if (user) {
-          token.id = user.id;
+          // MongoDB Adapter는 ObjectId를 반환할 수 있으므로 명시적으로 string 변환
+          token.id = user.id?.toString() || user.id;
           token.role = user.role || UserRole.USER;
           token.mobile = user.mobile;
+
+          console.log('[JWT] User ID set:', token.id);
         }
         if (account) {
           token.provider = account.provider;
@@ -107,10 +110,13 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       try {
         if (session.user) {
-          session.user.id = token.id as string;
+          // token.id를 명시적으로 string으로 변환
+          session.user.id = token.id?.toString() || (token.id as string) || '';
           session.user.role = token.role as UserRole;
           session.user.mobile = token.mobile as string;
           session.user.provider = token.provider as string;
+
+          console.log('[Session] User ID:', session.user.id, 'Role:', session.user.role);
         }
         return session;
       } catch (error) {
