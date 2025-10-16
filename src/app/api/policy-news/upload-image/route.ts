@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../../../../lib/auth-options';
+import { authOptions } from '@/lib/auth/authOptions';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 // 환경변수 검증 함수
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     const userRole = (session.user as any)?.role;
     if (userRole !== 'admin' && userRole !== 'super_admin' && userRole !== 'examiner') {
       console.log('[policy-news-upload] Insufficient permissions:', userRole);
-      return NextResponse.json({ message: '정책소식 작성 권한이 없습니다. (관리자 또는 기업심사관만 가능)' }, { status: 403 });
+      return NextResponse.json({ message: '권한이 없습니다. 관리자 또는 기업심사관 역할이 필요합니다.' }, { status: 403 });
     }
 
     console.log('[policy-news-upload] Authentication successful:', session.user?.email);
