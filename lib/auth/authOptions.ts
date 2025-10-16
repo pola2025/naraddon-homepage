@@ -83,13 +83,37 @@ export const authOptions: NextAuthOptions = {
     maxAge: 24 * 60 * 60, // 24 hours
   },
   callbacks: {
-    async jwt({ token, user, account, profile }) {
+    async jwt({ token, user, account, profile, trigger }) {
       try {
+        // 초기 로그인 시
         if (user) {
           token.id = user.id;
           token.role = user.role || UserRole.USER;
           token.mobile = user.mobile;
         }
+
+        // 매번 토큰 갱신 시 MongoDB에서 최신 role 가져오기
+        if (token.email) {
+          try {
+            const client = await clientPromise;
+            const db = client.db('naraddon');
+            const dbUser = await db.collection('users').findOne(
+              { email: token.email as string },
+              { projection: { role: 1, mobile: 1 } }
+            );
+
+            if (dbUser) {
+              token.role = dbUser.role || UserRole.USER;
+              if (dbUser.mobile) {
+                token.mobile = dbUser.mobile;
+              }
+            }
+          } catch (dbError) {
+            console.error('Failed to fetch user role from DB:', dbError);
+            // DB 조회 실패 시 기존 토큰 role 유지
+          }
+        }
+
         if (account) {
           token.provider = account.provider;
         }
