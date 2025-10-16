@@ -136,18 +136,26 @@ export async function GET(request: NextRequest) {
     if (staffId) filter.assignedStaffId = staffId;
     if (userId) filter.userId = userId;
 
-    // 사용자 역할에 따른 필터
+    /**
+     * 상담내역 조회 권한 검증
+     *
+     * @purpose 개인정보 보호 - 사용자는 자신의 상담만 조회 가능
+     * @context role이 없거나 알 수 없는 경우 기본적으로 자신의 것만 조회
+     * @security CRITICAL - 모든 상담내역 노출 방지
+     */
     const userEmail = session.user?.email;
     const userRole = (session.user as any)?.role;
 
-    if (userRole === 'user' || userRole === 'company') {
-      // 일반 사용자와 기업회원은 자신의 상담만 조회
-      filter.userEmail = userEmail;
+    // admin, super_admin만 모든 상담 조회 가능
+    if (userRole === 'admin' || userRole === 'super_admin') {
+      // 전체 조회 가능 (필터 추가 없음)
     } else if (userRole === 'examiner') {
       // 기업심사관은 자신에게 배정된 상담만 조회
       filter.assignedStaffId = userEmail;
+    } else {
+      // 그 외 모든 경우(user, company, undefined 등)는 자신의 상담만 조회
+      filter.userEmail = userEmail;
     }
-    // admin은 모든 상담 조회 가능
 
     const consultations = await db.collection('consultations')
       .find(filter)
