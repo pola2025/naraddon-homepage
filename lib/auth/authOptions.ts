@@ -149,7 +149,17 @@ export const authOptions: NextAuthOptions = {
                 dbUserId: dbUser._id.toString()
               });
             } else {
-              console.warn('[JWT Callback] User not found in DB:', token.email);
+              /**
+               * 사용자 탈퇴 감지 - JWT 무효화
+               *
+               * @purpose DB에 사용자가 없으면 탈퇴한 것으로 간주하여 토큰 무효화
+               * @context JWT는 서버에서 직접 무효화할 수 없으므로 이 방법 사용
+               * @note null 반환 시 세션이 종료되고 로그아웃됨
+               */
+              console.warn('[JWT Callback] User not found in DB - account may be withdrawn:', token.email);
+
+              // 토큰에 withdrawn 플래그 설정 (세션에서 체크 가능)
+              (token as any).withdrawn = true;
             }
           } catch (dbError) {
             console.error('[JWT Callback] DB query failed:', {
@@ -193,6 +203,18 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       try {
+        /**
+         * 탈퇴 계정 세션 무효화
+         *
+         * @purpose JWT에 withdrawn 플래그가 있으면 세션을 null로 반환하여 로그아웃
+         * @context DB에서 사용자를 찾을 수 없을 때 jwt 콜백이 플래그 설정
+         * @note null 반환 시 사용자는 자동으로 로그아웃됨
+         */
+        if ((token as any).withdrawn) {
+          console.warn('[Session Callback] Withdrawn account detected, invalidating session:', token.email);
+          return null as any; // 세션 무효화
+        }
+
         if (session.user) {
           session.user.id = token.id as string;
           session.user.role = token.role as UserRole;
