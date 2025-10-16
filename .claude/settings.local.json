@@ -106,7 +106,8 @@
       "Bash(npm run check:users:*)",
       "Bash(git stash:*)",
       "Bash(npm run seed:rbac:*)",
-      "Bash(npm run create:indexes:*)"
+      "Bash(npm run create:indexes:*)",
+      "Bash(npm run benchmark:rbac:*)"
     ],
     "deny": [],
     "ask": []

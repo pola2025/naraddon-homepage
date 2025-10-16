@@ -22,6 +22,7 @@
     "test:rbac": "ts-node --transpile-only scripts/test-rbac.ts",
     "check:users": "ts-node --transpile-only scripts/check-users.ts",
     "create:indexes": "npx tsx scripts/create-rbac-indexes.ts",
+    "benchmark:rbac": "npx tsx scripts/benchmark-rbac-performance.ts",
     "dev:3002": "next dev -p 3002",
     "dev": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" next dev",
     "lint": "next lint",
