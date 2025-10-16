@@ -216,12 +216,13 @@ export const authOptions: NextAuthOptions = {
         }
 
         if (session.user) {
-          // 🔥 CRITICAL FIX: JWT 토큰에 role이 없는 경우 DB에서 직접 조회
+          // 🔥 CRITICAL FIX: JWT 토큰에 role이 없는 경우 매번 DB에서 직접 조회
           // JWT 콜백이 실행되지 않았거나 role이 누락된 경우 대비
           let userRole = token.role as UserRole;
 
-          if (!userRole || userRole === undefined) {
-            console.warn('[Session Callback] Role is undefined in token, fetching from DB:', token.email);
+          // role이 없으면 항상 DB 조회 (강제)
+          if (!userRole) {
+            console.warn('[Session Callback] Role is missing in token, fetching from DB:', token.email);
             try {
               const client = await clientPromise;
               const db = client.db('naraddon');
@@ -232,21 +233,25 @@ export const authOptions: NextAuthOptions = {
 
               if (dbUser?.role) {
                 userRole = dbUser.role as UserRole;
-                console.log('[Session Callback] Role fetched from DB:', userRole);
+                console.log('[Session Callback] ✅ Role fetched from DB:', userRole);
               } else {
                 userRole = UserRole.USER; // 기본값
-                console.warn('[Session Callback] No role in DB, using default USER role');
+                console.warn('[Session Callback] ⚠️ No role in DB, using default USER role');
               }
             } catch (dbError) {
-              console.error('[Session Callback] DB query failed:', dbError);
+              console.error('[Session Callback] ❌ DB query failed:', dbError);
               userRole = UserRole.USER; // 안전한 기본값
             }
+          } else {
+            console.log('[Session Callback] Using role from token:', userRole);
           }
 
           session.user.id = token.id as string;
           session.user.role = userRole;
           session.user.mobile = token.mobile as string;
           session.user.provider = token.provider as string;
+
+          console.log('[Session Callback] Final session.user.role:', session.user.role);
         }
         return session;
       } catch (error) {
