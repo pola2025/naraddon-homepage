@@ -6,10 +6,16 @@
  * @security 환경변수만 사용, 하드코딩 없음
  */
 
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+// .env.local 로드
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+
 import mongoose from 'mongoose';
-import Role from '../src/models/Role';
-import Permission from '../src/models/Permission';
-import RolePermission from '../src/models/RolePermission';
+import Role from '@/models/Role';
+import Permission from '@/models/Permission';
+import RolePermission from '@/models/RolePermission';
 
 // ⚠️ 보안: 환경변수 필수
 const MONGODB_URI = process.env.MONGODB_URI;

@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
 import { NextResponse } from 'next/server';
 import { loadEffectivePermissions } from '@/lib/rbac/permissions';
+import { recordPermissionGranted, recordPermissionDenied } from '@/lib/rbac/monitoring';
 
 /**
  * RBAC 기반 인증/권한 가드
@@ -118,6 +119,7 @@ export async function requirePerm(permission: string): Promise<AuthUser> {
   const hasPermission = isSuperAdmin || permissions.has(permission);
 
   if (!hasPermission) {
+    recordPermissionDenied(user.id, permission);
     console.warn('[requirePerm] Permission denied:', {
       email: user.email,
       userId: user.id,
@@ -128,6 +130,7 @@ export async function requirePerm(permission: string): Promise<AuthUser> {
     throw new Error('FORBIDDEN');
   }
 
+  recordPermissionGranted(user.id, permission);
   console.log('[requirePerm] Permission granted:', {
     email: user.email,
     permission,

@@ -12,6 +12,13 @@ import Permission from '@/models/Permission';
 import RolePermission from '@/models/RolePermission';
 import UserRole from '@/models/UserRole';
 import connectDB from '@/lib/mongodb';
+import {
+  recordCacheHit,
+  recordCacheMiss,
+  recordDbQueryTime,
+  recordError,
+  recordInvalidation,
+} from './monitoring';
 
 /**
  * 사용자의 유효한 퍼미션 로드 (역할 상속 포함)
@@ -30,10 +37,14 @@ export async function loadEffectivePermissions(
     if (redis) {
       const cachedPerms = await redis.get(RedisKeys.userPermissions(userId));
       if (cachedPerms) {
-        console.log(`[RBAC] Cache HIT - userId: ${userId}`);
+        recordCacheHit(userId);
         return new Set(JSON.parse(cachedPerms));
       }
     }
+
+    // 캐시 MISS - DB 조회 시작
+    recordCacheMiss(userId);
+    const dbStartTime = Date.now();
 
     // 2. DB에서 사용자 역할 조회
     const userRoles = await UserRole.find({
@@ -91,8 +102,13 @@ export async function loadEffectivePermissions(
       );
     }
 
+    // DB 쿼리 시간 기록
+    const dbQueryTime = Date.now() - dbStartTime;
+    recordDbQueryTime(userId, dbQueryTime);
+
     return permissions;
   } catch (error) {
+    recordError(error as Error, 'loadEffectivePermissions');
     console.error('[RBAC] loadEffectivePermissions error:', error);
     return new Set();
   }
@@ -218,13 +234,15 @@ async function loadPermissionsByLegacyRole(roleName: string): Promise<Set<string
  * @purpose 역할 변경 시 즉시 반영을 위한 캐시 삭제
  * @param userId 사용자 ID
  */
-export async function invalidateUserPermissions(userId: string): Promise<void> {
+export async function invalidateUserPermissions(userId: string, reason?: string): Promise<void> {
   if (!redis) return;
 
   try {
     await redis.del(RedisKeys.userPermissions(userId));
+    recordInvalidation(userId, reason);
     console.log(`[RBAC] Cache invalidated for user: ${userId}`);
   } catch (error) {
+    recordError(error as Error, 'invalidateUserPermissions');
     console.error('[RBAC] Cache invalidation error:', error);
   }
 }

@@ -21,6 +21,7 @@
     "seed:rbac": "ts-node --transpile-only scripts/seed-rbac.ts",
     "test:rbac": "ts-node --transpile-only scripts/test-rbac.ts",
     "check:users": "ts-node --transpile-only scripts/check-users.ts",
+    "create:indexes": "npx tsx scripts/create-rbac-indexes.ts",
     "dev:3002": "next dev -p 3002",
     "dev": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" next dev",
     "lint": "next lint",
