@@ -292,28 +292,29 @@ const PolicyAnalysisWrite = () => {
     }));
   }, [formData.category]);
 
-  // 관리자 게시글 목록 불러오기
-  useEffect(() => {
-    const loadAdminPosts = async () => {
-      try {
-        setIsLoadingPosts(true);
-        setPostsError('');
-        const response = await fetch('/api/policy-analysis');
-        if (!response.ok) {
-          throw new Error('게시글 목록을 불러오지 못했습니다.');
-        }
-        const data = await response.json();
-        const posts = Array.isArray(data?.posts) ? data.posts : [];
-        setAdminPosts(posts.slice(0, 10)); // 최근 10개만 표시
-      } catch (error) {
-        console.error('[PolicyAnalysisWrite] fetch posts', error);
-        setAdminPosts([]);
-        setPostsError(error instanceof Error ? error.message : '게시글 목록을 불러오지 못했습니다.');
-      } finally {
-        setIsLoadingPosts(false);
+  // 관리자 게시글 목록 불러오기 함수
+  const loadAdminPosts = async () => {
+    try {
+      setIsLoadingPosts(true);
+      setPostsError('');
+      const response = await fetch('/api/policy-analysis');
+      if (!response.ok) {
+        throw new Error('게시글 목록을 불러오지 못했습니다.');
       }
-    };
+      const data = await response.json();
+      const posts = Array.isArray(data?.posts) ? data.posts : [];
+      setAdminPosts(posts.slice(0, 10)); // 최근 10개만 표시
+    } catch (error) {
+      console.error('[PolicyAnalysisWrite] fetch posts', error);
+      setAdminPosts([]);
+      setPostsError(error instanceof Error ? error.message : '게시글 목록을 불러오지 못했습니다.');
+    } finally {
+      setIsLoadingPosts(false);
+    }
+  };
 
+  // 초기 로드 시 게시글 목록 불러오기
+  useEffect(() => {
     loadAdminPosts();
   }, []);
 
@@ -641,7 +642,7 @@ const PolicyAnalysisWrite = () => {
 
       alert('게시글이 삭제되었습니다.');
       // 목록 새로고침
-      fetchRecentPosts();
+      loadAdminPosts();
     } catch (error) {
       console.error('정책분석 삭제 오류', error);
       alert('삭제 처리 중 오류가 발생했습니다.');
