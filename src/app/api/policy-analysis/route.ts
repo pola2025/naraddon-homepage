@@ -4,6 +4,9 @@ import connectDB from '@/lib/mongodb';
 import PolicyAnalysisPost from '@/models/PolicyAnalysisPost';
 import ExpertExaminer from '@/models/ExpertExaminer';
 import * as crypto from 'crypto';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth/authOptions';
+import { checkPermission } from '@/lib/rbac/check-permission';
 
 const ALLOWED_SORT_FIELDS: Record<string, Record<string, 1 | -1>> = {
   newest: { createdAt: -1 },
@@ -117,23 +120,78 @@ export async function POST(request: NextRequest) {
     console.log('[policy-analysis][POST] Headers:', request.headers.get('content-type'));
     console.log('[policy-analysis][POST] Method:', request.method);
 
-    const adminPassword = process.env.POLICY_ANALYSIS_PASSWORD;
-    if (!adminPassword) {
-      console.error('[policy-analysis][POST] POLICY_ANALYSIS_PASSWORD not set');
-      return NextResponse.json(
-        { message: '정책분석 게시판 비밀번호가 설정되지 않았습니다.' },
-        { status: 500 }
-      );
-    }
-
+    // 1. 본문 먼저 파싱 (한 번만 가능하므로)
     const body = (await request.json()) as CreatePayload;
     console.log('[policy-analysis][POST] Body parsed:', {
       title: body.title,
       category: body.category,
       examinerKey: body.examinerKey
     });
+
+    // 2. NextAuth 세션 확인 (RBAC 권한)
+    const session = await getServerSession(authOptions);
+    console.log('[policy-analysis][POST] Session:', session?.user?.email);
+
+    let hasPermission = false;
+    let authMethod = 'none';
+
+    // 3. RBAC 권한 확인 (examiner 또는 admin)
+    if (session?.user?.id) {
+      const canWrite = await checkPermission(
+        session.user.id,
+        'policy:analysis:write'
+      );
+      console.log('[policy-analysis][POST] RBAC permission check:', canWrite);
+
+      if (canWrite) {
+        hasPermission = true;
+        authMethod = 'rbac';
+      }
+    }
+
+    // 4. 레거시 비밀번호 인증 (하위 호환성)
+    if (!hasPermission) {
+      const adminPassword = process.env.POLICY_ANALYSIS_PASSWORD;
+      if (!adminPassword) {
+        console.error('[policy-analysis][POST] POLICY_ANALYSIS_PASSWORD not set');
+        return NextResponse.json(
+          { message: '정책분석 게시판 비밀번호가 설정되지 않았습니다.' },
+          { status: 500 }
+        );
+      }
+
+      const { password } = body;
+      const trimmedPassword = password?.trim();
+      const hasValidAccessCookie =
+        request.cookies.get(ACCESS_COOKIE)?.value === buildCookieValue(adminPassword);
+
+      if (trimmedPassword && trimmedPassword === adminPassword) {
+        hasPermission = true;
+        authMethod = 'password';
+      } else if (hasValidAccessCookie) {
+        hasPermission = true;
+        authMethod = 'cookie';
+      }
+    }
+
+    // 5. 권한 없으면 403 반환
+    if (!hasPermission) {
+      console.log('[policy-analysis][POST] Permission denied');
+      return NextResponse.json(
+        {
+          message: '정책분석 작성 권한이 없습니다. 기업심사관 또는 관리자만 작성할 수 있습니다.',
+          authMethod,
+          hasSession: !!session,
+          userId: session?.user?.id
+        },
+        { status: 403 }
+      );
+    }
+
+    console.log('[policy-analysis][POST] Auth method:', authMethod);
+
+    // 6. 본문에서 필요한 데이터 추출
     const {
-      password,
       title,
       category,
       excerpt,
@@ -145,18 +203,6 @@ export async function POST(request: NextRequest) {
       images,
       examinerKey,
     } = body;
-
-    const trimmedPassword = password?.trim();
-    const hasValidAccessCookie =
-      request.cookies.get(ACCESS_COOKIE)?.value === buildCookieValue(adminPassword);
-
-    if (trimmedPassword && trimmedPassword !== adminPassword) {
-      return NextResponse.json({ message: '비밀번호가 일치하지 않습니다.' }, { status: 401 });
-    }
-
-    if (!trimmedPassword && !hasValidAccessCookie) {
-      return NextResponse.json({ message: '비밀번호 인증이 필요합니다.' }, { status: 401 });
-    }
 
     if (!title || !title.trim()) {
       return NextResponse.json({ message: '제목을 입력해주세요.' }, { status: 400 });

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import PolicyNewsPost from '@/models/PolicyNewsPost';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth/authOptions';
+import { checkPermission } from '@/lib/rbac/check-permission';
 
 interface RouteParams {
   params: {
@@ -39,20 +42,51 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 export async function PUT(request: Request, { params }: RouteParams) {
   try {
-    const adminPassword = process.env.POLICY_NEWS_PASSWORD;
-    if (!adminPassword) {
-      return NextResponse.json({ message: '게시글 비밀번호가 설정되지 않았습니다.' }, { status: 500 });
-    }
-
     if (!mongoose.Types.ObjectId.isValid(params.id)) {
       return NextResponse.json({ message: '존재하지 않는 게시글입니다.' }, { status: 404 });
     }
 
+    // 본문 먼저 파싱
     const body = await request.json();
     const { password, title, content, category, excerpt, thumbnail, tags, isMain, isPinned, badge } = body;
 
-    if (!password || password !== adminPassword) {
-      return NextResponse.json({ message: '비밀번호가 올바르지 않습니다.' }, { status: 401 });
+    // 1. NextAuth 세션 확인 (RBAC 권한)
+    const session = await getServerSession(authOptions);
+    let hasPermission = false;
+    let authMethod = 'none';
+
+    // 2. RBAC 권한 확인 (examiner 또는 admin)
+    if (session?.user?.id) {
+      const canWrite = await checkPermission(
+        session.user.id,
+        'policy:news:write'
+      );
+
+      if (canWrite) {
+        hasPermission = true;
+        authMethod = 'rbac';
+      }
+    }
+
+    // 3. 레거시 비밀번호 인증 (하위 호환성)
+    if (!hasPermission) {
+      const adminPassword = process.env.POLICY_NEWS_PASSWORD;
+      if (adminPassword && password && password === adminPassword) {
+        hasPermission = true;
+        authMethod = 'password';
+      }
+    }
+
+    // 4. 권한 없으면 403 반환
+    if (!hasPermission) {
+      return NextResponse.json(
+        {
+          message: '정책뉴스 수정 권한이 없습니다. 기업심사관 또는 관리자만 수정할 수 있습니다.',
+          authMethod,
+          hasSession: !!session
+        },
+        { status: 403 }
+      );
     }
 
     if (!title || !title.trim() || !content || !content.trim()) {
@@ -99,20 +133,51 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
 export async function DELETE(request: Request, { params }: RouteParams) {
   try {
-    const adminPassword = process.env.POLICY_NEWS_PASSWORD;
-    if (!adminPassword) {
-      return NextResponse.json({ message: '게시글 비밀번호가 설정되지 않았습니다.' }, { status: 500 });
-    }
-
     if (!mongoose.Types.ObjectId.isValid(params.id)) {
       return NextResponse.json({ message: '존재하지 않는 게시글입니다.' }, { status: 404 });
     }
 
+    // 본문 먼저 파싱
     const body = await request.json().catch(() => ({}));
     const { password } = body as { password?: string };
 
-    if (!password || password !== adminPassword) {
-      return NextResponse.json({ message: '비밀번호가 올바르지 않습니다.' }, { status: 401 });
+    // 1. NextAuth 세션 확인 (RBAC 권한)
+    const session = await getServerSession(authOptions);
+    let hasPermission = false;
+    let authMethod = 'none';
+
+    // 2. RBAC 권한 확인 (admin만 가능 - 삭제는 관리자 전용)
+    if (session?.user?.id) {
+      const canManage = await checkPermission(
+        session.user.id,
+        'community:post:manage'  // 관리자만 삭제 가능
+      );
+
+      if (canManage) {
+        hasPermission = true;
+        authMethod = 'rbac';
+      }
+    }
+
+    // 3. 레거시 비밀번호 인증 (하위 호환성)
+    if (!hasPermission) {
+      const adminPassword = process.env.POLICY_NEWS_PASSWORD;
+      if (adminPassword && password && password === adminPassword) {
+        hasPermission = true;
+        authMethod = 'password';
+      }
+    }
+
+    // 4. 권한 없으면 403 반환
+    if (!hasPermission) {
+      return NextResponse.json(
+        {
+          message: '정책뉴스 삭제 권한이 없습니다. 관리자만 삭제할 수 있습니다.',
+          authMethod,
+          hasSession: !!session
+        },
+        { status: 403 }
+      );
     }
 
     await connectDB();
