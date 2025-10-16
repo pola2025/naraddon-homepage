@@ -101,12 +101,19 @@ export default function WithdrawalModal({
         });
       }
 
-      // 4. NextAuth signOut 호출
+      // 4. NextAuth signOut 호출 후 강제 새로고침
+      /**
+       * 탈퇴 후 완전한 로그아웃 보장
+       *
+       * @purpose signOut만으로는 JWT가 즉시 무효화되지 않을 수 있음
+       * @solution window.location.href로 강제 리다이렉트하여 모든 상태 초기화
+       * @note 이렇게 해야 다음 로그인 시 네이버 재인증이 필요함
+       */
       alert('계정이 성공적으로 탈퇴되었습니다.\n그동안 이용해 주셔서 감사합니다.');
-      await signOut({
-        callbackUrl: '/',
-        redirect: true
-      });
+
+      // signOut + 강제 페이지 이동
+      await signOut({ redirect: false }); // redirect: false로 설정하여 직접 제어
+      window.location.href = '/'; // 강제 페이지 이동 (모든 상태 초기화)
     } catch (err) {
       console.error('Withdrawal error:', err);
       setError(err instanceof Error ? err.message : '탈퇴 처리 중 오류가 발생했습니다');
