@@ -5,6 +5,7 @@ import NaverProvider from 'next-auth/providers/naver';
 import GoogleProvider from 'next-auth/providers/google';
 import KakaoProvider from 'next-auth/providers/kakao';
 import { UserRole } from '@/types/user.types';
+import { redis, RedisKeys, RedisTTL } from '@/lib/redis';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -110,22 +111,79 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       try {
         if (session.user) {
-          // token.id를 명시적으로 string으로 변환
+          // 1. token에서 userId 추출
           let userId = token.id?.toString() || (token.id as string) || '';
 
-          // 🔧 userId가 빈 문자열이면 email로 DB에서 조회
+          // 2. userId가 빈 문자열이면 Redis 캐시 → DB 조회로 복구
           if (!userId && session.user.email) {
-            try {
-              const client = await clientPromise;
-              const db = client.db('naraddon');
-              const user = await db.collection('users').findOne({ email: session.user.email });
+            const email = session.user.email.toLowerCase();
+            const cacheKey = RedisKeys.recoveredUserId(email);
+            const lockKey = RedisKeys.recoveryLock(email);
 
-              if (user && user._id) {
-                userId = user._id.toString();
-                console.log('[Session] Recovered userId from DB:', userId);
+            try {
+              // 2-1. Redis 캐시 확인
+              if (redis) {
+                const cached = await redis.get(cacheKey);
+                if (cached) {
+                  userId = cached;
+                  if (!isProduction) {
+                    console.log(`[Session] userId loaded from cache: ${email.substring(0, 3)}***`);
+                  }
+                }
               }
-            } catch (dbError) {
-              console.error('[Session] Failed to recover userId from DB:', dbError);
+
+              // 2-2. 캐시 미스 → DB 조회 (스탬피드 방지)
+              if (!userId) {
+                let shouldQuery = true;
+
+                // 락 획득 시도 (Redis 사용 가능한 경우만)
+                if (redis) {
+                  const lockAcquired = await redis.set(lockKey, '1', {
+                    nx: true,
+                    ex: RedisTTL.recoveryLock
+                  });
+
+                  if (!lockAcquired) {
+                    // 다른 프로세스가 조회 중 → 50ms 대기 후 캐시 재확인
+                    await new Promise(r => setTimeout(r, 50));
+                    const retried = await redis.get(cacheKey);
+                    if (retried) {
+                      userId = retried;
+                      shouldQuery = false;
+                    }
+                  }
+                }
+
+                // DB 조회 (락을 획득했거나 Redis 미사용 시)
+                if (shouldQuery) {
+                  try {
+                    const client = await clientPromise;
+                    const db = client.db('naraddon');
+                    const user = await db.collection('users').findOne({ email: session.user.email });
+
+                    if (user && user._id) {
+                      userId = user._id.toString();
+
+                      // Redis 캐시에 저장
+                      if (redis) {
+                        await redis.set(cacheKey, userId, { ex: RedisTTL.recoveredUserId });
+                      }
+
+                      if (!isProduction) {
+                        console.log(`[Session] Recovered userId from DB: ${email.substring(0, 3)}***`);
+                      }
+                    }
+                  } finally {
+                    // 락 해제
+                    if (redis) {
+                      await redis.del(lockKey);
+                    }
+                  }
+                }
+              }
+            } catch (recoveryError) {
+              console.error('[Session] userId recovery error:', recoveryError);
+              // 복구 실패해도 계속 진행 (빈 userId로)
             }
           }
 
@@ -134,7 +192,9 @@ export const authOptions: NextAuthOptions = {
           session.user.mobile = token.mobile as string;
           session.user.provider = token.provider as string;
 
-          console.log('[Session] User ID:', session.user.id, 'Role:', session.user.role);
+          if (!isProduction && userId) {
+            console.log('[Session] User ID:', userId.substring(0, 8) + '...', 'Role:', session.user.role);
+          }
         }
         return session;
       } catch (error) {

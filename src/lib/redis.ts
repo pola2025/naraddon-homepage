@@ -12,7 +12,7 @@ const REDIS_TOKEN = process.env.REDIS_TOKEN;
 
 interface RedisClient {
   get(key: string): Promise<string | null>;
-  set(key: string, value: string, options?: { ex?: number }): Promise<string>;
+  set(key: string, value: string, options?: { ex?: number; nx?: boolean }): Promise<string | null>;
   del(...keys: string[]): Promise<number>;
   ping(): Promise<string>;
 }
@@ -66,11 +66,14 @@ class UpstashRedisClient implements RedisClient {
     }
   }
 
-  async set(key: string, value: string, options?: { ex?: number }): Promise<string> {
+  async set(key: string, value: string, options?: { ex?: number; nx?: boolean }): Promise<string | null> {
     try {
       const commands = ['SET', key, value];
       if (options?.ex) {
         commands.push('EX', String(options.ex));
+      }
+      if (options?.nx) {
+        commands.push('NX');
       }
       const result = await this.request(commands);
       return result;
@@ -128,6 +131,8 @@ export const redis = createRedisClient();
 export const RedisKeys = {
   userPermissions: (userId: string) => `rbac:perms:${userId}`,
   rolePermissions: (roleId: string) => `rbac:role:${roleId}`,
+  recoveredUserId: (email: string) => `session:userid:${email.toLowerCase()}`,
+  recoveryLock: (email: string) => `session:userid:${email.toLowerCase()}:lock`,
 } as const;
 
 /**
@@ -136,4 +141,6 @@ export const RedisKeys = {
 export const RedisTTL = {
   userPermissions: 60, // 1분
   rolePermissions: 300, // 5분
+  recoveredUserId: 3600, // 1시간 (세션 복구용)
+  recoveryLock: 5, // 5초 (스탬피드 방지용)
 } as const;
