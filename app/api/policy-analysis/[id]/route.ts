@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
+import { requirePolicyWriter, handleAuthError } from '@/lib/auth/guards';
 import connectDB from '@/lib/mongodb';
 import PolicyAnalysisPost from '@/models/PolicyAnalysisPost';
 import ExpertExaminer from '@/models/ExpertExaminer';
@@ -46,27 +47,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function PUT(request: Request, { params }: RouteParams) {
   try {
     /**
-     * 세션 기반 권한 검증 (수정)
+     * 정책분석 수정 권한 검증
      *
-     * @purpose NextAuth 세션을 통한 사용자 인증 및 권한 확인
-     * @context examiner 또는 admin 역할을 가진 사용자만 정책분석 수정 가능
+     * @purpose admin, super_admin, examiner만 정책분석 게시글 수정 가능
+     * @context guards.ts의 requirePolicyWriter 사용 (통합된 권한 체계)
      */
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { message: '로그인이 필요합니다.' },
-        { status: 401 }
-      );
-    }
-
-    const userRole = (session.user as any)?.role;
-    if (userRole !== 'examiner' && userRole !== 'admin' && userRole !== 'super_admin') {
-      return NextResponse.json(
-        { message: '권한이 없습니다. 관리자 또는 기업심사관 역할이 필요합니다.' },
-        { status: 403 }
-      );
-    }
+    const user = await requirePolicyWriter();
 
     if (!mongoose.Types.ObjectId.isValid(params.id)) {
       return NextResponse.json({ message: '존재하지 않는 게시글입니다.' }, { status: 404 });
@@ -190,6 +176,11 @@ export async function PUT(request: Request, { params }: RouteParams) {
     return NextResponse.json({ post: updated });
   } catch (error) {
     console.error('[policy-analysis][PUT:id]', error);
+
+    // 인증/권한 에러 처리
+    const authError = handleAuthError(error);
+    if (authError) return authError;
+
     return NextResponse.json(
       { message: '정책분석 게시글을 수정하는 중 오류가 발생했습니다.' },
       { status: 500 }
@@ -200,27 +191,12 @@ export async function PUT(request: Request, { params }: RouteParams) {
 export async function DELETE(request: Request, { params }: RouteParams) {
   try {
     /**
-     * 세션 기반 권한 검증 (삭제)
+     * 정책분석 삭제 권한 검증
      *
-     * @purpose NextAuth 세션을 통한 사용자 인증 및 권한 확인
-     * @context examiner 또는 admin 역할을 가진 사용자만 정책분석 삭제 가능
+     * @purpose admin, super_admin, examiner만 정책분석 게시글 삭제 가능
+     * @context guards.ts의 requirePolicyWriter 사용 (통합된 권한 체계)
      */
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { message: '로그인이 필요합니다.' },
-        { status: 401 }
-      );
-    }
-
-    const userRole = (session.user as any)?.role;
-    if (userRole !== 'examiner' && userRole !== 'admin' && userRole !== 'super_admin') {
-      return NextResponse.json(
-        { message: '권한이 없습니다. 관리자 또는 기업심사관 역할이 필요합니다.' },
-        { status: 403 }
-      );
-    }
+    const user = await requirePolicyWriter();
 
     if (!mongoose.Types.ObjectId.isValid(params.id)) {
       return NextResponse.json({ message: '존재하지 않는 게시글입니다.' }, { status: 404 });
@@ -236,6 +212,11 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     return NextResponse.json({ message: '삭제되었습니다.' });
   } catch (error) {
     console.error('[policy-analysis][DELETE:id]', error);
+
+    // 인증/권한 에러 처리
+    const authError = handleAuthError(error);
+    if (authError) return authError;
+
     return NextResponse.json(
       { message: '정책분석 게시글을 삭제하는 중 오류가 발생했습니다.' },
       { status: 500 }
