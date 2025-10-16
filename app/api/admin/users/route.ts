@@ -21,11 +21,33 @@ export async function GET(request: NextRequest) {
     }
 
     // 관리자 권한 확인
-    const userRole = (session.user as any)?.role;
-    console.log('[Admin Users API] User role:', userRole, 'Email:', session.user.email);
+    let userRole = (session.user as any)?.role;
+    console.log('[Admin Users API] Session role:', userRole, 'Email:', session.user.email);
+
+    // 🔥 HOTFIX: role이 undefined인 경우 DB에서 직접 조회
+    if (!userRole) {
+      console.warn('[Admin Users API] Role is undefined, fetching from DB');
+      try {
+        const client = await clientPromise;
+        const db = client.db('naraddon');
+        const dbUser = await db.collection('users').findOne(
+          { email: session.user.email },
+          { projection: { role: 1 } }
+        );
+
+        if (dbUser?.role) {
+          userRole = dbUser.role;
+          console.log('[Admin Users API] ✅ Role from DB:', userRole);
+        } else {
+          console.error('[Admin Users API] ❌ No role found in DB for:', session.user.email);
+        }
+      } catch (dbError) {
+        console.error('[Admin Users API] ❌ DB query failed:', dbError);
+      }
+    }
 
     if (userRole !== 'admin' && userRole !== 'super_admin') {
-      console.log('[Admin Users API] Forbidden - insufficient permissions');
+      console.log('[Admin Users API] Forbidden - insufficient permissions. Role:', userRole);
       return NextResponse.json({
         error: 'Forbidden',
         message: '관리자 권한이 필요합니다.',
