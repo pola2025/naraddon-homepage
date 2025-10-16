@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Types } from 'mongoose';
+import { requireAdmin } from '@/lib/auth/guards';
 
 import connectDB from '@/lib/mongodb';
 import TtontokPost from '@/models/TtontokPost';
@@ -86,17 +87,14 @@ export async function PATCH(
   request: NextRequest,
   context: { params: { postId: string } }
 ) {
+  // 🔒 관리자 권한 필수 - 게시글 수정
+  const user = await requireAdmin();
+
   await connectDB();
 
   const { postId } = context.params;
   if (!postId || !Types.ObjectId.isValid(postId)) {
     return NextResponse.json({ message: '게시글 ID가 올바르지 않습니다.' }, { status: 400 });
-  }
-
-  // Admin authentication check
-  const isAdminRequest = request.headers.get('x-admin-auth') === 'true';
-  if (!isAdminRequest) {
-    return NextResponse.json({ message: '권한이 없습니다.' }, { status: 401 });
   }
 
   const post = await TtontokPost.findById(postId);
@@ -194,17 +192,14 @@ export async function DELETE(
   request: NextRequest,
   context: { params: { postId: string } }
 ) {
+  // 🔒 관리자 권한 필수 - 게시글 삭제
+  const user = await requireAdmin();
+
   await connectDB();
 
   const { postId } = context.params;
   if (!postId || !Types.ObjectId.isValid(postId)) {
     return NextResponse.json({ message: '게시글 ID가 올바르지 않습니다.' }, { status: 400 });
-  }
-
-  // Admin authentication check
-  const isAdminRequest = request.headers.get('x-admin-auth') === 'true';
-  if (!isAdminRequest) {
-    return NextResponse.json({ message: '권한이 없습니다.' }, { status: 401 });
   }
 
   const post = await TtontokPost.findById(postId);

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Types } from 'mongoose';
+import { requireLogin } from '@/lib/auth/guards';
 
 import connectDB from '@/lib/mongodb';
 import TtontokPost from '@/models/TtontokPost';
@@ -73,6 +74,9 @@ export async function POST(
   request: NextRequest,
   context: { params: { postId: string } }
 ) {
+  // 🔒 로그인 필수 - 일반 사용자도 답글 작성 가능
+  const user = await requireLogin();
+
   await connectDB();
 
   const { postId } = context.params;

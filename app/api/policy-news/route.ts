@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
-import { verifyAdminRole } from '../../../lib/auth/verifyAdminRole';
+import { requirePolicyWriter } from '@/lib/auth/guards';
 import connectDB from '@/lib/mongodb';
 import PolicyNewsPost from '@/models/PolicyNewsPost';
 
@@ -32,24 +32,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: Request) {
   try {
-    // 세션 및 DB 기반 이중 권한 검증
-    const verification = await verifyAdminRole(['admin', 'super_admin', 'examiner']);
+    /**
+     * 정책소식 작성 권한 검증
+     *
+     * @purpose admin, super_admin, examiner만 정책소식 게시글 작성 가능
+     * @context guards.ts의 requirePolicyWriter 사용 (통합된 권한 체계)
+     */
+    const user = await requirePolicyWriter();
 
-    console.log('[policy-news][POST] Verification result:', {
-      isAuthorized: verification.isAuthorized,
-      user: verification.user,
-      debugInfo: verification.debugInfo
-    });
-
-    if (!verification.isAuthorized) {
-      return NextResponse.json(
-        {
-          message: verification.error || '권한이 없습니다.',
-          debugInfo: verification.debugInfo
-        },
-        { status: verification.error?.includes('로그인') ? 401 : 403 }
-      );
-    }
+    console.log('[policy-news][POST] User authenticated:', user.email, 'Role:', user.role);
 
     const body = await request.json();
     const { title, content, category, excerpt, thumbnail, tags, isMain, isPinned, badge } = body;

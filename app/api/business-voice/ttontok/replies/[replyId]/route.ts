@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Types } from 'mongoose';
-import { getServerSession } from 'next-auth';
+import { requireAdmin } from '@/lib/auth/guards';
 
 import connectDB from '@/lib/mongodb';
 import TtontokReply from '@/models/TtontokReply';
 import TtontokPost from '@/models/TtontokPost';
-import { authOptions } from '@/lib/auth/authOptions';
 
 const sanitizeContent = (value: unknown) => {
   if (typeof value !== 'string') return '';
@@ -51,31 +50,17 @@ export async function GET(
  * 똔톡 댓글 수정
  *
  * @purpose 관리자만 댓글을 수정할 수 있도록 권한 검증
- * @context NextAuth 세션 기반 인증으로 admin 역할 확인
+ * @context guards.ts의 requireAdmin 사용 (admin, super_admin만 허용)
  * @security CRITICAL - 이전에는 권한 검증이 없어서 누구나 수정 가능했음
  */
 export async function PATCH(
   request: NextRequest,
   context: { params: { replyId: string } }
 ) {
+  // 🔒 관리자 권한 필수
+  const user = await requireAdmin();
+
   await connectDB();
-
-  // 관리자 권한 검증
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    return NextResponse.json(
-      { message: '로그인이 필요합니다.' },
-      { status: 401 }
-    );
-  }
-
-  const userRole = (session.user as any)?.role;
-  if (userRole !== 'admin' && userRole !== 'super_admin') {
-    return NextResponse.json(
-      { message: '관리자 권한이 필요합니다.' },
-      { status: 403 }
-    );
-  }
 
   const { replyId } = context.params;
   if (!replyId || !Types.ObjectId.isValid(replyId)) {
@@ -139,7 +124,7 @@ export async function PATCH(
       { new: true, runValidators: true }
     ).lean();
 
-    console.log(`[ttontok] Reply updated by admin: ${session.user.email}, replyId: ${replyId}`);
+    console.log(`[ttontok] Reply updated by admin: ${user.email}, replyId: ${replyId}`);
 
     return NextResponse.json({
       id: updated._id,
@@ -162,31 +147,17 @@ export async function PATCH(
  * 똔톡 댓글 삭제
  *
  * @purpose 관리자만 댓글을 삭제할 수 있도록 권한 검증
- * @context NextAuth 세션 기반 인증으로 admin 역할 확인
+ * @context guards.ts의 requireAdmin 사용 (admin, super_admin만 허용)
  * @security CRITICAL - 이전에는 권한 검증이 없어서 누구나 삭제 가능했음
  */
 export async function DELETE(
   request: NextRequest,
   context: { params: { replyId: string } }
 ) {
+  // 🔒 관리자 권한 필수
+  const user = await requireAdmin();
+
   await connectDB();
-
-  // 관리자 권한 검증
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    return NextResponse.json(
-      { message: '로그인이 필요합니다.' },
-      { status: 401 }
-    );
-  }
-
-  const userRole = (session.user as any)?.role;
-  if (userRole !== 'admin' && userRole !== 'super_admin') {
-    return NextResponse.json(
-      { message: '관리자 권한이 필요합니다.' },
-      { status: 403 }
-    );
-  }
 
   const { replyId } = context.params;
   if (!replyId || !Types.ObjectId.isValid(replyId)) {
@@ -207,7 +178,7 @@ export async function DELETE(
       { $inc: { replyCount: -1 } }
     );
 
-    console.log(`[ttontok] Reply deleted by admin: ${session.user.email}, replyId: ${replyId}`);
+    console.log(`[ttontok] Reply deleted by admin: ${user.email}, replyId: ${replyId}`);
 
     return NextResponse.json({ message: '댓글이 삭제되었습니다.' });
   } catch (error) {

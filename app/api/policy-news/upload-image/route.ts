@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '../../../auth-options';
+import { requirePolicyWriter } from '@/lib/auth/guards';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 // 환경변수 검증 함수
@@ -68,22 +67,15 @@ export async function POST(request: NextRequest) {
   try {
     console.log('[policy-news-upload] Starting image upload process');
 
-    // NextAuth 세션 확인
-    const session = await getServerSession(authOptions);
+    /**
+     * 정책소식 이미지 업로드 권한 검증
+     *
+     * @purpose admin, super_admin, examiner만 이미지 업로드 가능
+     * @context guards.ts의 requirePolicyWriter 사용 (통합된 권한 체계)
+     */
+    const user = await requirePolicyWriter();
 
-    if (!session) {
-      console.log('[policy-news-upload] No session found');
-      return NextResponse.json({ message: '로그인이 필요합니다.' }, { status: 401 });
-    }
-
-    // 권한 확인: 관리자 또는 기업심사관만 업로드 가능
-    const userRole = (session.user as any)?.role;
-    if (userRole !== 'admin' && userRole !== 'super_admin' && userRole !== 'examiner') {
-      console.log('[policy-news-upload] Insufficient permissions:', userRole);
-      return NextResponse.json({ message: '권한이 없습니다. 관리자 또는 기업심사관 역할이 필요합니다.' }, { status: 403 });
-    }
-
-    console.log('[policy-news-upload] Authentication successful:', session.user?.email);
+    console.log('[policy-news-upload] Authentication successful:', user.email, 'Role:', user.role);
 
     // S3Client 초기화 상태 확인
     if (!s3Client) {

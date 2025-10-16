@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Types } from 'mongoose';
+import { requireLogin } from '@/lib/auth/guards';
 
 import connectDB from '@/lib/mongodb';
 import TtontokPost, { ITtontokPost, TtontokCategory } from '@/models/TtontokPost';
@@ -103,6 +104,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  // 🔒 로그인 필수 - 일반 사용자도 작성 가능
+  const user = await requireLogin();
+
   await connectDB();
 
   let payload: Record<string, unknown>;
@@ -118,7 +122,6 @@ export async function POST(request: NextRequest) {
   const nickname = sanitizeString(payload.nickname, { maxLength: 24 });
   const category = normalizeCategory(typeof payload.category === 'string' ? payload.category : null);
   const tags = sanitizeTags(payload.tags);
-  const password = sanitizeString(payload.password);
 
   if (!title || !content || !nickname || !category) {
     return NextResponse.json(
@@ -127,19 +130,8 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Admin authentication check
-  // Check if request comes from admin page or has valid password
-  const isAdminRequest = request.headers.get('x-admin-auth') === 'true';
-  const TTONTOK_WRITE_PASSWORD = process.env.TTONTOK_WRITE_PASSWORD;
-
-  if (!isAdminRequest && (!password || password !== TTONTOK_WRITE_PASSWORD)) {
-    return NextResponse.json(
-      { message: '비밀번호가 올바르지 않습니다.' },
-      { status: 401 }
-    );
-  }
-
-  const memberObjectId = toObjectId(payload.memberId);
+  // 로그인한 사용자 ID를 memberId로 사용
+  const memberObjectId = toObjectId(user.id);
 
   try {
     const created = await TtontokPost.create({

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireLogin } from '@/lib/auth/guards';
 import connectDB from '@/lib/mongodb';
 import DDonTalk from '@/models/DDonTalk';
 
@@ -49,6 +50,9 @@ export async function GET(request: NextRequest) {
 // POST: 새 똔톡 작성
 export async function POST(request: NextRequest) {
   try {
+    // 🔒 로그인 필수
+    const user = await requireLogin();
+
     await connectDB();
 
     const body = await request.json();

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
-import { verifyAdminRole } from '../../../lib/auth/verifyAdminRole';
+import { requirePolicyWriter } from '@/lib/auth/guards';
 import connectDB from '@/lib/mongodb';
 import PolicyAnalysisPost from '@/models/PolicyAnalysisPost';
 import ExpertExaminer from '@/models/ExpertExaminer';
@@ -101,31 +101,14 @@ export async function POST(request: NextRequest) {
     console.log('[policy-analysis][POST] Method:', request.method);
 
     /**
-     * 세션 및 DB 기반 이중 권한 검증
+     * 정책분석 작성 권한 검증
      *
-     * @purpose 세션 토큰과 MongoDB 모두에서 role 확인하여 최신 권한 보장
-     * @context JWT 토큰이 오래되어도 DB에서 실시간 role 조회
+     * @purpose admin, super_admin, examiner만 정책분석 게시글 작성 가능
+     * @context guards.ts의 requirePolicyWriter 사용 (통합된 권한 체계)
      */
-    const verification = await verifyAdminRole(['admin', 'super_admin', 'examiner']);
+    const user = await requirePolicyWriter();
 
-    console.log('[policy-analysis][POST] Verification result:', {
-      isAuthorized: verification.isAuthorized,
-      user: verification.user,
-      error: verification.error,
-      debugInfo: verification.debugInfo
-    });
-
-    if (!verification.isAuthorized) {
-      return NextResponse.json(
-        {
-          message: verification.error || '권한이 없습니다.',
-          debugInfo: verification.debugInfo
-        },
-        { status: verification.error?.includes('로그인') ? 401 : 403 }
-      );
-    }
-
-    console.log('[policy-analysis][POST] User authenticated:', verification.user?.email, 'Role:', verification.user?.role);
+    console.log('[policy-analysis][POST] User authenticated:', user.email, 'Role:', user.role);
 
     const body = (await request.json()) as CreatePayload;
     console.log('[policy-analysis][POST] Body parsed:', {
