@@ -68,3 +68,5 @@ npm start
 
 ## 라이센스
 © 2025 나라똔. All rights reserved.// Force rebuild
+
+<!-- Build: 20251016-174237 -->
