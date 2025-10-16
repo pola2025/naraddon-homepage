@@ -8,16 +8,29 @@ export const dynamic = 'force-dynamic';
 // GET /api/admin/users - 사용자 목록 조회
 export async function GET(request: NextRequest) {
   try {
-    // 세션 확인
+    /**
+     * 사용자 목록 조회 권한 검증
+     *
+     * @purpose admin, super_admin만 사용자 목록 조회 가능
+     * @security CRITICAL - 개인정보 보호
+     */
     const session = await getServerSession(authOptions);
-    if (!session) {
+    if (!session || !session.user) {
+      console.log('[Admin Users API] Unauthorized - no session');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // 관리자 권한 확인
     const userRole = (session.user as any)?.role;
+    console.log('[Admin Users API] User role:', userRole, 'Email:', session.user.email);
+
     if (userRole !== 'admin' && userRole !== 'super_admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      console.log('[Admin Users API] Forbidden - insufficient permissions');
+      return NextResponse.json({
+        error: 'Forbidden',
+        message: '관리자 권한이 필요합니다.',
+        userRole
+      }, { status: 403 });
     }
 
     // 쿼리 파라미터 처리
