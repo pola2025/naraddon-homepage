@@ -111,7 +111,25 @@ export const authOptions: NextAuthOptions = {
       try {
         if (session.user) {
           // token.id를 명시적으로 string으로 변환
-          session.user.id = token.id?.toString() || (token.id as string) || '';
+          let userId = token.id?.toString() || (token.id as string) || '';
+
+          // 🔧 userId가 빈 문자열이면 email로 DB에서 조회
+          if (!userId && session.user.email) {
+            try {
+              const client = await clientPromise;
+              const db = client.db('naraddon');
+              const user = await db.collection('users').findOne({ email: session.user.email });
+
+              if (user && user._id) {
+                userId = user._id.toString();
+                console.log('[Session] Recovered userId from DB:', userId);
+              }
+            } catch (dbError) {
+              console.error('[Session] Failed to recover userId from DB:', dbError);
+            }
+          }
+
+          session.user.id = userId;
           session.user.role = token.role as UserRole;
           session.user.mobile = token.mobile as string;
           session.user.provider = token.provider as string;
