@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
+import { verifyAdminRole } from '../../../lib/auth/verifyAdminRole';
 import connectDB from '@/lib/mongodb';
 import PolicyAnalysisPost from '@/models/PolicyAnalysisPost';
 import ExpertExaminer from '@/models/ExpertExaminer';
@@ -100,51 +101,31 @@ export async function POST(request: NextRequest) {
     console.log('[policy-analysis][POST] Method:', request.method);
 
     /**
-     * 세션 기반 권한 검증
+     * 세션 및 DB 기반 이중 권한 검증
      *
-     * @purpose NextAuth 세션을 통한 사용자 인증 및 권한 확인
-     * @context examiner 또는 admin 역할을 가진 사용자만 정책분석 작성 가능
+     * @purpose 세션 토큰과 MongoDB 모두에서 role 확인하여 최신 권한 보장
+     * @context JWT 토큰이 오래되어도 DB에서 실시간 role 조회
      */
-    const session = await getServerSession(authOptions);
+    const verification = await verifyAdminRole(['admin', 'super_admin', 'examiner']);
 
-    console.log('[policy-analysis][POST] Session check:', {
-      hasSession: !!session,
-      hasUser: !!session?.user,
-      email: session?.user?.email,
-      role: (session?.user as any)?.role,
-      roleType: typeof (session?.user as any)?.role
+    console.log('[policy-analysis][POST] Verification result:', {
+      isAuthorized: verification.isAuthorized,
+      user: verification.user,
+      error: verification.error,
+      debugInfo: verification.debugInfo
     });
 
-    if (!session || !session.user) {
+    if (!verification.isAuthorized) {
       return NextResponse.json(
-        { message: '로그인이 필요합니다.' },
-        { status: 401 }
+        {
+          message: verification.error || '권한이 없습니다.',
+          debugInfo: verification.debugInfo
+        },
+        { status: verification.error?.includes('로그인') ? 401 : 403 }
       );
     }
 
-    const userRole = (session.user as any)?.role;
-    const isAdmin = userRole === 'admin';
-    const isSuperAdmin = userRole === 'super_admin';
-    const isExaminer = userRole === 'examiner';
-    const hasPermission = isAdmin || isSuperAdmin || isExaminer;
-
-    console.log('[policy-analysis][POST] Permission check:', {
-      userRole,
-      isAdmin,
-      isSuperAdmin,
-      isExaminer,
-      hasPermission,
-      userEmail: session.user.email
-    });
-
-    if (!hasPermission) {
-      return NextResponse.json(
-        { message: '권한이 없습니다. 관리자 또는 기업심사관 역할이 필요합니다.' },
-        { status: 403 }
-      );
-    }
-
-    console.log('[policy-analysis][POST] User authenticated:', session.user.email, 'Role:', userRole);
+    console.log('[policy-analysis][POST] User authenticated:', verification.user?.email, 'Role:', verification.user?.role);
 
     const body = (await request.json()) as CreatePayload;
     console.log('[policy-analysis][POST] Body parsed:', {

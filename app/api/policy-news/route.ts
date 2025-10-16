@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
+import { verifyAdminRole } from '../../../lib/auth/verifyAdminRole';
 import connectDB from '@/lib/mongodb';
 import PolicyNewsPost from '@/models/PolicyNewsPost';
 
@@ -31,37 +32,23 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: Request) {
   try {
-    // NextAuth 세션 확인
-    const session = await getServerSession(authOptions);
+    // 세션 및 DB 기반 이중 권한 검증
+    const verification = await verifyAdminRole(['admin', 'super_admin', 'examiner']);
 
-    console.log('[policy-news][POST] Session check:', {
-      hasSession: !!session,
-      email: session?.user?.email,
-      role: (session?.user as any)?.role,
-      roleType: typeof (session?.user as any)?.role
+    console.log('[policy-news][POST] Verification result:', {
+      isAuthorized: verification.isAuthorized,
+      user: verification.user,
+      debugInfo: verification.debugInfo
     });
 
-    if (!session) {
-      return NextResponse.json({ message: '로그인이 필요합니다.' }, { status: 401 });
-    }
-
-    // 권한 확인: 관리자 또는 기업심사관만 작성 가능
-    const userRole = (session.user as any)?.role;
-    const isAdmin = userRole === 'admin';
-    const isSuperAdmin = userRole === 'super_admin';
-    const isExaminer = userRole === 'examiner';
-    const hasPermission = isAdmin || isSuperAdmin || isExaminer;
-
-    console.log('[policy-news][POST] Permission check:', {
-      userRole,
-      isAdmin,
-      isSuperAdmin,
-      isExaminer,
-      hasPermission
-    });
-
-    if (!hasPermission) {
-      return NextResponse.json({ message: '권한이 없습니다. 관리자 또는 기업심사관 역할이 필요합니다.' }, { status: 403 });
+    if (!verification.isAuthorized) {
+      return NextResponse.json(
+        {
+          message: verification.error || '권한이 없습니다.',
+          debugInfo: verification.debugInfo
+        },
+        { status: verification.error?.includes('로그인') ? 401 : 403 }
+      );
     }
 
     const body = await request.json();

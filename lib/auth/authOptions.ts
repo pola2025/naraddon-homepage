@@ -84,47 +84,110 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user, account, profile, trigger }) {
+      /**
+       * JWT 콜백 - 매 요청마다 실행되어 토큰 갱신
+       *
+       * @purpose 사용자 role을 실시간으로 MongoDB에서 조회하여 권한 변경 즉시 반영
+       * @context trigger 파라미터로 콜백 실행 원인 파악 가능
+       */
+      const callStart = Date.now();
+
       try {
-        // 초기 로그인 시
+        console.log('[JWT Callback] Started -', {
+          trigger,
+          hasUser: !!user,
+          hasAccount: !!account,
+          email: token.email || user?.email,
+          existingRole: token.role
+        });
+
+        // 초기 로그인 시 - user 객체에서 기본 정보 설정
         if (user) {
           token.id = user.id;
+          token.email = user.email;
+          token.name = user.name;
           token.role = user.role || UserRole.USER;
           token.mobile = user.mobile;
+
+          console.log('[JWT Callback] Initial login - user data:', {
+            id: user.id,
+            email: user.email,
+            role: user.role
+          });
         }
 
-        // 매번 토큰 갱신 시 MongoDB에서 최신 role 가져오기
+        // 🔥 핵심: 모든 경우에 MongoDB에서 최신 role 조회 (초기 로그인 포함)
+        // 이렇게 해야 role 변경이 즉시 반영됨
         if (token.email) {
           try {
             const client = await clientPromise;
             const db = client.db('naraddon');
+
+            console.log('[JWT Callback] Fetching latest role from DB for:', token.email);
+
             const dbUser = await db.collection('users').findOne(
               { email: token.email as string },
-              { projection: { role: 1, mobile: 1 } }
+              { projection: { role: 1, mobile: 1, _id: 1, name: 1 } }
             );
 
             if (dbUser) {
-              token.role = dbUser.role || UserRole.USER;
+              const oldRole = token.role;
+              const newRole = dbUser.role || UserRole.USER;
+
+              token.role = newRole;
+              token.id = token.id || dbUser._id.toString();
+
               if (dbUser.mobile) {
                 token.mobile = dbUser.mobile;
               }
+
+              console.log('[JWT Callback] DB role fetched:', {
+                email: token.email,
+                oldRole,
+                newRole,
+                changed: oldRole !== newRole,
+                dbUserId: dbUser._id.toString()
+              });
+            } else {
+              console.warn('[JWT Callback] User not found in DB:', token.email);
             }
           } catch (dbError) {
-            console.error('Failed to fetch user role from DB:', dbError);
-            // DB 조회 실패 시 기존 토큰 role 유지
+            console.error('[JWT Callback] DB query failed:', {
+              email: token.email,
+              error: dbError instanceof Error ? dbError.message : String(dbError),
+              stack: dbError instanceof Error ? dbError.stack : undefined
+            });
+            // DB 조회 실패 시 기존 토큰 role 유지 (안정성)
           }
         }
 
         if (account) {
           token.provider = account.provider;
         }
+
         // Naver profile에서 전화번호 추가
         if (account?.provider === 'naver' && profile) {
           const naverProfile = profile as any;
-          token.mobile = naverProfile.response?.mobile || naverProfile.response?.mobile_e164;
+          const mobile = naverProfile.response?.mobile || naverProfile.response?.mobile_e164;
+          if (mobile) {
+            token.mobile = mobile;
+            console.log('[JWT Callback] Mobile from Naver profile:', mobile);
+          }
         }
+
+        const duration = Date.now() - callStart;
+        console.log('[JWT Callback] Completed -', {
+          email: token.email,
+          finalRole: token.role,
+          duration: `${duration}ms`
+        });
+
         return token;
       } catch (error) {
-        console.error('JWT callback error:', error);
+        console.error('[JWT Callback] Fatal error:', {
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
+        });
         return token;
       }
     },
