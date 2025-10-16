@@ -216,8 +216,35 @@ export const authOptions: NextAuthOptions = {
         }
 
         if (session.user) {
+          // 🔥 CRITICAL FIX: JWT 토큰에 role이 없는 경우 DB에서 직접 조회
+          // JWT 콜백이 실행되지 않았거나 role이 누락된 경우 대비
+          let userRole = token.role as UserRole;
+
+          if (!userRole || userRole === undefined) {
+            console.warn('[Session Callback] Role is undefined in token, fetching from DB:', token.email);
+            try {
+              const client = await clientPromise;
+              const db = client.db('naraddon');
+              const dbUser = await db.collection('users').findOne(
+                { email: token.email as string },
+                { projection: { role: 1 } }
+              );
+
+              if (dbUser?.role) {
+                userRole = dbUser.role as UserRole;
+                console.log('[Session Callback] Role fetched from DB:', userRole);
+              } else {
+                userRole = UserRole.USER; // 기본값
+                console.warn('[Session Callback] No role in DB, using default USER role');
+              }
+            } catch (dbError) {
+              console.error('[Session Callback] DB query failed:', dbError);
+              userRole = UserRole.USER; // 안전한 기본값
+            }
+          }
+
           session.user.id = token.id as string;
-          session.user.role = token.role as UserRole;
+          session.user.role = userRole;
           session.user.mobile = token.mobile as string;
           session.user.provider = token.provider as string;
         }
