@@ -240,12 +240,39 @@ export async function DELETE(
       );
     }
 
-    // 10. 성공 응답
-    return NextResponse.json({
+    // 10. 세션 무효화 - 모든 쿠키 삭제 지시
+    /**
+     * NextAuth JWT 세션 무효화
+     *
+     * @purpose 탈퇴 후 즉시 재로그인 방지
+     * @context JWT는 서버에서 무효화할 수 없으므로 쿠키 삭제로 대응
+     * @note 클라이언트는 signOut() 호출 시 이 응답의 Set-Cookie 헤더를 받음
+     */
+    const response = NextResponse.json({
       success: true,
       message: '계정이 성공적으로 탈퇴되었습니다',
       withdrawnAt: new Date().toISOString(),
     });
+
+    // NextAuth 세션 쿠키 삭제
+    response.cookies.set('next-auth.session-token', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 0, // 즉시 만료
+      path: '/',
+    });
+
+    // Secure 환경용 쿠키도 삭제
+    response.cookies.set('__Secure-next-auth.session-token', '', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: 0,
+      path: '/',
+    });
+
+    return response;
   } catch (error) {
     console.error('Failed to delete user:', error);
     return NextResponse.json(

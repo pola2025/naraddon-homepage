@@ -44,6 +44,8 @@ export default function WithdrawalModal({
    * 탈퇴 처리 핸들러
    *
    * @purpose 사용자 계정 삭제 및 로그아웃
+   * @context 서버 세션 무효화 + 클라이언트 데이터 정리
+   * @note 쿠키, 로컬스토리지 모두 정리하여 재로그인 방지
    */
   const handleWithdrawal = async () => {
     try {
@@ -58,7 +60,7 @@ export default function WithdrawalModal({
         return;
       }
 
-      // 2. DELETE API 호출
+      // 2. DELETE API 호출 (서버에서 세션 무효화 + DB 삭제)
       const response = await fetch(`/api/users/${encodeURIComponent(userEmail)}`, {
         method: 'DELETE',
         headers: {
@@ -76,9 +78,35 @@ export default function WithdrawalModal({
         throw new Error(data.error || '탈퇴 처리에 실패했습니다');
       }
 
-      // 3. 성공 시 로그아웃
+      // 3. 클라이언트 데이터 정리 (재로그인 방지)
+      /**
+       * 로컬스토리지 및 세션스토리지 정리
+       *
+       * @purpose 캐시된 사용자 데이터 제거
+       * @note signOut 전에 수동으로 정리하여 완전한 세션 종료 보장
+       */
+      if (typeof window !== 'undefined') {
+        // localStorage 정리
+        localStorage.removeItem('nextauth.message');
+        localStorage.clear();
+
+        // sessionStorage 정리
+        sessionStorage.clear();
+
+        // 쿠키 수동 삭제 (서버에서도 삭제하지만 클라이언트에서도 명시적 삭제)
+        document.cookie.split(';').forEach((c) => {
+          document.cookie = c
+            .replace(/^ +/, '')
+            .replace(/=.*/, `=;expires=${new Date(0).toUTCString()};path=/`);
+        });
+      }
+
+      // 4. NextAuth signOut 호출
       alert('계정이 성공적으로 탈퇴되었습니다.\n그동안 이용해 주셔서 감사합니다.');
-      await signOut({ callbackUrl: '/' });
+      await signOut({
+        callbackUrl: '/',
+        redirect: true
+      });
     } catch (err) {
       console.error('Withdrawal error:', err);
       setError(err instanceof Error ? err.message : '탈퇴 처리 중 오류가 발생했습니다');
