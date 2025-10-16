@@ -84,7 +84,7 @@ export async function loadEffectivePermissions(
 /**
  * Aggregation Pipeline을 사용한 최적화된 권한 로드 (Phase 1.5)
  *
- * @purpose N+1 쿼리 제거, 단일 aggregation으로 모든 권한 조회
+ * @purpose N+1 쿼리 제거, 단일 aggregation으로 모든 권한 조회 (역할 상속 포함)
  * @param userId 사용자 ID
  * @returns Set<string> 퍼미션 코드 집합
  * @performance 450ms → 50-100ms (약 80% 개선)
@@ -112,18 +112,43 @@ async function loadPermissionsOptimized(userId: string): Promise<Set<string>> {
       },
       { $unwind: '$role' },
 
-      // 3. role_permissions 조인
+      // 3. 역할 상속 처리 (graphLookup으로 상위 역할 추적)
+      {
+        $graphLookup: {
+          from: 'roles',
+          startWith: '$role._id',
+          connectFromField: 'inheritsFrom',
+          connectToField: '_id',
+          as: 'inheritedRoles',
+          maxDepth: 10,
+        },
+      },
+
+      // 4. 모든 역할 합치기 (직접 역할 + 상속된 역할)
+      {
+        $project: {
+          allRoles: {
+            $concatArrays: [
+              ['$role'],
+              '$inheritedRoles',
+            ],
+          },
+        },
+      },
+      { $unwind: '$allRoles' },
+
+      // 5. role_permissions 조인 (모든 역할에 대해)
       {
         $lookup: {
           from: 'role_permissions',
-          localField: 'role._id',
+          localField: 'allRoles._id',
           foreignField: 'roleId',
           as: 'rolePerms',
         },
       },
       { $unwind: { path: '$rolePerms', preserveNullAndEmptyArrays: true } },
 
-      // 4. permissions 조인
+      // 6. permissions 조인
       {
         $lookup: {
           from: 'permissions',
@@ -134,7 +159,7 @@ async function loadPermissionsOptimized(userId: string): Promise<Set<string>> {
       },
       { $unwind: { path: '$permission', preserveNullAndEmptyArrays: true } },
 
-      // 5. 권한 코드만 추출 (중복 제거)
+      // 7. 권한 코드만 추출 (중복 제거)
       {
         $group: {
           _id: null,
@@ -270,20 +295,25 @@ async function loadRolePermissions(roleId: string): Promise<Set<string>> {
       }
     }
 
-    // 2. DB에서 역할-퍼미션 매핑 조회
+    // 2. DB에서 역할-퍼미션 매핑 조회 (populate 대신 직접 조인)
     const rolePermissions = await RolePermission.find({
       roleId: new mongoose.Types.ObjectId(roleId),
-    }).populate('permissionId');
+    });
 
+    // 3. permissionId로 Permission 문서 조회
     const permissions = new Set<string>();
     for (const rp of rolePermissions) {
-      const perm = rp.permissionId as any;
-      if (perm && perm.code) {
-        permissions.add(perm.code);
+      try {
+        const permission = await Permission.findById(rp.permissionId);
+        if (permission && permission.code) {
+          permissions.add(permission.code);
+        }
+      } catch (err) {
+        console.error(`[RBAC] Failed to load permission ${rp.permissionId}:`, err);
       }
     }
 
-    // 3. Redis 캐시 저장
+    // 4. Redis 캐시 저장
     if (redis && permissions.size > 0) {
       await redis.set(
         RedisKeys.rolePermissions(roleId),
