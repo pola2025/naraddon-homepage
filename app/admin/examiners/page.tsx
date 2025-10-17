@@ -163,8 +163,21 @@ export default function ExaminersPage() {
     setActivityScore(null);
   };
 
+  /**
+   * 심사관 정보 제출 핸들러
+   *
+   * @purpose 심사관 추가/수정 처리
+   * @context 이미지 업로드 완료를 확인 후 제출 진행
+   * @note 업로드 중일 때는 경고 메시지 표시하고 제출 차단
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 이미지 업로드 중일 때 제출 차단
+    if (uploadingImage) {
+      alert('이미지 업로드가 진행 중입니다. 잠시만 기다려주세요.');
+      return;
+    }
 
     try {
       const url = editingExaminer
@@ -615,7 +628,11 @@ export default function ExaminersPage() {
 
                   {/* 파일 업로드 버튼 */}
                   <div className="flex items-center space-x-3">
-                    <label className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <label className={`inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ${
+                      uploadingImage
+                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                        : 'bg-white text-gray-700 hover:bg-gray-50 cursor-pointer'
+                    }`}>
                       <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
@@ -630,9 +647,18 @@ export default function ExaminersPage() {
                     </label>
 
                     {uploadingImage && (
-                      <div className="flex items-center text-sm text-gray-500">
+                      <div className="flex items-center text-sm text-blue-600 font-medium">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                        업로드 중...
+                        이미지 업로드 중... 잠시만 기다려주세요
+                      </div>
+                    )}
+
+                    {!uploadingImage && formData.imageUrl && (
+                      <div className="flex items-center text-sm text-green-600 font-medium">
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        업로드 완료
                       </div>
                     )}
                   </div>
@@ -694,9 +720,14 @@ export default function ExaminersPage() {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                    disabled={uploadingImage}
+                    className={`px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white transition-colors ${
+                      uploadingImage
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
                   >
-                    {editingExaminer ? '수정' : '추가'}
+                    {uploadingImage ? '업로드 중...' : editingExaminer ? '수정' : '추가'}
                   </button>
                 </div>
               </form>
