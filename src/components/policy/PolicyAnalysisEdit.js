@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import './PolicyAnalysisWrite.css';
 
 const PolicyAnalysisEdit = ({ postId, initialData }) => {
   const router = useRouter();
+  const fileInputRef = useRef(null);
+
   const [formData, setFormData] = useState({
     password: '',
     title: initialData?.title || '',
@@ -23,6 +25,8 @@ const PolicyAnalysisEdit = ({ postId, initialData }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [examiners, setExaminers] = useState([]);
+  const [imagePreview, setImagePreview] = useState(initialData?.thumbnail || '');
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   useEffect(() => {
     const fetchExaminers = async () => {
@@ -81,6 +85,80 @@ const PolicyAnalysisEdit = ({ postId, initialData }) => {
         ...prev,
         isStructured: newIsStructured
       }));
+    }
+  };
+
+  /**
+   * 이미지 업로드 핸들러
+   *
+   * @purpose 썸네일 이미지 파일 업로드 및 미리보기
+   * @context Cloudflare R2에 업로드 후 URL 반환
+   */
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 파일 크기 체크 (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('파일 크기는 5MB를 초과할 수 없습니다.');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      return;
+    }
+
+    // 파일 타입 체크
+    if (!file.type.startsWith('image/')) {
+      alert('이미지 파일만 업로드 가능합니다.');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      return;
+    }
+
+    setIsUploadingImage(true);
+
+    try {
+      const formDataToUpload = new FormData();
+      formDataToUpload.append('file', file);
+
+      const response = await fetch('/api/policy-analysis/upload-image', {
+        method: 'POST',
+        body: formDataToUpload,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || '이미지 업로드에 실패했습니다.');
+      }
+
+      const data = await response.json();
+      setFormData(prev => ({ ...prev, thumbnail: data.url }));
+      setImagePreview(data.url);
+      alert('이미지가 업로드되었습니다.');
+    } catch (error) {
+      console.error('Image upload error:', error);
+      alert(error.message || '이미지 업로드 중 오류가 발생했습니다.');
+    } finally {
+      setIsUploadingImage(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  /**
+   * 이미지 삭제 핸들러
+   *
+   * @purpose 썸네일 이미지 제거 및 URL 초기화
+   */
+  const handleImageDelete = () => {
+    if (confirm('썸네일 이미지를 삭제하시겠습니까?')) {
+      setFormData(prev => ({ ...prev, thumbnail: '' }));
+      setImagePreview('');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -271,7 +349,7 @@ const PolicyAnalysisEdit = ({ postId, initialData }) => {
                     value={section.content}
                     onChange={(e) => handleSectionChange(section.id, e.target.value)}
                     placeholder={`${section.title} 내용을 입력하세요`}
-                    rows="4"
+                    rows="8"
                   />
                 </div>
               ))}
@@ -294,15 +372,84 @@ const PolicyAnalysisEdit = ({ postId, initialData }) => {
           )}
 
           <div className="form-group">
-            <label htmlFor="thumbnail">썸네일 URL</label>
-            <input
-              type="url"
-              id="thumbnail"
-              name="thumbnail"
-              value={formData.thumbnail}
-              onChange={handleChange}
-              placeholder="https://example.com/image.jpg"
-            />
+            <label htmlFor="thumbnail">썸네일 이미지</label>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+              <div style={{ flex: 1 }}>
+                <input
+                  type="url"
+                  id="thumbnail"
+                  name="thumbnail"
+                  value={formData.thumbnail}
+                  onChange={(e) => {
+                    handleChange(e);
+                    setImagePreview(e.target.value);
+                  }}
+                  placeholder="이미지 URL을 입력하거나 파일을 업로드하세요"
+                  style={{ width: '100%', marginBottom: '0.5rem' }}
+                />
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={isUploadingImage}
+                    style={{ display: 'none' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingImage}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      background: isUploadingImage ? '#ccc' : '#2196F3',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: isUploadingImage ? 'not-allowed' : 'pointer',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    {isUploadingImage ? '업로드 중...' : '이미지 업로드'}
+                  </button>
+                  {imagePreview && (
+                    <button
+                      type="button"
+                      onClick={handleImageDelete}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background: '#f44336',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem'
+                      }}
+                    >
+                      이미지 삭제
+                    </button>
+                  )}
+                </div>
+              </div>
+              {imagePreview && (
+                <div style={{ width: '150px', flexShrink: 0 }}>
+                  <img
+                    src={imagePreview}
+                    alt="썸네일 미리보기"
+                    style={{
+                      width: '100%',
+                      height: '100px',
+                      objectFit: 'cover',
+                      border: '1px solid #ddd',
+                      borderRadius: '4px'
+                    }}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="form-group">
