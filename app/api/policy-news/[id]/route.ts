@@ -54,8 +54,38 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
     // 권한 확인: 관리자 또는 기업심사관만 수정/삭제 가능
     const userRole = (session.user as any)?.role;
+    const userEmail = (session.user as any)?.email;
+
     if (userRole !== 'admin' && userRole !== 'super_admin' && userRole !== 'examiner') {
       return NextResponse.json({ message: '권한이 없습니다. 관리자 또는 기업심사관 역할이 필요합니다.' }, { status: 403 });
+    }
+
+    await connectDB();
+
+    /**
+     * 작성자 권한 체크
+     *
+     * @purpose 관리자는 모든 게시글 수정 가능, 작성자는 본인 게시글만 수정 가능
+     * @context author.email과 현재 사용자 email 비교
+     */
+    const existingPost = await PolicyNewsPost.findById(params.id);
+    if (!existingPost) {
+      return NextResponse.json({ message: '존재하지 않는 게시글입니다.' }, { status: 404 });
+    }
+
+    // 관리자가 아니고, 작성자도 아닌 경우 권한 없음
+    const isAdmin = userRole === 'admin' || userRole === 'super_admin';
+    const isAuthor = existingPost.author?.email === userEmail;
+
+    if (!isAdmin && !isAuthor) {
+      return NextResponse.json({
+        message: '본인이 작성한 게시글만 수정할 수 있습니다.',
+        debug: {
+          userEmail,
+          authorEmail: existingPost.author?.email,
+          userRole
+        }
+      }, { status: 403 });
     }
 
     const body = await request.json();
@@ -64,8 +94,6 @@ export async function PUT(request: Request, { params }: RouteParams) {
     if (!title || !title.trim() || !content || !content.trim()) {
       return NextResponse.json({ message: '제목과 내용을 입력해주세요.' }, { status: 400 });
     }
-
-    await connectDB();
 
     const normalizedTags = Array.isArray(tags)
       ? tags
@@ -130,11 +158,28 @@ export async function DELETE(request: Request, { params }: RouteParams) {
 
     // 권한 확인: 관리자 또는 기업심사관만 수정/삭제 가능
     const userRole = (session.user as any)?.role;
+    const userEmail = (session.user as any)?.email;
+
     if (userRole !== 'admin' && userRole !== 'super_admin' && userRole !== 'examiner') {
       return NextResponse.json({ message: '권한이 없습니다. 관리자 또는 기업심사관 역할이 필요합니다.' }, { status: 403 });
     }
 
     await connectDB();
+
+    // 작성자 권한 체크 (관리자는 모든 게시글 삭제 가능)
+    const existingPost = await PolicyNewsPost.findById(params.id);
+    if (!existingPost) {
+      return NextResponse.json({ message: '존재하지 않는 게시글입니다.' }, { status: 404 });
+    }
+
+    const isAdmin = userRole === 'admin' || userRole === 'super_admin';
+    const isAuthor = existingPost.author?.email === userEmail;
+
+    if (!isAdmin && !isAuthor) {
+      return NextResponse.json({
+        message: '본인이 작성한 게시글만 삭제할 수 있습니다.'
+      }, { status: 403 });
+    }
 
     const deleted = await PolicyNewsPost.findByIdAndDelete(params.id).lean();
     if (!deleted) {

@@ -13,6 +13,11 @@ export interface IPolicyNewsPost extends Document {
   views: number;
   likes: number;
   comments: number;
+  author?: {
+    email: string;
+    name?: string;
+    role?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -71,6 +76,14 @@ const policyNewsSchema = new Schema<IPolicyNewsPost>(
     comments: {
       type: Number,
       default: 0,
+    },
+    author: {
+      type: {
+        email: { type: String, required: true },
+        name: { type: String },
+        role: { type: String },
+      },
+      required: false,
     },
   },
   {

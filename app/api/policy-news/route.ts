@@ -60,6 +60,12 @@ export async function POST(request: Request) {
           .filter(Boolean)
       : [];
 
+    /**
+     * 작성자 정보 저장
+     *
+     * @purpose 게시글 수정 권한 관리를 위해 작성자 정보 저장
+     * @context 관리자는 모든 게시글 수정 가능, 작성자는 본인 게시글만 수정 가능
+     */
     const post = await PolicyNewsPost.create({
       title: title.trim(),
       content,
@@ -70,6 +76,11 @@ export async function POST(request: Request) {
       isMain: Boolean(isMain),
       isPinned: Boolean(isPinned),
       badge: badge?.trim() || '',
+      author: {
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
     });
 
     return NextResponse.json({ post }, { status: 201 });

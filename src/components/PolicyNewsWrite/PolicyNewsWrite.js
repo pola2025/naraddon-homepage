@@ -28,7 +28,7 @@ const defaultFormData = {
   isMainNews: false,
 };
 
-const PolicyNewsWrite = () => {
+const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
   const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState(true); // 관리자 세션으로 인증되어 있다고 가정
   const [formData, setFormData] = useState(defaultFormData);
@@ -38,7 +38,10 @@ const PolicyNewsWrite = () => {
   const [posts, setPosts] = useState([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isLoadingPost, setIsLoadingPost] = useState(false);
   const fileInputRef = useRef(null);
+
+  const isEditMode = mode === 'edit' && postId;
 
 
   // 관리자 세션은 관리자 대시보드에서 이미 확인됨
@@ -47,25 +50,68 @@ const PolicyNewsWrite = () => {
     setIsAuthorized(true);
   }, []);
 
+  // 수정 모드일 때 게시글 데이터 불러오기
+  useEffect(() => {
+    if (isEditMode) {
+      const fetchPost = async () => {
+        setIsLoadingPost(true);
+        try {
+          const response = await fetch(`/api/policy-news/${postId}`);
+          if (response.ok) {
+            const data = await response.json();
+            const post = data.post;
+            setFormData({
+              title: post.title || '',
+              category: post.category || '',
+              excerpt: post.excerpt || '',
+              content: post.content || '',
+              tags: Array.isArray(post.tags) ? post.tags.join(', ') : '',
+              thumbnail: post.thumbnail || '',
+              isMainNews: post.isMain || false,
+            });
+            if (post.thumbnail) {
+              setImagePreview(post.thumbnail);
+            }
+          } else {
+            alert('게시글을 불러오지 못했습니다.');
+            router.back();
+          }
+        } catch (error) {
+          console.error('Failed to fetch post:', error);
+          alert('게시글을 불러오는 중 오류가 발생했습니다.');
+          router.back();
+        } finally {
+          setIsLoadingPost(false);
+        }
+      };
+      fetchPost();
+    }
+  }, [isEditMode, postId, router]);
+
   useEffect(() => {
     if (!isAuthorized || typeof window === 'undefined') {
       return;
     }
-    const draft = localStorage.getItem('policyNewsDraft');
-    if (draft) {
-      try {
-        const parsed = JSON.parse(draft);
-        setFormData({ ...defaultFormData, ...parsed });
-        if (parsed.thumbnail) {
-          setImagePreview(parsed.thumbnail);
+    // 수정 모드가 아닐 때만 draft 불러오기
+    if (!isEditMode) {
+      const draft = localStorage.getItem('policyNewsDraft');
+      if (draft) {
+        try {
+          const parsed = JSON.parse(draft);
+          setFormData({ ...defaultFormData, ...parsed });
+          if (parsed.thumbnail) {
+            setImagePreview(parsed.thumbnail);
+          }
+        } catch (error) {
+          console.warn('임시 저장된 데이터를 불러오지 못했습니다.', error);
         }
-      } catch (error) {
-        console.warn('임시 저장된 데이터를 불러오지 못했습니다.', error);
       }
     }
-    // 인증 성공 시 게시글 목록 가져오기
-    fetchPosts();
-  }, [isAuthorized]);
+    // 인증 성공 시 게시글 목록 가져오기 (작성 모드일 때만)
+    if (!isEditMode) {
+      fetchPosts();
+    }
+  }, [isAuthorized, isEditMode]);
 
   const fetchPosts = async () => {
     setIsLoadingPosts(true);
@@ -245,8 +291,6 @@ const PolicyNewsWrite = () => {
       return;
     }
 
-    // 비밀번호 확인 삭제 - 관리자 세션으로 확인
-
     const tagsArray = formData.tags
       .split(',')
       .map((tag) => tag.trim())
@@ -260,13 +304,17 @@ const PolicyNewsWrite = () => {
       thumbnail: formData.thumbnail,
       tags: tagsArray,
       isMain: formData.isMainNews,
-      // 관리자 페이지에서 오는 요청은 비밀번호 불필요
     };
 
     try {
       setIsSubmitting(true);
-      const response = await fetch('/api/policy-news', {
-        method: 'POST',
+
+      // 수정 모드면 PUT, 작성 모드면 POST
+      const url = isEditMode ? `/api/policy-news/${postId}` : '/api/policy-news';
+      const method = isEditMode ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -275,16 +323,16 @@ const PolicyNewsWrite = () => {
 
       const result = await response.json().catch(() => ({}));
       if (!response.ok) {
-        alert(result?.message || '게시글 등록에 실패했습니다.');
+        alert(result?.message || `게시글 ${isEditMode ? '수정' : '등록'}에 실패했습니다.`);
         return;
       }
 
       localStorage.removeItem('policyNewsDraft');
-      alert('정책소식이 등록되었습니다.');
+      alert(`정책소식이 ${isEditMode ? '수정' : '등록'}되었습니다.`);
       router.push(`/policy-news/${result.post._id}`);
     } catch (error) {
-      console.error('정책소식 등록 실패', error);
-      alert('게시글 등록 중 오류가 발생했습니다.');
+      console.error(`정책소식 ${isEditMode ? '수정' : '등록'} 실패`, error);
+      alert(`게시글 ${isEditMode ? '수정' : '등록'} 중 오류가 발생했습니다.`);
     } finally {
       setIsSubmitting(false);
     }
@@ -315,6 +363,17 @@ const PolicyNewsWrite = () => {
     }
   };
 
+
+  // 로딩 중 표시
+  if (isLoadingPost) {
+    return (
+      <div className="policy-news-write">
+        <div className="loading-container" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+          <p style={{ fontSize: '1.2rem', color: '#64748b' }}>게시글을 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="policy-news-write">
@@ -359,7 +418,9 @@ const PolicyNewsWrite = () => {
           justifyContent: 'center',
           zIndex: 1,
         }}>
-          <h1 style={{ color: imagePreview ? '#fff' : '#1e293b', marginBottom: '1rem' }}>정책소식 작성</h1>
+          <h1 style={{ color: imagePreview ? '#fff' : '#1e293b', marginBottom: '1rem' }}>
+            {isEditMode ? '정책소식 수정' : '정책소식 작성'}
+          </h1>
           <p style={{ color: imagePreview ? '#fff' : '#64748b' }}>관리자 세션으로 인증되었습니다.</p>
         </div>
       </div>

@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import boardImage1 from '@/assets/images/board/board_image_01.jpg';
-import boardImage2 from '@/assets/images/board/board_image_02.jpg';
-import boardImage3 from '@/assets/images/board/board_image_03.jpg';
-import boardImage4 from '@/assets/images/board/board_image_04.png';
 import { sanitizeImageUrl } from '@/utils/imageUrlSanitizer';
 
-const FALLBACK_IMAGES = [boardImage1, boardImage2, boardImage3, boardImage4];
+/**
+ * 정책소식 Hook - 랜덤 이미지 사용 안 함
+ *
+ * @purpose 업로드된 이미지만 표시, fallback 이미지 완전 제거
+ * @context 사용자가 업로드한 이미지가 없으면 placeholder 표시
+ */
 
 const stripHtml = (value = '') => value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
@@ -54,20 +55,26 @@ const formatDate = (value) => {
 
 const ensureArray = (maybeArray) => (Array.isArray(maybeArray) ? maybeArray : []);
 
-export const normalizePolicyNewsItem = (post, index = 0, fallbackImages = FALLBACK_IMAGES) => {
-  const fallbackImage = fallbackImages[index % fallbackImages.length];
-  const fallbackSrc = typeof fallbackImage === 'string' ? fallbackImage : fallbackImage?.src;
-
+export const normalizePolicyNewsItem = (post, index = 0) => {
+  /**
+   * 썸네일 이미지 처리
+   *
+   * @purpose 사용자가 업로드한 이미지만 사용
+   * @context fallback 이미지 완전 제거 - 랜덤 이미지 사용 안 함
+   * @fix 업로드된 이미지가 없으면 빈 문자열 반환하여 컴포넌트에서 placeholder 처리
+   */
   const normalizedId = post?._id ?? post?.id ?? `policy-news-${index}`;
   const rawCategory = typeof post?.category === 'string' ? post.category.trim() : '';
   const category = rawCategory.length > 0 ? rawCategory : 'policy';
 
-  const rawThumbnail =
-    typeof post?.thumbnail === 'string' && post.thumbnail.trim().length > 0
-      ? sanitizeImageUrl(post.thumbnail.trim())
-      : typeof post?.image === 'string' && post.image.trim().length > 0
-        ? sanitizeImageUrl(post.image.trim())
-        : fallbackSrc;
+  // 업로드된 이미지만 사용, fallback 이미지 사용 안 함
+  let rawThumbnail = '';
+  if (typeof post?.thumbnail === 'string' && post.thumbnail.trim().length > 0) {
+    rawThumbnail = sanitizeImageUrl(post.thumbnail.trim());
+  } else if (typeof post?.image === 'string' && post.image.trim().length > 0) {
+    rawThumbnail = sanitizeImageUrl(post.image.trim());
+  }
+  // 업로드된 이미지가 없으면 빈 문자열 (컴포넌트에서 placeholder 처리)
 
   const baseContent = typeof post?.content === 'string' ? post.content : '';
   const primaryExcerpt = typeof post?.excerpt === 'string' ? post.excerpt : '';
@@ -93,7 +100,7 @@ export const normalizePolicyNewsItem = (post, index = 0, fallbackImages = FALLBA
     excerpt,
     category,
     badge: typeof post?.badge === 'string' ? post.badge.trim() : '',
-    thumbnail: rawThumbnail || fallbackSrc || '',
+    thumbnail: rawThumbnail || '',
     tags: ensureArray(post?.tags),
     isMain: Boolean(post?.isMain),
     isPinned: Boolean(post?.isPinned),
@@ -110,18 +117,17 @@ export const normalizePolicyNewsItem = (post, index = 0, fallbackImages = FALLBA
  *
  * @param {Object} options
  * @param {number} options.limit - 가져올 게시물 수
- * @param {Array} options.fallbackImages - 대체 이미지 배열
  * @param {Array} options.initialData - 서버에서 미리 가져온 데이터 (optional)
  * @returns {Object} { items, isLoading, error, refetch, meta }
  */
-export const usePolicyNews = ({ limit = 12, fallbackImages = FALLBACK_IMAGES, initialData } = {}) => {
+export const usePolicyNews = ({ limit = 12, initialData } = {}) => {
   // initialData가 있으면 normalize하여 사용, 없으면 빈 배열
   const normalized = useMemo(() => {
     if (initialData && Array.isArray(initialData) && initialData.length > 0) {
-      return initialData.map((post, index) => normalizePolicyNewsItem(post, index, fallbackImages));
+      return initialData.map((post, index) => normalizePolicyNewsItem(post, index));
     }
     return [];
-  }, [initialData, fallbackImages]);
+  }, [initialData]);
 
   const [items, setItems] = useState(normalized);
   const [isLoading, setIsLoading] = useState(!initialData); // initialData 있으면 로딩 안함
@@ -145,7 +151,7 @@ export const usePolicyNews = ({ limit = 12, fallbackImages = FALLBACK_IMAGES, in
 
       const payload = await response.json();
       const posts = Array.isArray(payload?.posts) ? payload.posts : [];
-      const normalized = posts.map((post, index) => normalizePolicyNewsItem(post, index, fallbackImages));
+      const normalized = posts.map((post, index) => normalizePolicyNewsItem(post, index));
       setItems(normalized);
       return { controller };
     } catch (fetchError) {
@@ -159,7 +165,7 @@ export const usePolicyNews = ({ limit = 12, fallbackImages = FALLBACK_IMAGES, in
     } finally {
       setIsLoading(false);
     }
-  }, [fallbackImages, limit]);
+  }, [limit]);
 
   useEffect(() => {
     // initialData가 있으면 API 호출 스킵
