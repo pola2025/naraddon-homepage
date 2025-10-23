@@ -416,20 +416,38 @@ export default function AdminPolicyAnalysisPage() {
                     {formatDate(post.createdAt)}
                   </td>
                   <td style={{ padding: '12px', textAlign: 'center' }}>
-                    <button
-                      onClick={() => handleDeleteClick(post)}
-                      style={{
-                        padding: '6px 12px',
-                        background: '#f44336',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontSize: '14px'
-                      }}
-                    >
-                      삭제
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                      <Link
+                        href={`/policy-analysis/${post._id}/edit`}
+                        style={{
+                          padding: '6px 12px',
+                          background: '#2196F3',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          textDecoration: 'none',
+                          display: 'inline-block'
+                        }}
+                      >
+                        수정
+                      </Link>
+                      <button
+                        onClick={() => handleDeleteClick(post)}
+                        style={{
+                          padding: '6px 12px',
+                          background: '#f44336',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '14px'
+                        }}
+                      >
+                        삭제
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
