@@ -24,6 +24,7 @@ const nextConfig = {
   images: {
     domains: [
       'pub-b520cb8ed3989e8182bdb020ade36495.r2.dev',
+      'pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev', // 정책분석 이미지 R2 도메인
       'img.youtube.com',
       'images.unsplash.com',
     ],
