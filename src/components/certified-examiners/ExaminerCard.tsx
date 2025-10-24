@@ -46,6 +46,20 @@ export default function ExaminerCard({ examiner, variant = 'grid' }: ExaminerCar
         <span>나라똔 인증</span>
       </div>
 
+      {/**
+       * 활동 점수 배지
+       *
+       * @purpose 심사관의 활동 점수를 시각적으로 표시
+       * @context 활동 점수가 있을 때만 표시
+       * @score 로그인(2) + 페이지방문(1) + 게시글(10) + 댓글(5)
+       */}
+      {examiner.activityScore !== undefined && examiner.activityScore > 0 && (
+        <div className={styles.activityBadge}>
+          <i className="fas fa-fire"></i>
+          <span>{examiner.activityScore}점</span>
+        </div>
+      )}
+
       <div className={styles.cardImage}>
         <img
           src={imageUrl}
@@ -62,6 +76,27 @@ export default function ExaminerCard({ examiner, variant = 'grid' }: ExaminerCar
       <div className={styles.infoBlock}>
         <div className={styles.nameBlock}>{examiner.name}</div>
         <div className={styles.companyBlock}>{examiner.companyName}</div>
+
+        {/**
+         * 활동 통계 표시
+         *
+         * @purpose 심사관의 최근 활동 정보 제공
+         * @context 게시글/댓글 수 표시로 신뢰도 향상
+         */}
+        {examiner.activityStats && (
+          <div className={styles.activityStats}>
+            {examiner.activityStats.postsCreated > 0 && (
+              <span className={styles.stat}>
+                <i className="fas fa-file-alt"></i> 게시글 {examiner.activityStats.postsCreated}
+              </span>
+            )}
+            {examiner.activityStats.commentsCreated > 0 && (
+              <span className={styles.stat}>
+                <i className="fas fa-comment"></i> 댓글 {examiner.activityStats.commentsCreated}
+              </span>
+            )}
+          </div>
+        )}
 
         <div className={styles.buttonGroup}>
           {enableBrandPage && examiner._id && (

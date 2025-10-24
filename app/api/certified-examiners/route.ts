@@ -45,18 +45,86 @@ export async function GET() {
     const queryTime = Date.now() - queryStartTime;
     console.log(`[Certified Examiners API] Query: ${queryTime}ms`);
 
-    // 프론트엔드 형식으로 변환 (MongoDB 문서 형식 유지)
-    const formattedExaminers = examiners.map(examiner => ({
-      _id: examiner._id.toString(),
-      name: examiner.name,
-      companyName: examiner.companyName,
-      imageUrl: examiner.imageUrl || '',
-      position: examiner.position || '인증 기업심사관',
-      category: examiner.category || 'funding',
-      specialties: examiner.specialties || [],
-      isPublished: true,
-      sortOrder: examiner.sortOrder || 0
-    }));
+    /**
+     * 활동 점수 조회 및 결합
+     *
+     * @purpose 각 심사관의 활동 점수를 조회하여 프로필 카드에 표시
+     * @context examiner-activities 컬렉션에서 점수 조회
+     */
+    const activitiesStartTime = Date.now();
+    const examinerIds = examiners.map(e => e._id.toString());
+
+    // 모든 심사관의 활동 점수를 한 번에 조회 (성능 최적화)
+    const activitiesData = await db.collection('examiner-activities')
+      .find({ examinerId: { $in: examinerIds } })
+      .project({
+        examinerId: 1,
+        activities: 1,
+        totalScore: 1
+      })
+      .toArray();
+
+    // examiner ID를 키로 하는 활동 점수 맵 생성
+    const activitiesMap = new Map(
+      activitiesData.map(a => [a.examinerId, a])
+    );
+
+    const activitiesTime = Date.now() - activitiesStartTime;
+    console.log(`[Certified Examiners API] Activities fetch: ${activitiesTime}ms`);
+
+    /**
+     * 활동 점수 계산
+     *
+     * @formula
+     *   - 로그인: 2점
+     *   - 페이지 방문: 1점
+     *   - 게시글 작성: 10점
+     *   - 댓글 작성: 5점
+     *   - 상담 배정: 15점
+     *   - 상담 완료: 20점
+     */
+    const scoreConfig = {
+      pageVisit: 1,
+      postCreated: 10,
+      commentCreated: 5,
+      login: 2
+    };
+
+    // 프론트엔드 형식으로 변환 (활동 점수 포함)
+    const formattedExaminers = examiners.map(examiner => {
+      const examinerId = examiner._id.toString();
+      const activity = activitiesMap.get(examinerId);
+
+      // 활동 점수 계산
+      let activityScore = 0;
+      if (activity && activity.activities) {
+        activityScore =
+          (activity.activities.pageVisits || 0) * scoreConfig.pageVisit +
+          (activity.activities.postsCreated || 0) * scoreConfig.postCreated +
+          (activity.activities.commentsCreated || 0) * scoreConfig.commentCreated +
+          (activity.activities.loginCount || 0) * scoreConfig.login;
+      }
+
+      return {
+        _id: examinerId,
+        name: examiner.name,
+        companyName: examiner.companyName,
+        imageUrl: examiner.imageUrl || '',
+        position: examiner.position || '인증 기업심사관',
+        category: examiner.category || 'funding',
+        specialties: examiner.specialties || [],
+        isPublished: true,
+        sortOrder: examiner.sortOrder || 0,
+        activityScore,
+        activityStats: activity ? {
+          loginCount: activity.activities?.loginCount || 0,
+          pageVisits: activity.activities?.pageVisits || 0,
+          postsCreated: activity.activities?.postsCreated || 0,
+          commentsCreated: activity.activities?.commentsCreated || 0,
+          lastActiveAt: activity.activities?.lastActiveAt || null
+        } : null
+      };
+    });
 
     const totalTime = Date.now() - startTime;
     console.log(`[Certified Examiners API] Total: ${totalTime}ms, Count: ${formattedExaminers.length}`);

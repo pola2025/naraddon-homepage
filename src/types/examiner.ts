@@ -12,6 +12,14 @@ export interface Examiner {
   isPublished: boolean;
   createdAt: string;
   updatedAt: string;
+  activityScore?: number;
+  activityStats?: {
+    loginCount: number;
+    pageVisits: number;
+    postsCreated: number;
+    commentsCreated: number;
+    lastActiveAt: string | null;
+  } | null;
 }
 
 export interface ExaminersData {
