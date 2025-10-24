@@ -55,10 +55,21 @@ export async function GET(
 
     // 정책분석 글 개수 조회
     let policyAnalysisCount = 0;
+
+    // legacyKey 또는 이름으로 매칭 시도
+    const policyQuery: any = { $or: [] };
+
     if (examiner.legacyKey) {
-      policyAnalysisCount = await db.collection('policy-analysis-posts').countDocuments({
-        'examiner.key': examiner.legacyKey,
-      });
+      policyQuery.$or.push({ 'examiner.key': examiner.legacyKey });
+    }
+
+    if (examiner.name) {
+      policyQuery.$or.push({ 'examiner.name': examiner.name });
+    }
+
+    if (policyQuery.$or.length > 0) {
+      policyAnalysisCount = await db.collection('policyanalysisposts').countDocuments(policyQuery);
+      console.log('[Brand Page API] Policy analysis count for', examiner.name, ':', policyAnalysisCount);
     }
 
     return NextResponse.json({

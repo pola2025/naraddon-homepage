@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const examinerKey = searchParams.get('examinerKey');
+    const examinerName = searchParams.get('examinerName');
     const rawLimit = searchParams.get('limit');
     const rawSearch = searchParams.get('search');
     const sortKey = searchParams.get('sort') || 'newest';
@@ -35,8 +36,20 @@ export async function GET(request: NextRequest) {
       query.category = category;
     }
 
-    if (examinerKey) {
-      query['examiner.key'] = examinerKey;
+    // examinerKey 또는 examinerName으로 필터링
+    if (examinerKey || examinerName) {
+      const examinerQuery = [];
+      if (examinerKey) {
+        examinerQuery.push({ 'examiner.key': examinerKey });
+      }
+      if (examinerName) {
+        examinerQuery.push({ 'examiner.name': examinerName });
+      }
+      if (examinerQuery.length === 1) {
+        Object.assign(query, examinerQuery[0]);
+      } else {
+        query.$or = examinerQuery;
+      }
     }
 
     if (rawSearch) {
