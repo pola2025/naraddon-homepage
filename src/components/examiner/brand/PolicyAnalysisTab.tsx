@@ -12,6 +12,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import styles from './PolicyAnalysisTab.module.css';
 
 interface PolicyPost {
   _id: string;
@@ -82,7 +83,7 @@ export default function PolicyAnalysisTab({ examinerKey, examinerName }: PolicyA
   // 로딩 중
   if (loading) {
     return (
-      <div className="policy-loading">
+      <div className={styles.policyLoading}>
         <i className="fas fa-spinner fa-spin"></i>
         <p>정책분석 글을 불러오는 중...</p>
       </div>
@@ -92,7 +93,7 @@ export default function PolicyAnalysisTab({ examinerKey, examinerName }: PolicyA
   // 에러 발생
   if (error) {
     return (
-      <div className="policy-error">
+      <div className={styles.policyError}>
         <i className="fas fa-exclamation-triangle"></i>
         <p>{error}</p>
       </div>
@@ -102,7 +103,7 @@ export default function PolicyAnalysisTab({ examinerKey, examinerName }: PolicyA
   // 작성한 글이 없을 때
   if (posts.length === 0) {
     return (
-      <div className="no-policy">
+      <div className={styles.noPolicy}>
         <i className="fas fa-inbox"></i>
         <p>아직 작성된 정책분석 글이 없습니다.</p>
         <small>나라똔 정책분석 페이지에서 글을 작성하면 여기에 자동으로 표시됩니다.</small>
@@ -112,19 +113,19 @@ export default function PolicyAnalysisTab({ examinerKey, examinerName }: PolicyA
 
   // 정책분석 글 목록 표시
   return (
-    <section className="policy-analysis">
-      <div className="container">
-        <div className="section-header">
+    <section className={styles.policySection}>
+      <div className={styles.container}>
+        <div className={styles.sectionHeader}>
           <h2>정책분석</h2>
           <p>전문가가 직접 작성한 정책분석 글 ({posts.length}개)</p>
         </div>
 
-        <div className="policy-grid">
+        <div className={styles.policyGrid}>
           {posts.map((post) => (
-            <article key={post._id} className="policy-card">
-              <Link href={`/policy-analysis/${post._id}`} className="policy-card-link">
+            <article key={post._id} className={styles.policyCard}>
+              <Link href={`/policy-analysis/${post._id}`} className={styles.policyCardLink}>
                 {/* 썸네일 */}
-                <div className="policy-thumbnail">
+                <div className={styles.policyThumbnail}>
                   {post.thumbnail ? (
                     <Image
                       src={post.thumbnail}
@@ -133,18 +134,18 @@ export default function PolicyAnalysisTab({ examinerKey, examinerName }: PolicyA
                       style={{ objectFit: 'cover' }}
                     />
                   ) : (
-                    <div className="policy-thumbnail-placeholder">
+                    <div className={styles.policyThumbnailPlaceholder}>
                       <i className="fas fa-file-alt"></i>
                     </div>
                   )}
                 </div>
 
                 {/* 콘텐츠 */}
-                <div className="policy-content">
+                <div className={styles.policyContent}>
                   {/* 메타 정보 */}
-                  <div className="policy-meta">
-                    <span className="policy-category">{post.category}</span>
-                    <span className="policy-date">
+                  <div className={styles.policyMeta}>
+                    <span className={styles.policyCategory}>{post.category}</span>
+                    <span className={styles.policyDate}>
                       {new Date(post.createdAt).toLocaleDateString('ko-KR', {
                         year: 'numeric',
                         month: '2-digit',
@@ -154,23 +155,23 @@ export default function PolicyAnalysisTab({ examinerKey, examinerName }: PolicyA
                   </div>
 
                   {/* 제목 */}
-                  <h3 className="policy-title">{post.title}</h3>
+                  <h3 className={styles.policyTitle}>{post.title}</h3>
 
                   {/* 요약 */}
-                  <p className="policy-excerpt">{post.excerpt}</p>
+                  <p className={styles.policyExcerpt}>{post.excerpt}</p>
 
                   {/* 조회수 */}
-                  <div className="policy-stats">
-                    <span className="policy-views">
+                  <div className={styles.policyStats}>
+                    <span className={styles.policyViews}>
                       <i className="fas fa-eye"></i> {post.views.toLocaleString()}
                     </span>
-                    <span className="policy-likes">
+                    <span className={styles.policyLikes}>
                       <i className="fas fa-heart"></i> {post.likes}
                     </span>
                   </div>
 
                   {/* 링크 */}
-                  <span className="policy-link">
+                  <span className={styles.policyLink}>
                     자세히 보기 <i className="fas fa-arrow-right"></i>
                   </span>
                 </div>
