@@ -7,6 +7,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import BrandIntroEditor from '@/components/examiner/BrandIntroEditor';
 import CareerEditor from '@/components/examiner/CareerEditor';
 import SuccessCaseEditor from '@/components/examiner/SuccessCaseEditor';
+import ContactInfoEditor from '@/components/examiner/ContactInfoEditor';
 
 /**
  * 심사관 브랜드 페이지 편집
@@ -23,6 +24,7 @@ interface ExaminerProfile {
   companyName?: string;
   brandPage?: {
     companyIntro?: string;
+    companyLogo?: string;
     useDefaultIntro: boolean;
     careers: Array<{
       period: string;
@@ -37,10 +39,15 @@ interface ExaminerProfile {
       thumbnail?: string;
       date: Date;
     }>;
+    contactInfo?: {
+      website?: string;
+      consultationHours?: string;
+      address?: string;
+    };
   };
 }
 
-type TabType = 'intro' | 'career' | 'successCase';
+type TabType = 'intro' | 'career' | 'successCase' | 'contact';
 
 export default function BrandEditPage() {
   const router = useRouter();
@@ -171,6 +178,7 @@ export default function BrandEditPage() {
     { id: 'intro' as TabType, label: '회사소개', icon: 'fas fa-building' },
     { id: 'career' as TabType, label: '경력', icon: 'fas fa-briefcase' },
     { id: 'successCase' as TabType, label: '성공케이스', icon: 'fas fa-trophy' },
+    { id: 'contact' as TabType, label: '연락처', icon: 'fas fa-address-book' },
   ];
 
   // 메인 컨텐츠 렌더링 함수
@@ -276,6 +284,7 @@ export default function BrandEditPage() {
                         useDefaultIntro: useDefault,
                         careers: profile.brandPage?.careers || [],
                         successCases: profile.brandPage?.successCases || [],
+                        contactInfo: profile.brandPage?.contactInfo || {},
                       },
                     });
                   }}
@@ -292,9 +301,11 @@ export default function BrandEditPage() {
                       brandPage: {
                         ...profile.brandPage,
                         companyIntro: profile.brandPage?.companyIntro || '',
+                        companyLogo: profile.brandPage?.companyLogo || '',
                         useDefaultIntro: profile.brandPage?.useDefaultIntro ?? true,
                         careers,
                         successCases: profile.brandPage?.successCases || [],
+                        contactInfo: profile.brandPage?.contactInfo || {},
                       },
                     });
                   }}
@@ -310,9 +321,37 @@ export default function BrandEditPage() {
                       brandPage: {
                         ...profile.brandPage,
                         companyIntro: profile.brandPage?.companyIntro || '',
+                        companyLogo: profile.brandPage?.companyLogo || '',
                         useDefaultIntro: profile.brandPage?.useDefaultIntro ?? true,
                         careers: profile.brandPage?.careers || [],
                         successCases,
+                        contactInfo: profile.brandPage?.contactInfo || {},
+                      },
+                    });
+                  }}
+                />
+              )}
+
+              {activeTab === 'contact' && (
+                <ContactInfoEditor
+                  website={profile.brandPage?.contactInfo?.website || ''}
+                  consultationHours={profile.brandPage?.contactInfo?.consultationHours || ''}
+                  address={profile.brandPage?.contactInfo?.address || ''}
+                  onChange={(website, consultationHours, address) => {
+                    setProfile({
+                      ...profile,
+                      brandPage: {
+                        ...profile.brandPage,
+                        companyIntro: profile.brandPage?.companyIntro || '',
+                        companyLogo: profile.brandPage?.companyLogo || '',
+                        useDefaultIntro: profile.brandPage?.useDefaultIntro ?? true,
+                        careers: profile.brandPage?.careers || [],
+                        successCases: profile.brandPage?.successCases || [],
+                        contactInfo: {
+                          website,
+                          consultationHours,
+                          address,
+                        },
                       },
                     });
                   }}
