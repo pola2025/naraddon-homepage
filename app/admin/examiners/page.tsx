@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { PlusIcon, PencilIcon, TrashIcon, UserIcon, EyeIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, TrashIcon, UserIcon, EyeIcon, DocumentArrowDownIcon, GlobeAltIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { exportAndDownloadExaminers } from '@/utils/exportExcel';
 
 interface Examiner {
@@ -15,6 +15,7 @@ interface Examiner {
   userId: string | null;
   isPublished: boolean;
   sortOrder: number;
+  hasBrandPageContent?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -482,27 +483,63 @@ export default function ExaminersPage() {
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <button
-                    onClick={() => handleViewDetail(examiner)}
-                    className="text-gray-600 hover:text-gray-900 mr-3"
-                    title="상세보기"
-                  >
-                    <EyeIcon className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => handleOpenModal(examiner)}
-                    className="text-blue-600 hover:text-blue-900 mr-3"
-                    title="수정"
-                  >
-                    <PencilIcon className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(examiner._id, examiner.name)}
-                    className="text-red-600 hover:text-red-900"
-                    title="삭제"
-                  >
-                    <TrashIcon className="w-5 h-5" />
-                  </button>
+                  <div className="flex items-center gap-3">
+                    {/* 브랜드 페이지 보기 */}
+                    <div className="relative inline-block">
+                      <a
+                        href={`/certified-examiners/${examiner._id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-amber-600 hover:text-amber-900 inline-block"
+                        title={examiner.hasBrandPageContent ? "브랜드 페이지 보기 (정보 작성됨)" : "브랜드 페이지 보기 (기본 정보)"}
+                      >
+                        <GlobeAltIcon className="w-5 h-5" />
+                      </a>
+                      {examiner.hasBrandPageContent && (
+                        <CheckCircleIcon className="w-3 h-3 text-green-500 absolute -top-1 -right-1 bg-white rounded-full" />
+                      )}
+                    </div>
+
+                    {/* 브랜드 페이지 편집 */}
+                    <a
+                      href={`/examiner/brand-edit?id=${examiner._id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-600 hover:text-purple-900"
+                      title="브랜드 페이지 편집"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </a>
+
+                    {/* 상세보기 */}
+                    <button
+                      onClick={() => handleViewDetail(examiner)}
+                      className="text-gray-600 hover:text-gray-900"
+                      title="상세보기"
+                    >
+                      <EyeIcon className="w-5 h-5" />
+                    </button>
+
+                    {/* 기본정보 수정 */}
+                    <button
+                      onClick={() => handleOpenModal(examiner)}
+                      className="text-blue-600 hover:text-blue-900"
+                      title="기본정보 수정"
+                    >
+                      <PencilIcon className="w-5 h-5" />
+                    </button>
+
+                    {/* 삭제 */}
+                    <button
+                      onClick={() => handleDelete(examiner._id, examiner.name)}
+                      className="text-red-600 hover:text-red-900"
+                      title="삭제"
+                    >
+                      <TrashIcon className="w-5 h-5" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
