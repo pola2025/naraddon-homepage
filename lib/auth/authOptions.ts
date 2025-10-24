@@ -112,14 +112,40 @@ export const authOptions: NextAuthOptions = {
                 examinerName: examiner.name
               });
 
+              /**
+               * 1일 1회 로그인 점수 제한
+               *
+               * @purpose 로그인 점수는 하루에 한 번만 부여
+               * @context 같은 날 여러 번 로그인해도 점수는 1회만 증가
+               * @decision KST 기준 날짜로 비교 (UTC+9)
+               */
+              // KST 기준 오늘 날짜 (YYYY-MM-DD)
+              const kstOffset = 9 * 60 * 60 * 1000; // 9시간을 밀리초로
+              const kstNow = new Date(now.getTime() + kstOffset);
+              const todayKST = kstNow.toISOString().split('T')[0]; // "2025-10-25"
+
+              // 기존 활동 기록 조회
+              const existingActivity = await db.collection('examiner-activities').findOne({ examinerId });
+              const lastLoginDate = existingActivity?.activities?.lastLoginDate;
+
+              // 오늘 첫 로그인인지 확인
+              const isFirstLoginToday = !lastLoginDate || lastLoginDate !== todayKST;
+
+              console.log('[SignIn Callback] Login date check:', {
+                todayKST,
+                lastLoginDate,
+                isFirstLoginToday
+              });
+
               // 로그인 활동 기록
               await db.collection('examiner-activities').updateOne(
                 { examinerId },
                 {
-                  $inc: { 'activities.loginCount': 1 },
+                  ...(isFirstLoginToday ? { $inc: { 'activities.loginCount': 1 } } : {}),
                   $set: {
                     userId: dbUser._id.toString(),
                     'activities.lastActiveAt': now,
+                    'activities.lastLoginDate': todayKST,
                     updatedAt: now
                   },
                   $setOnInsert: {
@@ -131,7 +157,9 @@ export const authOptions: NextAuthOptions = {
                       consultationsAssigned: 0,
                       consultationsCompleted: 0,
                       loginCount: 0,
-                      lastActiveAt: now
+                      profileCompletenessScore: 0,
+                      lastActiveAt: now,
+                      lastLoginDate: todayKST
                     },
                     totalScore: 0,
                     createdAt: now
@@ -140,7 +168,7 @@ export const authOptions: NextAuthOptions = {
                 { upsert: true }
               );
 
-              console.log('[SignIn Callback] Login activity recorded successfully');
+              console.log('[SignIn Callback] Login activity recorded:', isFirstLoginToday ? 'New login counted' : 'Same day login, not counted');
             }
           }
         }

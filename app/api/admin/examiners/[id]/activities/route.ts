@@ -61,7 +61,8 @@ export async function GET(
           consultationsCompleted: 0,
           loginCount: 0,
           profileCompletenessScore: 0,
-          lastActiveAt: null
+          lastActiveAt: null,
+          lastLoginDate: null
         },
         totalScore: 0,
         createdAt: new Date(),
@@ -195,7 +196,8 @@ export async function POST(
               consultationsCompleted: 0,
               loginCount: 0,
               profileCompletenessScore: 0,
-              lastActiveAt: now
+              lastActiveAt: now,
+              lastLoginDate: null
             },
             totalScore: 0,
             createdAt: now
@@ -241,7 +243,8 @@ export async function POST(
             consultationsCompleted: 0,
             loginCount: 0,
             profileCompletenessScore: 0,
-            lastActiveAt: now
+            lastActiveAt: now,
+            lastLoginDate: null
           },
           totalScore: 0,
           createdAt: now
