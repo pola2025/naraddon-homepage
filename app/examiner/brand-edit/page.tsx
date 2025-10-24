@@ -177,10 +177,10 @@ export default function BrandEditPage() {
 
   const tabs = [
     { id: 'intro' as TabType, label: '회사소개', icon: 'fas fa-building' },
+    { id: 'info' as TabType, label: '정보', icon: 'fas fa-image' },
     { id: 'career' as TabType, label: '경력', icon: 'fas fa-briefcase' },
     { id: 'successCase' as TabType, label: '성공케이스', icon: 'fas fa-trophy' },
     { id: 'contact' as TabType, label: '연락처', icon: 'fas fa-address-book' },
-    { id: 'info' as TabType, label: '정보', icon: 'fas fa-image' },
   ];
 
   // 메인 컨텐츠 렌더링 함수

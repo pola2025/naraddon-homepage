@@ -22,10 +22,10 @@ export default function TabSection({ examiner }: TabSectionProps) {
 
   const tabs = [
     { id: 'company', label: '회사소개', enabled: true },
+    { id: 'info', label: '정보', enabled: hasInfoImage },
     { id: 'career', label: '경력', enabled: hasCareers },
     { id: 'successCase', label: '성공 케이스', enabled: hasSuccessCases },
     { id: 'policyAnalysis', label: '정책분석', enabled: hasPolicyAnalysis },
-    { id: 'info', label: '정보', enabled: hasInfoImage },
   ];
 
   const renderTabContent = () => {
