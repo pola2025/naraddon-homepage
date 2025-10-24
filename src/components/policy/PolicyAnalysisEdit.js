@@ -9,7 +9,7 @@ const PolicyAnalysisEdit = ({ postId, initialData }) => {
   const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
-    password: '',
+    // password 제거 - NextAuth 세션 기반 인증 사용
     title: initialData?.title || '',
     content: initialData?.content || '',
     category: initialData?.category || 'government',
@@ -165,9 +165,7 @@ const PolicyAnalysisEdit = ({ postId, initialData }) => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.password.trim()) {
-      newErrors.password = '비밀번호를 입력해주세요.';
-    }
+    // password 검증 제거 - NextAuth 세션 기반 인증 사용
 
     if (!formData.title.trim()) {
       newErrors.title = '제목을 입력해주세요.';
@@ -204,7 +202,7 @@ const PolicyAnalysisEdit = ({ postId, initialData }) => {
         .filter(tag => tag.length > 0);
 
       const payload = {
-        password: formData.password,
+        // password 제거 - NextAuth 세션 기반 인증 사용
         title: formData.title,
         content: formData.isStructured ?
           formData.sections.map(s => `## ${s.title}\n${s.content}`).join('\n\n') :
@@ -219,19 +217,31 @@ const PolicyAnalysisEdit = ({ postId, initialData }) => {
         images: formData.images
       };
 
+      console.log('[정책분석 수정] 요청 시작:', { postId, payload });
+
       const response = await fetch(`/api/policy-analysis/${postId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // 세션 쿠키 전송
         body: JSON.stringify(payload)
       });
 
-      const result = await response.json();
+      console.log('[정책분석 수정] 응답 상태:', response.status, response.statusText);
 
       if (!response.ok) {
+        let result;
+        try {
+          result = await response.json();
+        } catch (e) {
+          result = { message: `HTTP ${response.status}: ${response.statusText}` };
+        }
+        console.error('[정책분석 수정] 에러 응답:', result);
         throw new Error(result.message || '게시글 수정에 실패했습니다.');
       }
+
+      const result = await response.json();
 
       alert('게시글이 성공적으로 수정되었습니다!');
       router.push(`/policy-analysis/${postId}`);
@@ -253,19 +263,7 @@ const PolicyAnalysisEdit = ({ postId, initialData }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="write-form">
-          <div className="form-group">
-            <label htmlFor="password" className="required">비밀번호</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="게시글 수정 비밀번호를 입력하세요"
-              className={errors.password ? 'error' : ''}
-            />
-            {errors.password && <span className="error-message">{errors.password}</span>}
-          </div>
+          {/* password 필드 제거 - NextAuth 세션 기반 인증 사용 */}
 
           <div className="form-group">
             <label htmlFor="examinerKey">인증기업심사관</label>
