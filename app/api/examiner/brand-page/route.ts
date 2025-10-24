@@ -108,23 +108,72 @@ export async function PATCH(request: NextRequest) {
     console.log('[Brand Page API] Updated successfully:', targetExaminer._id);
 
     /**
-     * 프로필 업데이트 활동 기록
+     * 프로필 완성도 점수 계산 및 기록
      *
-     * @purpose examiner의 브랜드 페이지 편집 활동 추적
-     * @context 프로필 업데이트는 5점
+     * @purpose examiner의 브랜드 페이지 완성도를 점수로 환산
+     * @context 각 항목 완성 여부로 점수 부여 (횟수 기반 X)
+     * @decision
+     *   - companyLogo: 5점 (로고 이미지 있음)
+     *   - companyIntro: 5점 (회사 소개 작성)
+     *   - infoImage: 5점 (정보 이미지 있음)
+     *   - careers: 5점 (경력 1개 이상)
+     *   - successCases: 5점 (성공 케이스 1개 이상)
+     *   - contactInfo: 5점 (연락처 정보 1개 이상)
+     *   - 최대 30점
      * @note 관리자가 편집한 경우는 기록하지 않음 (examinerId가 있는 경우)
      */
     if (!examinerId && result.modifiedCount > 0) {
       try {
         const targetExaminerId = targetExaminer._id.toString();
 
+        // 브랜드 페이지 완성도 계산
+        let completenessScore = 0;
+
+        // 1. 회사 로고 (5점)
+        if (brandPage.companyLogo && brandPage.companyLogo.trim()) {
+          completenessScore += 5;
+        }
+
+        // 2. 회사 소개 (5점)
+        if (brandPage.companyIntro && brandPage.companyIntro.trim()) {
+          completenessScore += 5;
+        }
+
+        // 3. 정보 이미지 (5점)
+        if (brandPage.infoImage && brandPage.infoImage.trim()) {
+          completenessScore += 5;
+        }
+
+        // 4. 경력 (5점)
+        if (brandPage.careers && brandPage.careers.length > 0) {
+          completenessScore += 5;
+        }
+
+        // 5. 성공 케이스 (5점)
+        if (brandPage.successCases && brandPage.successCases.length > 0) {
+          completenessScore += 5;
+        }
+
+        // 6. 연락처 정보 (5점)
+        if (brandPage.contactInfo && (
+          (brandPage.contactInfo.website && brandPage.contactInfo.website.trim()) ||
+          (brandPage.contactInfo.consultationHours && brandPage.contactInfo.consultationHours.trim()) ||
+          (brandPage.contactInfo.address && brandPage.contactInfo.address.trim())
+        )) {
+          completenessScore += 5;
+        }
+
+        // 완성도 점수 저장 (횟수가 아닌 완성도)
         await fetch(`${process.env.NEXTAUTH_URL}/api/admin/examiners/${targetExaminerId}/activities`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ activityType: 'profileUpdated', increment: 1 })
+          body: JSON.stringify({
+            activityType: 'profileCompleteness',
+            completenessScore
+          })
         });
 
-        console.log('[Brand Page API] Profile update activity recorded for:', targetExaminer.name);
+        console.log(`[Brand Page API] Profile completeness recorded for ${targetExaminer.name}: ${completenessScore}/30점`);
       } catch (activityError) {
         console.error('[Brand Page API] Failed to record activity:', activityError);
         // 활동 기록 실패해도 업데이트는 성공으로 처리

@@ -1,0 +1,103 @@
+{
+  "api": {
+    "host": "http://127.0.0.1:27123",
+    "token": "3d48f88cf3cb25a41a6567b40c02c032e56fa902a376e7b36c8e73ff8108705e"
+  },
+  "vaultPath": "F:\\obsidian\\Pola",
+  "projects": {
+    "homepage": {
+      "name": "나라똔",
+      "path": "Projects/나라똔",
+      "description": "나라똔 홈페이지 - 공공기관 정책 분석 플랫폼"
+    },
+    "zipcheck": {
+      "name": "집첵",
+      "path": "Projects/집첵",
+      "description": "집첵 - 부동산 체크리스트 서비스",
+      "uxWriting": {
+        "enabled": true,
+        "style": "toss",
+        "rules": {
+          "tone": "친절하고 명확하게",
+          "brevity": true,
+          "userCentric": true,
+          "consistency": true
+        }
+      }
+    },
+    "claude": {
+      "name": "Claude",
+      "path": "Projects/Claude",
+      "description": "Claude Skill 시스템 개발 및 작업 기록"
+    },
+    "fundheallab": {
+      "name": "기업심사관",
+      "path": "Projects/기업심사관",
+      "description": "기업심사관 홈페이지 - 프로젝트별 검증 규칙 시스템",
+      "designRules": {
+        "colorPalette": {
+          "primary": "#0f172e",
+          "accent": "#d4af37"
+        },
+        "effects": ["glassmorphism", "neon-glow"],
+        "subdomainRequired": true,
+        "sectionIdRequired": true
+      }
+    },
+    "design": {
+      "name": "디자인",
+      "path": "Projects/디자인",
+      "description": "Design Guardian - AI 스타일 회피 및 디자인 가이드라인",
+      "designRules": {
+        "maxColors": 3,
+        "bannedEmojis": ["✨", "🚀", "🔥", "💡", "🤖", "⚡", "🎯", "💻", "🌟", "⭐"],
+        "preferSvgIcons": true,
+        "neonAllowed": true,
+        "purpleDiscouraged": true,
+        "purpleAllowedWhenConcept": true
+      }
+    },
+    "bas_homepage": {
+      "name": "BAS홈페이지",
+      "path": "Projects/BAS홈페이지",
+      "description": "BAS 홈페이지 - 솔트(SALT), 인스파트너스 등 BAS 프로젝트"
+    }
+  },
+  "autoSave": {
+    "enabled": true,
+    "triggers": [
+      "feature-complete",
+      "troubleshooting-resolved",
+      "git-commit"
+    ]
+  },
+  "templates": {
+    "기획": "00-기획",
+    "아키텍처": "01-아키텍처",
+    "스키마": "02-스키마",
+    "기능개발": "03-기능개발",
+    "보안": "04-보안",
+    "트러블슈팅": "05-트러블슈팅"
+  },
+  "naming": {
+    "pattern": "{date}-{category}-{description}.md",
+    "dateFormat": "YYYY-MM-DD",
+    "troubleshooting": "{date}-{function}-{errorType}-{rootCause}.md"
+  },
+  "metadata": {
+    "enabled": true,
+    "fields": [
+      "title",
+      "date",
+      "project",
+      "category",
+      "status",
+      "tags"
+    ]
+  },
+  "linking": {
+    "autoLink": true,
+    "bidirectional": true,
+    "autoTags": true
+  }
+}

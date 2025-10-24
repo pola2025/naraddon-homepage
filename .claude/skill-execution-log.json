@@ -1,0 +1,50 @@
+{
+  "sessions": [
+    {
+      "timestamp": "2025-10-19T07:05:10.139Z",
+      "skill": "automation/metadata-auto-generator",
+      "duration": 1,
+      "success": true,
+      "context": {}
+    },
+    {
+      "timestamp": "2025-10-19T07:09:09.746Z",
+      "skill": "automation/metadata-auto-generator",
+      "duration": 1,
+      "success": true,
+      "context": {}
+    },
+    {
+      "timestamp": "2025-10-19T07:09:09.764Z",
+      "skill": "automation/obsidian-auto-doc",
+      "duration": 16,
+      "success": true,
+      "context": {}
+    },
+    {
+      "timestamp": "2025-10-19T07:20:14.059Z",
+      "skill": "quality/ux-writing-validator",
+      "duration": 1,
+      "success": true,
+      "context": {
+        "project": "집첵"
+      }
+    },
+    {
+      "timestamp": "2025-10-19T07:20:18.907Z",
+      "skill": "quality/ux-writing-validator",
+      "duration": 1,
+      "success": true,
+      "context": {
+        "project": "집첵"
+      }
+    },
+    {
+      "timestamp": "2025-10-20T14:17:57.213Z",
+      "skill": "automation/metadata-auto-generator",
+      "duration": 1,
+      "success": true,
+      "context": {}
+    }
+  ]
+}

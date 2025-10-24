@@ -1,0 +1,129 @@
+{
+  "bannedEmojis": {
+    "✨": {
+      "name": "sparkles",
+      "reason": "AI 공식 상징",
+      "alternative": "<Sparkles /> SVG 또는 텍스트"
+    },
+    "🚀": {
+      "name": "rocket",
+      "reason": "스타트업/AI 최대 클리셰",
+      "alternative": "<Rocket /> SVG 또는 '출시'"
+    },
+    "🔥": {
+      "name": "fire",
+      "reason": "과도하게 사용되는 인기 클리셰",
+      "alternative": "<Flame /> SVG 또는 '인기'"
+    },
+    "💡": {
+      "name": "lightbulb",
+      "reason": "혁신 클리셰",
+      "alternative": "<Lightbulb /> SVG 또는 '아이디어'"
+    },
+    "🤖": {
+      "name": "robot",
+      "reason": "AI 직접 표현 - 너무 명시적",
+      "alternative": "<Bot /> SVG 또는 '자동화'"
+    },
+    "⚡": {
+      "name": "zap",
+      "reason": "속도/성능 클리셰",
+      "alternative": "<Zap /> SVG 또는 '빠른'"
+    },
+    "🎯": {
+      "name": "target",
+      "reason": "목표/타겟팅 클리셰",
+      "alternative": "<Target /> SVG 또는 '목표'"
+    },
+    "💻": {
+      "name": "laptop",
+      "reason": "테크 클리셰",
+      "alternative": "<Monitor /> SVG 또는 '개발'"
+    },
+    "🌟": {
+      "name": "star",
+      "reason": "sparkles 변형",
+      "alternative": "<Star /> SVG"
+    },
+    "⭐": {
+      "name": "star2",
+      "reason": "sparkles 변형",
+      "alternative": "<Star /> SVG"
+    },
+    "🌈": {
+      "name": "rainbow",
+      "reason": "무지개 - AI 생성 이미지 클리셰",
+      "alternative": "CSS gradient"
+    },
+    "💫": {
+      "name": "dizzy",
+      "reason": "sparkles 변형",
+      "alternative": "<Sparkle /> SVG"
+    }
+  },
+  "aiColorCombos": [
+    {
+      "name": "핑크+노랑+보라",
+      "colors": ["#FF6B9D", "#FEC84B", "#8B5CF6"],
+      "reason": "AI 생성 이미지의 가장 흔한 조합"
+    },
+    {
+      "name": "시안+마젠타+옐로우",
+      "colors": ["#00D9FF", "#FF00FF", "#FFFF00"],
+      "reason": "과도한 비비드 CMY"
+    },
+    {
+      "name": "네온 멀티컬러",
+      "colors": ["#00FF00", "#FF00FF", "#00FFFF", "#FFFF00"],
+      "reason": "4가지 이상 네온 = 과도함"
+    },
+    {
+      "name": "파스텔 레인보우",
+      "colors": ["#FFB3BA", "#FFDFBA", "#FFFFBA", "#BAFFC9", "#BAE1FF"],
+      "reason": "5가지 파스텔 = AI 스타일"
+    }
+  ],
+  "colorRules": {
+    "maxMainColors": 2,
+    "maxAccentColors": 1,
+    "maxTotalColors": 3,
+    "neonAllowed": true,
+    "purpleDiscouraged": true,
+    "purpleAllowedWhenConcept": true
+  },
+  "allowedEmojis": {
+    "✅": "완료 상태",
+    "❌": "실패 상태",
+    "⚠️": "경고",
+    "📋": "리스트 (문서 내부만)",
+    "📁": "폴더 (문서 내부만)",
+    "📝": "노트 (문서 내부만)",
+    "🔧": "설정 (문서 내부만)"
+  },
+  "svgIconLibraries": [
+    {
+      "name": "Lucide Icons",
+      "package": "lucide-react",
+      "url": "https://lucide.dev",
+      "recommended": true
+    },
+    {
+      "name": "Heroicons",
+      "package": "@heroicons/react",
+      "url": "https://heroicons.com",
+      "recommended": true
+    },
+    {
+      "name": "Feather Icons",
+      "package": "react-feather",
+      "url": "https://feathericons.com",
+      "recommended": false
+    }
+  ],
+  "detectionRules": {
+    "emojiPattern": "[\\u{1F300}-\\u{1F9FF}]",
+    "hexColorPattern": "#[0-9A-Fa-f]{6}",
+    "gradientPattern": "linear-gradient\\([^)]+\\)",
+    "purplePattern": "#[0-9A-Fa-f]{2}[0-5][0-9A-F][0-9A-Fa-f]{2}|purple"
+  }
+}

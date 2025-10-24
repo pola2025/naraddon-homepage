@@ -60,7 +60,7 @@ export async function GET(
           consultationsAssigned: 0,
           consultationsCompleted: 0,
           loginCount: 0,
-          profileUpdates: 0,
+          profileCompletenessScore: 0,
           lastActiveAt: null
         },
         totalScore: 0,
@@ -84,15 +84,19 @@ export async function GET(
         : 0,
     };
 
-    // 점수 계산
+    /**
+     * 점수 계산
+     *
+     * @purpose 각 활동 타입별 점수 가중치 적용
+     * @context profileCompletenessScore는 완성도 점수 (0~30점)를 그대로 반영
+     */
     const scoreConfig = {
       pageVisit: 1,
       postCreated: 10,
       commentCreated: 5,
       consultationAssigned: 15,
       consultationCompleted: 20,
-      login: 2,
-      profileUpdate: 5
+      login: 2
     };
 
     const calculatedScore =
@@ -102,7 +106,7 @@ export async function GET(
       (stats.consultationsAssigned * scoreConfig.consultationAssigned) +
       (stats.consultationsCompleted * scoreConfig.consultationCompleted) +
       (activities.activities.loginCount * scoreConfig.login) +
-      ((activities.activities.profileUpdates || 0) * scoreConfig.profileUpdate);
+      (activities.activities.profileCompletenessScore || 0);
 
     return NextResponse.json({
       examinerId,
@@ -114,7 +118,7 @@ export async function GET(
         consultationsAssigned: stats.consultationsAssigned,
         consultationsCompleted: stats.consultationsCompleted,
         loginCount: activities.activities.loginCount,
-        profileUpdates: activities.activities.profileUpdates || 0,
+        profileCompletenessScore: activities.activities.profileCompletenessScore || 0,
         lastActiveAt: activities.activities.lastActiveAt
       },
       totalScore: calculatedScore,
@@ -125,7 +129,7 @@ export async function GET(
         consultationsAssigned: stats.consultationsAssigned * scoreConfig.consultationAssigned,
         consultationsCompleted: stats.consultationsCompleted * scoreConfig.consultationCompleted,
         loginCount: activities.activities.loginCount * scoreConfig.login,
-        profileUpdates: (activities.activities.profileUpdates || 0) * scoreConfig.profileUpdate
+        profileCompleteness: activities.activities.profileCompletenessScore || 0
       },
       scoreConfig
     });
@@ -146,10 +150,10 @@ export async function POST(
 ) {
   try {
     const examinerId = params.id;
-    const { activityType, increment = 1 } = await request.json();
+    const { activityType, increment = 1, completenessScore } = await request.json();
 
     // 유효한 활동 타입인지 확인
-    const validTypes = ['pageVisit', 'postCreated', 'commentCreated', 'login', 'profileUpdated'];
+    const validTypes = ['pageVisit', 'postCreated', 'commentCreated', 'login', 'profileCompleteness'];
     if (!validTypes.includes(activityType)) {
       return NextResponse.json({ error: 'Invalid activity type' }, { status: 400 });
     }
@@ -165,13 +169,54 @@ export async function POST(
 
     const now = new Date();
 
-    // 활동 타입에 따른 필드 매핑
+    /**
+     * 프로필 완성도 점수 처리
+     *
+     * @purpose 프로필 완성도는 횟수가 아닌 점수로 저장
+     * @context completenessScore를 직접 저장 (0~30점)
+     */
+    if (activityType === 'profileCompleteness') {
+      await db.collection('examiner-activities').updateOne(
+        { examinerId },
+        {
+          $set: {
+            userId: examiner.userId,
+            'activities.profileCompletenessScore': completenessScore || 0,
+            'activities.lastActiveAt': now,
+            updatedAt: now
+          },
+          $setOnInsert: {
+            examinerId,
+            activities: {
+              pageVisits: 0,
+              postsCreated: 0,
+              commentsCreated: 0,
+              consultationsAssigned: 0,
+              consultationsCompleted: 0,
+              loginCount: 0,
+              profileCompletenessScore: 0,
+              lastActiveAt: now
+            },
+            totalScore: 0,
+            createdAt: now
+          }
+        },
+        { upsert: true }
+      );
+
+      return NextResponse.json({
+        success: true,
+        message: 'Profile completeness recorded',
+        completenessScore
+      });
+    }
+
+    // 활동 타입에 따른 필드 매핑 (기존 활동)
     const fieldMap: { [key: string]: string } = {
       pageVisit: 'pageVisits',
       postCreated: 'postsCreated',
       commentCreated: 'commentsCreated',
-      login: 'loginCount',
-      profileUpdated: 'profileUpdates'
+      login: 'loginCount'
     };
 
     const field = fieldMap[activityType];
@@ -195,7 +240,7 @@ export async function POST(
             consultationsAssigned: 0,
             consultationsCompleted: 0,
             loginCount: 0,
-            profileUpdates: 0,
+            profileCompletenessScore: 0,
             lastActiveAt: now
           },
           totalScore: 0,

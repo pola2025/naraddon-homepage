@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>브랜드 페이지 테스트</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .test-section {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .test-link {
+      display: block;
+      padding: 15px;
+      margin: 10px 0;
+      background: #0070f3;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      text-align: center;
+      transition: background 0.2s;
+    }
+    .test-link:hover {
+      background: #0051cc;
+    }
+    .api-result {
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 15px;
+      margin: 10px 0;
+      font-family: monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .status {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 3px;
+      font-weight: bold;
+      margin: 5px 0;
+    }
+    .status.success { background: #d4edda; color: #155724; }
+    .status.error { background: #f8d7da; color: #721c24; }
+  </style>
+</head>
+<body>
+  <h1>🎯 브랜드 페이지 라우팅 테스트</h1>
+
+  <div class="test-section">
+    <h2>📋 테스트 심사관 목록</h2>
+    <div id="examiners-list">로딩 중...</div>
+  </div>
+
+  <div class="test-section">
+    <h2>🔗 브랜드 페이지 링크</h2>
+    <div id="brand-page-links">심사관 목록을 먼저 로딩하세요...</div>
+  </div>
+
+  <div class="test-section">
+    <h2>🧪 API 응답 테스트</h2>
+    <div id="api-results"></div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:3000';
+
+    async function loadExaminers() {
+      try {
+        const response = await fetch(`${API_BASE}/api/certified-examiners`);
+        const data = await response.json();
+
+        if (!data.examiners || data.examiners.length === 0) {
+          document.getElementById('examiners-list').innerHTML = '<div class="status error">심사관 데이터가 없습니다</div>';
+          return;
+        }
+
+        const examinersList = document.getElementById('examiners-list');
+        const brandPageLinks = document.getElementById('brand-page-links');
+
+        examinersList.innerHTML = `<div class="status success">총 ${data.examiners.length}명의 심사관</div>`;
+        brandPageLinks.innerHTML = '';
+
+        // 첫 5명만 표시
+        const topExaminers = data.examiners.slice(0, 5);
+
+        topExaminers.forEach(examiner => {
+          // 목록에 추가
+          const listItem = document.createElement('div');
+          listItem.style.padding = '10px';
+          listItem.style.borderBottom = '1px solid #eee';
+          listItem.innerHTML = `
+            <strong>${examiner.name}</strong> - ${examiner.position || '직책 없음'}<br>
+            <small>ID: ${examiner._id}</small>
+          `;
+          examinersList.appendChild(listItem);
+
+          // 브랜드 페이지 링크 추가
+          const link = document.createElement('a');
+          link.href = `${API_BASE}/certified-examiners/${examiner._id}`;
+          link.className = 'test-link';
+          link.target = '_blank';
+          link.textContent = `${examiner.name} 브랜드 페이지 열기`;
+          brandPageLinks.appendChild(link);
+        });
+
+        // API 응답 테스트
+        testApis(topExaminers[0]._id);
+
+      } catch (error) {
+        document.getElementById('examiners-list').innerHTML =
+          `<div class="status error">오류: ${error.message}</div>`;
+      }
+    }
+
+    async function testApis(examinerId) {
+      const apiResults = document.getElementById('api-results');
+      apiResults.innerHTML = '<p>API 테스트 중...</p>';
+
+      try {
+        // API 호출
+        const response = await fetch(`${API_BASE}/api/certified-examiners/${examinerId}`);
+        const data = await response.json();
+
+        let resultHtml = `<div class="status ${data.success ? 'success' : 'error'}">
+          API 응답: ${response.status} - ${data.success ? '성공' : '실패'}
+        </div>`;
+
+        resultHtml += `<div class="api-result">${JSON.stringify(data, null, 2)}</div>`;
+
+        apiResults.innerHTML = resultHtml;
+
+      } catch (error) {
+        apiResults.innerHTML = `<div class="status error">API 오류: ${error.message}</div>`;
+      }
+    }
+
+    // 페이지 로드 시 자동 실행
+    window.addEventListener('DOMContentLoaded', loadExaminers);
+  </script>
+</body>
+</html>

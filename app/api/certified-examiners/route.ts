@@ -80,7 +80,7 @@ export async function GET() {
      *   - 페이지 방문: 1점
      *   - 게시글 작성: 10점
      *   - 댓글 작성: 5점
-     *   - 프로필 업데이트: 5점
+     *   - 프로필 완성도: 0~30점 (각 항목 5점씩)
      *   - 상담 배정: 15점
      *   - 상담 완료: 20점
      */
@@ -88,8 +88,7 @@ export async function GET() {
       pageVisit: 1,
       postCreated: 10,
       commentCreated: 5,
-      login: 2,
-      profileUpdate: 5
+      login: 2
     };
 
     // 프론트엔드 형식으로 변환 (활동 점수 포함)
@@ -97,7 +96,7 @@ export async function GET() {
       const examinerId = examiner._id.toString();
       const activity = activitiesMap.get(examinerId);
 
-      // 활동 점수 계산
+      // 활동 점수 계산 (프로필 완성도는 그대로 합산)
       let activityScore = 0;
       if (activity && activity.activities) {
         activityScore =
@@ -105,7 +104,7 @@ export async function GET() {
           (activity.activities.postsCreated || 0) * scoreConfig.postCreated +
           (activity.activities.commentsCreated || 0) * scoreConfig.commentCreated +
           (activity.activities.loginCount || 0) * scoreConfig.login +
-          ((activity.activities.profileUpdates || 0) * scoreConfig.profileUpdate);
+          (activity.activities.profileCompletenessScore || 0);
       }
 
       return {
