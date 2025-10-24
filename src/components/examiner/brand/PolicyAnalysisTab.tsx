@@ -30,10 +30,11 @@ interface PolicyPost {
 }
 
 interface PolicyAnalysisTabProps {
-  examinerKey: string; // ExpertExaminer.legacyKey
+  examinerKey?: string; // ExpertExaminer.legacyKey (선택사항)
+  examinerName?: string; // ExpertExaminer.name (선택사항)
 }
 
-export default function PolicyAnalysisTab({ examinerKey }: PolicyAnalysisTabProps) {
+export default function PolicyAnalysisTab({ examinerKey, examinerName }: PolicyAnalysisTabProps) {
   const [posts, setPosts] = useState<PolicyPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,13 +42,24 @@ export default function PolicyAnalysisTab({ examinerKey }: PolicyAnalysisTabProp
   useEffect(() => {
     async function fetchPolicyPosts() {
       try {
-        const response = await fetch(`/api/policy-analysis?examinerKey=${examinerKey}`);
+        console.log('[PolicyAnalysisTab] Fetching posts with:', { examinerKey, examinerName });
+
+        // examinerKey 또는 examinerName으로 조회
+        const params = new URLSearchParams();
+        if (examinerKey) params.append('examinerKey', examinerKey);
+        if (examinerName) params.append('examinerName', examinerName);
+
+        console.log('[PolicyAnalysisTab] API URL:', `/api/policy-analysis?${params.toString()}`);
+
+        const response = await fetch(`/api/policy-analysis?${params.toString()}`);
 
         if (!response.ok) {
           throw new Error('정책분석 글을 불러올 수 없습니다.');
         }
 
         const data = await response.json();
+        console.log('[PolicyAnalysisTab] API Response:', data);
+        console.log('[PolicyAnalysisTab] Posts count:', data.posts?.length || 0);
         setPosts(data.posts || []);
       } catch (err) {
         console.error('정책분석 글 조회 실패:', err);
@@ -57,8 +69,15 @@ export default function PolicyAnalysisTab({ examinerKey }: PolicyAnalysisTabProp
       }
     }
 
-    fetchPolicyPosts();
-  }, [examinerKey]);
+    console.log('[PolicyAnalysisTab] useEffect condition:', { examinerKey, examinerName, willFetch: !!(examinerKey || examinerName) });
+
+    if (examinerKey || examinerName) {
+      fetchPolicyPosts();
+    } else {
+      console.log('[PolicyAnalysisTab] Not fetching: no examinerKey or examinerName');
+      setLoading(false);
+    }
+  }, [examinerKey, examinerName]);
 
   // 로딩 중
   if (loading) {

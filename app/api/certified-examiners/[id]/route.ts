@@ -77,6 +77,7 @@ export async function GET(
       examiner: {
         _id: examiner._id.toString(),
         name: examiner.name,
+        legacyKey: examiner.legacyKey,
         position: examiner.position,
         companyName: examiner.companyName,
         category: examiner.category,
