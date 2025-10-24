@@ -85,24 +85,27 @@ export default function BrandIntroEditor({
       setUploadingLogo(true);
 
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('file', file);
 
-      const response = await fetch('/api/examiner/brand/upload-logo', {
+      // 관리자가 편집 중일 때도 동작하도록 일반 업로드 API 사용
+      const response = await fetch('/api/upload/examiner', {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('로고 업로드에 실패했습니다.');
+        const errorData = await response.json();
+        console.error('[Logo Upload] Error:', errorData);
+        throw new Error(errorData.error || '로고 업로드에 실패했습니다.');
       }
 
       const data = await response.json();
-      if (data.success && data.imageUrl) {
-        setLocalLogo(data.imageUrl);
-        onChange(localIntro, localUseDefault, data.imageUrl);
+      if (data.url) {
+        setLocalLogo(data.url);
+        onChange(localIntro, localUseDefault, data.url);
         alert('로고가 업로드되었습니다.');
       } else {
-        throw new Error(data.error || '업로드 실패');
+        throw new Error('업로드 URL을 받지 못했습니다.');
       }
     } catch (error) {
       console.error('Logo upload error:', error);
