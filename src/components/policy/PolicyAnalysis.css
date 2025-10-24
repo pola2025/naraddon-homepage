@@ -1507,6 +1507,21 @@
   .posts-list {
     max-height: none;
   }
+
+  /* 정책분석 게시판 - 리스트 아이템 태블릿 최적화 */
+  .list-item {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .list-item .item-thumbnail {
+    width: 80px;
+    height: 60px;
+  }
+
+  .item-title {
+    font-size: 14px;
+  }
 }
 
 @media (max-width: 768px) {
