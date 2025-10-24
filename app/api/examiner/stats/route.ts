@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../auth-options';
 import clientPromise from '@/lib/mongodb-client';
+import connectDB from '@/lib/mongodb';
+import ExpertExaminer from '@/models/ExpertExaminer';
 
 export const dynamic = 'force-dynamic';
 
@@ -64,6 +66,10 @@ export async function GET(request: NextRequest) {
     const client = await clientPromise;
     const db = client.db('naraddon');
     const consultationsCollection = db.collection('consultations');
+
+    // ExpertExaminer ID 조회 (브랜드 페이지 링크용)
+    await connectDB();
+    const expertExaminer = await ExpertExaminer.findOne({ userId: targetEmail });
 
     // 병렬로 통계 데이터 수집 (targetEmail로 조회)
     const [
@@ -148,7 +154,8 @@ export async function GET(request: NextRequest) {
       completedConsultations,
       pendingReviews,
       averageRating,
-      recentConsultations: formattedConsultations
+      recentConsultations: formattedConsultations,
+      examinerId: expertExaminer?._id?.toString() || null
     });
   } catch (error) {
     console.error('Examiner stats error:', error);

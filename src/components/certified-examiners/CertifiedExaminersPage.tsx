@@ -10,8 +10,9 @@ import './certified-examiners.css';
 
 // 심사관 인터페이스
 interface Examiner {
+  _id?: string;
   name: string;
-  company: string;
+  companyName: string;
   imageUrl: string;
   position?: string;
   category?: string;
@@ -221,10 +222,18 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
                   </div>
                   <div className="info-block">
                     <div className="name-block">{examiner.name}</div>
-                    <div className="company-block">{examiner.company}</div>
-                    <button className="premium-cta" onClick={handleConsultationClick}>
-                      <span className="button-text">상담 신청하기</span>
-                    </button>
+                    <div className="company-block">{examiner.companyName}</div>
+                    <div className="button-group">
+                      <button className="premium-cta" onClick={handleConsultationClick}>
+                        <span className="button-text">상담 신청하기</span>
+                      </button>
+                      {/* 내부 테스트: 자세히보기 버튼 숨김 (URL 직접 접근은 가능) */}
+                      {false && examiner._id && (
+                        <a href={`/certified-examiners/${examiner._id}`} className="detail-btn">
+                          자세히보기
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               </SwiperSlide>
@@ -253,10 +262,18 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
                 </div>
                 <div className="info-block">
                   <div className="name-block">{examiner.name}</div>
-                  <div className="company-block">{examiner.company}</div>
-                  <button className="premium-cta" onClick={handleConsultationClick}>
-                    <span className="button-text">상담 신청하기</span>
-                  </button>
+                  <div className="company-block">{examiner.companyName}</div>
+                  <div className="button-group">
+                    <button className="premium-cta" onClick={handleConsultationClick}>
+                      <span className="button-text">상담 신청하기</span>
+                    </button>
+                    {/* 내부 테스트: 자세히보기 버튼 숨김 (URL 직접 접근은 가능) */}
+                    {false && examiner._id && (
+                      <a href={`/certified-examiners/${examiner._id}`} className="detail-btn">
+                        자세히보기
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

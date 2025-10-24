@@ -21,6 +21,16 @@ export default function ExaminerCard({ examiner, variant = 'grid' }: ExaminerCar
   };
 
   /**
+   * 브랜드 페이지 기능 활성화 여부
+   *
+   * @purpose 프로덕션 배포 시 환경변수로 제어
+   * @context 개발 환경에서는 활성화, 프로덕션에서는 환경변수 설정 필요
+   * @decision NEXT_PUBLIC_ENABLE_BRAND_PAGE=true 설정 시에만 "자세히보기" 버튼 표시
+   * @note 내부 검증 테스트 중: 사용자 화면에서는 숨김, URL 직접 접근은 가능
+   */
+  const enableBrandPage = false; // 내부 테스트: 버튼 숨김, URL 직접 접근만 가능
+
+  /**
    * 이미지 URL 처리
    *
    * @purpose MongoDB에 저장된 imageUrl 사용 (Cloudflare R2 또는 외부 URL)
@@ -53,12 +63,19 @@ export default function ExaminerCard({ examiner, variant = 'grid' }: ExaminerCar
         <div className={styles.nameBlock}>{examiner.name}</div>
         <div className={styles.companyBlock}>{examiner.companyName}</div>
 
-        <button
-          className={styles.premiumCta}
-          onClick={() => window.location.href = '/consultation-request'}
-        >
-          상담 신청하기
-        </button>
+        <div className={styles.buttonGroup}>
+          {enableBrandPage && examiner._id && (
+            <Link href={`/certified-examiners/${examiner._id}`} className={styles.detailBtn}>
+              자세히보기
+            </Link>
+          )}
+          <button
+            className={styles.premiumCta}
+            onClick={() => window.location.href = '/consultation-request'}
+          >
+            상담 신청하기
+          </button>
+        </div>
       </div>
     </div>
   );

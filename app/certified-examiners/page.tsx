@@ -22,6 +22,7 @@ export default async function Page() {
     const result = await db.collection('expert-examiners')
       .find({ isPublished: true })
       .project({
+        _id: 1,
         name: 1,
         companyName: 1,
         imageUrl: 1,
@@ -33,8 +34,9 @@ export default async function Page() {
 
     // MongoDB ObjectId를 문자열로 변환
     examiners = result.map(examiner => ({
+      _id: examiner._id.toString(),
       name: examiner.name,
-      company: examiner.companyName,
+      companyName: examiner.companyName,
       imageUrl: examiner.imageUrl || '',
       position: examiner.position || '인증 기업심사관',
       category: examiner.category || 'funding',

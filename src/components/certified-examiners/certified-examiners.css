@@ -561,25 +561,69 @@ h1 {
     border-color: rgba(212, 175, 55, 0.5);
 }
 
-/* Premium CTA Button */
-.premium-cta {
+/* Button Group */
+.button-group {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
     margin-top: 25px;
-    padding: 16px 40px;
-    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
-    color: var(--black);
-    border: none;
+    width: 100%;
+    align-items: center;
+}
+
+/* 공통 버튼 스타일 */
+.detail-btn,
+.premium-cta {
+    flex: 1 !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    max-height: 56px !important;
+    margin: 0 !important;
+    padding: 0 40px !important;
     border-radius: 30px;
     font-size: 15px;
     font-weight: 700;
     letter-spacing: 1px;
+    line-height: 1 !important;
     cursor: pointer;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center;
+}
+
+/* Detail Button */
+.detail-btn {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(184, 134, 11, 0.2) 100%);
+    color: var(--gold);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    text-decoration: none;
+    box-shadow:
+        0 10px 30px rgba(212, 175, 55, 0.15),
+        0 0 40px rgba(212, 175, 55, 0.1);
+    align-self: center;
+}
+
+.detail-btn:hover {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.3) 0%, rgba(184, 134, 11, 0.3) 100%);
+    border-color: rgba(212, 175, 55, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.2);
+}
+
+/* Premium CTA Button */
+.premium-cta {
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+    color: var(--black);
+    border: 1px solid transparent;
     box-shadow:
         0 10px 30px rgba(212, 175, 55, 0.3),
         0 0 40px rgba(212, 175, 55, 0.2);
-    width: 100%;
+    align-self: center;
     --mx: 50%;
     --my: 50%;
 }
@@ -1126,12 +1170,37 @@ h1 {
         border-color: transparent;
     }
 
+    /* 모바일 버튼 그룹 - 세로 배치 */
+    .button-group {
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .detail-btn {
+        width: 100% !important;
+        height: 48px !important;
+        min-height: 48px !important;
+        max-height: 48px !important;
+        padding: 0 24px !important;
+        font-size: 14px !important;
+    }
+
+    .premium-cta {
+        width: 100% !important;
+        height: 48px !important;
+        min-height: 48px !important;
+        max-height: 48px !important;
+        padding: 0 24px !important;
+        font-size: 14px !important;
+    }
+
     .grid-card .premium-cta {
         width: 100%;
         max-width: none;
         padding: 12px 24px;
         font-size: 13px;
-        margin-top: 8px;
+        margin-top: 0;
         letter-spacing: 0.5px;
     }
 

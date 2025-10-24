@@ -68,6 +68,18 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      // 브랜드 페이지 정보 완성도 체크
+      const brandPage = examiner.brandPage || {};
+      const hasBrandPageContent = !!(
+        brandPage.companyLogo ||
+        (brandPage.companyIntro && !brandPage.useDefaultIntro) ||
+        (brandPage.careers && brandPage.careers.length > 0) ||
+        (brandPage.successCases && brandPage.successCases.length > 0) ||
+        brandPage.contactInfo?.website ||
+        brandPage.contactInfo?.consultationHours ||
+        brandPage.contactInfo?.address
+      );
+
       return {
         _id: examiner._id.toString(),
         name: examiner.name,
@@ -80,6 +92,7 @@ export async function GET(request: NextRequest) {
         userId: examiner.userId?.toString() || null,
         isPublished: examiner.isPublished,
         sortOrder: examiner.sortOrder,
+        hasBrandPageContent, // 브랜드 페이지 내용 유무
         createdAt: examiner.createdAt,
         updatedAt: examiner.updatedAt
       };

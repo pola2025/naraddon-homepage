@@ -212,9 +212,42 @@
   min-height: 50px;
 }
 
+/* Button Group */
+.buttonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 25px;
+  width: 100%;
+}
+
+/* Detail Button */
+.detailBtn {
+  padding: 14px 40px;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(184, 134, 11, 0.2) 100%);
+  color: #D4AF37;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 30px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  text-decoration: none;
+  display: block;
+  box-shadow: 0 5px 15px rgba(212, 175, 55, 0.1);
+}
+
+.detailBtn:hover {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.3) 0%, rgba(184, 134, 11, 0.3) 100%);
+  border-color: rgba(212, 175, 55, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(212, 175, 55, 0.2);
+}
+
 /* Premium CTA Button */
 .premiumCta {
-  margin-top: 25px;
   padding: 16px 40px;
   background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
   color: #0A0A0A;
@@ -337,12 +370,22 @@
     border-color: transparent;
   }
 
+  .buttonGroup {
+    gap: 10px;
+    margin-top: 15px;
+  }
+
+  .detailBtn {
+    padding: 12px 30px;
+    font-size: 14px;
+  }
+
   .premiumCta {
     width: 100%;
     max-width: none;
     padding: 14px 30px;
     font-size: 14px;
-    margin-top: 5px;
+    margin-top: 0;
   }
 
   .naraddonBadge {
