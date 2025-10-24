@@ -80,6 +80,7 @@ export async function GET() {
      *   - 페이지 방문: 1점
      *   - 게시글 작성: 10점
      *   - 댓글 작성: 5점
+     *   - 프로필 업데이트: 5점
      *   - 상담 배정: 15점
      *   - 상담 완료: 20점
      */
@@ -87,7 +88,8 @@ export async function GET() {
       pageVisit: 1,
       postCreated: 10,
       commentCreated: 5,
-      login: 2
+      login: 2,
+      profileUpdate: 5
     };
 
     // 프론트엔드 형식으로 변환 (활동 점수 포함)
@@ -102,7 +104,8 @@ export async function GET() {
           (activity.activities.pageVisits || 0) * scoreConfig.pageVisit +
           (activity.activities.postsCreated || 0) * scoreConfig.postCreated +
           (activity.activities.commentsCreated || 0) * scoreConfig.commentCreated +
-          (activity.activities.loginCount || 0) * scoreConfig.login;
+          (activity.activities.loginCount || 0) * scoreConfig.login +
+          ((activity.activities.profileUpdates || 0) * scoreConfig.profileUpdate);
       }
 
       return {

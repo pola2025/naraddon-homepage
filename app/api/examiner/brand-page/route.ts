@@ -107,6 +107,30 @@ export async function PATCH(request: NextRequest) {
 
     console.log('[Brand Page API] Updated successfully:', targetExaminer._id);
 
+    /**
+     * 프로필 업데이트 활동 기록
+     *
+     * @purpose examiner의 브랜드 페이지 편집 활동 추적
+     * @context 프로필 업데이트는 5점
+     * @note 관리자가 편집한 경우는 기록하지 않음 (examinerId가 있는 경우)
+     */
+    if (!examinerId && result.modifiedCount > 0) {
+      try {
+        const targetExaminerId = targetExaminer._id.toString();
+
+        await fetch(`${process.env.NEXTAUTH_URL}/api/admin/examiners/${targetExaminerId}/activities`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ activityType: 'profileUpdated', increment: 1 })
+        });
+
+        console.log('[Brand Page API] Profile update activity recorded for:', targetExaminer.name);
+      } catch (activityError) {
+        console.error('[Brand Page API] Failed to record activity:', activityError);
+        // 활동 기록 실패해도 업데이트는 성공으로 처리
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Brand page updated successfully',

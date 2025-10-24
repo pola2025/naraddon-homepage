@@ -60,6 +60,7 @@ export async function GET(
           consultationsAssigned: 0,
           consultationsCompleted: 0,
           loginCount: 0,
+          profileUpdates: 0,
           lastActiveAt: null
         },
         totalScore: 0,
@@ -90,7 +91,8 @@ export async function GET(
       commentCreated: 5,
       consultationAssigned: 15,
       consultationCompleted: 20,
-      login: 2
+      login: 2,
+      profileUpdate: 5
     };
 
     const calculatedScore =
@@ -99,7 +101,8 @@ export async function GET(
       (activities.activities.commentsCreated * scoreConfig.commentCreated) +
       (stats.consultationsAssigned * scoreConfig.consultationAssigned) +
       (stats.consultationsCompleted * scoreConfig.consultationCompleted) +
-      (activities.activities.loginCount * scoreConfig.login);
+      (activities.activities.loginCount * scoreConfig.login) +
+      ((activities.activities.profileUpdates || 0) * scoreConfig.profileUpdate);
 
     return NextResponse.json({
       examinerId,
@@ -111,6 +114,7 @@ export async function GET(
         consultationsAssigned: stats.consultationsAssigned,
         consultationsCompleted: stats.consultationsCompleted,
         loginCount: activities.activities.loginCount,
+        profileUpdates: activities.activities.profileUpdates || 0,
         lastActiveAt: activities.activities.lastActiveAt
       },
       totalScore: calculatedScore,
@@ -120,7 +124,8 @@ export async function GET(
         commentsCreated: activities.activities.commentsCreated * scoreConfig.commentCreated,
         consultationsAssigned: stats.consultationsAssigned * scoreConfig.consultationAssigned,
         consultationsCompleted: stats.consultationsCompleted * scoreConfig.consultationCompleted,
-        loginCount: activities.activities.loginCount * scoreConfig.login
+        loginCount: activities.activities.loginCount * scoreConfig.login,
+        profileUpdates: (activities.activities.profileUpdates || 0) * scoreConfig.profileUpdate
       },
       scoreConfig
     });
@@ -144,7 +149,7 @@ export async function POST(
     const { activityType, increment = 1 } = await request.json();
 
     // 유효한 활동 타입인지 확인
-    const validTypes = ['pageVisit', 'postCreated', 'commentCreated', 'login'];
+    const validTypes = ['pageVisit', 'postCreated', 'commentCreated', 'login', 'profileUpdated'];
     if (!validTypes.includes(activityType)) {
       return NextResponse.json({ error: 'Invalid activity type' }, { status: 400 });
     }
@@ -165,7 +170,8 @@ export async function POST(
       pageVisit: 'pageVisits',
       postCreated: 'postsCreated',
       commentCreated: 'commentsCreated',
-      login: 'loginCount'
+      login: 'loginCount',
+      profileUpdated: 'profileUpdates'
     };
 
     const field = fieldMap[activityType];
@@ -189,6 +195,7 @@ export async function POST(
             consultationsAssigned: 0,
             consultationsCompleted: 0,
             loginCount: 0,
+            profileUpdates: 0,
             lastActiveAt: now
           },
           totalScore: 0,
