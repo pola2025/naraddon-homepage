@@ -33,8 +33,8 @@ export default function ContactSection({ examiner }: ContactSectionProps) {
   };
 
   const handleConsultation = () => {
-    // 나라똔 상담신청 페이지로 이동
-    window.location.href = '/contact';
+    // 나라똔 상담신청 페이지 폼 섹션으로 이동
+    window.location.href = '/consultation-request#form-section';
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
