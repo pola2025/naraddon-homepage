@@ -65,7 +65,7 @@ export default function ExaminerBrandPage({ examinerId }: ExaminerBrandPageProps
     const fetchExaminer = async () => {
       try {
         const response = await fetch(`/api/certified-examiners/${examinerId}`);
-        
+
         if (!response.ok) {
           if (response.status === 404) {
             throw new Error('심사관을 찾을 수 없습니다.');
@@ -78,6 +78,19 @@ export default function ExaminerBrandPage({ examinerId }: ExaminerBrandPageProps
         const data = await response.json();
         if (data.success) {
           setExaminer(data.examiner);
+
+          // 페이지 방문 활동 기록
+          try {
+            await fetch(`/api/admin/examiners/${examinerId}/activities`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ activityType: 'pageVisit', increment: 1 })
+            });
+            console.log('[ExaminerBrandPage] Page visit recorded');
+          } catch (activityError) {
+            console.error('[ExaminerBrandPage] Failed to record page visit:', activityError);
+            // 활동 기록 실패해도 페이지는 계속 표시
+          }
         } else {
           throw new Error(data.error || '알 수 없는 오류가 발생했습니다.');
         }

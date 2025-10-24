@@ -41,6 +41,42 @@ export async function POST(
 
     await post.save();
 
+    /**
+     * 댓글 작성 활동 기록
+     *
+     * @purpose examiner 역할 사용자의 댓글 작성 활동 추적
+     * @context 댓글 작성 성공 후 활동 점수 기록
+     */
+    try {
+      if (user.email) {
+        const { db } = await import('@/lib/mongodb');
+        const dbInstance = (await db()).db;
+
+        const dbUser = await dbInstance.collection('users').findOne({ email: user.email });
+
+        if (dbUser && dbUser.role === 'examiner') {
+          const examiner = await dbInstance.collection('expert-examiners').findOne({
+            userId: dbUser._id.toString()
+          });
+
+          if (examiner) {
+            console.log('[DDonTalk Comment] Recording comment activity for examiner:', examiner.name);
+
+            await fetch(`${process.env.NEXTAUTH_URL}/api/admin/examiners/${examiner._id.toString()}/activities`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ activityType: 'commentCreated', increment: 1 })
+            });
+
+            console.log('[DDonTalk Comment] Comment activity recorded successfully');
+          }
+        }
+      }
+    } catch (activityError) {
+      console.error('[DDonTalk Comment] Failed to record comment activity:', activityError);
+      // 활동 기록 실패해도 댓글 작성은 성공으로 처리
+    }
+
     return NextResponse.json({
       success: true,
       data: post

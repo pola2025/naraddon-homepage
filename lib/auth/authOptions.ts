@@ -83,6 +83,74 @@ export const authOptions: NextAuthOptions = {
     maxAge: 24 * 60 * 60, // 24 hours
   },
   callbacks: {
+    async signIn({ user, account, profile }) {
+      /**
+       * SignIn 콜백 - 로그인 성공 시 실행
+       *
+       * @purpose examiner 역할 사용자의 로그인 활동 추적
+       * @context 로그인 성공 직후 실행되어 활동 점수 기록
+       */
+      try {
+        if (user?.email) {
+          const client = await clientPromise;
+          const db = client.db('naraddon');
+
+          // 사용자 role 확인
+          const dbUser = await db.collection('users').findOne({ email: user.email });
+
+          if (dbUser && dbUser.role === 'examiner') {
+            // examiner의 _id 찾기
+            const examiner = await db.collection('expert-examiners').findOne({ userId: dbUser._id.toString() });
+
+            if (examiner) {
+              const examinerId = examiner._id.toString();
+              const now = new Date();
+
+              console.log('[SignIn Callback] Recording login activity for examiner:', {
+                email: user.email,
+                examinerId,
+                examinerName: examiner.name
+              });
+
+              // 로그인 활동 기록
+              await db.collection('examiner-activities').updateOne(
+                { examinerId },
+                {
+                  $inc: { 'activities.loginCount': 1 },
+                  $set: {
+                    userId: dbUser._id.toString(),
+                    'activities.lastActiveAt': now,
+                    updatedAt: now
+                  },
+                  $setOnInsert: {
+                    examinerId,
+                    activities: {
+                      pageVisits: 0,
+                      postsCreated: 0,
+                      commentsCreated: 0,
+                      consultationsAssigned: 0,
+                      consultationsCompleted: 0,
+                      loginCount: 0,
+                      lastActiveAt: now
+                    },
+                    totalScore: 0,
+                    createdAt: now
+                  }
+                },
+                { upsert: true }
+              );
+
+              console.log('[SignIn Callback] Login activity recorded successfully');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('[SignIn Callback] Error recording login activity:', error);
+        // 로그인 활동 기록 실패해도 로그인은 계속 진행
+      }
+
+      return true; // 로그인 허용
+    },
     async jwt({ token, user, account, profile, trigger }) {
       /**
        * JWT 콜백 - 매 요청마다 실행되어 토큰 갱신

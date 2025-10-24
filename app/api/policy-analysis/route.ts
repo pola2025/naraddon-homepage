@@ -237,6 +237,27 @@ export async function POST(request: NextRequest) {
     });
 
     console.log('[policy-analysis][POST] Post created successfully:', post._id);
+
+    // 게시글 작성 활동 기록
+    if (examiner && examiner._id) {
+      try {
+        const response = await fetch(`${process.env.NEXTAUTH_URL}/api/admin/examiners/${examiner._id.toString()}/activities`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ activityType: 'postCreated', increment: 1 })
+        });
+
+        if (response.ok) {
+          console.log('[policy-analysis][POST] Post creation activity recorded for examiner:', examiner.name);
+        } else {
+          console.error('[policy-analysis][POST] Failed to record activity:', await response.text());
+        }
+      } catch (activityError) {
+        console.error('[policy-analysis][POST] Error recording activity:', activityError);
+        // 활동 기록 실패해도 게시글 작성은 성공으로 처리
+      }
+    }
+
     return NextResponse.json({ post }, { status: 201 });
   } catch (error) {
     console.error('[policy-analysis][POST] Error details:', error);
