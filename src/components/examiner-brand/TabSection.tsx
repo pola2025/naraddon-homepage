@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import styles from './TabSection.module.css';
+import '@/styles/brand-custom.css';
 
 interface TabSectionProps {
   examiner: any;
