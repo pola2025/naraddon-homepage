@@ -36,7 +36,9 @@ export async function GET() {
         imageUrl: 1,
         position: 1,
         category: 1,
-        specialties: 1
+        specialties: 1,
+        sortOrder: 1,
+        isPublished: 1
       })
       .toArray();
 
