@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 /**
  * 브랜드 페이지 회사소개 편집 컴포넌트
@@ -18,6 +18,7 @@ interface BrandIntroEditorProps {
   companyLogo?: string;
   useDefaultIntro: boolean;
   onChange: (companyIntro: string, useDefaultIntro: boolean, companyLogo?: string) => void;
+  onSave?: () => Promise<void>;
 }
 
 export default function BrandIntroEditor({
@@ -25,6 +26,7 @@ export default function BrandIntroEditor({
   companyLogo = '',
   useDefaultIntro,
   onChange,
+  onSave,
 }: BrandIntroEditorProps) {
   const [localUseDefault, setLocalUseDefault] = useState(useDefaultIntro);
   const [localIntro, setLocalIntro] = useState(companyIntro);
@@ -37,6 +39,82 @@ export default function BrandIntroEditor({
   const [specialties, setSpecialties] = useState<string[]>(['']);
   const [goals, setGoals] = useState<string[]>(['']);
   const [visionMessage, setVisionMessage] = useState('');
+
+  /**
+   * 기존 HTML 파싱하여 폼 필드 채우기
+   *
+   * @purpose 이전에 저장한 내용을 수정할 수 있도록 폼에 로드
+   * @context 사용자 요청: "기존 내용 남아있고 수정하거나 삭제할 수 있게"
+   */
+  useEffect(() => {
+    if (!companyIntro || localUseDefault) return;
+
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(companyIntro, 'text/html');
+
+      // 회사명 추출 (h3 텍스트에서 "소개" 제거)
+      const h3 = doc.querySelector('h3');
+      let companyText = '';
+      if (h3) {
+        companyText = h3.textContent?.replace(' 소개', '').trim() || '';
+        setCompanyName(companyText);
+      }
+
+      // 소개 내용 추출
+      const p = doc.querySelector('p');
+      if (p) {
+        setMainIntro(p.textContent?.trim() || '');
+      }
+
+      // 전문 영역 추출 (첫 번째 .brand-about-section 또는 .about-section)
+      const sections = doc.querySelectorAll('.brand-about-section, .about-section');
+      let extractedSpecialties: string[] = [];
+      if (sections[0]) {
+        const lis = sections[0].querySelectorAll('li');
+        extractedSpecialties = Array.from(lis)
+          .map(li => li.textContent?.trim() || '')
+          .filter(text => text);
+        if (extractedSpecialties.length > 0) {
+          setSpecialties(extractedSpecialties);
+        }
+      }
+
+      // 지원 목표 추출 (두 번째 .brand-about-section 또는 .about-section)
+      let extractedGoals: string[] = [];
+      if (sections[1]) {
+        const lis = sections[1].querySelectorAll('li');
+        extractedGoals = Array.from(lis)
+          .map(li => {
+            // <strong> 태그 제거하고 텍스트만 추출
+            const text = li.textContent?.trim() || '';
+            return text;
+          })
+          .filter(text => text);
+        if (extractedGoals.length > 0) {
+          setGoals(extractedGoals);
+        }
+      }
+
+      // 비전 메시지 추출
+      const visionBox = doc.querySelector('.brand-vision-box strong, .vision-box strong');
+      let vision = '';
+      if (visionBox) {
+        vision = visionBox.textContent?.trim().replace(/^"|"$/g, '') || '';
+        setVisionMessage(vision);
+      }
+
+      console.log('[BrandIntroEditor] Parsed existing content:', {
+        companyName: companyText,
+        specialties: extractedSpecialties?.length,
+        goals: extractedGoals?.length,
+        visionMessage: vision
+      });
+
+    } catch (error) {
+      console.error('[BrandIntroEditor] Failed to parse existing HTML:', error);
+    }
+  }, [companyIntro, localUseDefault]);
 
   /**
    * 기본 템플릿 토글
@@ -116,13 +194,13 @@ export default function BrandIntroEditor({
   };
 
   /**
-   * 구조화된 입력으로 HTML 생성
+   * 구조화된 입력으로 HTML 생성 및 저장
    *
-   * @purpose 전문영역, 지원목표 등을 개별 입력받아 HTML 구조 생성
-   * @context 사용자가 구조화된 입력을 선호할 경우 사용
+   * @purpose 전문영역, 지원목표 등을 개별 입력받아 HTML 구조 생성하고 즉시 저장
+   * @context 사용자 요청: "회사소개 적용 버튼으로 바로 저장"
    * @note data-styled 속성으로 CSS 모듈 스타일 적용 표시
    */
-  const generateStructuredHTML = () => {
+  const generateStructuredHTML = async () => {
     const specialtiesList = specialties.filter((s) => s.trim()).map((s) => `<li>${s}</li>`).join('\n');
     const goalsList = goals.filter((g) => g.trim()).map((g) => `<li><strong>${g}</strong></li>`).join('\n');
 
@@ -154,6 +232,11 @@ ${goalsList || '<li>지원 목표를 입력하세요</li>'}
     setLocalIntro(html);
     onChange(html, false, localLogo);
     setLocalUseDefault(false);
+
+    // 즉시 저장
+    if (onSave) {
+      await onSave();
+    }
   };
 
   /**

@@ -279,6 +279,7 @@ export default function BrandEditPage() {
                       },
                     });
                   }}
+                  onSave={handleSave}
                 />
               )}
 
