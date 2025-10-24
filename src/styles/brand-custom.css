@@ -3,10 +3,12 @@
  *
  * @purpose 심사관이 구조화된 정보 입력으로 생성한 HTML에 스타일 적용
  * @context 기본 템플릿과 동일한 디자인 일관성 유지
+ * @note 기존 클래스(about-section, vision-box)와 신규 클래스(brand-*) 모두 지원
  */
 
 /* ===== 사용자 정의 브랜드 컨텐츠 전역 스타일 ===== */
-.brand-about-section {
+.brand-about-section,
+.about-section {
   margin: 40px 0;
   padding: 30px;
   background: rgba(212, 175, 55, 0.05);
@@ -14,7 +16,8 @@
   border-radius: 8px;
 }
 
-.brand-about-section h4 {
+.brand-about-section h4,
+.about-section h4 {
   font-size: 1.5rem;
   margin-bottom: 20px;
   color: var(--primary-gold, #d4af37);
@@ -23,22 +26,26 @@
   gap: 10px;
 }
 
-.brand-about-section h4 i {
+.brand-about-section h4 i,
+.about-section h4 i {
   color: var(--primary-gold, #d4af37);
 }
 
-.brand-about-section ul {
+.brand-about-section ul,
+.about-section ul {
   list-style: none;
   padding: 0;
 }
 
-.brand-about-section ul li {
+.brand-about-section ul li,
+.about-section ul li {
   padding-left: 30px;
   margin-bottom: 15px;
   position: relative;
 }
 
-.brand-about-section ul li::before {
+.brand-about-section ul li::before,
+.about-section ul li::before {
   content: '▸';
   position: absolute;
   left: 0;
@@ -46,7 +53,8 @@
   font-weight: bold;
 }
 
-.brand-vision-box {
+.brand-vision-box,
+.vision-box {
   background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0.05) 100%);
   padding: 30px;
   border-radius: 15px;
@@ -83,7 +91,8 @@
   }
 }
 
-.brand-vision-box strong {
+.brand-vision-box strong,
+.vision-box strong {
   font-size: 1.4rem;
   color: var(--text-cream, #e8e0d5);
   letter-spacing: 0.5px;
