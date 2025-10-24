@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import styles from './TabSection.module.css';
 import '@/styles/brand-custom.css';
+import PolicyAnalysisTab from '@/components/examiner/brand/PolicyAnalysisTab';
 
 interface TabSectionProps {
   examiner: any;
@@ -173,16 +174,10 @@ export default function TabSection({ examiner }: TabSectionProps) {
   // 정책분석 탭
   const renderPolicyAnalysisTab = () => {
     return (
-      <div className={styles.policySection}>
-        <div className={styles.sectionHeader}>
-          <h2>정책분석</h2>
-          <p>정부 지원사업 및 정책 전문 분석</p>
-        </div>
-        <div className={styles.comingSoon}>
-          <i className="fas fa-file-alt"></i>
-          <p>정책분석 글이 준비 중입니다</p>
-        </div>
-      </div>
+      <PolicyAnalysisTab
+        examinerKey={examiner.legacyKey}
+        examinerName={examiner.name}
+      />
     );
   };
 
