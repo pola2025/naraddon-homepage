@@ -1,5 +1,4 @@
-
-import { S3Client, DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 
 // 런타임에 환경변수를 평가하도록 함수로 변경
 function getR2Config() {
@@ -75,6 +74,14 @@ export function buildR2ObjectUrl(key: string, bucketName: string = defaultBucket
   return `${cleanDomain}/${normalizedKey}`;
 }
 
+/**
+ * Cloudflare R2에 파일 업로드
+ *
+ * @param buffer 업로드할 파일 버퍼
+ * @param fileName R2에 저장될 파일명 (경로 포함 가능)
+ * @param contentType MIME 타입
+ * @returns 공개 URL
+ */
 export async function uploadToR2(
   buffer: Buffer,
   fileName: string,
