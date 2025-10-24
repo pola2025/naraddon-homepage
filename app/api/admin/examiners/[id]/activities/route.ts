@@ -90,13 +90,14 @@ export async function GET(
      *
      * @purpose 각 활동 타입별 점수 가중치 적용
      * @context profileCompletenessScore는 완성도 점수 (0~30점)를 그대로 반영
+     * @decision 상담 점수 상향 (배정 40점, 완료 80점) - 고가치 활동 우대
      */
     const scoreConfig = {
       pageVisit: 1,
       postCreated: 10,
       commentCreated: 5,
-      consultationAssigned: 15,
-      consultationCompleted: 20,
+      consultationAssigned: 40,
+      consultationCompleted: 80,
       login: 2
     };
 
