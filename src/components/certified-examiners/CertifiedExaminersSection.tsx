@@ -232,7 +232,7 @@ export default function CertifiedExaminersSection() {
           <p className={styles.ctaDescription}>
             상담 신청 후 24시간 이내에 전문가가 연락드립니다
           </p>
-          <a href="/consultation-request" className={styles.ctaPrimaryBtn}>
+          <a href="/consultation-request#form-section" className={styles.ctaPrimaryBtn}>
             지금 상담 신청하기
           </a>
         </div>

@@ -141,8 +141,8 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
           ripple.remove();
         }, 600);
 
-        // 상담 신청 페이지로 이동
-        window.location.href = '/consultation-request';
+        // 상담 신청 페이지 폼 섹션으로 이동
+        window.location.href = '/consultation-request#form-section';
       };
 
       button.addEventListener('mousemove', handleMouseMove);

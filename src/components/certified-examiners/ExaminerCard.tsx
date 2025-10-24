@@ -71,7 +71,7 @@ export default function ExaminerCard({ examiner, variant = 'grid' }: ExaminerCar
           )}
           <button
             className={styles.premiumCta}
-            onClick={() => window.location.href = '/consultation-request'}
+            onClick={() => window.location.href = '/consultation-request#form-section'}
           >
             상담 신청하기
           </button>
