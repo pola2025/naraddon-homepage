@@ -54,13 +54,13 @@ export default function BrandEditPage() {
   const [testExaminerId, setTestExaminerId] = useState<string | null>(null);
 
   useEffect(() => {
-    // URL에서 testId 파라미터 확인
+    // URL에서 id 또는 testId 파라미터 확인
     const params = new URLSearchParams(window.location.search);
-    const testId = params.get('testId');
-    if (testId) {
-      setTestExaminerId(testId);
+    const examinerId = params.get('id') || params.get('testId');
+    if (examinerId) {
+      setTestExaminerId(examinerId);
     }
-    fetchProfile(testId);
+    fetchProfile(examinerId);
   }, []);
 
   /**
@@ -116,6 +116,7 @@ export default function BrandEditPage() {
    *
    * @purpose 편집한 브랜드 페이지 정보를 서버에 저장
    * @context PATCH /api/examiner/brand-page 엔드포인트 호출
+   * @note testExaminerId가 있으면 관리자 편집으로 간주하여 examinerId 전달
    */
   const handleSave = async () => {
     if (!profile) return;
@@ -131,6 +132,7 @@ export default function BrandEditPage() {
         },
         body: JSON.stringify({
           brandPage: profile.brandPage,
+          examinerId: testExaminerId || undefined, // 관리자 편집 시 특정 심사관 ID 전달
         }),
       });
 

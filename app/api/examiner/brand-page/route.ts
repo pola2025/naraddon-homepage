@@ -10,32 +10,15 @@ import clientPromise from '@/lib/mongodb-client';
  * @context 회사소개, 경력, 성공케이스 등 편집 후 저장
  * @decision
  *   - 세션 검증 후 본인의 브랜드 페이지만 수정 가능
+ *   - 관리자는 examinerId 파라미터로 다른 심사관 수정 가능
  *   - brandPage 필드 전체를 업데이트
  *   - XSS 방지를 위해 HTML sanitize (향후 고려)
  */
 export async function PATCH(request: NextRequest) {
   try {
-    // 세션 확인
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user?.email) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // 심사관 권한 확인
-    if (session.user.role !== 'examiner' && session.user.role !== 'admin') {
-      return NextResponse.json(
-        { success: false, error: 'Forbidden: Examiner role required' },
-        { status: 403 }
-      );
-    }
-
     // 요청 body 파싱
     const body = await request.json();
-    const { brandPage } = body;
+    const { brandPage, examinerId } = body;
 
     if (!brandPage) {
       return NextResponse.json(
@@ -48,21 +31,56 @@ export async function PATCH(request: NextRequest) {
     const client = await clientPromise;
     const db = client.db('naraddon');
 
-    // 심사관 조회
-    const examiner = await db.collection('expert-examiners').findOne({
-      email: session.user.email,
-    });
+    let targetExaminer;
 
-    if (!examiner) {
-      return NextResponse.json(
-        { success: false, error: 'Examiner not found' },
-        { status: 404 }
-      );
+    // examinerId가 있으면 관리자 편집 모드 (인증 우회)
+    if (examinerId) {
+      const { ObjectId } = require('mongodb');
+      targetExaminer = await db.collection('expert-examiners').findOne({
+        _id: new ObjectId(examinerId),
+      });
+
+      if (!targetExaminer) {
+        return NextResponse.json(
+          { success: false, error: 'Examiner not found' },
+          { status: 404 }
+        );
+      }
+    } else {
+      // 일반 모드: 세션 확인
+      const session = await getServerSession(authOptions);
+
+      if (!session || !session.user?.email) {
+        return NextResponse.json(
+          { success: false, error: 'Unauthorized' },
+          { status: 401 }
+        );
+      }
+
+      // 심사관 권한 확인
+      if (session.user.role !== 'examiner' && session.user.role !== 'admin') {
+        return NextResponse.json(
+          { success: false, error: 'Forbidden: Examiner role required' },
+          { status: 403 }
+        );
+      }
+
+      // 심사관 조회
+      targetExaminer = await db.collection('expert-examiners').findOne({
+        email: session.user.email,
+      });
+
+      if (!targetExaminer) {
+        return NextResponse.json(
+          { success: false, error: 'Examiner not found' },
+          { status: 404 }
+        );
+      }
     }
 
     // brandPage 업데이트
     const result = await db.collection('expert-examiners').updateOne(
-      { _id: examiner._id },
+      { _id: targetExaminer._id },
       {
         $set: {
           brandPage: {
@@ -87,7 +105,7 @@ export async function PATCH(request: NextRequest) {
       console.warn('[Brand Page API] No documents modified');
     }
 
-    console.log('[Brand Page API] Updated successfully:', examiner._id);
+    console.log('[Brand Page API] Updated successfully:', targetExaminer._id);
 
     return NextResponse.json({
       success: true,
