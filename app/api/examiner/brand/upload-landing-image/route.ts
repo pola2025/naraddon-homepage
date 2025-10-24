@@ -10,7 +10,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
 import { compressImageOnServer } from '@/lib/image/serverImageCompressor';
-import { uploadToR2 } from '@/lib/cloudflare/r2Client';
+import { uploadToR2 } from '@/lib/cloudflare-r2';
 import { connectToDatabase } from '@/lib/mongodb';
 
 export async function POST(req: NextRequest) {
