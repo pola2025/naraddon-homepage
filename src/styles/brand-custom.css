@@ -42,6 +42,18 @@
   padding-left: 30px;
   margin-bottom: 15px;
   position: relative;
+  text-wrap: pretty; /* 균형잡힌 줄바꿈 */
+  word-break: keep-all; /* 한글 단어 단위로 줄바꿈 */
+  overflow-wrap: break-word; /* 긴 단어 강제 줄바꿈 */
+}
+
+/* 모바일에서 3줄 이상 넘어가는 텍스트 폰트 사이즈 조정 */
+@media (max-width: 768px) {
+  .brand-about-section ul li,
+  .about-section ul li {
+    font-size: 0.95rem; /* 기본보다 약간 작게 */
+    line-height: 1.6;
+  }
 }
 
 .brand-about-section ul li::before,
