@@ -117,38 +117,39 @@ export default function BrandIntroEditor({
    *
    * @purpose 전문영역, 지원목표 등을 개별 입력받아 HTML 구조 생성
    * @context 사용자가 구조화된 입력을 선호할 경우 사용
+   * @note data-styled 속성으로 CSS 모듈 스타일 적용 표시
    */
   const generateStructuredHTML = () => {
     const specialtiesList = specialties.filter((s) => s.trim()).map((s) => `<li>${s}</li>`).join('\n');
     const goalsList = goals.filter((g) => g.trim()).map((g) => `<li><strong>${g}</strong></li>`).join('\n');
 
     const html = `
-<div>
+<div data-custom-brand-content="true">
   <h3>${companyName || '회사명'} 소개</h3>
   <p>${mainIntro || '회사 소개 내용을 입력하세요.'}</p>
 
-  <div class="about-section">
+  <div class="brand-about-section">
     <h4><i class="fas fa-star"></i> 전문 영역</h4>
     <ul>
 ${specialtiesList || '<li>전문 영역을 입력하세요</li>'}
     </ul>
   </div>
 
-  <div class="about-section">
+  <div class="brand-about-section">
     <h4><i class="fas fa-bullseye"></i> 지원 목표</h4>
     <ul>
 ${goalsList || '<li>지원 목표를 입력하세요</li>'}
     </ul>
   </div>
 
-  <div class="vision-box">
+  <div class="brand-vision-box">
     <strong>"${visionMessage || '비전 메시지를 입력하세요'}"</strong>
   </div>
 </div>
     `.trim();
 
     setLocalIntro(html);
-    onChange(html, false);
+    onChange(html, false, localLogo);
     setLocalUseDefault(false);
   };
 
@@ -373,13 +374,37 @@ ${goalsList || '<li>지원 목표를 입력하세요</li>'}
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 비전 메시지 (선택사항)
               </label>
-              <input
-                type="text"
-                value={visionMessage}
-                onChange={(e) => setVisionMessage(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder='예: "나라똔 인증 기업심사관과 함께 성공적인 사업 기회를 만드세요"'
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={visionMessage}
+                  onChange={(e) => setVisionMessage(e.target.value)}
+                  maxLength={35}
+                  className={`w-full px-3 py-2 pr-16 border rounded-lg focus:ring-2 focus:border-transparent ${
+                    visionMessage.length > 35
+                      ? 'border-red-500 focus:ring-red-500'
+                      : visionMessage.length >= 30
+                      ? 'border-yellow-500 focus:ring-yellow-500'
+                      : 'border-gray-300 focus:ring-blue-500'
+                  }`}
+                  placeholder='예: "나라똔 인증 기업심사관과 함께 성공적인 사업 기회를 만드세요"'
+                />
+                <span
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium ${
+                    visionMessage.length > 35
+                      ? 'text-red-600'
+                      : visionMessage.length >= 30
+                      ? 'text-yellow-600'
+                      : 'text-gray-500'
+                  }`}
+                >
+                  {visionMessage.length}/35
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-gray-600">
+                <i className="fas fa-info-circle mr-1"></i>
+                기본 멘트와 같은 길이(공백 포함 35자)를 권장합니다. 너무 길면 디자인이 깨질 수 있습니다.
+              </p>
             </div>
 
             {/* HTML 생성 버튼 */}
