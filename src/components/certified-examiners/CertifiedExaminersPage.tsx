@@ -227,8 +227,8 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
                       <button className="premium-cta" onClick={handleConsultationClick}>
                         <span className="button-text">상담 신청하기</span>
                       </button>
-                      {/* 내부 테스트: 자세히보기 버튼 숨김 (URL 직접 접근은 가능) */}
-                      {false && examiner._id && (
+                      {/* 브랜드 페이지 공개: 자세히보기 버튼 활성화 */}
+                      {examiner._id && (
                         <a href={`/certified-examiners/${examiner._id}`} className="detail-btn">
                           자세히보기
                         </a>
@@ -267,8 +267,8 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
                     <button className="premium-cta" onClick={handleConsultationClick}>
                       <span className="button-text">상담 신청하기</span>
                     </button>
-                    {/* 내부 테스트: 자세히보기 버튼 숨김 (URL 직접 접근은 가능) */}
-                    {false && examiner._id && (
+                    {/* 브랜드 페이지 공개: 자세히보기 버튼 활성화 */}
+                    {examiner._id && (
                       <a href={`/certified-examiners/${examiner._id}`} className="detail-btn">
                         자세히보기
                       </a>

@@ -26,9 +26,9 @@ export default function ExaminerCard({ examiner, variant = 'grid' }: ExaminerCar
    * @purpose 프로덕션 배포 시 환경변수로 제어
    * @context 개발 환경에서는 활성화, 프로덕션에서는 환경변수 설정 필요
    * @decision NEXT_PUBLIC_ENABLE_BRAND_PAGE=true 설정 시에만 "자세히보기" 버튼 표시
-   * @note 내부 검증 테스트 중: 사용자 화면에서는 숨김, URL 직접 접근은 가능
+   * @note 브랜드 페이지 공개: 사용자가 자세히보기 버튼으로 접근 가능
    */
-  const enableBrandPage = false; // 내부 테스트: 버튼 숨김, URL 직접 접근만 가능
+  const enableBrandPage = true; // 브랜드 페이지 공개
 
   /**
    * 이미지 URL 처리
