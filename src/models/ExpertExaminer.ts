@@ -78,6 +78,8 @@ export interface IExpertExaminer extends Document {
   focusAreas: string[];
   activityStats: ExaminerActivityStats;
   brandPage?: ExaminerBrandPage;
+  views: number;
+  likes: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -206,6 +208,16 @@ const expertExaminerSchema = new Schema<IExpertExaminer>(
         consultationHours: { type: String, trim: true, default: '' },
         address: { type: String, trim: true, default: '' },
       },
+    },
+    views: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    likes: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
   },
   {

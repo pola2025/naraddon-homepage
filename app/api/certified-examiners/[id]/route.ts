@@ -23,17 +23,24 @@ export async function GET(
     const client = await clientPromise;
     const db = client.db('naraddon');
 
-    // ObjectId 변환 시도
+    // ObjectId 변환 시도 및 조회수 증가
     let examiner;
     try {
-      examiner = await db.collection('expert-examiners').findOne({
-        _id: new ObjectId(examinerId)
-      });
+      // findOneAndUpdate로 조회수를 증가시키면서 조회
+      const result = await db.collection('expert-examiners').findOneAndUpdate(
+        { _id: new ObjectId(examinerId) },
+        { $inc: { views: 1 } },
+        { returnDocument: 'after' }
+      );
+      examiner = result;
     } catch (error) {
       // ObjectId 변환 실패 시 문자열로 검색
-      examiner = await db.collection('expert-examiners').findOne({
-        _id: examinerId
-      });
+      const result = await db.collection('expert-examiners').findOneAndUpdate(
+        { _id: examinerId },
+        { $inc: { views: 1 } },
+        { returnDocument: 'after' }
+      );
+      examiner = result;
     }
 
     console.log('[Brand Page API] Query result:', examiner ? 'Found' : 'Not found');
@@ -94,6 +101,8 @@ export async function GET(
           successCases: [],
           contactInfo: {},
         },
+        views: examiner.views || 0,
+        likes: examiner.likes || 0,
         policyAnalysisCount,
       },
     });

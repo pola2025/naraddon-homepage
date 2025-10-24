@@ -348,3 +348,49 @@
     padding-top: 184px;
   }
 }
+
+/* ===== Stats Row (조회수 / 좋아요) ===== */
+.statsRow {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin: 20px 0;
+  padding: 15px 0;
+  border-top: 1px solid rgba(212, 175, 55, 0.2);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-gray, #a39382);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.statItem i {
+  font-size: 1.2rem;
+  color: var(--primary-gold, #d4af37);
+}
+
+.statItem:hover {
+  color: var(--primary-gold, #d4af37);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .statsRow {
+    gap: 15px;
+    margin: 15px 0;
+    padding: 12px 0;
+  }
+
+  .statItem {
+    font-size: 0.9rem;
+  }
+
+  .statItem i {
+    font-size: 1.1rem;
+  }
+}

@@ -23,6 +23,8 @@ interface ExaminerData {
   headline?: string;
   bio?: string;
   specialties: string[];
+  views?: number;
+  likes?: number;
   policyAnalysisCount?: number;
   brandPage?: {
     companyLogo?: string;
