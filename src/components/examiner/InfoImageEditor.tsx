@@ -97,7 +97,7 @@ export default function InfoImageEditor({ infoImage, onChange, onSave }: InfoIma
           <div>
             <h3 className="text-sm font-semibold text-blue-900 mb-1">정보 이미지 안내</h3>
             <p className="text-sm text-blue-700">
-              브랜드 페이지 회사소개 섹션 하단에 표시될 이미지입니다.
+              브랜드 페이지 정보 섹션에 표시될 이미지입니다.
               <br />
               제품/서비스 소개, 회사 연혁, 비전 등을 이미지로 표현할 수 있습니다.
               <br />
