@@ -23,7 +23,12 @@ export async function GET(
     const client = await clientPromise;
     const db = client.db('naraddon');
 
-    // ObjectId 변환 시도 및 조회수 증가
+    /**
+     * ObjectId 변환 시도 및 조회수 증가
+     *
+     * @troubleshooting MongoDB findOneAndUpdate는 { value: document } 형태로 반환
+     * returnDocument: 'after' 옵션 사용해도 .value 접근 필요
+     */
     let examiner;
     try {
       // findOneAndUpdate로 조회수를 증가시키면서 조회
@@ -32,7 +37,7 @@ export async function GET(
         { $inc: { views: 1 } },
         { returnDocument: 'after' }
       );
-      examiner = result;
+      examiner = result?.value || result; // .value 또는 직접 document
     } catch (error) {
       // ObjectId 변환 실패 시 문자열로 검색
       const result = await db.collection('expert-examiners').findOneAndUpdate(
@@ -40,7 +45,7 @@ export async function GET(
         { $inc: { views: 1 } },
         { returnDocument: 'after' }
       );
-      examiner = result;
+      examiner = result?.value || result;
     }
 
     console.log('[Brand Page API] Query result:', examiner ? 'Found' : 'Not found');

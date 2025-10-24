@@ -22,24 +22,30 @@ export async function POST(
     const client = await clientPromise;
     const db = client.db('naraddon');
 
-    // ObjectId 변환 시도
-    let result;
+    /**
+     * ObjectId 변환 시도
+     *
+     * @troubleshooting MongoDB findOneAndUpdate는 { value: document } 형태로 반환
+     */
+    let examiner;
     try {
-      result = await db.collection('expert-examiners').findOneAndUpdate(
+      const result = await db.collection('expert-examiners').findOneAndUpdate(
         { _id: new ObjectId(examinerId) },
         { $inc: { likes: 1 } },
         { returnDocument: 'after', projection: { likes: 1 } }
       );
+      examiner = result?.value || result;
     } catch (error) {
       // ObjectId 변환 실패 시 문자열로 검색
-      result = await db.collection('expert-examiners').findOneAndUpdate(
+      const result = await db.collection('expert-examiners').findOneAndUpdate(
         { _id: examinerId },
         { $inc: { likes: 1 } },
         { returnDocument: 'after', projection: { likes: 1 } }
       );
+      examiner = result?.value || result;
     }
 
-    if (!result) {
+    if (!examiner) {
       return NextResponse.json(
         { success: false, error: 'Examiner not found' },
         { status: 404 }
@@ -48,7 +54,7 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      likes: result.likes || 0,
+      likes: examiner.likes || 0,
     });
   } catch (error) {
     console.error('Failed to like examiner:', error);
