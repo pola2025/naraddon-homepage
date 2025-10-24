@@ -100,23 +100,40 @@ export default function PolicyNewsEditPage() {
       formData.append('file', file);
       // password 제거 - NextAuth 세션 기반 인증 사용
 
+      console.log('[이미지 업로드] 요청 시작:', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        hasSession: !!session
+      });
+
       const response = await fetch('/api/policy-news/upload-image', {
         method: 'POST',
         body: formData,
-        // credentials: 'include'는 기본값이므로 생략 가능 (쿠키 자동 전송)
+        credentials: 'include', // 세션 쿠키 명시적 전송
       });
 
+      console.log('[이미지 업로드] 응답 상태:', response.status, response.statusText);
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || '이미지 업로드에 실패했습니다.');
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = { message: `HTTP ${response.status}: ${response.statusText}` };
+        }
+        console.error('[이미지 업로드] 에러 응답:', errorData);
+        throw new Error(errorData.message || errorData.details || '이미지 업로드에 실패했습니다.');
       }
 
       const data = await response.json();
+      console.log('[이미지 업로드] 성공:', data);
       setPostData((prev) => ({ ...prev, thumbnail: data.url }));
       setImagePreview(data.url);
     } catch (error) {
-      console.error('Image upload error:', error);
-      alert(error instanceof Error ? error.message : '이미지 업로드 중 오류가 발생했습니다.');
+      console.error('[이미지 업로드] 최종 에러:', error);
+      const errorMessage = error instanceof Error ? error.message : '이미지 업로드 중 오류가 발생했습니다.';
+      alert(`업로드 실패: ${errorMessage}\n\n콘솔(F12)에서 상세 내용을 확인하세요.`);
     } finally {
       setIsUploadingImage(false);
       if (fileInputRef.current) {

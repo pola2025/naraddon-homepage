@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requirePolicyWriter , handleAuthError } from '@/lib/auth/guards';
+import { requirePerm, handleAuthError } from '@/lib/auth/guards';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 // 환경변수 검증 함수
@@ -71,9 +71,9 @@ export async function POST(request: NextRequest) {
      * 정책소식 이미지 업로드 권한 검증
      *
      * @purpose admin, super_admin, examiner만 이미지 업로드 가능
-     * @context guards.ts의 requirePolicyWriter 사용 (통합된 권한 체계)
+     * @context policy:news:write 권한 체크 (정책뉴스 작성 권한)
      */
-    const user = await requirePolicyWriter();
+    const user = await requirePerm('policy:news:write');
 
     console.log('[policy-news-upload] Authentication successful:', user.email, 'Role:', user.role);
 
