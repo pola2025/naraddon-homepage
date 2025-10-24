@@ -8,6 +8,7 @@ import BrandIntroEditor from '@/components/examiner/BrandIntroEditor';
 import CareerEditor from '@/components/examiner/CareerEditor';
 import SuccessCaseEditor from '@/components/examiner/SuccessCaseEditor';
 import ContactInfoEditor from '@/components/examiner/ContactInfoEditor';
+import InfoImageEditor from '@/components/examiner/InfoImageEditor';
 
 /**
  * 심사관 브랜드 페이지 편집
@@ -47,7 +48,7 @@ interface ExaminerProfile {
   };
 }
 
-type TabType = 'intro' | 'career' | 'successCase' | 'contact';
+type TabType = 'intro' | 'career' | 'successCase' | 'contact' | 'info';
 
 export default function BrandEditPage() {
   const router = useRouter();
@@ -179,6 +180,7 @@ export default function BrandEditPage() {
     { id: 'career' as TabType, label: '경력', icon: 'fas fa-briefcase' },
     { id: 'successCase' as TabType, label: '성공케이스', icon: 'fas fa-trophy' },
     { id: 'contact' as TabType, label: '연락처', icon: 'fas fa-address-book' },
+    { id: 'info' as TabType, label: '정보', icon: 'fas fa-image' },
   ];
 
   // 메인 컨텐츠 렌더링 함수
@@ -355,6 +357,28 @@ export default function BrandEditPage() {
                       },
                     });
                   }}
+                />
+              )}
+
+              {activeTab === 'info' && (
+                <InfoImageEditor
+                  infoImage={profile.brandPage?.infoImage || ''}
+                  onChange={(imageUrl) => {
+                    setProfile({
+                      ...profile,
+                      brandPage: {
+                        ...profile.brandPage,
+                        companyIntro: profile.brandPage?.companyIntro || '',
+                        companyLogo: profile.brandPage?.companyLogo || '',
+                        useDefaultIntro: profile.brandPage?.useDefaultIntro ?? true,
+                        careers: profile.brandPage?.careers || [],
+                        successCases: profile.brandPage?.successCases || [],
+                        contactInfo: profile.brandPage?.contactInfo || {},
+                        infoImage: imageUrl,
+                      },
+                    });
+                  }}
+                  onSave={handleSave}
                 />
               )}
             </div>

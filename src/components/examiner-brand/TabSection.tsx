@@ -9,7 +9,7 @@ interface TabSectionProps {
   examiner: any;
 }
 
-type TabType = 'company' | 'career' | 'successCase' | 'policyAnalysis';
+type TabType = 'company' | 'career' | 'successCase' | 'policyAnalysis' | 'info';
 
 export default function TabSection({ examiner }: TabSectionProps) {
   const [activeTab, setActiveTab] = useState<TabType>('company');
@@ -18,12 +18,14 @@ export default function TabSection({ examiner }: TabSectionProps) {
   const hasCareers = brandPage.careers && brandPage.careers.length > 0;
   const hasSuccessCases = brandPage.successCases && brandPage.successCases.length > 0;
   const hasPolicyAnalysis = (examiner as any).policyAnalysisCount > 0;
+  const hasInfoImage = brandPage.infoImage && brandPage.infoImage.trim() !== '';
 
   const tabs = [
     { id: 'company', label: '회사소개', enabled: true },
     { id: 'career', label: '경력', enabled: hasCareers },
     { id: 'successCase', label: '성공 케이스', enabled: hasSuccessCases },
     { id: 'policyAnalysis', label: '정책분석', enabled: hasPolicyAnalysis },
+    { id: 'info', label: '정보', enabled: hasInfoImage },
   ];
 
   const renderTabContent = () => {
@@ -36,6 +38,8 @@ export default function TabSection({ examiner }: TabSectionProps) {
         return renderSuccessCaseTab();
       case 'policyAnalysis':
         return renderPolicyAnalysisTab();
+      case 'info':
+        return renderInfoTab();
       default:
         return null;
     }
@@ -105,13 +109,6 @@ export default function TabSection({ examiner }: TabSectionProps) {
             <div dangerouslySetInnerHTML={{ __html: brandPage.companyIntro }} />
           )}
         </div>
-
-        {/* 정보 이미지 */}
-        {brandPage.infoImage && (
-          <div className={styles.infoLanding}>
-            <img src={brandPage.infoImage} alt="회사 소개" className={styles.landingImage} />
-          </div>
-        )}
       </div>
     );
   };
@@ -178,6 +175,29 @@ export default function TabSection({ examiner }: TabSectionProps) {
         examinerKey={examiner.legacyKey}
         examinerName={examiner.name}
       />
+    );
+  };
+
+  // 정보 탭
+  const renderInfoTab = () => {
+    return (
+      <div className={styles.infoSection}>
+        <div className={styles.sectionHeader}>
+          <h2>브랜드 정보</h2>
+          <p>회사 및 서비스에 대한 상세 정보</p>
+        </div>
+
+        <div className={styles.infoImageWrapper}>
+          {brandPage.infoImage && (
+            <img
+              src={brandPage.infoImage}
+              alt="브랜드 정보"
+              className={styles.infoImage}
+              style={{ width: '100%', height: 'auto', borderRadius: '15px' }}
+            />
+          )}
+        </div>
+      </div>
     );
   };
 
