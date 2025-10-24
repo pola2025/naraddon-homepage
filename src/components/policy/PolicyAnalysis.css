@@ -1508,6 +1508,34 @@
     max-height: none;
   }
 
+  /* Best 정책분석 - 롤링 섹션 태블릿 최적화 */
+  .analysis-main-rolling {
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .analysis-image,
+  .analysis-slide-image {
+    height: 320px;
+    aspect-ratio: auto;
+  }
+
+  .analysis-content,
+  .analysis-slide-content {
+    padding: 16px 20px;
+  }
+
+  .analysis-content h3,
+  .analysis-slide-content h3 {
+    font-size: 1.125rem;
+  }
+
+  .analysis-content p,
+  .analysis-slide-content p {
+    font-size: 0.875rem;
+  }
+
   /* 정책분석 게시판 - 리스트 아이템 태블릿 최적화 */
   .list-item {
     padding: 12px;
