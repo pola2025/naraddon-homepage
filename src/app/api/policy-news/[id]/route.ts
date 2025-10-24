@@ -63,6 +63,31 @@ export async function PUT(request: Request, { params }: RouteParams) {
       );
 
       if (canWrite) {
+        const userRole = (session.user as any)?.role;
+
+        // examiner인 경우: 본인 게시글만 수정 가능
+        if (userRole === 'examiner') {
+          await connectDB();
+          const existingPost = await PolicyNewsPost.findById(params.id).lean();
+
+          if (!existingPost) {
+            return NextResponse.json({ message: '존재하지 않는 게시글입니다.' }, { status: 404 });
+          }
+
+          // 작성자 확인
+          if (existingPost.author?.email !== session.user.email) {
+            return NextResponse.json(
+              {
+                message: '본인이 작성한 게시글만 수정할 수 있습니다.',
+                authorEmail: existingPost.author?.email,
+                yourEmail: session.user.email
+              },
+              { status: 403 }
+            );
+          }
+        }
+        // admin/super_admin은 모든 게시글 수정 가능
+
         hasPermission = true;
         authMethod = 'rbac';
       }
@@ -146,14 +171,43 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     let hasPermission = false;
     let authMethod = 'none';
 
-    // 2. RBAC 권한 확인 (admin만 가능 - 삭제는 관리자 전용)
+    // 2. RBAC 권한 확인 (examiner는 본인 게시글만, admin은 모두 삭제 가능)
     if (session?.user?.id) {
+      const canWrite = await checkPermission(
+        session.user.id,
+        'policy:news:write'
+      );
       const canManage = await checkPermission(
         session.user.id,
-        'community:post:manage'  // 관리자만 삭제 가능
+        'community:post:manage'
       );
 
-      if (canManage) {
+      if (canWrite || canManage) {
+        const userRole = (session.user as any)?.role;
+
+        // examiner인 경우: 본인 게시글만 삭제 가능
+        if (userRole === 'examiner' && !canManage) {
+          await connectDB();
+          const existingPost = await PolicyNewsPost.findById(params.id).lean();
+
+          if (!existingPost) {
+            return NextResponse.json({ message: '존재하지 않는 게시글입니다.' }, { status: 404 });
+          }
+
+          // 작성자 확인
+          if (existingPost.author?.email !== session.user.email) {
+            return NextResponse.json(
+              {
+                message: '본인이 작성한 게시글만 삭제할 수 있습니다.',
+                authorEmail: existingPost.author?.email,
+                yourEmail: session.user.email
+              },
+              { status: 403 }
+            );
+          }
+        }
+        // admin/super_admin은 모든 게시글 삭제 가능
+
         hasPermission = true;
         authMethod = 'rbac';
       }

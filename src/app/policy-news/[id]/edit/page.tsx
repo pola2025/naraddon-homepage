@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 // React Quill 제거 - 순수 텍스트 에디터 사용
 
 interface PostData {
@@ -19,12 +20,14 @@ interface PostData {
 export default function PolicyNewsEditPage() {
   const router = useRouter();
   const params = useParams();
+  const { data: session, status: sessionStatus } = useSession();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const [password, setPassword] = useState('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState('');
+  const [postAuthor, setPostAuthor] = useState<{ email?: string; name?: string; role?: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [postData, setPostData] = useState<PostData>({
@@ -59,6 +62,7 @@ export default function PolicyNewsEditPage() {
           isMain: data.post.isMain || false,
         });
         setImagePreview(data.post.thumbnail || '');
+        setPostAuthor(data.post.author || null);
       } catch (error) {
         setError(error instanceof Error ? error.message : '게시글을 불러올 수 없습니다.');
       } finally {
@@ -83,8 +87,9 @@ export default function PolicyNewsEditPage() {
       return;
     }
 
-    if (!password) {
-      alert('이미지를 업로드하려면 먼저 비밀번호를 입력해주세요.');
+    // NextAuth 세션 확인 (로그인 필수)
+    if (!session) {
+      alert('이미지를 업로드하려면 로그인이 필요합니다.');
       return;
     }
 
@@ -93,15 +98,17 @@ export default function PolicyNewsEditPage() {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('password', password);
+      // password 제거 - NextAuth 세션 기반 인증 사용
 
       const response = await fetch('/api/policy-news/upload-image', {
         method: 'POST',
         body: formData,
+        // credentials: 'include'는 기본값이므로 생략 가능 (쿠키 자동 전송)
       });
 
       if (!response.ok) {
-        throw new Error('이미지 업로드에 실패했습니다.');
+        const errorData = await response.json();
+        throw new Error(errorData.message || '이미지 업로드에 실패했습니다.');
       }
 
       const data = await response.json();
@@ -173,9 +180,41 @@ export default function PolicyNewsEditPage() {
     );
   }
 
+  // 권한 체크 (UI용 - 실제 권한은 서버에서 확인)
+  const userRole = (session?.user as any)?.role;
+  const userEmail = session?.user?.email;
+  const isAuthor = postAuthor?.email === userEmail;
+  const isAdmin = userRole === 'admin' || userRole === 'super_admin';
+  const canEdit = isAdmin || (userRole === 'examiner' && isAuthor);
+
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
       <h1>정책소식 수정</h1>
+
+      {/* 권한 안내 메시지 */}
+      {session && postAuthor && (
+        <div style={{
+          marginBottom: '1rem',
+          padding: '1rem',
+          background: canEdit ? '#e3f2fd' : '#fff3e0',
+          border: `1px solid ${canEdit ? '#2196F3' : '#ff9800'}`,
+          borderRadius: '4px'
+        }}>
+          <div style={{ fontSize: '0.9rem', color: '#666' }}>
+            <strong>작성자:</strong> {postAuthor.name || postAuthor.email}
+            {postAuthor.role && ` (${postAuthor.role})`}
+          </div>
+          <div style={{ fontSize: '0.9rem', color: '#666', marginTop: '0.5rem' }}>
+            <strong>현재 사용자:</strong> {session.user?.name || session.user?.email}
+            {userRole && ` (${userRole})`}
+          </div>
+          {!canEdit && (
+            <div style={{ marginTop: '0.5rem', color: '#f57c00', fontWeight: 'bold' }}>
+              ⚠️ 본인이 작성한 게시글만 수정할 수 있습니다. 관리자에게 문의하세요.
+            </div>
+          )}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '1rem' }}>
@@ -237,28 +276,33 @@ export default function PolicyNewsEditPage() {
                   type="file"
                   accept="image/*"
                   onChange={handleImageUpload}
-                  disabled={isUploadingImage || !password}
+                  disabled={isUploadingImage || !session || sessionStatus === 'loading'}
                   style={{ display: 'none' }}
                 />
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploadingImage || !password}
+                  disabled={isUploadingImage || !session || sessionStatus === 'loading'}
                   style={{
                     padding: '0.5rem 1rem',
-                    background: isUploadingImage || !password ? '#ccc' : '#2196F3',
+                    background: isUploadingImage || !session || sessionStatus === 'loading' ? '#ccc' : '#2196F3',
                     color: 'white',
                     border: 'none',
                     borderRadius: '4px',
-                    cursor: isUploadingImage || !password ? 'not-allowed' : 'pointer',
+                    cursor: isUploadingImage || !session || sessionStatus === 'loading' ? 'not-allowed' : 'pointer',
                     fontSize: '0.9rem'
                   }}
                 >
                   {isUploadingImage ? '업로드 중...' : '이미지 업로드'}
                 </button>
-                {!password && (
+                {sessionStatus === 'loading' && (
                   <span style={{ color: '#666', fontSize: '0.9rem' }}>
-                    (비밀번호 입력 후 사용 가능)
+                    (세션 확인 중...)
+                  </span>
+                )}
+                {sessionStatus !== 'loading' && !session && (
+                  <span style={{ color: '#ff6b6b', fontSize: '0.9rem' }}>
+                    (로그인 필요)
                   </span>
                 )}
               </div>
@@ -364,18 +408,18 @@ export default function PolicyNewsEditPage() {
         <div style={{ display: 'flex', gap: '1rem' }}>
           <button
             type="submit"
-            disabled={isSaving}
+            disabled={isSaving || !canEdit}
             style={{
               padding: '0.75rem 2rem',
-              background: '#4CAF50',
+              background: isSaving || !canEdit ? '#ccc' : '#4CAF50',
               color: 'white',
               border: 'none',
               borderRadius: '4px',
-              cursor: isSaving ? 'not-allowed' : 'pointer',
+              cursor: isSaving || !canEdit ? 'not-allowed' : 'pointer',
               fontSize: '1rem'
             }}
           >
-            {isSaving ? '수정 중...' : '수정하기'}
+            {isSaving ? '수정 중...' : !canEdit ? '수정 권한 없음' : '수정하기'}
           </button>
           <button
             type="button"
