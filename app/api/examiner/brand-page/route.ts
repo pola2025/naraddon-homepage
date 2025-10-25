@@ -27,14 +27,47 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    /**
+     * 세션 확인 (필수)
+     *
+     * @security CRITICAL - 모든 요청에 세션 필요
+     * @purpose 인증되지 않은 사용자의 접근 차단
+     */
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user?.email) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     // MongoDB 연결
     const client = await clientPromise;
     const db = client.db('naraddon');
 
     let targetExaminer;
 
-    // examinerId가 있으면 관리자 편집 모드 (인증 우회)
+    /**
+     * 권한 분기 처리
+     *
+     * @case1 examinerId가 있는 경우 (다른 심사관 수정)
+     *   - 관리자만 가능 (admin, super_admin)
+     *   - 일반 심사관은 다른 심사관 수정 불가
+     *
+     * @case2 examinerId가 없는 경우 (본인 수정)
+     *   - examiner 또는 admin 권한 필요
+     *   - 본인의 브랜드 페이지만 수정
+     */
     if (examinerId) {
+      // 관리자 권한 확인 (다른 심사관 수정은 관리자만)
+      if (session.user.role !== 'admin' && session.user.role !== 'super_admin') {
+        return NextResponse.json(
+          { success: false, error: 'Forbidden: Admin access required to edit other examiners' },
+          { status: 403 }
+        );
+      }
+
       const { ObjectId } = require('mongodb');
       targetExaminer = await db.collection('expert-examiners').findOne({
         _id: new ObjectId(examinerId),
@@ -47,17 +80,7 @@ export async function PATCH(request: NextRequest) {
         );
       }
     } else {
-      // 일반 모드: 세션 확인
-      const session = await getServerSession(authOptions);
-
-      if (!session || !session.user?.email) {
-        return NextResponse.json(
-          { success: false, error: 'Unauthorized' },
-          { status: 401 }
-        );
-      }
-
-      // 심사관 권한 확인
+      // 심사관 권한 확인 (본인 수정)
       if (session.user.role !== 'examiner' && session.user.role !== 'admin') {
         return NextResponse.json(
           { success: false, error: 'Forbidden: Examiner role required' },
@@ -65,7 +88,7 @@ export async function PATCH(request: NextRequest) {
         );
       }
 
-      // 심사관 조회
+      // 본인의 심사관 프로필 조회
       targetExaminer = await db.collection('expert-examiners').findOne({
         email: session.user.email,
       });
