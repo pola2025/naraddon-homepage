@@ -83,6 +83,20 @@ export async function POST(request: Request) {
       },
     });
 
+    // 텔레그램 알림 전송 (비동기로 실행, 실패해도 게시글 작성 진행)
+    const { sendTelegramNotification } = await import('@/lib/notifications/telegram');
+    sendTelegramNotification({
+      type: 'examiner_post',
+      data: {
+        postType: 'policy-news',
+        authorEmail: user.email,
+        authorName: user.name,
+        title: title.trim(),
+      },
+    }).catch((error) => {
+      console.error('[policy-news] Telegram notification failed:', error);
+    });
+
     return NextResponse.json({ post }, { status: 201 });
   } catch (error) {
     console.error('[policy-news][POST]', error);

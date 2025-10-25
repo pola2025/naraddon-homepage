@@ -83,6 +83,18 @@ export const authOptions: NextAuthOptions = {
 
           await usersCollection.insertOne(newUser);
           console.log('[Auth] Created new user:', user.email);
+
+          // 텔레그램 알림 전송 (비동기로 실행, 실패해도 로그인 진행)
+          const { sendTelegramNotification } = await import('@/lib/notifications/telegram');
+          sendTelegramNotification({
+            type: 'new_user',
+            data: {
+              email: user.email,
+              name: user.name || '사용자',
+            },
+          }).catch((error) => {
+            console.error('[Auth] Telegram notification failed:', error);
+          });
         }
 
         return true;

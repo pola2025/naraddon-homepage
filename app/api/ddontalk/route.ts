@@ -81,6 +81,20 @@ export async function POST(request: NextRequest) {
       comments: []
     });
 
+    // 텔레그램 알림 전송 (비동기로 실행, 실패해도 게시글 작성 진행)
+    const { sendTelegramNotification } = await import('@/lib/notifications/telegram');
+    sendTelegramNotification({
+      type: 'examiner_post',
+      data: {
+        postType: 'ddontalk',
+        authorEmail: user.email || 'unknown',
+        authorName: user.name || author,
+        title,
+      },
+    }).catch((error) => {
+      console.error('[ddontalk] Telegram notification failed:', error);
+    });
+
     return NextResponse.json({
       success: true,
       data: newPost

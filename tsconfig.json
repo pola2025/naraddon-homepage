@@ -18,7 +18,8 @@
     "paths": {
       "@/*": ["./src/*", "./*"],
       "@/components/*": ["./src/components/*"],
-      "@/lib/*": ["./src/lib/*"]
+      "@/lib/*": ["./lib/*", "./src/lib/*"],
+      "@/models/*": ["./models/*", "./src/models/*"]
     },
     "plugins": [
       {

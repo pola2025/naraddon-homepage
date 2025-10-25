@@ -147,6 +147,20 @@ export async function POST(request: NextRequest) {
       memberId: memberObjectId,
     });
 
+    // 텔레그램 알림 전송 (비동기로 실행, 실패해도 게시글 작성 진행)
+    const { sendTelegramNotification } = await import('@/lib/notifications/telegram');
+    sendTelegramNotification({
+      type: 'examiner_post',
+      data: {
+        postType: 'ttontok',
+        authorEmail: user.email || 'unknown',
+        authorName: user.name || nickname,
+        title,
+      },
+    }).catch((error) => {
+      console.error('[ttontok] Telegram notification failed:', error);
+    });
+
     return NextResponse.json(
       {
         id: created._id,
