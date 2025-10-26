@@ -24,7 +24,7 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
-  padding-top: 76px;
+  padding-top: 72px;
   background: transparent;
   position: relative;
   z-index: 10;
@@ -32,19 +32,19 @@
 
 @media (max-width: 1024px) {
   .breadcrumbContainer {
-    padding-top: 76px;
+    padding-top: 72px;
   }
 }
 
 @media (max-width: 768px) {
   .breadcrumbContainer {
-    padding-top: 76px;
+    padding-top: 72px;
   }
 }
 
 @media (max-width: 480px) {
   .breadcrumbContainer {
-    padding-top: 76px;
+    padding-top: 72px;
   }
 }
 
@@ -57,7 +57,7 @@
   background: #1a1a1a;
   color: #f5f5f5;
   margin-top: -80px;
-  padding-top: 76px;
+  padding-top: 72px;
 }
 
 .loaderRing {
