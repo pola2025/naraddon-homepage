@@ -5,7 +5,7 @@ import PolicyAnalysisPost from '@/models/PolicyAnalysisPost';
 import ExpertExaminer from '@/models/ExpertExaminer';
 import * as crypto from 'crypto';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth/authOptions';
+import { authOptions } from '@/app/auth-options';
 import { checkPermission } from '@/lib/rbac/check-permission';
 
 const ALLOWED_SORT_FIELDS: Record<string, Record<string, 1 | -1>> = {
@@ -99,17 +99,17 @@ interface CreatePayload {
   sections?: Array<{ id: string; title: string; content: string }>;
   tags?: string[];
   thumbnail?: string;
-  images?: Array<{ url: string; name?: string; caption?: string }>;
-  attachments?: Array<{
-    key: string;
-    fileName: string;
-    mimeType?: string;
-    size: number;
-    sourceUrl?: string;
-    cdnUrl?: string;
-    checksum?: string;
-    uploadedBy?: string;
-    uploadedAt?: string;
+  images?: Array<{ url: string; name?: string; caption?: string }>;
+  attachments?: Array<{
+    key: string;
+    fileName: string;
+    mimeType?: string;
+    size: number;
+    sourceUrl?: string;
+    cdnUrl?: string;
+    checksum?: string;
+    uploadedBy?: string;
+    uploadedAt?: string;
   }>;
   examinerKey?: string;
 }

@@ -4,7 +4,7 @@ import connectDB from '@/lib/mongodb';
 import PolicyAnalysisPost from '@/models/PolicyAnalysisPost';
 import ExpertExaminer from '@/models/ExpertExaminer';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth/authOptions';
+import { authOptions } from '@/app/auth-options';
 import { checkPermission } from '@/lib/rbac/check-permission';
 
 interface RouteParams {

@@ -8,7 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/authOptions';
+import { authOptions } from '@/app/auth-options';
 import { compressImageOnServer } from '@/lib/image/serverImageCompressor';
 import { uploadToR2 } from '@/lib/cloudflare/r2Client';
 import { connectToDatabase } from '@/lib/mongodb';
