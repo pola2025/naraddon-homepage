@@ -127,13 +127,20 @@ export const authOptions: NextAuthOptions = {
 
             // 🔥 심사관인 경우 examinerId 조회 (브랜드 페이지 접근용)
             if (dbUser.role === 'examiner') {
-              const expertExaminer = await db.collection('expert-examiners').findOne(
-                { $or: [{ email: token.email as string }, { userId: dbUser._id.toString() }] },
-                { projection: { _id: 1 } }
-              );
-              if (expertExaminer) {
-                token.examinerId = expertExaminer._id.toString();
-                console.log('[JWT Callback] ExaminerId set from DB:', token.examinerId);
+              try {
+                const expertExaminer = await db.collection('expert-examiners').findOne(
+                  { $or: [{ email: token.email as string }, { userId: dbUser._id.toString() }] },
+                  { projection: { _id: 1 } }
+                );
+                if (expertExaminer) {
+                  token.examinerId = expertExaminer._id.toString();
+                  console.log('[JWT Callback] ExaminerId set from DB:', token.examinerId);
+                } else {
+                  console.warn('[JWT Callback] ExpertExaminer not found for email:', token.email);
+                }
+              } catch (examinerError) {
+                console.error('[JWT Callback] Error fetching examinerId:', examinerError);
+                // examinerId 조회 실패해도 로그인은 계속 진행
               }
             }
           }
