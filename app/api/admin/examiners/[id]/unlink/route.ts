@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
  * @context 실수로 잘못 연결했거나, 심사관이 더 이상 그 역할을 하지 않을 때
  * @decision 카드는 유지, userId와 email만 제거
  * @security admin 또는 super_admin 권한 필요
- * @note 사용자의 role은 변경하지 않음 (별도로 role 변경 API 사용)
+ * @note 사용자의 role을 'user'로 변경하고 examinerId를 null로 설정 (다시 연결 가능하게)
  */
 export async function PUT(
   request: NextRequest,
@@ -61,7 +61,22 @@ export async function PUT(
       }, { status: 400 });
     }
 
-    // 7. 연결 해제 (userId와 email 제거)
+    // 7. User 컬렉션에서 role을 'user'로 변경, examinerId 제거
+    const userId = examiner.userId;
+    await db.collection('users').updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $set: {
+          role: 'user',
+          updatedAt: new Date()
+        },
+        $unset: {
+          examinerId: ''
+        }
+      }
+    );
+
+    // 8. ExpertExaminer 컬렉션에서 연결 해제 (userId와 email 제거)
     const result = await db.collection('expert-examiners').updateOne(
       { _id: new ObjectId(examinerId) },
       {
@@ -79,10 +94,10 @@ export async function PUT(
       return NextResponse.json({ error: 'Examiner not found' }, { status: 404 });
     }
 
-    // 8. 성공 응답
+    // 9. 성공 응답
     return NextResponse.json({
       success: true,
-      message: `${examiner.name} 심사관의 사용자 연결이 해제되었습니다.`,
+      message: `${examiner.name} 심사관의 사용자 연결이 해제되었습니다. 사용자 role이 'user'로 변경되었습니다.`,
       examiner: {
         id: examiner._id,
         name: examiner.name,
