@@ -30,13 +30,22 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // 🔥 세션의 examinerId 사용 (DB 조회 불필요, 일관성 보장)
+    if (!session.user.examinerId) {
+      return NextResponse.json(
+        { success: false, error: 'Examiner ID not found in session. Please re-login.' },
+        { status: 404 }
+      );
+    }
+
     // MongoDB 연결
     const client = await clientPromise;
     const db = client.db('naraddon');
 
-    // 심사관 프로필 조회 (이메일로 검색)
+    // 🔥 세션의 examinerId로 직접 조회 (1회 조회, 일관성 보장)
+    const { ObjectId } = require('mongodb');
     const examiner = await db.collection('expert-examiners').findOne({
-      email: session.user.email,
+      _id: new ObjectId(session.user.examinerId),
     });
 
     if (!examiner) {

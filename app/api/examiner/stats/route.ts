@@ -50,10 +50,12 @@ export async function GET(request: NextRequest) {
     const requestedExaminerEmail = searchParams.get('examinerEmail');
 
     let targetEmail = userEmail;
+    let targetExaminerId = (session.user as any)?.examinerId; // 🔥 세션의 examinerId
 
     // 관리자가 특정 심사관의 데이터를 요청한 경우
     if (requestedExaminerEmail && (userRole === 'admin' || userRole === 'super_admin')) {
       targetEmail = requestedExaminerEmail;
+      targetExaminerId = null; // 다른 심사관이므로 email로 조회
       console.log('[Examiner Stats API] Admin requesting stats for:', targetEmail);
     } else if (requestedExaminerEmail && userRole === 'examiner') {
       // 심사관은 다른 심사관의 데이터를 조회할 수 없음
@@ -71,12 +73,23 @@ export async function GET(request: NextRequest) {
      * ExpertExaminer ID 조회 (브랜드 페이지 링크용)
      *
      * @purpose 심사관 대시보드에서 브랜드 페이지 링크 표시
-     * @context email 필드로 검색 (userId는 ObjectId이므로 email로 검색)
-     * @note expert-examiners 컬렉션의 email 필드는 users 컬렉션과 동기화됨
-     * @decision Mongoose 모델 사용 (스키마에 email, userId 필드 추가됨)
+     * @decision
+     *   - 본인 조회: 세션의 examinerId 사용 (DB 조회 불필요, 일관성 보장)
+     *   - 관리자가 다른 심사관 조회: email로 검색
      */
     await connectDB();
-    const expertExaminer = await ExpertExaminer.findOne({ email: targetEmail });
+    let expertExaminer;
+
+    if (targetExaminerId && userRole === 'examiner') {
+      // 🔥 본인 조회: 세션의 examinerId로 직접 조회 (DB 조회 1회, 일관성 보장)
+      const { ObjectId } = require('mongodb');
+      expertExaminer = await ExpertExaminer.findById(new ObjectId(targetExaminerId));
+      console.log('[Examiner Stats API] Using cached examinerId from session:', targetExaminerId);
+    } else {
+      // 관리자가 다른 심사관 조회: email로 검색
+      expertExaminer = await ExpertExaminer.findOne({ email: targetEmail });
+      console.log('[Examiner Stats API] Querying by email:', targetEmail);
+    }
 
     // 활동 점수 조회
     let activityScore = 0;

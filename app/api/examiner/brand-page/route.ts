@@ -88,9 +88,17 @@ export async function PATCH(request: NextRequest) {
         );
       }
 
-      // 본인의 심사관 프로필 조회
+      // 🔥 세션의 examinerId로 본인 프로필 조회 (일관성 보장)
+      if (!session.user.examinerId) {
+        return NextResponse.json(
+          { success: false, error: 'Examiner ID not found in session. Please re-login.' },
+          { status: 404 }
+        );
+      }
+
+      const { ObjectId } = require('mongodb');
       targetExaminer = await db.collection('expert-examiners').findOne({
-        email: session.user.email,
+        _id: new ObjectId(session.user.examinerId),
       });
 
       if (!targetExaminer) {

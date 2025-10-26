@@ -5,6 +5,7 @@ declare module 'next-auth' {
   /**
    * NextAuth 세션 타입 확장
    * - mobile: 네이버 OAuth에서 받은 전화번호
+   * - examinerId: 심사관 ID (examiner role인 경우에만)
    */
   interface Session {
     user: {
@@ -12,6 +13,7 @@ declare module 'next-auth' {
       role: UserRole;
       mobile?: string;
       provider?: string;
+      examinerId?: string;  // 🔥 심사관 ID (일관성 있는 권한 관리)
     } & DefaultSession['user'];
   }
 
@@ -33,5 +35,6 @@ declare module 'next-auth/jwt' {
     role: UserRole;
     mobile?: string;
     provider?: string;
+    examinerId?: string;  // 🔥 심사관 ID (DB 조회 1회만)
   }
 }

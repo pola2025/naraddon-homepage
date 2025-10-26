@@ -237,12 +237,37 @@ export const authOptions: NextAuthOptions = {
                 token.mobile = dbUser.mobile;
               }
 
+              // 🔥 심사관인 경우 examinerId를 세션에 저장 (DB 조회 1회만)
+              if (newRole === 'examiner' && !token.examinerId) {
+                try {
+                  const examiner = await db.collection('expert-examiners').findOne(
+                    {
+                      $or: [
+                        { email: token.email as string },
+                        { userId: dbUser._id.toString() }
+                      ]
+                    },
+                    { projection: { _id: 1 } }
+                  );
+
+                  if (examiner) {
+                    token.examinerId = examiner._id.toString();
+                    console.log('[JWT Callback] ✅ ExaminerId cached in session:', token.examinerId);
+                  } else {
+                    console.warn('[JWT Callback] ⚠️ Examiner profile not found for:', token.email);
+                  }
+                } catch (examinerError) {
+                  console.error('[JWT Callback] Failed to fetch examinerId:', examinerError);
+                }
+              }
+
               console.log('[JWT Callback] DB role fetched:', {
                 email: token.email,
                 oldRole,
                 newRole,
                 changed: oldRole !== newRole,
-                dbUserId: dbUser._id.toString()
+                dbUserId: dbUser._id.toString(),
+                examinerId: token.examinerId || 'N/A'
               });
             } else {
               /**
@@ -347,7 +372,15 @@ export const authOptions: NextAuthOptions = {
           session.user.mobile = token.mobile as string;
           session.user.provider = token.provider as string;
 
-          console.log('[Session Callback] Final session.user.role:', session.user.role);
+          // 🔥 심사관 ID를 세션에 추가 (API에서 바로 사용)
+          if (token.examinerId) {
+            session.user.examinerId = token.examinerId as string;
+          }
+
+          console.log('[Session Callback] Final session.user:', {
+            role: session.user.role,
+            examinerId: session.user.examinerId || 'N/A'
+          });
         }
         return session;
       } catch (error) {
