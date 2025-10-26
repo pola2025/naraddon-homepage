@@ -44,20 +44,19 @@ export const authOptions: NextAuthOptions = {
      */
     async signIn({ user, account, profile }) {
       try {
-        if (!user.email) {
-          console.error('[Auth] No email provided');
+        if (!user.email || !account) {
+          console.error('[Auth] No email or account provided');
           return false;
         }
 
-        // MongoDBAdapter가 user와 account를 자동 생성하므로
-        // 여기서는 추가 커스텀 필드만 업데이트
         const client = await clientPromise;
         const db = client.db('naraddon');
         const usersCollection = db.collection('users');
+        const accountsCollection = db.collection('accounts');
 
         const mobile = (profile as any)?.response?.mobile || (profile as any)?.response?.mobile_e164;
 
-        // MongoDBAdapter가 생성한 사용자 찾기
+        // 1. 사용자 확인 및 업데이트
         const existingUser = await usersCollection.findOne({ email: user.email });
 
         if (existingUser) {
@@ -66,12 +65,10 @@ export const authOptions: NextAuthOptions = {
             lastLoginAt: new Date(),
           };
 
-          // 전화번호가 있으면 추가
           if (mobile) {
             updateData.mobile = mobile;
           }
 
-          // 첫 로그인 시 role, status 초기화
           if (!existingUser.role) {
             updateData.role = 'user';
           }
@@ -83,7 +80,29 @@ export const authOptions: NextAuthOptions = {
             { email: user.email },
             { $set: updateData }
           );
-          console.log('[Auth] Updated custom fields:', user.email, 'Mobile:', mobile || 'N/A');
+
+          // 2. accounts 연결 확인 및 생성 (OAuthAccountNotLinked 해결)
+          const existingAccount = await accountsCollection.findOne({
+            provider: account.provider,
+            providerAccountId: account.providerAccountId
+          });
+
+          if (!existingAccount) {
+            // accounts가 없으면 생성 (기존 사용자 연결)
+            await accountsCollection.insertOne({
+              userId: existingUser._id.toString(),
+              type: account.type,
+              provider: account.provider,
+              providerAccountId: account.providerAccountId,
+              access_token: account.access_token,
+              token_type: account.token_type,
+              scope: account.scope,
+              id_token: account.id_token,
+            });
+            console.log('[Auth] Created account link for existing user:', user.email);
+          }
+
+          console.log('[Auth] Updated user:', user.email, 'Mobile:', mobile || 'N/A');
         }
 
         return true;
