@@ -14,6 +14,14 @@ interface ExaminerStats {
   averageRating: number;
   recentConsultations: Consultation[];
   examinerId?: string | null;
+  activityScore?: number;
+  activityDetails?: {
+    pageVisits: number;
+    postsCreated: number;
+    commentsCreated: number;
+    loginCount: number;
+    profileCompletenessScore: number;
+  };
 }
 
 interface Consultation {
@@ -121,7 +129,7 @@ export default function ExaminerDashboard() {
           ) : (
             <>
               {/* 통계 카드 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div className="bg-white rounded-lg shadow p-6">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 bg-blue-500 rounded-md p-3">
@@ -201,6 +209,32 @@ export default function ExaminerDashboard() {
                       <p className="text-sm font-medium text-gray-500">검토 대기</p>
                       <p className="text-2xl font-semibold text-gray-900">
                         {stats?.pendingReviews}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 bg-amber-500 rounded-md p-3">
+                      <svg
+                        className="h-6 w-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 10V3L4 14h7v7l9-11h-7z"
+                        />
+                      </svg>
+                    </div>
+                    <div className="ml-5">
+                      <p className="text-sm font-medium text-gray-500">활동 점수</p>
+                      <p className="text-2xl font-semibold text-gray-900">
+                        {stats?.activityScore || 0}
                       </p>
                     </div>
                   </div>

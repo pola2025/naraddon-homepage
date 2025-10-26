@@ -77,6 +77,60 @@ export async function GET(request: NextRequest) {
     await connectDB();
     const expertExaminer = await ExpertExaminer.findOne({ email: targetEmail });
 
+    // 활동 점수 조회
+    let activityScore = 0;
+    let activityDetails = null;
+
+    if (expertExaminer) {
+      const activities = await db.collection('examiner-activities').findOne({
+        examinerId: expertExaminer._id.toString()
+      });
+
+      if (activities) {
+        /**
+         * 점수 계산
+         *
+         * @purpose 각 활동 타입별 점수 가중치 적용
+         * @context profileCompletenessScore는 완성도 점수 (0~30점)를 그대로 반영
+         * @decision 상담 점수 상향 (배정 40점, 완료 80점) - 고가치 활동 우대
+         */
+        const scoreConfig = {
+          pageVisit: 1,
+          postCreated: 10,
+          commentCreated: 5,
+          consultationAssigned: 40,
+          consultationCompleted: 80,
+          login: 2
+        };
+
+        // 실시간 상담 통계 (consultations 컬렉션에서 조회)
+        const consultationsAssigned = await consultationsCollection.countDocuments({
+          assignedStaffId: targetEmail
+        });
+        const consultationsCompleted = await consultationsCollection.countDocuments({
+          assignedStaffId: targetEmail,
+          status: 'completed'
+        });
+
+        activityScore =
+          (activities.activities.pageVisits * scoreConfig.pageVisit) +
+          (activities.activities.postsCreated * scoreConfig.postCreated) +
+          (activities.activities.commentsCreated * scoreConfig.commentCreated) +
+          (consultationsAssigned * scoreConfig.consultationAssigned) +
+          (consultationsCompleted * scoreConfig.consultationCompleted) +
+          (activities.activities.loginCount * scoreConfig.login) +
+          (activities.activities.profileCompletenessScore || 0);
+
+        activityDetails = {
+          pageVisits: activities.activities.pageVisits,
+          postsCreated: activities.activities.postsCreated,
+          commentsCreated: activities.activities.commentsCreated,
+          loginCount: activities.activities.loginCount,
+          profileCompletenessScore: activities.activities.profileCompletenessScore || 0
+        };
+      }
+    }
+
     // 병렬로 통계 데이터 수집 (targetEmail로 조회)
     const [
       assignedConsultations,
@@ -161,7 +215,9 @@ export async function GET(request: NextRequest) {
       pendingReviews,
       averageRating,
       recentConsultations: formattedConsultations,
-      examinerId: expertExaminer?._id?.toString() || null
+      examinerId: expertExaminer?._id?.toString() || null,
+      activityScore,
+      activityDetails
     });
   } catch (error) {
     console.error('Examiner stats error:', error);
