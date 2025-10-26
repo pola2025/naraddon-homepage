@@ -23,25 +23,25 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
-  padding-top: 85px;
+  margin-top: 80px;
   background: transparent;
 }
 
 @media (max-width: 1024px) {
   .breadcrumbContainer {
-    padding-top: 109px;
+    margin-top: 104px;
   }
 }
 
 @media (max-width: 768px) {
   .breadcrumbContainer {
-    padding-top: 101px;
+    margin-top: 96px;
   }
 }
 
 @media (max-width: 480px) {
   .breadcrumbContainer {
-    padding-top: 109px;
+    margin-top: 104px;
   }
 }
 
