@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './ExaminerBrandPage.module.css';
+import Breadcrumb from './Breadcrumb';
 import HeroSection from './HeroSection';
 import TabSection from './TabSection';
 import ContactSection from './ContactSection';
@@ -126,8 +127,18 @@ export default function ExaminerBrandPage({ examinerId }: ExaminerBrandPageProps
     );
   }
 
+  // 브레드크럼 아이템 구성
+  const breadcrumbItems = [
+    { label: '홈', href: '/' },
+    { label: '인증 기업심사관', href: '/certified-examiners' },
+    { label: examiner.name }
+  ];
+
   return (
     <div className={styles.brandPageWrapper}>
+      <div className={styles.breadcrumbContainer}>
+        <Breadcrumb items={breadcrumbItems} />
+      </div>
       <HeroSection examiner={examiner} />
       <TabSection examiner={examiner} />
       <ContactSection examiner={examiner} />

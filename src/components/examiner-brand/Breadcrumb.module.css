@@ -1,0 +1,72 @@
+/**
+ * 브레드크럼 네비게이션 스타일
+ *
+ * @purpose 깔끔하고 읽기 쉬운 경로 표시
+ * @design 다크 테마에 맞춘 골드 톤
+ */
+
+.breadcrumb {
+  padding: 1.5rem 0;
+  background-color: transparent;
+}
+
+.breadcrumbList {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.875rem;
+  color: #b0a99f;
+}
+
+.breadcrumbItem {
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumbLink {
+  color: #b0a99f;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.breadcrumbLink:hover {
+  color: #d4af37;
+  background-color: rgba(212, 175, 55, 0.1);
+}
+
+.breadcrumbSeparator {
+  margin: 0 0.5rem;
+  color: #6b6b6b;
+  user-select: none;
+}
+
+.breadcrumbCurrent {
+  color: #d4af37;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+}
+
+/* 모바일 최적화 */
+@media (max-width: 640px) {
+  .breadcrumb {
+    padding: 1rem 0;
+  }
+
+  .breadcrumbList {
+    font-size: 0.8125rem;
+  }
+
+  .breadcrumbSeparator {
+    margin: 0 0.375rem;
+  }
+
+  .breadcrumbLink,
+  .breadcrumbCurrent {
+    padding: 0.2rem 0.375rem;
+  }
+}
