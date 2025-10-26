@@ -5,8 +5,8 @@
   position: relative;
   overflow: hidden;
   border-bottom: 2px solid rgba(212, 175, 55, 0.3);
-  margin-top: -72px;
-  padding-top: 120px;
+  margin-top: 0;
+  padding-top: 40px;
 }
 
 .hero::before {
