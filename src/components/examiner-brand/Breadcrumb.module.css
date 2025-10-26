@@ -7,7 +7,7 @@
 
 .breadcrumb {
   padding: 1.5rem 0;
-  background-color: #1a1a1a;
+  background-color: transparent;
   min-height: 60px;
   position: relative;
   z-index: 10;
