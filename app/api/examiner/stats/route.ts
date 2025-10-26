@@ -82,8 +82,7 @@ export async function GET(request: NextRequest) {
 
     if (targetExaminerId) {
       // 🔥 전략1: 세션의 examinerId로 직접 조회 (1회 조회, 일관성 보장)
-      const { ObjectId } = require('mongodb');
-      expertExaminer = await ExpertExaminer.findById(new ObjectId(targetExaminerId));
+      expertExaminer = await ExpertExaminer.findById(targetExaminerId);
       console.log('[Examiner Stats API] Using cached examinerId from session:', targetExaminerId);
     }
 
