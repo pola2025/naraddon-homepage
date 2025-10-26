@@ -35,7 +35,9 @@ const getMongoAdapter = async () => {
 };
 
 export const authOptions: NextAuthOptions = {
-  adapter: process.env.MONGODB_URI ? MongoDBAdapter(clientPromise) : undefined,
+  adapter: process.env.MONGODB_URI ? MongoDBAdapter(clientPromise, {
+    databaseName: 'naraddon',
+  }) : undefined,
   providers: [
     ...(NAVER_CLIENT_ID && NAVER_CLIENT_SECRET ? [
       NaverProvider({

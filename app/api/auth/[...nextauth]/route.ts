@@ -1,5 +1,5 @@
 import NextAuth from 'next-auth';
-import { authOptions } from '@/lib/auth/authOptions';
+import { authOptions } from '../../../auth-options';
 
 // authOptions를 app 폴더 내부에서 import
 // app/auth-options.ts에서 실제 설정 가져옴
