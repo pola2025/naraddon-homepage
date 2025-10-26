@@ -230,6 +230,37 @@ export default function ExaminersPage() {
     }
   };
 
+  /**
+   * 심사관 카드 연결 해제 핸들러
+   *
+   * @purpose 심사관 카드에서 사용자 연결만 해제 (카드는 유지)
+   * @context 실수로 잘못 연결했거나, 심사관이 더 이상 그 역할을 하지 않을 때
+   * @note 사용자 계정은 유지되며, 카드만 연결 해제됨
+   */
+  const handleUnlink = async (examinerId: string, examinerName: string) => {
+    if (!confirm(`${examinerName} 심사관의 사용자 연결을 해제하시겠습니까?\n\n사용자 계정은 유지되며, 카드 연결만 해제됩니다.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/examiners/${examinerId}/unlink`, {
+        method: 'PUT'
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert(data.message || '연결이 해제되었습니다.');
+        fetchExaminers();
+      } else {
+        const data = await response.json();
+        alert(data.error || '연결 해제에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Failed to unlink examiner:', error);
+      alert('연결 해제에 실패했습니다.');
+    }
+  };
+
   const handleSpecialtyAdd = () => {
     const specialty = prompt('전문분야를 입력하세요:');
     if (specialty && specialty.trim()) {
@@ -466,9 +497,18 @@ export default function ExaminersPage() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {examiner.userId ? (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      연결됨
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        연결됨
+                      </span>
+                      <button
+                        onClick={() => handleUnlink(examiner._id, examiner.name)}
+                        className="text-orange-600 hover:text-orange-900 text-xs font-medium"
+                        title="연결 해제"
+                      >
+                        해제
+                      </button>
+                    </div>
                   ) : (
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                       미연결

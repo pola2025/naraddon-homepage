@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>브랜드 페이지 권한 테스트</title>
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      border-bottom: 3px solid #4CAF50;
+      padding-bottom: 10px;
+    }
+    .test-section {
+      margin: 30px 0;
+      padding: 20px;
+      background: #f9f9f9;
+      border-left: 4px solid #2196F3;
+    }
+    .test-item {
+      margin: 15px 0;
+      padding: 15px;
+      background: white;
+      border-radius: 5px;
+    }
+    .test-item h3 {
+      margin-top: 0;
+      color: #2196F3;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 5px;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    button.danger {
+      background: #f44336;
+    }
+    button.danger:hover {
+      background: #da190b;
+    }
+    .result {
+      margin-top: 15px;
+      padding: 15px;
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+    .error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+    .info {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
+    }
+    .warning {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      color: #856404;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+    .status-pass {
+      background: #d4edda;
+      color: #155724;
+    }
+    .status-fail {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .checklist {
+      list-style: none;
+      padding: 0;
+    }
+    .checklist li {
+      padding: 10px;
+      margin: 5px 0;
+      background: white;
+      border-radius: 5px;
+      border-left: 4px solid #ccc;
+    }
+    .checklist li.checked {
+      border-left-color: #4CAF50;
+    }
+    .checklist li.unchecked {
+      border-left-color: #f44336;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔒 브랜드 페이지 권한 테스트 (프로덕션)</h1>
+
+    <div class="test-section">
+      <h2>📋 테스트 체크리스트</h2>
+      <ul class="checklist" id="checklist">
+        <li class="unchecked">✅ 심사관으로 로그인되어 있는지 확인</li>
+        <li class="unchecked">✅ 본인 프로필을 불러올 수 있는지 확인</li>
+        <li class="unchecked">✅ 본인 브랜드 페이지를 수정할 수 있는지 확인</li>
+        <li class="unchecked">✅ 다른 심사관의 브랜드 페이지는 수정할 수 없는지 확인</li>
+      </ul>
+    </div>
+
+    <!-- 테스트 1: 세션 확인 -->
+    <div class="test-section">
+      <div class="test-item">
+        <h3>🔐 테스트 1: 현재 세션 확인</h3>
+        <p>현재 로그인된 사용자의 세션 정보를 확인합니다.</p>
+        <button onclick="checkSession()">세션 확인</button>
+        <div id="session-result"></div>
+      </div>
+    </div>
+
+    <!-- 테스트 2: 본인 프로필 조회 -->
+    <div class="test-section">
+      <div class="test-item">
+        <h3>👤 테스트 2: 본인 프로필 조회</h3>
+        <p>로그인한 심사관의 프로필을 조회합니다.</p>
+        <button onclick="getMyProfile()">프로필 조회</button>
+        <div id="profile-result"></div>
+      </div>
+    </div>
+
+    <!-- 테스트 3: 본인 브랜드 페이지 수정 -->
+    <div class="test-section">
+      <div class="test-item">
+        <h3>✏️ 테스트 3: 본인 브랜드 페이지 수정 (권한 있음)</h3>
+        <p>본인의 브랜드 페이지를 수정할 수 있어야 합니다.</p>
+        <button onclick="updateMyBrandPage()">브랜드 페이지 수정 테스트</button>
+        <div id="update-result"></div>
+      </div>
+    </div>
+
+    <!-- 테스트 4: 다른 심사관 브랜드 페이지 수정 시도 (실패해야 함) -->
+    <div class="test-section">
+      <div class="test-item">
+        <h3>🚫 테스트 4: 다른 심사관 브랜드 페이지 수정 (권한 없음 - 실패해야 정상)</h3>
+        <p>다른 심사관의 ID를 입력하여 수정을 시도합니다. 403 Forbidden 에러가 발생해야 정상입니다.</p>
+        <input type="text" id="other-examiner-id" placeholder="다른 심사관 ID 입력 (예: 671db78ee5c1f030e15e1f44)">
+        <button class="danger" onclick="updateOtherBrandPage()">다른 심사관 브랜드 페이지 수정 시도 (실패해야 함)</button>
+        <div id="unauthorized-result"></div>
+      </div>
+    </div>
+
+    <!-- 테스트 5: 브랜드 편집 페이지 접근 -->
+    <div class="test-section">
+      <div class="test-item">
+        <h3>🌐 테스트 5: 브랜드 편집 페이지 접근</h3>
+        <p>실제 브랜드 편집 페이지로 이동합니다.</p>
+        <button onclick="openBrandEditPage()">브랜드 편집 페이지 열기</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 프로덕션 URL
+    const BASE_URL = 'https://naraddon.com';
+
+    let myExaminerId = null;
+
+    // 체크리스트 업데이트
+    function updateChecklist(index, checked) {
+      const items = document.querySelectorAll('#checklist li');
+      if (items[index]) {
+        items[index].className = checked ? 'checked' : 'unchecked';
+      }
+    }
+
+    // 테스트 1: 세션 확인
+    async function checkSession() {
+      const resultDiv = document.getElementById('session-result');
+      resultDiv.innerHTML = '<div class="result info">확인 중...</div>';
+
+      try {
+        const response = await fetch(`${BASE_URL}/api/auth/session`, {
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const session = await response.json();
+
+        if (session && session.user) {
+          const isExaminer = session.user.role === 'examiner';
+          const className = isExaminer ? 'success' : 'warning';
+          resultDiv.innerHTML = `
+            <div class="result ${className}">
+              <strong>세션 정보:</strong>
+
+사용자: ${session.user.name || 'N/A'}
+이메일: ${session.user.email || 'N/A'}
+역할: ${session.user.role || 'N/A'}
+${isExaminer ? '✅ 심사관 권한 확인됨' : '⚠️ 심사관 권한이 아닙니다'}
+            </div>
+          `;
+          updateChecklist(0, isExaminer);
+        } else {
+          resultDiv.innerHTML = '<div class="result error">❌ 로그인되어 있지 않습니다.</div>';
+          updateChecklist(0, false);
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `<div class="result error">❌ 에러: ${error.message}</div>`;
+        updateChecklist(0, false);
+      }
+    }
+
+    // 테스트 2: 본인 프로필 조회
+    async function getMyProfile() {
+      const resultDiv = document.getElementById('profile-result');
+      resultDiv.innerHTML = '<div class="result info">조회 중...</div>';
+
+      try {
+        const response = await fetch(`${BASE_URL}/api/examiner/profile`, {
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(`HTTP ${response.status}: ${error.error || response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.examiner) {
+          myExaminerId = data.examiner._id;
+          resultDiv.innerHTML = `
+            <div class="result success">
+              <strong>✅ 프로필 조회 성공:</strong>
+
+심사관 ID: ${data.examiner._id}
+이름: ${data.examiner.name}
+이메일: ${data.examiner.email}
+회사명: ${data.examiner.companyName || 'N/A'}
+
+브랜드 페이지 설정:
+- 기본 소개 사용: ${data.examiner.brandPage?.useDefaultIntro ? '예' : '아니오'}
+- 회사 로고: ${data.examiner.brandPage?.companyLogo ? '설정됨' : '없음'}
+- 경력 개수: ${data.examiner.brandPage?.careers?.length || 0}개
+- 성공 케이스: ${data.examiner.brandPage?.successCases?.length || 0}개
+            </div>
+          `;
+          updateChecklist(1, true);
+        } else {
+          throw new Error('프로필 데이터가 없습니다.');
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `<div class="result error">❌ 에러: ${error.message}</div>`;
+        updateChecklist(1, false);
+      }
+    }
+
+    // 테스트 3: 본인 브랜드 페이지 수정
+    async function updateMyBrandPage() {
+      const resultDiv = document.getElementById('update-result');
+
+      if (!myExaminerId) {
+        resultDiv.innerHTML = '<div class="result warning">⚠️ 먼저 프로필을 조회하세요.</div>';
+        return;
+      }
+
+      resultDiv.innerHTML = '<div class="result info">수정 테스트 중...</div>';
+
+      try {
+        // 테스트용 데이터 (기존 데이터에 타임스탬프만 추가)
+        const testBrandPage = {
+          companyLogo: '',
+          companyIntro: `<p>테스트 수정 ${new Date().toLocaleString('ko-KR')}</p>`,
+          useDefaultIntro: true,
+          infoImage: '',
+          careers: [],
+          successCases: [],
+          contactInfo: {
+            website: '',
+            consultationHours: '',
+            address: ''
+          }
+        };
+
+        const response = await fetch(`${BASE_URL}/api/examiner/brand-page`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            brandPage: testBrandPage
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          resultDiv.innerHTML = `
+            <div class="result success">
+              <strong>✅ 본인 브랜드 페이지 수정 성공!</strong>
+
+상태: ${response.status}
+메시지: ${data.message || '성공'}
+시간: ${new Date().toLocaleString('ko-KR')}
+
+→ 본인의 브랜드 페이지는 정상적으로 수정할 수 있습니다.
+            </div>
+          `;
+          updateChecklist(2, true);
+        } else {
+          throw new Error(`HTTP ${response.status}: ${data.error || '수정 실패'}`);
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `<div class="result error">❌ 에러: ${error.message}</div>`;
+        updateChecklist(2, false);
+      }
+    }
+
+    // 테스트 4: 다른 심사관 브랜드 페이지 수정 시도 (실패해야 함)
+    async function updateOtherBrandPage() {
+      const resultDiv = document.getElementById('unauthorized-result');
+      const otherExaminerId = document.getElementById('other-examiner-id').value.trim();
+
+      if (!otherExaminerId) {
+        resultDiv.innerHTML = '<div class="result warning">⚠️ 다른 심사관 ID를 입력하세요.</div>';
+        return;
+      }
+
+      if (otherExaminerId === myExaminerId) {
+        resultDiv.innerHTML = '<div class="result warning">⚠️ 본인 ID가 아닌 다른 심사관 ID를 입력하세요.</div>';
+        return;
+      }
+
+      resultDiv.innerHTML = '<div class="result info">수정 시도 중... (실패해야 정상)</div>';
+
+      try {
+        const testBrandPage = {
+          companyLogo: '',
+          companyIntro: `<p>권한 없이 수정 시도 ${new Date().toLocaleString('ko-KR')}</p>`,
+          useDefaultIntro: true,
+          infoImage: '',
+          careers: [],
+          successCases: [],
+          contactInfo: {}
+        };
+
+        const response = await fetch(`${BASE_URL}/api/examiner/brand-page`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            brandPage: testBrandPage,
+            examinerId: otherExaminerId  // 다른 심사관 ID 전달
+          })
+        });
+
+        const data = await response.json();
+
+        // 403 Forbidden이 와야 정상
+        if (response.status === 403) {
+          resultDiv.innerHTML = `
+            <div class="result success">
+              <strong>✅ 권한 체크 정상 작동!</strong>
+
+상태: ${response.status} Forbidden
+메시지: ${data.error}
+
+→ 다른 심사관의 브랜드 페이지는 수정할 수 없습니다. (보안 정상)
+            </div>
+          `;
+          updateChecklist(3, true);
+        } else if (response.ok) {
+          // 수정이 성공하면 보안 문제!
+          resultDiv.innerHTML = `
+            <div class="result error">
+              <strong>🚨 보안 문제 발견!</strong>
+
+상태: ${response.status}
+메시지: ${data.message || '성공'}
+
+→ 다른 심사관의 브랜드 페이지를 수정할 수 있습니다. (보안 취약점!)
+            </div>
+          `;
+          updateChecklist(3, false);
+        } else {
+          throw new Error(`예상치 못한 응답: HTTP ${response.status}: ${data.error || response.statusText}`);
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `<div class="result warning">⚠️ 에러: ${error.message}</div>`;
+      }
+    }
+
+    // 테스트 5: 브랜드 편집 페이지 열기
+    function openBrandEditPage() {
+      window.open(`${BASE_URL}/examiner/brand-edit`, '_blank');
+    }
+
+    // 페이지 로드 시 자동으로 세션 확인
+    window.addEventListener('load', () => {
+      checkSession();
+    });
+  </script>
+</body>
+</html>

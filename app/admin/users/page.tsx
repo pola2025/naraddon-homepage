@@ -11,7 +11,8 @@ import {
   MagnifyingGlassIcon,
   PlusIcon,
   EyeIcon,
-  XMarkIcon
+  XMarkIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline';
 
 // 빈 초기 데이터 (실제 DB에서 로드)
@@ -43,6 +44,9 @@ export default function UsersManagementPage() {
     specialties: [] as string[],
     isPublished: true
   });
+  const [deleteModalUser, setDeleteModalUser] = useState<User | null>(null);
+  const [deleteReason, setDeleteReason] = useState('');
+  const [deleteAdminNote, setDeleteAdminNote] = useState('');
 
   // 실제 사용자 데이터 로드
   useEffect(() => {
@@ -282,6 +286,49 @@ export default function UsersManagementPage() {
     console.log('Exporting users to Excel...');
   };
 
+  /**
+   * 사용자 탈퇴 처리
+   *
+   * @purpose 관리자가 악의적 사용자나 정책 위반 사용자를 강제 탈퇴
+   * @context 관리자 페이지에서 사용자 관리 시 필요
+   * @decision 탈퇴 사유 입력 필수, 탈퇴 기록은 withdrawal_reasons 컬렉션에 저장
+   */
+  const handleDeleteUser = async () => {
+    if (!deleteModalUser) return;
+
+    // 탈퇴 사유 필수
+    if (!deleteReason.trim()) {
+      alert('탈퇴 사유를 입력해주세요.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/users/${deleteModalUser.id}/delete`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reason: deleteReason,
+          adminNote: deleteAdminNote
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message);
+        fetchUsers(); // 목록 새로고침
+        setDeleteModalUser(null);
+        setDeleteReason('');
+        setDeleteAdminNote('');
+      } else {
+        alert(data.error || '계정 탈퇴 처리에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      alert('계정 탈퇴 처리 중 오류가 발생했습니다.');
+    }
+  };
+
   return (
     <div className="space-y-6 pb-12">
       {/* 헤더 */}
@@ -408,6 +455,16 @@ export default function UsersManagementPage() {
                   심사관 지정
                 </button>
               )}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteModalUser(user);
+                }}
+                className="text-red-600 hover:text-red-900"
+                title="사용자 탈퇴"
+              >
+                <TrashIcon className="w-5 h-5" />
+              </button>
             </div>
           )}
         />
@@ -610,6 +667,92 @@ export default function UsersManagementPage() {
                   className="px-4 py-2 text-sm text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:bg-gray-400"
                 >
                   심사관 지정하기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 사용자 탈퇴 확인 모달 */}
+      {deleteModalUser && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4">
+            <div
+              className="fixed inset-0 bg-gray-500 bg-opacity-75"
+              onClick={() => setDeleteModalUser(null)}
+            />
+            <div className="relative bg-white rounded-lg max-w-lg w-full p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                사용자 탈퇴 처리
+              </h2>
+
+              {/* 경고 메시지 */}
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-800">
+                  <strong className="font-semibold">⚠️ 주의:</strong> 이 작업은 되돌릴 수 없습니다.
+                </p>
+                <p className="text-sm text-red-700 mt-2">
+                  <strong>{deleteModalUser.name}</strong> ({deleteModalUser.email})님의 계정이 영구적으로 삭제됩니다.
+                </p>
+                {deleteModalUser.role === UserRole.EXAMINER && (
+                  <p className="text-sm text-red-700 mt-1">
+                    • 심사관 카드와의 연결이 해제됩니다.
+                  </p>
+                )}
+                <p className="text-sm text-red-700 mt-1">
+                  • 게시글과 댓글은 보존됩니다.
+                </p>
+              </div>
+
+              {/* 탈퇴 사유 입력 */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    탈퇴 사유 <span className="text-red-600">*</span>
+                  </label>
+                  <textarea
+                    value={deleteReason}
+                    onChange={(e) => setDeleteReason(e.target.value)}
+                    placeholder="예: 스팸 활동, 정책 위반, 악의적 행위 등"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
+                    rows={3}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    관리자 메모 (선택)
+                  </label>
+                  <textarea
+                    value={deleteAdminNote}
+                    onChange={(e) => setDeleteAdminNote(e.target.value)}
+                    placeholder="추가 정보나 참고사항"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-gray-500 focus:border-gray-500"
+                    rows={2}
+                  />
+                </div>
+              </div>
+
+              {/* 버튼 */}
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setDeleteModalUser(null);
+                    setDeleteReason('');
+                    setDeleteAdminNote('');
+                  }}
+                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleDeleteUser}
+                  className="px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700 disabled:bg-gray-400"
+                  disabled={!deleteReason.trim()}
+                >
+                  탈퇴 처리
                 </button>
               </div>
             </div>
