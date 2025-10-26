@@ -8,7 +8,10 @@
       "Bash(start https://vercel.com/mkt9834-4301s-projects/homepage/deployments)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(node scripts/migrate-examiner-ids.js:*)",
+      "Bash(node scripts/check-dohyun-status.js:*)",
+      "Bash(node scripts/fix-dohyun-final.js:*)"
     ],
     "deny": [],
     "ask": []
