@@ -3,6 +3,7 @@
   background: #1a1a1a !important;
   color: #f5f5f5;
   margin: 0;
+  margin-top: 72px;
   padding: 0;
   width: 100%;
   position: relative;
@@ -23,25 +24,25 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
-  margin-top: 80px;
+  padding-top: 8px;
   background: transparent;
 }
 
 @media (max-width: 1024px) {
   .breadcrumbContainer {
-    margin-top: 104px;
+    padding-top: 8px;
   }
 }
 
 @media (max-width: 768px) {
   .breadcrumbContainer {
-    margin-top: 96px;
+    padding-top: 8px;
   }
 }
 
 @media (max-width: 480px) {
   .breadcrumbContainer {
-    margin-top: 104px;
+    padding-top: 8px;
   }
 }
 
