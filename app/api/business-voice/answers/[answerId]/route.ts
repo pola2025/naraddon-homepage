@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/auth-options';
+import { authOptions } from '@/lib/auth/authOptions';
 import BusinessVoiceQuestion from '@/models/BusinessVoiceQuestion';
 import connectDB from '@/lib/mongodb';
 
