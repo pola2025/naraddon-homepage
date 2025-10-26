@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../auth-options';
 import clientPromise from '@/lib/mongodb-client';
+import connectDB from '@/lib/mongodb';
+import ExpertExaminer from '@/models/ExpertExaminer';
 
 export const dynamic = 'force-dynamic';
 
@@ -71,9 +73,10 @@ export async function GET(request: NextRequest) {
      * @purpose 심사관 대시보드에서 브랜드 페이지 링크 표시
      * @context email 필드로 검색 (userId는 ObjectId이므로 email로 검색)
      * @note expert-examiners 컬렉션의 email 필드는 users 컬렉션과 동기화됨
-     * @decision Mongoose 모델 대신 MongoDB 직접 사용 (email 필드가 스키마에 없음)
+     * @decision Mongoose 모델 사용 (스키마에 email, userId 필드 추가됨)
      */
-    const expertExaminer = await db.collection('expert-examiners').findOne({ email: targetEmail });
+    await connectDB();
+    const expertExaminer = await ExpertExaminer.findOne({ email: targetEmail });
 
     // 활동 점수 조회
     let activityScore = 0;

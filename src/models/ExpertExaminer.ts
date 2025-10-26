@@ -80,6 +80,11 @@ export interface IExpertExaminer extends Document {
   brandPage?: ExaminerBrandPage;
   views: number;
   likes: number;
+
+  // 사용자 연결 정보
+  email?: string;           // users 컬렉션과 동기화된 이메일
+  userId?: string;          // 연결된 사용자 ObjectId (문자열)
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -219,6 +224,16 @@ const expertExaminerSchema = new Schema<IExpertExaminer>(
       default: 0,
       min: 0,
     },
+    email: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    userId: {
+      type: String,
+      trim: true,
+      default: '',
+    },
   },
   {
     timestamps: true,
@@ -229,6 +244,8 @@ expertExaminerSchema.index({ sortOrder: 1, createdAt: -1 });
 expertExaminerSchema.index({ isPublished: 1 });
 expertExaminerSchema.index({ category: 1, sortOrder: 1, createdAt: -1 });
 expertExaminerSchema.index({ legacyKey: 1 }, { unique: true, sparse: true });
+expertExaminerSchema.index({ email: 1 });
+expertExaminerSchema.index({ userId: 1 });
 
 const ExpertExaminer: Model<IExpertExaminer> =
   mongoose.models.ExpertExaminer ||
