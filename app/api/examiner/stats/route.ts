@@ -67,9 +67,15 @@ export async function GET(request: NextRequest) {
     const db = client.db('naraddon');
     const consultationsCollection = db.collection('consultations');
 
-    // ExpertExaminer ID 조회 (브랜드 페이지 링크용)
+    /**
+     * ExpertExaminer ID 조회 (브랜드 페이지 링크용)
+     *
+     * @purpose 심사관 대시보드에서 브랜드 페이지 링크 표시
+     * @context email 필드로 검색 (userId는 ObjectId이므로 email로 검색)
+     * @note expert-examiners 컬렉션의 email 필드는 users 컬렉션과 동기화됨
+     */
     await connectDB();
-    const expertExaminer = await ExpertExaminer.findOne({ userId: targetEmail });
+    const expertExaminer = await ExpertExaminer.findOne({ email: targetEmail });
 
     // 병렬로 통계 데이터 수집 (targetEmail로 조회)
     const [
