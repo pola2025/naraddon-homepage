@@ -111,7 +111,7 @@ export const authOptions: NextAuthOptions = {
         token.email = user.email;
       }
 
-      // 🔥 FIX: MongoDB에서 role 조회하여 token에 저장
+      // 🔥 FIX: MongoDB에서 role 및 examinerId 조회하여 token에 저장
       if (token.email) {
         try {
           const client = await clientPromise;
@@ -124,6 +124,25 @@ export const authOptions: NextAuthOptions = {
             token.role = dbUser.role || 'user';
             token.id = dbUser._id.toString();
             console.log('[JWT Callback] Role set from DB:', token.role);
+
+            // 🔥 심사관인 경우 examinerId 조회 (브랜드 페이지 접근용)
+            if (dbUser.role === 'examiner' && !token.examinerId) {
+              try {
+                const expertExaminer = await db.collection('expert-examiners').findOne(
+                  { $or: [{ email: token.email as string }, { userId: dbUser._id.toString() }] },
+                  { projection: { _id: 1 } }
+                );
+                if (expertExaminer) {
+                  token.examinerId = expertExaminer._id.toString();
+                  console.log('[JWT Callback] ExaminerId set from DB:', token.examinerId);
+                } else {
+                  console.warn('[JWT Callback] ExpertExaminer not found for email:', token.email);
+                }
+              } catch (examinerError) {
+                console.error('[JWT Callback] Error fetching examinerId:', examinerError);
+                // examinerId 조회 실패해도 로그인은 계속 진행
+              }
+            }
           }
         } catch (error) {
           console.error('[JWT Callback] Error fetching role:', error);
@@ -140,6 +159,12 @@ export const authOptions: NextAuthOptions = {
         // JWT 토큰에서 role 가져오기 (이미 JWT 콜백에서 DB 조회함)
         (session.user as any).role = token.role || 'user';
         (session.user as any).id = token.id;
+
+        // 🔥 심사관인 경우 examinerId 포함 (브랜드 페이지 접근용)
+        if (token.examinerId) {
+          (session.user as any).examinerId = token.examinerId;
+          console.log('[Session Callback] ExaminerId from token:', token.examinerId);
+        }
 
         console.log('[Session Callback] Role from token:', token.role);
       }
