@@ -39,7 +39,7 @@ export async function PUT(
 
     const examinerId = params.id;
     const body = await request.json();
-    const { name, position, companyName, category, specialties, imageUrl, isPublished, sortOrder } = body;
+    const { name, position, companyName, category, specialties, imageUrl, isPublished, sortOrder, userId } = body;
 
     // 필수 필드 검증
     if (!name || !companyName) {
@@ -49,7 +49,31 @@ export async function PUT(
     // legacyKey 생성 (이름을 소문자로 변환하고 공백을 하이픈으로)
     const legacyKey = name.toLowerCase().replace(/\s+/g, '-');
 
-    const updateData = {
+    /**
+     * 이메일 동기화 로직
+     *
+     * @purpose userId가 변경될 때 users 컬렉션에서 이메일을 가져와 expert-examiners에 동기화
+     * @context 관리자가 심사관 계정을 카드에 연결할 때 이메일 정보가 누락되는 문제 해결
+     * @decision userId가 있으면 users 컬렉션에서 이메일을 조회하여 email 필드 자동 설정
+     */
+    let emailToSync = null;
+    if (userId) {
+      try {
+        const userIdQuery = typeof userId === 'string' ? new ObjectId(userId) : userId;
+        const user = await db.collection('users').findOne({ _id: userIdQuery });
+
+        if (user?.email) {
+          emailToSync = user.email;
+          console.log(`[Admin Examiners API] 이메일 동기화: ${name} → ${emailToSync}`);
+        } else {
+          console.warn(`[Admin Examiners API] userId ${userId}에 해당하는 사용자를 찾을 수 없거나 이메일이 없습니다.`);
+        }
+      } catch (error) {
+        console.error(`[Admin Examiners API] 이메일 조회 실패:`, error);
+      }
+    }
+
+    const updateData: any = {
       name,
       position: position || '인증 기업심사관',
       companyName,
@@ -62,6 +86,19 @@ export async function PUT(
       isPublished: isPublished !== false,
       updatedAt: new Date()
     };
+
+    // userId가 제공된 경우에만 업데이트
+    if (userId !== undefined) {
+      updateData.userId = userId;
+    }
+
+    // 이메일 동기화
+    if (emailToSync) {
+      updateData.email = emailToSync;
+    } else if (userId === null) {
+      // userId가 명시적으로 null로 설정된 경우 이메일도 제거
+      updateData.email = null;
+    }
 
     const result = await db.collection('expert-examiners').updateOne(
       { _id: new ObjectId(examinerId) },
