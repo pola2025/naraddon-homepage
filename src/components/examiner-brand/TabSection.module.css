@@ -118,7 +118,6 @@
 }
 
 .customIntro {
-  white-space: pre-line;
   font-size: 1.1rem;
   line-height: 1.8;
   color: var(--text-cream, #e8e0d5);

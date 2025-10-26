@@ -106,9 +106,12 @@ export default function TabSection({ examiner }: TabSectionProps) {
             </div>
           ) : (
             // 사용자 정의 회사소개
-            <div className={styles.customIntro}>
-              {brandPage.companyIntro}
-            </div>
+            <div
+              className={styles.customIntro}
+              dangerouslySetInnerHTML={{
+                __html: brandPage.companyIntro.replace(/\n/g, '<br>')
+              }}
+            />
           )}
         </div>
       </div>
