@@ -6,9 +6,8 @@
  */
 
 .breadcrumb {
-  padding: 1.5rem 0;
+  padding: 0.5rem 0;
   background-color: transparent;
-  min-height: 60px;
   position: relative;
   z-index: 10;
 }
