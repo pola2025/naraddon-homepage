@@ -11,10 +11,14 @@ export default function ExaminerBrandLayout({ children }: { children: ReactNode 
           __html: `
             document.documentElement.style.background = '#1a1a1a';
             document.body.style.background = '#1a1a1a';
+            document.body.style.margin = '0';
+            document.body.style.padding = '0';
           `
         }}
       />
-      {children}
+      <div style={{ background: '#1a1a1a', minHeight: '100vh', width: '100%', margin: 0, padding: 0 }}>
+        {children}
+      </div>
     </>
   );
 }
