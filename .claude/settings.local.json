@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(start https://vercel.com/mkt9834-4301s-projects/homepage)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(gh api:*)",
+      "Bash(start https://vercel.com/mkt9834-4301s-projects/homepage/deployments)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

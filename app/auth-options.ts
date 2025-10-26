@@ -49,20 +49,21 @@ export const authOptions: NextAuthOptions = {
           return false;
         }
 
+        // MongoDBAdapter가 user와 account를 자동 생성하므로
+        // 여기서는 추가 커스텀 필드만 업데이트
         const client = await clientPromise;
         const db = client.db('naraddon');
         const usersCollection = db.collection('users');
 
-        // 기존 사용자 확인
+        const mobile = (profile as any)?.response?.mobile || (profile as any)?.response?.mobile_e164;
+
+        // MongoDBAdapter가 생성한 사용자 찾기
         const existingUser = await usersCollection.findOne({ email: user.email });
 
         if (existingUser) {
-          // 기존 사용자 업데이트 (최근 로그인 시간 + 전화번호)
-          const mobile = (profile as any)?.response?.mobile || (profile as any)?.response?.mobile_e164;
-
+          // 커스텀 필드 업데이트
           const updateData: any = {
             lastLoginAt: new Date(),
-            updatedAt: new Date(),
           };
 
           // 전화번호가 있으면 추가
@@ -70,34 +71,19 @@ export const authOptions: NextAuthOptions = {
             updateData.mobile = mobile;
           }
 
+          // 첫 로그인 시 role, status 초기화
+          if (!existingUser.role) {
+            updateData.role = 'user';
+          }
+          if (!existingUser.status) {
+            updateData.status = 'active';
+          }
+
           await usersCollection.updateOne(
             { email: user.email },
             { $set: updateData }
           );
-          console.log('[Auth] Updated existing user:', user.email, 'Mobile:', mobile || 'N/A');
-        } else {
-          // 신규 사용자 생성
-          // 네이버 프로필에서 전화번호 추출
-          const mobile = (profile as any)?.response?.mobile || (profile as any)?.response?.mobile_e164;
-
-          const newUser = {
-            email: user.email,
-            name: user.name || '사용자',
-            mobile: mobile, // 네이버 OAuth에서 받은 전화번호
-            provider: account?.provider || 'naver',
-            providerId: (profile as any)?.response?.id || user.id,
-            role: 'user', // 기본 역할
-            status: 'active', // 활성 상태
-            profile: {
-              image: user.image || '',
-            },
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            lastLoginAt: new Date(),
-          };
-
-          await usersCollection.insertOne(newUser);
-          console.log('[Auth] Created new user:', user.email, 'Mobile:', mobile || 'N/A');
+          console.log('[Auth] Updated custom fields:', user.email, 'Mobile:', mobile || 'N/A');
         }
 
         return true;
