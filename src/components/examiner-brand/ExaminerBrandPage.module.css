@@ -10,7 +10,26 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
+  padding-top: 80px;
   background: #1a1a1a;
+}
+
+@media (max-width: 1024px) {
+  .breadcrumbContainer {
+    padding-top: 104px;
+  }
+}
+
+@media (max-width: 768px) {
+  .breadcrumbContainer {
+    padding-top: 96px;
+  }
+}
+
+@media (max-width: 480px) {
+  .breadcrumbContainer {
+    padding-top: 104px;
+  }
 }
 
 .loader {
