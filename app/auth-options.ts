@@ -134,8 +134,9 @@ export const authOptions: NextAuthOptions = {
             token.id = dbUser._id.toString();
             console.log('[JWT Callback] Role set from DB:', token.role);
 
-            // 🔥 심사관인 경우 examinerId 조회 (브랜드 페이지 접근용)
-            if (dbUser.role === 'examiner' && !token.examinerId) {
+            // 🔥 심사관 여부 확인 및 examinerId 조회 (브랜드 페이지 접근용)
+            // expert-examiners 테이블에 있으면 심사관으로 간주 (role 무관)
+            if (!token.examinerId) {
               try {
                 const expertExaminer = await db.collection('expert-examiners').findOne(
                   { $or: [{ email: token.email as string }, { userId: dbUser._id.toString() }] },
@@ -144,8 +145,18 @@ export const authOptions: NextAuthOptions = {
                 if (expertExaminer) {
                   token.examinerId = expertExaminer._id.toString();
                   console.log('[JWT Callback] ExaminerId set from DB:', token.examinerId);
+
+                  // expert-examiners에 있으면 role을 examiner로 업데이트
+                  if (dbUser.role !== 'examiner') {
+                    await db.collection('users').updateOne(
+                      { _id: dbUser._id },
+                      { $set: { role: 'examiner' } }
+                    );
+                    token.role = 'examiner';
+                    console.log('[JWT Callback] Role updated to examiner');
+                  }
                 } else {
-                  console.warn('[JWT Callback] ExpertExaminer not found for email:', token.email);
+                  console.log('[JWT Callback] No ExpertExaminer found for:', token.email);
                 }
               } catch (examinerError) {
                 console.error('[JWT Callback] Error fetching examinerId:', examinerError);
