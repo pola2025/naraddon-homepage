@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/authOptions';
+import { authOptions } from '@/app/auth-options';
 import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import PolicyNewsPost from '@/models/PolicyNewsPost';

@@ -8,7 +8,7 @@ import crypto from 'crypto';
 
 import { getServerSession } from 'next-auth';
 
-import { authOptions } from '@/lib/auth/authOptions';
+import { authOptions } from '@/app/auth-options';
 
 import { getR2Client, sanitizeFileName, buildR2ObjectUrl, isR2Configured } from '@/lib/r2';
 

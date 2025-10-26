@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/authOptions';
+import { authOptions } from '@/app/auth-options';
 import { requirePolicyWriter, handleAuthError } from '@/lib/auth/guards';
 import connectDB from '@/lib/mongodb';
 import PolicyAnalysisPost from '@/models/PolicyAnalysisPost';

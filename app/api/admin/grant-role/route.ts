@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/authOptions';
+import { authOptions } from '@/app/auth-options';
 import clientPromise from '@/lib/mongodb-client';
 
 // POST /api/admin/grant-role - 관리자 비밀번호 확인 후 세션에 admin 권한 부여
