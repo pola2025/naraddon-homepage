@@ -207,54 +207,58 @@ export default function BrandEditPage() {
     }
 
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           {/* 헤더 */}
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">브랜드 페이지 편집</h1>
-              <p className="mt-2 text-gray-600">
-                회사소개, 경력, 성공케이스를 직접 작성하고 관리하세요
-              </p>
-            </div>
-            <div className="flex space-x-3">
-              <button
-                onClick={handlePreview}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-              >
-                <i className="fas fa-eye mr-2"></i>
-                미리보기
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
-              >
-                {saving ? (
-                  <>
-                    <i className="fas fa-spinner fa-spin mr-2"></i>
-                    저장 중...
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-save mr-2"></i>
-                    저장
-                  </>
-                )}
-              </button>
+          <div className="mb-6 sm:mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">브랜드 페이지 편집</h1>
+                <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600">
+                  회사소개, 경력, 성공케이스를 직접 작성하고 관리하세요
+                </p>
+              </div>
+              <div className="flex gap-2 sm:gap-3">
+                <button
+                  onClick={handlePreview}
+                  className="flex-1 sm:flex-none px-3 sm:px-4 py-2 border border-gray-300 rounded-lg text-sm sm:text-base text-gray-700 hover:bg-gray-50 whitespace-nowrap"
+                >
+                  <i className="fas fa-eye sm:mr-2"></i>
+                  <span className="hidden sm:inline">미리보기</span>
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex-1 sm:flex-none px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 text-sm sm:text-base whitespace-nowrap"
+                >
+                  {saving ? (
+                    <>
+                      <i className="fas fa-spinner fa-spin sm:mr-2"></i>
+                      <span className="hidden sm:inline">저장 중...</span>
+                      <span className="sm:hidden">저장중</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-save sm:mr-2"></i>
+                      <span className="hidden sm:inline">저장</span>
+                      <span className="sm:hidden">저장</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
 
           {/* 탭 네비게이션 */}
           <div className="bg-white rounded-lg shadow mb-6">
             <div className="border-b border-gray-200">
-              <nav className="flex -mb-px">
+              <nav className="flex overflow-x-auto -mb-px scrollbar-hide">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`
-                      flex-1 py-4 px-6 text-center border-b-2 font-medium text-sm transition-colors
+                      flex-shrink-0 py-3 sm:py-4 px-4 sm:px-6 text-center border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap
                       ${
                         activeTab === tab.id
                           ? 'border-blue-500 text-blue-600'
@@ -262,15 +266,15 @@ export default function BrandEditPage() {
                       }
                     `}
                   >
-                    <i className={`${tab.icon} mr-2`}></i>
-                    {tab.label}
+                    <i className={`${tab.icon} mr-1 sm:mr-2`}></i>
+                    <span className="hidden xs:inline">{tab.label}</span>
                   </button>
                 ))}
               </nav>
             </div>
 
             {/* 탭 컨텐츠 */}
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {activeTab === 'intro' && (
                 <BrandIntroEditor
                   companyIntro={profile.brandPage?.companyIntro || ''}
