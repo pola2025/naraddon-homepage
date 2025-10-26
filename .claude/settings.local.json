@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(start https://vercel.com/mkt9834-4301s-projects/homepage)"
+      "Bash(start https://vercel.com/mkt9834-4301s-projects/homepage)",
+      "Bash(git branch:*)"
     ],
     "deny": [],
     "ask": []
