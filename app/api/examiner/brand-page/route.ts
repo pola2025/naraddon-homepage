@@ -88,18 +88,33 @@ export async function PATCH(request: NextRequest) {
         );
       }
 
-      // 🔥 세션의 examinerId로 본인 프로필 조회 (일관성 보장)
-      if (!session.user.examinerId) {
-        return NextResponse.json(
-          { success: false, error: 'Examiner ID not found in session. Please re-login.' },
-          { status: 404 }
-        );
+      /**
+       * 심사관 조회 전략 (2단계 fallback)
+       *
+       * @strategy1 세션의 examinerId 사용 (최우선, 가장 빠름)
+       * @strategy2 email OR userId로 조회 (fallback, 기존 세션 대응)
+       * @purpose 네이버 로그인 프로세스 보호하면서 기존 세션도 지원
+       */
+      const { ObjectId } = require('mongodb');
+
+      if (session.user.examinerId) {
+        // 🔥 전략1: 세션의 examinerId로 직접 조회 (1회 조회, 일관성 보장)
+        targetExaminer = await db.collection('expert-examiners').findOne({
+          _id: new ObjectId(session.user.examinerId),
+        });
+        console.log('[Brand Page API] Using cached examinerId from session:', session.user.examinerId);
       }
 
-      const { ObjectId } = require('mongodb');
-      targetExaminer = await db.collection('expert-examiners').findOne({
-        _id: new ObjectId(session.user.examinerId),
-      });
+      if (!targetExaminer) {
+        // 🔥 전략2: email OR userId로 조회 (기존 세션 fallback)
+        const userId = session.user.id;
+        const query = userId
+          ? { $or: [{ email: session.user.email }, { userId }] }
+          : { email: session.user.email };
+
+        targetExaminer = await db.collection('expert-examiners').findOne(query);
+        console.log('[Brand Page API] Fallback query by email/userId:', { email: session.user.email, userId, found: !!targetExaminer });
+      }
 
       if (!targetExaminer) {
         return NextResponse.json(

@@ -73,28 +73,29 @@ export async function GET(request: NextRequest) {
      * ExpertExaminer ID 조회 (브랜드 페이지 링크용)
      *
      * @purpose 심사관 대시보드에서 브랜드 페이지 링크 표시
-     * @decision
-     *   - 본인 조회: 세션의 examinerId 사용 (DB 조회 불필요, 일관성 보장)
-     *   - 관리자가 다른 심사관 조회: email + userId로 검색 (JWT 콜백과 동일한 쿼리)
+     * @strategy1 세션의 examinerId 사용 (최우선, 가장 빠름)
+     * @strategy2 email OR userId로 조회 (fallback, 기존 세션 대응)
+     * @purpose 네이버 로그인 프로세스 보호하면서 기존 세션도 지원
      */
     await connectDB();
     let expertExaminer;
 
-    if (targetExaminerId && userRole === 'examiner') {
-      // 🔥 본인 조회: 세션의 examinerId로 직접 조회 (DB 조회 1회, 일관성 보장)
+    if (targetExaminerId) {
+      // 🔥 전략1: 세션의 examinerId로 직접 조회 (1회 조회, 일관성 보장)
       const { ObjectId } = require('mongodb');
       expertExaminer = await ExpertExaminer.findById(new ObjectId(targetExaminerId));
       console.log('[Examiner Stats API] Using cached examinerId from session:', targetExaminerId);
-    } else {
-      // 관리자가 다른 심사관 조회 또는 세션에 examinerId 없는 경우: email + userId로 검색
-      // 🔥 JWT 콜백과 동일한 쿼리 패턴 사용 (일관성 보장)
+    }
+
+    if (!expertExaminer) {
+      // 🔥 전략2: email OR userId로 조회 (기존 세션 fallback 또는 관리자가 다른 심사관 조회)
       const userId = (session.user as any)?.id;
       const query = userId
         ? { $or: [{ email: targetEmail }, { userId }] }
         : { email: targetEmail };
 
       expertExaminer = await ExpertExaminer.findOne(query);
-      console.log('[Examiner Stats API] Querying by email/userId:', { email: targetEmail, userId, found: !!expertExaminer });
+      console.log('[Examiner Stats API] Fallback query by email/userId:', { email: targetEmail, userId, found: !!expertExaminer });
     }
 
     // 활동 점수 조회

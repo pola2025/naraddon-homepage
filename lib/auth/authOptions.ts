@@ -238,7 +238,8 @@ export const authOptions: NextAuthOptions = {
               }
 
               // 🔥 심사관인 경우 examinerId를 세션에 저장 (DB 조회 1회만)
-              if (newRole === 'examiner' && !token.examinerId) {
+              // 🔥 기존 세션(role은 examiner지만 examinerId 없는)도 자동 캐싱
+              if (token.role === 'examiner' && !token.examinerId) {
                 try {
                   const examiner = await db.collection('expert-examiners').findOne(
                     {
@@ -257,7 +258,8 @@ export const authOptions: NextAuthOptions = {
                     console.warn('[JWT Callback] ⚠️ Examiner profile not found for:', token.email);
                   }
                 } catch (examinerError) {
-                  console.error('[JWT Callback] Failed to fetch examinerId:', examinerError);
+                  console.error('[JWT Callback] ❌ Failed to fetch examinerId (login continues):', examinerError);
+                  // 🔥 에러 발생해도 로그인 계속 진행 (네이버 로그인 프로세스 보호)
                 }
               }
 
