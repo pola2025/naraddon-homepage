@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../../auth-options';
+import { authOptions } from '@/lib/auth/authOptions';
 import clientPromise from '@/lib/mongodb-client';
 import connectDB from '@/lib/mongodb';
 import ExpertExaminer from '@/models/ExpertExaminer';
