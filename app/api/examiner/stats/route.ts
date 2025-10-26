@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
      * @purpose 심사관 대시보드에서 브랜드 페이지 링크 표시
      * @decision
      *   - 본인 조회: 세션의 examinerId 사용 (DB 조회 불필요, 일관성 보장)
-     *   - 관리자가 다른 심사관 조회: email로 검색
+     *   - 관리자가 다른 심사관 조회: email + userId로 검색 (JWT 콜백과 동일한 쿼리)
      */
     await connectDB();
     let expertExaminer;
@@ -86,9 +86,15 @@ export async function GET(request: NextRequest) {
       expertExaminer = await ExpertExaminer.findById(new ObjectId(targetExaminerId));
       console.log('[Examiner Stats API] Using cached examinerId from session:', targetExaminerId);
     } else {
-      // 관리자가 다른 심사관 조회: email로 검색
-      expertExaminer = await ExpertExaminer.findOne({ email: targetEmail });
-      console.log('[Examiner Stats API] Querying by email:', targetEmail);
+      // 관리자가 다른 심사관 조회 또는 세션에 examinerId 없는 경우: email + userId로 검색
+      // 🔥 JWT 콜백과 동일한 쿼리 패턴 사용 (일관성 보장)
+      const userId = (session.user as any)?.id;
+      const query = userId
+        ? { $or: [{ email: targetEmail }, { userId }] }
+        : { email: targetEmail };
+
+      expertExaminer = await ExpertExaminer.findOne(query);
+      console.log('[Examiner Stats API] Querying by email/userId:', { email: targetEmail, userId, found: !!expertExaminer });
     }
 
     // 활동 점수 조회
