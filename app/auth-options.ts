@@ -1,4 +1,5 @@
 import type { NextAuthOptions } from 'next-auth';
+import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
 import clientPromise from '../lib/mongodb-client';
 
 /**
@@ -6,9 +7,12 @@ import clientPromise from '../lib/mongodb-client';
  *
  * @purpose 네이버 OAuth 소셜 로그인 처리 및 사용자 정보 MongoDB 저장
  * @context 사용자가 네이버 계정으로 로그인하면 자동으로 DB에 사용자 정보 저장
- * @decision JWT 전략 사용 (서버리스 환경 최적화)
+ * @decision MongoDBAdapter 사용하여 계정 연결 정보 관리 (OAuthAccountNotLinked 해결)
  */
 export const authOptions: NextAuthOptions = {
+  adapter: MongoDBAdapter(clientPromise, {
+    databaseName: 'naraddon',
+  }),
   providers: [
     {
       id: 'naver',
