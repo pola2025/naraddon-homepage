@@ -118,7 +118,19 @@ export const authOptions: NextAuthOptions = {
           console.log('[Auth] ✅ Existing user updated:', user.email);
         }
 
-        // 3. accounts 연결 확인 및 생성 (OAuthAccountNotLinked 해결)
+        // 3. 신규 사용자인 경우 mobile 정보 업데이트
+        if (isNewUser) {
+          const newUser = await usersCollection.findOne({ email: user.email });
+          if (newUser && mobile) {
+            await usersCollection.updateOne(
+              { email: user.email },
+              { $set: { mobile: mobile } }
+            );
+            console.log('[Auth] ✅ Mobile added for new user:', user.email, 'Mobile:', mobile);
+          }
+        }
+
+        // 4. accounts 연결 확인 및 생성 (OAuthAccountNotLinked 해결)
         const currentUser = await usersCollection.findOne({ email: user.email });
         if (currentUser) {
           const existingAccount = await accountsCollection.findOne({
@@ -141,7 +153,7 @@ export const authOptions: NextAuthOptions = {
           }
         }
 
-        // 4. 🔥 신규 가입 시 텔레그램 알림 전송 (네이버 로그인에 영향 없음)
+        // 5. 🔥 신규 가입 시 텔레그램 알림 전송 (네이버 로그인에 영향 없음)
         if (isNewUser && user.name && user.email) {
           console.log('[Auth] Detected new user signup, will send Telegram notification');
           try {
