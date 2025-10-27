@@ -515,23 +515,43 @@ h1 {
     flex-wrap: wrap;
 }
 
-/* 이름/회사명과 하트 버튼을 가로로 배치하는 row */
+/**
+ * 이름/회사명/하트 버튼 레이아웃
+ *
+ * @layout 중앙: 이름 | 회사명 ♡
+ * @purpose 모든 요소를 중앙에 정렬하고 하트는 회사명 바로 옆에 배치
+ */
 .name-company-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     gap: 15px;
     width: 100%;
     position: relative;
 }
 
+/**
+ * 이름, 회사명, 하트를 가로로 나란히 배치
+ *
+ * @layout 이름|회사명 ♡
+ * @purpose 한 줄에 정보를 압축, 전체를 중앙 정렬
+ * @fix font-size: 0으로 inline 요소 간 공백 제거
+ */
 .name-company-group {
-    flex: 1;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+    justify-content: center;
+    font-size: 0;
 }
 
-/* 그리드 카드 - 이름/회사명 가운데 정렬, 하트는 absolute */
+/**
+ * 그리드 카드 - 이름/회사명/하트 중앙 정렬
+ *
+ * @layout 중앙: 이름 | 회사명 ♡
+ * @note 하트도 flex 아이템으로 회사명 바로 옆에 배치
+ */
 .grid-card .name-company-row {
     justify-content: center;
 }
@@ -539,12 +559,30 @@ h1 {
 .grid-card .name-company-group {
     text-align: center;
     align-items: center;
+    justify-content: center;
 }
 
+/**
+ * 그리드 카드 - 이름/회사명 간격 최소화
+ *
+ * @spacing 구분선만으로 간격 조절 (padding: 0 4px)
+ * @fix name-block margin 제거하여 이름과 구분선 완전히 붙임
+ * @fix font-size도 상속받도록 설정
+ */
+.grid-card .company-block::before {
+    padding: 0 4px;
+    font-size: inherit;
+}
+
+/**
+ * 그리드 카드 하트 버튼 - flex 아이템으로 회사명 옆에 배치
+ *
+ * @position 회사명 바로 옆
+ * @note 절대 위치 제거, flex 아이템으로 변경
+ */
 .grid-card .like-btn {
-    position: absolute;
-    right: 0;
-    top: 6px;  /* 이름 텍스트와 같은 높이 */
+    position: relative;
+    margin-left: 8px;
 }
 
 /* 메인 카드 info-block - 이미지와 같은 너비 */
@@ -556,7 +594,12 @@ h1 {
     flex-direction: column;
 }
 
-/* 메인 카드는 가운데 정렬 */
+/**
+ * 메인 카드 - 이름/회사명/하트 중앙 정렬
+ *
+ * @layout 중앙: 이름 | 회사명 ♡
+ * @note 하트도 flex 아이템으로 회사명 바로 옆에 배치
+ */
 .main-card .name-company-row {
     justify-content: center;
     width: 100%;
@@ -565,13 +608,18 @@ h1 {
 .main-card .name-company-group {
     text-align: center;
     align-items: center;
+    justify-content: center;
 }
 
-/* 메인 카드의 하트 버튼 - 이미지 오른쪽 끝, 이름 텍스트 아랫라인에 배치 */
+/**
+ * 메인 카드 하트 버튼 - flex 아이템으로 회사명 옆에 배치
+ *
+ * @position 회사명 바로 옆
+ * @note 절대 위치 제거, flex 아이템으로 변경
+ */
 .main-card-like {
-    position: absolute !important;
-    right: 0;
-    top: 6px;  /* 이름 텍스트 아랫라인과 하트 아래를 맞춤 */
+    position: relative !important;
+    margin-left: 12px;
     z-index: 10;
 }
 
@@ -603,6 +651,11 @@ h1 {
         0 0 10px rgba(255, 255, 255, 0.4);
 }
 
+/**
+ * 하트 버튼 hover 효과
+ *
+ * @note flex 아이템으로 변경되어 간단한 scale 효과만 적용
+ */
 .like-btn:hover {
     transform: scale(1.05);
     background: linear-gradient(135deg, #f0d989 0%, #d4af37 100%);
@@ -644,29 +697,73 @@ h1 {
     75% { transform: scale(1.1); }
 }
 
+/**
+ * 이름과 회사명 블록 공통 스타일
+ *
+ * @layout 이름|회사명 (간격 없음)
+ * @fix display: inline-block으로 통일하여 높이 맞춤
+ * @fix vertical-align: middle로 수직 정렬 통일
+ * @fix font-size 재설정 (부모가 0이므로)
+ */
 .name-block,
 .company-block {
-    padding: 8px 0;
+    padding: 0;
+    margin: 0;
     background: transparent;
     border: none;
     position: relative;
     transition: all 0.3s ease;
-    flex: 0 1 auto;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    line-height: 1;
+    display: inline-block;
+    vertical-align: middle;
 }
 
+/**
+ * 이름 블록
+ *
+ * @fix letter-spacing: 0으로 오른쪽 공백 제거
+ * @fix font-weight를 회사명과 동일하게 설정하여 높이 맞춤
+ */
 .name-block {
     font-size: 22px;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--gold);
-    letter-spacing: 1px;
+    letter-spacing: 0;
     text-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
 }
 
+/**
+ * 회사명 앞에 구분선 추가
+ *
+ * @layout 이름|회사명
+ * @style 금색 구분선으로 시각적 구분, 간격 없음
+ * @fix display: inline-block, vertical-align: middle로 높이 맞춤
+ */
+.company-block::before {
+    content: '|';
+    margin: 0;
+    padding: 0 8px;
+    color: rgba(212, 175, 55, 0.4);
+    font-weight: 300;
+    line-height: 1;
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 22px;
+}
+
+/**
+ * 회사명 블록
+ *
+ * @fix letter-spacing: 0으로 통일
+ * @fix font-weight: 600으로 이름과 동일하게 설정
+ */
 .company-block {
     font-size: 22px;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--text-light);
-    letter-spacing: 0.5px;
+    letter-spacing: 0;
 }
 
 .name-block:hover,
@@ -976,16 +1073,23 @@ h1 {
     flex-direction: row;
 }
 
+/**
+ * 그리드 카드 이름/회사명 오버라이드
+ *
+ * @fix padding, margin 모두 0으로 설정하여 불필요한 공백 제거
+ * @fix font-size만 18px로 조정
+ */
 .grid-card .name-block {
     font-size: 18px;
-    padding: 4px 24px;
+    padding: 0;
+    margin: 0;
     min-height: auto;
-    margin-bottom: -8px;
 }
 
 .grid-card .company-block {
     font-size: 18px;
-    padding: 4px 20px;
+    padding: 0;
+    margin: 0;
     min-height: auto;
 }
 
@@ -1229,23 +1333,71 @@ h1 {
         gap: 10px;
     }
 
+    /**
+     * 모바일 이름/회사명 블록
+     *
+     * @note display: inline-block, vertical-align: middle로 통일
+     */
     .name-block,
     .company-block {
-        width: 100%;
+        width: auto;
         background: transparent;
         border: none;
         box-shadow: none;
         padding: 0;
+        margin: 0;
         min-height: auto;
+        line-height: 1;
+        display: inline-block;
+        vertical-align: middle;
     }
 
-    /* 메인 카드 이름/회사명 크기를 그리드와 동일하게 */
+    /**
+     * 모바일 구분선 간격 및 크기 조정
+     *
+     * @spacing 구분선 좌우 padding을 4px로 축소
+     * @size 폰트 크기를 회사명과 맞춤
+     */
+    .company-block::before {
+        padding: 0 4px;
+        display: inline-block;
+        vertical-align: middle;
+        font-size: 13px;
+    }
+
+    .grid-card .company-block::before {
+        font-size: 12px;
+        padding: 0 3px;
+    }
+
+    /**
+     * 모바일 메인 카드 이름/회사명 크기 및 간격
+     *
+     * @responsive 회사명이 길 경우를 대비해 폰트 크기 축소
+     * @fix 모든 margin, padding 0으로 설정
+     * @fix letter-spacing: 0으로 통일
+     * @fix font-weight: 600으로 통일
+     */
     .main-card .name-block {
-        font-size: 16px;
+        font-size: 15px;
+        font-weight: 600;
+        margin: 0;
+        padding: 0;
+        line-height: 1;
+        letter-spacing: 0;
     }
 
     .main-card .company-block {
-        font-size: 16px;
+        font-size: 13px;
+        font-weight: 600;
+        margin: 0;
+        padding: 0;
+        line-height: 1;
+        letter-spacing: 0;
+        max-width: 180px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     /* 모바일 그리드 카드 콤팩트 디자인 */
@@ -1260,20 +1412,42 @@ h1 {
         gap: 0;
     }
 
+    /**
+     * 모바일 그리드 카드 이름/회사명 스타일
+     *
+     * @responsive 회사명이 길 경우를 대비해 폰트 크기 축소
+     * @fix 모든 margin, padding 0으로 설정하여 간격 완전 제거
+     * @fix font-weight: 600으로 통일
+     */
     .grid-card .name-block {
-        font-size: 16px;
-        font-weight: 700;
+        font-size: 14px;
+        font-weight: 600;
         color: var(--gold);
-        margin-bottom: -8px;
-        line-height: 1.2;
+        margin: 0;
+        padding: 0;
+        line-height: 1;
+        letter-spacing: 0;
     }
 
     .grid-card .company-block {
-        font-size: 16px;
-        font-weight: 400;
+        font-size: 12px;
+        font-weight: 600;
         color: var(--text-muted);
-        margin-bottom: 2px;
-        line-height: 1.2;
+        margin: 0;
+        padding: 0;
+        line-height: 1;
+        letter-spacing: 0;
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .grid-card .company-block::before {
+        padding: 0 4px;
+        display: inline-block;
+        vertical-align: middle;
+        font-size: inherit;
     }
 
     .grid-card .name-block:hover,
@@ -1283,21 +1457,40 @@ h1 {
         border-color: transparent;
     }
 
-    /* 모바일: 이름/회사명 가운데 정렬 */
-    .main-card .name-company-row {
+    /**
+     * 모바일: 이름/회사명/하트 중앙 정렬 유지
+     *
+     * @layout 중앙: 이름|회사명 ♡
+     * @note 데스크톱과 동일한 레이아웃 유지
+     * @fix font-size: 0으로 inline 요소 간 공백 제거
+     */
+    .main-card .name-company-row,
+    .grid-card .name-company-row {
         justify-content: center;
     }
 
-    .main-card .name-company-group {
+    .main-card .name-company-group,
+    .grid-card .name-company-group {
         text-align: center;
         align-items: center;
+        flex-direction: row;
+        gap: 0;
+        justify-content: center;
+        font-size: 0;
     }
 
-    /* 메인 카드의 하트는 이름 라인 오른쪽에 유지 */
-    .main-card-like {
-        width: 32px;
-        height: 32px;
-        font-size: 14px;
+    /**
+     * 모바일 하트 버튼 크기 및 간격 조정
+     *
+     * @size 28px (데스크톱 36px에서 축소)
+     * @spacing 8px (회사명이 길 경우를 대비해 간격 축소)
+     */
+    .main-card-like,
+    .grid-card .like-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 13px;
+        margin-left: 8px;
     }
 
     /* 모바일 버튼 그룹 - 세로 배치 */

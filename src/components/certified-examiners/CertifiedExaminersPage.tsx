@@ -65,7 +65,13 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
     setLikesCount(initialLikes);
   }, [initialExaminers]);
 
-  // 좋아요 처리 함수
+  /**
+   * 좋아요 처리 함수
+   *
+   * @purpose 심사관에 대한 좋아요 증가 및 상태 업데이트
+   * @security IP 기반 24시간 내 1회 제한 (서버에서 검증)
+   * @ux 429 에러 시 사용자에게 친절한 안내 메시지 표시
+   */
   const handleLike = async (examinerId: string) => {
     if (!examinerId || likedExaminers.has(examinerId)) return;
 
@@ -74,16 +80,25 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
         method: 'POST',
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        const data = await response.json();
         setLikesCount(prev => ({
           ...prev,
           [examinerId]: data.likes
         }));
         setLikedExaminers(prev => new Set(prev).add(examinerId));
+      } else if (response.status === 429) {
+        // 24시간 제한 에러 처리
+        alert(data.message || '24시간에 한 번만 좋아요를 누를 수 있습니다.');
+        setLikedExaminers(prev => new Set(prev).add(examinerId)); // UI에서도 비활성화
+      } else {
+        console.error('좋아요 처리 실패:', data.error);
+        alert('좋아요 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
       }
     } catch (error) {
       console.error('좋아요 처리 실패:', error);
+      alert('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     }
   };
 
