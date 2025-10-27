@@ -17,6 +17,7 @@ interface Examiner {
   position?: string;
   category?: string;
   specialties?: string[];
+  likes?: number;
 }
 
 interface CertifiedExaminersPageProps {
@@ -44,12 +45,47 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
   const [featuredExaminers, setFeaturedExaminers] = useState<Examiner[]>(initialExaminers);
   const [gridExaminers, setGridExaminers] = useState<Examiner[]>(initialExaminers);
 
+  // 좋아요 상태 관리: 심사관 ID별로 추적
+  const [likedExaminers, setLikedExaminers] = useState<Set<string>>(new Set());
+  const [likesCount, setLikesCount] = useState<Record<string, number>>({});
+
   // 마운트 후 클라이언트에서만 랜덤 정렬
   useEffect(() => {
     setMounted(true);
     setFeaturedExaminers(shuffleArray(initialExaminers));
     setGridExaminers(shuffleArray(initialExaminers));
+
+    // 초기 likes 카운트 설정
+    const initialLikes: Record<string, number> = {};
+    initialExaminers.forEach(examiner => {
+      if (examiner._id) {
+        initialLikes[examiner._id] = examiner.likes || 0;
+      }
+    });
+    setLikesCount(initialLikes);
   }, [initialExaminers]);
+
+  // 좋아요 처리 함수
+  const handleLike = async (examinerId: string) => {
+    if (!examinerId || likedExaminers.has(examinerId)) return;
+
+    try {
+      const response = await fetch(`/api/certified-examiners/${examinerId}/like`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setLikesCount(prev => ({
+          ...prev,
+          [examinerId]: data.likes
+        }));
+        setLikedExaminers(prev => new Set(prev).add(examinerId));
+      }
+    } catch (error) {
+      console.error('좋아요 처리 실패:', error);
+    }
+  };
 
   const handleShowMore = () => {
     if (visibleCount < gridExaminers.length) {
@@ -221,8 +257,21 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
                     />
                   </div>
                   <div className="info-block">
-                    <div className="name-block">{examiner.name}</div>
-                    <div className="company-block">{examiner.companyName}</div>
+                    <div className="name-company-row">
+                      <div className="name-company-group">
+                        <div className="name-block">{examiner.name}</div>
+                        <div className="company-block">{examiner.companyName}</div>
+                      </div>
+                      {mounted && examiner._id && (
+                        <button
+                          className={likedExaminers.has(examiner._id) ? 'like-btn main-card-like liked' : 'like-btn main-card-like'}
+                          onClick={() => handleLike(examiner._id!)}
+                          aria-label="좋아요"
+                        >
+                          <i className={likedExaminers.has(examiner._id) ? 'fas fa-heart' : 'far fa-heart'}></i>
+                        </button>
+                      )}
+                    </div>
                     <div className="button-group">
                       <button className="premium-cta" onClick={handleConsultationClick}>
                         <span className="button-text">상담 신청하기</span>
@@ -261,8 +310,21 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
                   />
                 </div>
                 <div className="info-block">
-                  <div className="name-block">{examiner.name}</div>
-                  <div className="company-block">{examiner.companyName}</div>
+                  <div className="name-company-row">
+                    <div className="name-company-group">
+                      <div className="name-block">{examiner.name}</div>
+                      <div className="company-block">{examiner.companyName}</div>
+                    </div>
+                    {mounted && examiner._id && (
+                      <button
+                        className={likedExaminers.has(examiner._id) ? 'like-btn liked' : 'like-btn'}
+                        onClick={() => handleLike(examiner._id!)}
+                        aria-label="좋아요"
+                      >
+                        <i className={likedExaminers.has(examiner._id) ? 'fas fa-heart' : 'far fa-heart'}></i>
+                      </button>
+                    )}
+                  </div>
                   <div className="button-group">
                     <button className="premium-cta" onClick={handleConsultationClick}>
                       <span className="button-text">상담 신청하기</span>

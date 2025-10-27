@@ -28,7 +28,8 @@ export default async function Page() {
         imageUrl: 1,
         position: 1,
         category: 1,
-        specialties: 1
+        specialties: 1,
+        likes: 1
       })
       .toArray();
 
@@ -40,7 +41,8 @@ export default async function Page() {
       imageUrl: examiner.imageUrl || '',
       position: examiner.position || '인증 기업심사관',
       category: examiner.category || 'funding',
-      specialties: examiner.specialties || []
+      specialties: examiner.specialties || [],
+      likes: examiner.likes || 0
     }));
   } catch (error) {
     console.error('[Certified Examiners Page] Error:', error);

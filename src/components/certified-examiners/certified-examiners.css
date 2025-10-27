@@ -331,7 +331,7 @@ h1 {
 .main-swiper {
     max-width: 1400px;
     margin: 0 auto 80px;
-    padding: 50px 50px 0; /* Increased top padding to prevent badge clipping */
+    padding: 80px 50px 0; /* Increased top padding to prevent badge glow clipping */
     overflow: visible !important;
 }
 
@@ -431,19 +431,19 @@ h1 {
 /* 나라똔 인증 뱃지 */
 .naraddon-badge {
     position: absolute;
-    top: -20px;
+    top: -30px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 25px;
+    gap: 15px;
+    padding: 18px 45px;
     background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
     border-radius: 50px;
     box-shadow:
         0 10px 30px rgba(212, 175, 55, 0.4),
         0 0 50px rgba(212, 175, 55, 0.2);
-    z-index: 10;
+    z-index: 100;
     overflow: hidden;
 }
 
@@ -489,7 +489,7 @@ h1 {
 
 .naraddon-badge i {
     color: #FFD700;
-    font-size: 18px;
+    font-size: 26px;
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
     position: relative;
     z-index: 2;
@@ -497,16 +497,16 @@ h1 {
 
 .naraddon-badge span {
     color: var(--black);
-    font-size: 12px;
+    font-size: 17px;
     font-weight: 700;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
     position: relative;
     z-index: 2;
 }
 
 /* 이름/회사 정보 블럭 */
 .info-block {
-    margin-top: 30px;
+    margin-top: 20px;
     display: flex;
     flex-direction: row;
     gap: 20px;
@@ -515,29 +515,147 @@ h1 {
     flex-wrap: wrap;
 }
 
-.name-block,
-.company-block {
-    padding: 15px 35px;
-    background: linear-gradient(135deg,
-        rgba(255, 255, 255, 0.1) 0%,
-        rgba(255, 255, 255, 0.05) 100%);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(212, 175, 55, 0.3);
-    border-radius: 15px;
-    position: relative;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow:
-        0 10px 30px rgba(0, 0, 0, 0.5),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    flex: 0 1 auto;
-    min-height: 60px;
+/* 이름/회사명과 하트 버튼을 가로로 배치하는 row */
+.name-company-row {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    width: 100%;
+    position: relative;
+}
+
+.name-company-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 그리드 카드 - 이름/회사명 가운데 정렬, 하트는 absolute */
+.grid-card .name-company-row {
     justify-content: center;
 }
 
+.grid-card .name-company-group {
+    text-align: center;
+    align-items: center;
+}
+
+.grid-card .like-btn {
+    position: absolute;
+    right: 0;
+    top: 6px;  /* 이름 텍스트와 같은 높이 */
+}
+
+/* 메인 카드 info-block - 이미지와 같은 너비 */
+.main-card .info-block {
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    flex-direction: column;
+}
+
+/* 메인 카드는 가운데 정렬 */
+.main-card .name-company-row {
+    justify-content: center;
+    width: 100%;
+}
+
+.main-card .name-company-group {
+    text-align: center;
+    align-items: center;
+}
+
+/* 메인 카드의 하트 버튼 - 이미지 오른쪽 끝, 이름 텍스트 아랫라인에 배치 */
+.main-card-like {
+    position: absolute !important;
+    right: 0;
+    top: 6px;  /* 이름 텍스트 아랫라인과 하트 아래를 맞춤 */
+    z-index: 10;
+}
+
+/* 하트 버튼 - 이름/회사명 오른쪽에 배치 */
+.like-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+    border: 2px solid #f0d989;
+    color: #ffffff;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        0 4px 12px rgba(212, 175, 55, 0.3),
+        0 0 15px rgba(212, 175, 55, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.like-btn i {
+    transition: all 0.3s ease;
+    text-shadow:
+        0 0 5px rgba(255, 255, 255, 0.6),
+        0 0 10px rgba(255, 255, 255, 0.4);
+}
+
+.like-btn:hover {
+    transform: scale(1.05);
+    background: linear-gradient(135deg, #f0d989 0%, #d4af37 100%);
+    box-shadow:
+        0 6px 18px rgba(212, 175, 55, 0.5),
+        0 0 25px rgba(212, 175, 55, 0.4);
+}
+
+.like-btn:hover i {
+    transform: scale(1.02);
+    text-shadow:
+        0 0 8px rgba(255, 255, 255, 0.9),
+        0 0 15px rgba(255, 255, 255, 0.6);
+}
+
+.like-btn.liked {
+    background: linear-gradient(135deg, rgba(10, 10, 10, 0.95) 0%, rgba(26, 26, 26, 0.98) 100%);
+    color: #d4af37;
+    animation: likeAnimation 0.6s ease-out;
+}
+
+.like-btn.liked i {
+    animation: heartBeat 0.6s ease-out;
+    text-shadow:
+        0 0 10px rgba(212, 175, 55, 1),
+        0 0 20px rgba(212, 175, 55, 0.8);
+}
+
+@keyframes likeAnimation {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.25); }
+    100% { transform: scale(1); }
+}
+
+@keyframes heartBeat {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.3); }
+    50% { transform: scale(0.9); }
+    75% { transform: scale(1.1); }
+}
+
+.name-block,
+.company-block {
+    padding: 8px 0;
+    background: transparent;
+    border: none;
+    position: relative;
+    transition: all 0.3s ease;
+    flex: 0 1 auto;
+}
+
 .name-block {
-    font-size: 26px;
+    font-size: 22px;
     font-weight: 700;
     color: var(--gold);
     letter-spacing: 1px;
@@ -545,7 +663,7 @@ h1 {
 }
 
 .company-block {
-    font-size: 18px;
+    font-size: 22px;
     font-weight: 500;
     color: var(--text-light);
     letter-spacing: 0.5px;
@@ -553,12 +671,7 @@ h1 {
 
 .name-block:hover,
 .company-block:hover {
-    transform: translateY(-3px);
-    box-shadow:
-        0 15px 40px rgba(212, 175, 55, 0.3),
-        0 0 60px rgba(212, 175, 55, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    border-color: rgba(212, 175, 55, 0.5);
+    transform: none;
 }
 
 /* Button Group */
@@ -566,18 +679,20 @@ h1 {
     display: flex;
     flex-direction: row;
     gap: 12px;
-    margin-top: 25px;
+    margin-top: 15px;
     width: 100%;
     align-items: center;
+    justify-content: center;
 }
 
 /* 공통 버튼 스타일 */
 .detail-btn,
 .premium-cta {
-    flex: 1 !important;
+    flex: 0 0 auto;
     height: 56px !important;
     min-height: 56px !important;
     max-height: 56px !important;
+    min-width: 180px;
     margin: 0 !important;
     padding: 0 40px !important;
     border-radius: 30px;
@@ -594,6 +709,7 @@ h1 {
     align-items: center !important;
     justify-content: center !important;
     text-align: center;
+    white-space: nowrap;
 }
 
 /* Detail Button */
@@ -603,8 +719,7 @@ h1 {
     border: 1px solid rgba(212, 175, 55, 0.4);
     text-decoration: none;
     box-shadow:
-        0 10px 30px rgba(212, 175, 55, 0.15),
-        0 0 40px rgba(212, 175, 55, 0.1);
+        0 8px 20px rgba(0, 0, 0, 0.2);
     align-self: center;
 }
 
@@ -615,72 +730,38 @@ h1 {
     box-shadow: 0 8px 20px rgba(212, 175, 55, 0.2);
 }
 
-/* Premium CTA Button */
+/* Premium CTA Button - 일반 버튼 스타일 */
 .premium-cta {
-    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
-    color: var(--black);
-    border: 1px solid transparent;
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.05) 100%);
+    backdrop-filter: blur(20px);
+    color: var(--gold);
+    border: 1px solid rgba(212, 175, 55, 0.3);
     box-shadow:
-        0 10px 30px rgba(212, 175, 55, 0.3),
-        0 0 40px rgba(212, 175, 55, 0.2);
+        0 10px 30px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    text-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
     align-self: center;
-    --mx: 50%;
-    --my: 50%;
-}
-
-/* 첫 번째 flash 레이어 - 넓은 glow */
-.premium-cta::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.2s;
-    background: radial-gradient(
-        160px 160px at var(--mx) var(--my),
-        rgba(255, 255, 255, 0.35) 0%,
-        transparent 60%
-    );
-    mix-blend-mode: screen;
-    border-radius: 30px;
-}
-
-/* 두 번째 flash 레이어 - 강한 중심 glow */
-.premium-cta::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.2s;
-    background: radial-gradient(
-        110px 110px at var(--mx) var(--my),
-        rgba(255, 196, 120, 0.95) 0%,
-        rgba(255, 166, 90, 0.65) 35%,
-        rgba(255, 140, 60, 0.25) 55%,
-        rgba(255, 120, 40, 0) 70%
-    );
-    mix-blend-mode: screen;
-    border-radius: 30px;
+    font-weight: 700;
+    letter-spacing: 1px;
 }
 
 .premium-cta:hover {
-    transform: translateY(-3px) scale(1.05);
+    transform: translateY(-3px);
+    border-color: rgba(212, 175, 55, 0.5);
     box-shadow:
-        0 15px 40px rgba(212, 175, 55, 0.5),
-        0 0 60px rgba(212, 175, 55, 0.3);
+        0 15px 40px rgba(212, 175, 55, 0.3),
+        0 0 60px rgba(212, 175, 55, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-.premium-cta:hover::before,
-.premium-cta:hover::after {
-    opacity: 1;
-}
-
-/* 버튼 텍스트 */
+/* 버튼 텍스트 - 금색 */
 .premium-cta .button-text {
     position: relative;
     z-index: 10;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
 }
 
 /* 포커스 시 아웃라인 */
@@ -857,7 +938,7 @@ h1 {
     background: linear-gradient(135deg, rgba(26, 26, 26, 0.6) 0%, rgba(10, 10, 10, 0.8) 100%);
     border: 1px solid rgba(212, 175, 55, 0.15);
     border-radius: 24px;
-    padding: 30px;
+    padding: 30px; /* 배지 없으므로 일반 패딩 유지 */
     text-align: center;
     backdrop-filter: blur(10px);
     transition: all 0.3s;
@@ -876,7 +957,6 @@ h1 {
     margin: 0 auto;
     border-radius: 16px;
     overflow: hidden;
-    position: relative;
 }
 
 .grid-card-image img {
@@ -887,28 +967,26 @@ h1 {
 }
 
 .grid-card .naraddon-badge {
-    position: absolute;
-    top: -15px;
-    left: 50%;
-    transform: translateX(-50%) scale(0.9);
+    display: none; /* 그리드 카드에서는 배지 숨김 */
 }
 
 .grid-card .info-block {
-    margin-top: 20px;
+    margin-top: 15px;
     gap: 15px;
     flex-direction: row;
 }
 
 .grid-card .name-block {
-    font-size: 20px;
-    padding: 12px 24px;
-    min-height: 50px;
+    font-size: 18px;
+    padding: 4px 24px;
+    min-height: auto;
+    margin-bottom: -8px;
 }
 
 .grid-card .company-block {
-    font-size: 14px;
-    padding: 12px 20px;
-    min-height: 50px;
+    font-size: 18px;
+    padding: 4px 20px;
+    min-height: auto;
 }
 
 .grid-card .premium-cta {
@@ -1058,11 +1136,11 @@ h1 {
     }
 
     .main-swiper .swiper-button-prev {
-        left: 15px;
+        left: 5px;
     }
 
     .main-swiper .swiper-button-next {
-        right: 15px;
+        right: 5px;
     }
 
     .main-swiper .swiper-button-prev:active,
@@ -1089,7 +1167,11 @@ h1 {
 
     .hero p {
         font-size: 16px;
-        padding: 0 20px;
+        padding: 0 10px;
+    }
+
+    .container {
+        padding: 0 10px;
     }
 
     .premium-badge {
@@ -1103,11 +1185,13 @@ h1 {
 
     .cards-grid {
         grid-template-columns: 1fr;
-        max-width: 400px;
+        max-width: 100%;
+        padding: 0 20px;
+        box-sizing: border-box;
     }
 
     .main-swiper {
-        padding: 20px;
+        padding: 60px 10px 20px;
         margin: 0 auto 60px;
         max-width: 100%;
         overflow: hidden !important;
@@ -1116,6 +1200,24 @@ h1 {
     .main-card {
         backdrop-filter: blur(10px);
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        padding: 15px;
+    }
+
+    /* 모바일 배지 크기 조정 */
+    .naraddon-badge {
+        top: -25px;
+        padding: 10px 24px;
+        gap: 8px;
+        white-space: nowrap;
+    }
+
+    .naraddon-badge i {
+        font-size: 18px;
+    }
+
+    .naraddon-badge span {
+        font-size: 13px;
+        letter-spacing: 0.5px;
     }
 
     .main-card-image img {
@@ -1137,30 +1239,41 @@ h1 {
         min-height: auto;
     }
 
+    /* 메인 카드 이름/회사명 크기를 그리드와 동일하게 */
+    .main-card .name-block {
+        font-size: 16px;
+    }
+
+    .main-card .company-block {
+        font-size: 16px;
+    }
+
     /* 모바일 그리드 카드 콤팩트 디자인 */
     .grid-card {
         padding: 20px;
+        box-sizing: border-box;
+        width: 100%;
     }
 
     .grid-card .info-block {
-        margin-top: 15px;
+        margin-top: 10px;
         gap: 0;
     }
 
     .grid-card .name-block {
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 700;
         color: var(--gold);
-        margin-bottom: 2px;
+        margin-bottom: -8px;
         line-height: 1.2;
     }
 
     .grid-card .company-block {
-        font-size: 13px;
+        font-size: 16px;
         font-weight: 400;
         color: var(--text-muted);
-        margin-bottom: 8px;
-        line-height: 1.3;
+        margin-bottom: 2px;
+        line-height: 1.2;
     }
 
     .grid-card .name-block:hover,
@@ -1170,11 +1283,36 @@ h1 {
         border-color: transparent;
     }
 
+    /* 모바일: 이름/회사명 가운데 정렬 */
+    .main-card .name-company-row {
+        justify-content: center;
+    }
+
+    .main-card .name-company-group {
+        text-align: center;
+        align-items: center;
+    }
+
+    /* 메인 카드의 하트는 이름 라인 오른쪽에 유지 */
+    .main-card-like {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+
     /* 모바일 버튼 그룹 - 세로 배치 */
     .button-group {
         flex-direction: column;
         gap: 10px;
         margin-top: 15px;
+    }
+
+    /* 그리드 카드는 버튼 간격 좁게, 세로 배치 */
+    .grid-card .button-group {
+        flex-direction: column;
+        gap: 6px;
+        margin-top: 8px;
+        justify-content: center;
     }
 
     .detail-btn {
@@ -1195,28 +1333,33 @@ h1 {
         font-size: 14px !important;
     }
 
+    .grid-card .detail-btn {
+        width: auto !important;
+        min-width: 120px;
+        max-width: 150px;
+        height: 32px !important;
+        min-height: 32px !important;
+        max-height: 32px !important;
+        padding: 0 20px !important;
+        font-size: 11px !important;
+    }
+
     .grid-card .premium-cta {
-        width: 100%;
-        max-width: none;
-        padding: 12px 24px;
-        font-size: 13px;
+        width: auto !important;
+        min-width: 120px;
+        max-width: 150px;
+        height: 32px !important;
+        min-height: 32px !important;
+        max-height: 32px !important;
+        padding: 0 20px !important;
+        font-size: 11px !important;
         margin-top: 0;
         letter-spacing: 0.5px;
     }
 
     /* 모바일 그리드 카드 뱃지 */
     .grid-card .naraddon-badge {
-        transform: translateX(-50%) scale(0.85);
-        top: -12px;
-    }
-
-    .grid-card .naraddon-badge span {
-        font-size: 10px;
-        letter-spacing: 1px;
-    }
-
-    .grid-card .naraddon-badge i {
-        font-size: 14px;
+        display: none; /* 모바일 그리드 카드에서도 배지 숨김 */
     }
 
     /* 메인 슬라이더 외의 다른 스와이퍼 네비게이션 숨기기 */

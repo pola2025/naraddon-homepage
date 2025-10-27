@@ -14,7 +14,7 @@
     rgba(26, 26, 26, 0.4) 100%);
   border: 1px solid rgba(212, 175, 55, 0.15);
   border-radius: 30px;
-  padding: 40px;
+  padding: 60px 40px 40px 40px;
   backdrop-filter: blur(20px);
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow:
@@ -59,7 +59,7 @@
   background: linear-gradient(135deg, rgba(26, 26, 26, 0.6) 0%, rgba(10, 10, 10, 0.8) 100%);
   border: 1px solid rgba(212, 175, 55, 0.15);
   border-radius: 24px;
-  padding: 30px;
+  padding: 50px 30px 30px 30px;
   backdrop-filter: blur(10px);
   transition: all 0.3s;
 }
@@ -329,12 +329,20 @@
   box-shadow: 0 8px 20px rgba(212, 175, 55, 0.2);
 }
 
-/* Premium CTA Button */
+/**
+ * 상담 신청하기 버튼 - 화이트 네온 + 금색 글로우 스타일
+ *
+ * @purpose 눈에 잘 띄는 화이트 배경과 금색 글로우로 클릭 유도
+ * @context 기존 금색 배경에서 화이트 네온 스타일로 변경하여 가독성과 시각적 임팩트 향상
+ * @effect 호버 시 금색 글로우 강화 + 스포트라이트 효과 유지
+ */
 .premiumCta {
   padding: 16px 40px;
-  background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
-  color: #0A0A0A;
-  border: none;
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(240, 240, 240, 0.9) 100%);
+  color: #D4AF37;
+  border: 2px solid #D4AF37;
   border-radius: 30px;
   font-size: 15px;
   font-weight: 700;
@@ -344,9 +352,11 @@
   position: relative;
   overflow: hidden;
   box-shadow:
-    0 10px 30px rgba(212, 175, 55, 0.3),
-    0 0 40px rgba(212, 175, 55, 0.2);
+    0 10px 30px rgba(212, 175, 55, 0.4),
+    0 0 40px rgba(212, 175, 55, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
   width: 100%;
+  text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
 }
 
 .premiumCta::before {
@@ -356,16 +366,20 @@
   left: 50%;
   width: 0;
   height: 0;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.4) 0%, transparent 70%);
   transform: translate(-50%, -50%);
   transition: all 0.6s ease;
 }
 
 .premiumCta:hover {
   transform: translateY(-3px) scale(1.05);
+  border-color: #FFD700;
   box-shadow:
-    0 15px 40px rgba(212, 175, 55, 0.5),
-    0 0 60px rgba(212, 175, 55, 0.3);
+    0 15px 40px rgba(212, 175, 55, 0.6),
+    0 0 60px rgba(212, 175, 55, 0.5),
+    0 0 100px rgba(255, 215, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+  text-shadow: 0 0 30px rgba(212, 175, 55, 0.8);
 }
 
 .premiumCta:hover::before {
