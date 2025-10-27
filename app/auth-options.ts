@@ -45,7 +45,13 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.NAVER_CLIENT_ID!,
       clientSecret: process.env.NAVER_CLIENT_SECRET!,
       // 네이버 OAuth URL 설정
-      authorization: 'https://nid.naver.com/oauth2.0/authorize',
+      authorization: {
+        url: 'https://nid.naver.com/oauth2.0/authorize',
+        params: {
+          // 전화번호 포함하여 요청
+          scope: 'name email mobile'
+        }
+      },
       token: 'https://nid.naver.com/oauth2.0/token',
       userinfo: 'https://openapi.naver.com/v1/nid/me',
       // 프로필 매핑
