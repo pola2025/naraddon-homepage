@@ -418,6 +418,7 @@ export default function UsersManagementPage() {
             setShowDetailModal(true);
           }}
           searchPlaceholder="이름, 이메일, 회사 검색..."
+          pageSize={100}
           actions={(user) => (
             <div className="flex items-center gap-2">
               <button
