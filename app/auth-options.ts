@@ -1,6 +1,7 @@
 import type { NextAuthOptions } from 'next-auth';
 import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
 import clientPromise from '../lib/mongodb-client';
+import { notifyNewUserSignup } from '@/lib/telegram';
 
 /**
  * NextAuth 인증 설정
@@ -10,9 +11,32 @@ import clientPromise from '../lib/mongodb-client';
  * @decision MongoDBAdapter 사용하여 계정 연결 정보 관리 (OAuthAccountNotLinked 해결)
  */
 export const authOptions: NextAuthOptions = {
-  adapter: MongoDBAdapter(clientPromise, {
-    databaseName: 'naraddon',
-  }),
+  adapter: {
+    ...MongoDBAdapter(clientPromise, {
+      databaseName: 'naraddon',
+    }),
+    // 🔥 MongoDBAdapter의 createUser를 오버라이드하여 타임스탬프 추가
+    async createUser(user: any) {
+      const adapter = MongoDBAdapter(clientPromise, { databaseName: 'naraddon' });
+      const now = new Date();
+
+      // 타임스탬프 필드 추가
+      const userWithTimestamps = {
+        ...user,
+        createdAt: now,
+        updatedAt: now,
+        lastLoginAt: now,
+        role: user.role || 'user',
+        status: user.status || 'active',
+      };
+
+      console.log('[Auth] Creating new user with timestamps:', user.email);
+      const createdUser = await adapter.createUser!(userWithTimestamps);
+      console.log('[Auth] ✅ New user created with createdAt:', user.email);
+
+      return createdUser;
+    },
+  },
   providers: [
     {
       id: 'naver',
@@ -56,13 +80,17 @@ export const authOptions: NextAuthOptions = {
 
         const mobile = (profile as any)?.response?.mobile || (profile as any)?.response?.mobile_e164;
 
-        // 1. 사용자 확인 및 업데이트
+        // 1. 사용자 확인 (신규 여부 판단)
         const existingUser = await usersCollection.findOne({ email: user.email });
+        const isNewUser = !existingUser; // 신규 가입 여부 (signIn 콜백 호출 시점 기준)
 
+        console.log(`[Auth] SignIn callback - User: ${user.email}, IsNew: ${isNewUser}`);
+
+        // 2. 기존 사용자: 정보 업데이트 (createdAt 절대 변경 안 함)
         if (existingUser) {
-          // 커스텀 필드 업데이트
           const updateData: any = {
             lastLoginAt: new Date(),
+            updatedAt: new Date(),
           };
 
           if (mobile) {
@@ -76,21 +104,31 @@ export const authOptions: NextAuthOptions = {
             updateData.status = 'active';
           }
 
+          // 🔥 가입일(createdAt)이 없는 경우만 추가 (기존 가입일 보존)
+          if (!existingUser.createdAt) {
+            updateData.createdAt = new Date();
+            console.log('[Auth] Missing createdAt field added for existing user:', user.email);
+          }
+
           await usersCollection.updateOne(
             { email: user.email },
             { $set: updateData }
           );
 
-          // 2. accounts 연결 확인 및 생성 (OAuthAccountNotLinked 해결)
+          console.log('[Auth] ✅ Existing user updated:', user.email);
+        }
+
+        // 3. accounts 연결 확인 및 생성 (OAuthAccountNotLinked 해결)
+        const currentUser = await usersCollection.findOne({ email: user.email });
+        if (currentUser) {
           const existingAccount = await accountsCollection.findOne({
             provider: account.provider,
             providerAccountId: account.providerAccountId
           });
 
           if (!existingAccount) {
-            // accounts가 없으면 생성 (기존 사용자 연결)
             await accountsCollection.insertOne({
-              userId: existingUser._id.toString(),
+              userId: currentUser._id.toString(),
               type: account.type,
               provider: account.provider,
               providerAccountId: account.providerAccountId,
@@ -99,10 +137,25 @@ export const authOptions: NextAuthOptions = {
               scope: account.scope,
               id_token: account.id_token,
             });
-            console.log('[Auth] Created account link for existing user:', user.email);
+            console.log('[Auth] Account link created for:', user.email);
           }
+        }
 
-          console.log('[Auth] Updated user:', user.email, 'Mobile:', mobile || 'N/A');
+        // 4. 🔥 신규 가입 시 텔레그램 알림 전송 (네이버 로그인에 영향 없음)
+        if (isNewUser && user.name && user.email) {
+          console.log('[Auth] Detected new user signup, will send Telegram notification');
+          try {
+            await notifyNewUserSignup({
+              name: user.name,
+              email: user.email,
+              mobile: mobile,
+              provider: account.provider,
+            });
+            console.log('[Auth] ✅ Telegram notification sent for new user:', user.email);
+          } catch (telegramError) {
+            // 텔레그램 알림 실패해도 로그인은 계속 진행
+            console.error('[Auth] ⚠️ Telegram notification failed (login continues):', telegramError);
+          }
         }
 
         return true;
