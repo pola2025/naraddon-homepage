@@ -84,13 +84,17 @@ export const authOptions: NextAuthOptions = {
         const usersCollection = db.collection('users');
         const accountsCollection = db.collection('accounts');
 
+        // 🔥 네이버 프로필 디버깅
+        console.log('[Auth] Naver profile received:', JSON.stringify(profile, null, 2));
+
         const mobile = (profile as any)?.response?.mobile || (profile as any)?.response?.mobile_e164;
+        console.log('[Auth] Extracted mobile:', mobile);
 
         // 1. 사용자 확인 (신규 여부 판단)
         const existingUser = await usersCollection.findOne({ email: user.email });
         const isNewUser = !existingUser; // 신규 가입 여부 (signIn 콜백 호출 시점 기준)
 
-        console.log(`[Auth] SignIn callback - User: ${user.email}, IsNew: ${isNewUser}`);
+        console.log(`[Auth] SignIn callback - User: ${user.email}, IsNew: ${isNewUser}, Mobile: ${mobile}`);
 
         // 2. 기존 사용자: 정보 업데이트 (createdAt 절대 변경 안 함)
         if (existingUser) {
