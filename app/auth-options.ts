@@ -128,19 +128,7 @@ export const authOptions: NextAuthOptions = {
           console.log('[Auth] ✅ Existing user updated:', user.email);
         }
 
-        // 3. 신규 사용자인 경우 mobile 정보 업데이트
-        if (isNewUser) {
-          const newUser = await usersCollection.findOne({ email: user.email });
-          if (newUser && mobile) {
-            await usersCollection.updateOne(
-              { email: user.email },
-              { $set: { mobile: mobile } }
-            );
-            console.log('[Auth] ✅ Mobile added for new user:', user.email, 'Mobile:', mobile);
-          }
-        }
-
-        // 4. accounts 연결 확인 및 생성 (OAuthAccountNotLinked 해결)
+        // 3. accounts 연결 확인 및 생성 (OAuthAccountNotLinked 해결)
         const currentUser = await usersCollection.findOne({ email: user.email });
         if (currentUser) {
           const existingAccount = await accountsCollection.findOne({
@@ -160,6 +148,15 @@ export const authOptions: NextAuthOptions = {
               id_token: account.id_token,
             });
             console.log('[Auth] Account link created for:', user.email);
+          }
+
+          // 🔥 신규 사용자인 경우 mobile 정보 업데이트 (accounts 연결 후)
+          if (isNewUser && mobile && !currentUser.mobile) {
+            await usersCollection.updateOne(
+              { email: user.email },
+              { $set: { mobile: mobile } }
+            );
+            console.log('[Auth] ✅ Mobile added for new user:', user.email, 'Mobile:', mobile);
           }
         }
 
