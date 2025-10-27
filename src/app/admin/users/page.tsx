@@ -278,6 +278,7 @@ export default function UsersManagementPage() {
           columns={columns}
           onRowClick={(user) => setSelectedUser(user)}
           searchPlaceholder="이름, 이메일, 회사 검색..."
+          pageSize={100}
           actions={(user) => (
             <div className="flex items-center gap-2">
               <button
