@@ -15,12 +15,12 @@ export const authOptions: NextAuthOptions = {
     ...MongoDBAdapter(clientPromise, {
       databaseName: 'naraddon',
     }),
-    // 🔥 MongoDBAdapter의 createUser를 오버라이드하여 타임스탬프 추가
+    // 🔥 MongoDBAdapter의 createUser를 오버라이드하여 타임스탬프 및 전화번호 추가
     async createUser(user: any) {
       const adapter = MongoDBAdapter(clientPromise, { databaseName: 'naraddon' });
       const now = new Date();
 
-      // 타임스탬프 필드 추가
+      // 타임스탬프 및 전화번호 필드 추가
       const userWithTimestamps = {
         ...user,
         createdAt: now,
@@ -28,11 +28,12 @@ export const authOptions: NextAuthOptions = {
         lastLoginAt: now,
         role: user.role || 'user',
         status: user.status || 'active',
+        mobile: user.mobile || null, // 전화번호 저장
       };
 
-      console.log('[Auth] Creating new user with timestamps:', user.email);
+      console.log('[Auth] Creating new user with mobile:', user.email, 'Mobile:', user.mobile);
       const createdUser = await adapter.createUser!(userWithTimestamps);
-      console.log('[Auth] ✅ New user created with createdAt:', user.email);
+      console.log('[Auth] ✅ New user created with mobile:', user.email);
 
       return createdUser;
     },
@@ -54,13 +55,15 @@ export const authOptions: NextAuthOptions = {
       },
       token: 'https://nid.naver.com/oauth2.0/token',
       userinfo: 'https://openapi.naver.com/v1/nid/me',
-      // 프로필 매핑
+      // 프로필 매핑 - 전화번호 포함
       profile(profile: any) {
+        const mobile = profile.response?.mobile || profile.response?.mobile_e164;
         return {
           id: profile.response?.id,
           name: profile.response?.name,
           email: profile.response?.email,
           image: profile.response?.profile_image,
+          mobile: mobile, // 전화번호 추가
         };
       },
     },
@@ -148,15 +151,6 @@ export const authOptions: NextAuthOptions = {
               id_token: account.id_token,
             });
             console.log('[Auth] Account link created for:', user.email);
-          }
-
-          // 🔥 신규 사용자인 경우 mobile 정보 업데이트 (accounts 연결 후)
-          if (isNewUser && mobile && !currentUser.mobile) {
-            await usersCollection.updateOne(
-              { email: user.email },
-              { $set: { mobile: mobile } }
-            );
-            console.log('[Auth] ✅ Mobile added for new user:', user.email, 'Mobile:', mobile);
           }
         }
 
