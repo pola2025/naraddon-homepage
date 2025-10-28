@@ -281,9 +281,67 @@ export default function UsersManagementPage() {
     console.log(`Changed user ${userId} status to ${newStatus}`);
   };
 
-  const handleExport = () => {
-    // 엑셀 다운로드 로직 추가 필요
-    console.log('Exporting users to Excel...');
+  /**
+   * 사용자 목록 엑셀 다운로드
+   *
+   * @purpose 관리자가 사용자 데이터를 엑셀로 내보내기
+   * @context 회원 관리 페이지에서 데이터 분석 및 백업용
+   * @decision xlsx 라이브러리 사용, 필터링된 데이터만 다운로드
+   * @note 브라우저 환경에서만 동작하도록 동적 import 사용
+   */
+  const handleExport = async () => {
+    try {
+      // xlsx 라이브러리 동적 import (클라이언트 사이드에서만 실행)
+      const XLSX = await import('xlsx');
+
+      // 엑셀 데이터 준비 (필터링된 사용자 데이터)
+      const excelData = filteredUsers.map(user => ({
+        '이름': user.name,
+        '이메일': user.email,
+        '전화번호': user.mobile || '-',
+        '회사': user.profile.company || '-',
+        '등급': getRoleLabel(user.role),
+        '상태': getStatusLabel(user.status),
+        '가입일': new Date(user.createdAt).toLocaleDateString('ko-KR'),
+        '최근 접속': user.lastLoginAt
+          ? new Date(user.lastLoginAt).toLocaleDateString('ko-KR')
+          : '-',
+        '전문분야': user.profile.specialty?.join(', ') || '-',
+        '로그인 제공자': user.provider || '-'
+      }));
+
+      // 워크북 생성
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, '회원목록');
+
+      // 컬럼 너비 자동 조정
+      const colWidths = [
+        { wch: 15 }, // 이름
+        { wch: 30 }, // 이메일
+        { wch: 15 }, // 전화번호
+        { wch: 20 }, // 회사
+        { wch: 12 }, // 등급
+        { wch: 10 }, // 상태
+        { wch: 15 }, // 가입일
+        { wch: 15 }, // 최근 접속
+        { wch: 30 }, // 전문분야
+        { wch: 15 }  // 로그인 제공자
+      ];
+      worksheet['!cols'] = colWidths;
+
+      // 파일명 생성 (현재 날짜 포함)
+      const today = new Date().toISOString().split('T')[0];
+      const fileName = `나라똔_회원목록_${today}.xlsx`;
+
+      // 파일 다운로드
+      XLSX.writeFile(workbook, fileName);
+
+      console.log(`✅ 엑셀 다운로드 완료: ${fileName} (${filteredUsers.length}명)`);
+    } catch (error) {
+      console.error('❌ 엑셀 다운로드 실패:', error);
+      alert('엑셀 파일 생성 중 오류가 발생했습니다.');
+    }
   };
 
   /**
