@@ -258,7 +258,7 @@ export default function BrandEditPage() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`
-                      flex-shrink-0 py-3 sm:py-4 px-4 sm:px-6 text-center border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap
+                      flex-shrink-0 py-3 sm:py-4 px-3 sm:px-6 text-center border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap flex items-center gap-1 sm:gap-2
                       ${
                         activeTab === tab.id
                           ? 'border-blue-500 text-blue-600'
@@ -266,8 +266,8 @@ export default function BrandEditPage() {
                       }
                     `}
                   >
-                    <i className={`${tab.icon} mr-1 sm:mr-2`}></i>
-                    <span className="hidden xs:inline">{tab.label}</span>
+                    <i className={tab.icon}></i>
+                    <span>{tab.label}</span>
                   </button>
                 ))}
               </nav>
