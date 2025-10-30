@@ -127,11 +127,20 @@ export default function BrandEditPage() {
    * @note testExaminerId가 있으면 관리자 편집으로 간주하여 examinerId 전달
    */
   const handleSave = async () => {
-    if (!profile) return;
+    if (!profile) {
+      console.error('[handleSave] No profile data');
+      return;
+    }
 
     try {
       setSaving(true);
       setError('');
+
+      console.log('[handleSave] Saving brand page...', {
+        examinerId: testExaminerId,
+        hasCompanyIntro: !!profile.brandPage?.companyIntro,
+        companyIntroLength: profile.brandPage?.companyIntro?.length || 0,
+      });
 
       const response = await fetch('/api/examiner/brand-page', {
         method: 'PATCH',
@@ -144,20 +153,26 @@ export default function BrandEditPage() {
         }),
       });
 
+      console.log('[handleSave] Response status:', response.status);
+
       if (!response.ok) {
-        throw new Error('저장에 실패했습니다.');
+        const errorData = await response.json();
+        console.error('[handleSave] Server error:', errorData);
+        throw new Error(errorData.error || '저장에 실패했습니다.');
       }
 
       const data = await response.json();
+      console.log('[handleSave] Response data:', data);
+
       if (data.success) {
         alert('저장되었습니다.');
       } else {
         throw new Error(data.error || '저장 중 오류가 발생했습니다.');
       }
     } catch (err) {
-      console.error('Failed to save:', err);
+      console.error('[handleSave] Failed to save:', err);
       setError(err instanceof Error ? err.message : '저장 실패');
-      alert(error || '저장에 실패했습니다.');
+      alert(err instanceof Error ? err.message : '저장에 실패했습니다.');
     } finally {
       setSaving(false);
     }
