@@ -322,9 +322,10 @@ export default function Header() {
                   </div>
 
                   <div className={styles.profileList}>
-                    <Link href="/mypage" className={styles.profileLink}>
+                    {/* 프로필 관리 메뉴 숨김 처리 */}
+                    {/* <Link href="/mypage" className={styles.profileLink}>
                       프로필 관리
-                    </Link>
+                    </Link> */}
                     <CanAccess role="admin" key="admin-mobile">
                       <Link href="/admin/dashboard" className={styles.profileLink}>
                         관리자 대시보드
@@ -433,9 +434,10 @@ export default function Header() {
 
         {isAuthenticated && (
           <div className={styles.mobileFooter}>
-            <Link href="/mypage" className={styles.mobileFooterLink} onClick={closeMobileMenu}>
+            {/* 프로필 관리 메뉴 숨김 처리 */}
+            {/* <Link href="/mypage" className={styles.mobileFooterLink} onClick={closeMobileMenu}>
               프로필 관리
-            </Link>
+            </Link> */}
             <Link href="/my-consultations" className={styles.mobileFooterLink} onClick={closeMobileMenu}>
               내 상담 내역
             </Link>

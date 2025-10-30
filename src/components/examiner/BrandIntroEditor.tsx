@@ -197,8 +197,12 @@ export default function BrandIntroEditor({
    * 구조화된 입력으로 HTML 생성 및 저장
    *
    * @purpose 전문영역, 지원목표 등을 개별 입력받아 HTML 구조 생성하고 즉시 저장
-   * @context 사용자 요청: "회사소개 적용 버튼으로 바로 저장"
+   * @context 사용자 요청: "회사소개 적용 버튼으로 바로 저장" - 상단 저장 버튼과 동일하게 작동
    * @note data-styled 속성으로 CSS 모듈 스타일 적용 표시
+   * @decision
+   *   - HTML 생성 후 onChange로 부모 상태에 반영
+   *   - React 상태 업데이트는 비동기이므로 setTimeout으로 다음 렌더 사이클에서 저장
+   *   - 또는 onSave에 생성된 HTML을 직접 전달할 수 있도록 인터페이스 확장 필요
    */
   const generateStructuredHTML = async () => {
     const specialtiesList = specialties.filter((s) => s.trim()).map((s) => `<li>${s}</li>`).join('\n');
@@ -229,13 +233,19 @@ ${goalsList || '<li>지원 목표를 입력하세요</li>'}
 </div>
     `.trim();
 
+    // 로컬 상태 업데이트 (UI 표시용)
     setLocalIntro(html);
-    onChange(html, false, localLogo);
     setLocalUseDefault(false);
 
-    // 즉시 저장
+    // 부모 컴포넌트에 즉시 반영
+    onChange(html, false, localLogo);
+
+    // React 상태 업데이트는 배치되므로, 다음 렌더 사이클에서 저장
+    // setTimeout을 사용하여 부모 컴포넌트의 상태가 업데이트된 후 저장
     if (onSave) {
-      await onSave();
+      setTimeout(async () => {
+        await onSave();
+      }, 0);
     }
   };
 
