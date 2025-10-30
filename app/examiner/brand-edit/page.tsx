@@ -310,6 +310,66 @@ export default function BrandEditPage() {
                     });
                   }}
                   onSave={handleSave}
+                  onApply={async (html, logo) => {
+                    // 생성된 HTML을 즉시 상태에 반영하고 저장
+                    console.log('[onApply] Applying and saving HTML...', { htmlLength: html.length });
+
+                    const updatedProfile = {
+                      ...profile,
+                      brandPage: {
+                        ...profile.brandPage,
+                        companyIntro: html,
+                        companyLogo: logo,
+                        useDefaultIntro: false,
+                        careers: profile.brandPage?.careers || [],
+                        successCases: profile.brandPage?.successCases || [],
+                        contactInfo: profile.brandPage?.contactInfo || {},
+                      },
+                    };
+
+                    // 상태 업데이트
+                    setProfile(updatedProfile);
+
+                    // 즉시 서버에 저장
+                    try {
+                      setSaving(true);
+                      setError('');
+
+                      const response = await fetch('/api/examiner/brand-page', {
+                        method: 'PATCH',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          brandPage: updatedProfile.brandPage,
+                          examinerId: testExaminerId || undefined,
+                        }),
+                      });
+
+                      console.log('[onApply] Response status:', response.status);
+
+                      if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error('[onApply] Server error:', errorData);
+                        throw new Error(errorData.error || '저장에 실패했습니다.');
+                      }
+
+                      const data = await response.json();
+                      console.log('[onApply] Response data:', data);
+
+                      if (data.success) {
+                        alert('회사소개가 저장되었습니다.');
+                      } else {
+                        throw new Error(data.error || '저장 중 오류가 발생했습니다.');
+                      }
+                    } catch (err) {
+                      console.error('[onApply] Failed to save:', err);
+                      setError(err instanceof Error ? err.message : '저장 실패');
+                      alert(err instanceof Error ? err.message : '저장에 실패했습니다.');
+                    } finally {
+                      setSaving(false);
+                    }
+                  }}
                 />
               )}
 
