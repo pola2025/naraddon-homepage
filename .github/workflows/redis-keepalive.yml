@@ -1,0 +1,43 @@
+name: Keep Upstash Redis Active
+
+# 6시간마다 자동 실행하여 Redis 비활성 방지
+on:
+  schedule:
+    # UTC 기준: 매일 0시, 6시, 12시, 18시 (한국 시간: 9시, 15시, 21시, 3시)
+    - cron: '0 */6 * * *'
+
+  # 수동 실행 가능 (GitHub Actions 페이지에서 "Run workflow" 버튼)
+  workflow_dispatch:
+
+jobs:
+  ping-redis:
+    name: Ping Upstash Redis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install dotenv
+
+      - name: Run Redis Keepalive
+        env:
+          REDIS_URL: ${{ secrets.REDIS_URL }}
+          REDIS_TOKEN: ${{ secrets.REDIS_TOKEN }}
+        run: node scripts/redis-keepalive.js
+
+      - name: Report Status
+        if: always()
+        run: |
+          if [ $? -eq 0 ]; then
+            echo "✅ Redis keepalive succeeded"
+          else
+            echo "❌ Redis keepalive failed"
+            exit 1
+          fi
