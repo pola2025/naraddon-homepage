@@ -23,6 +23,8 @@ interface ProfileCardProps {
   onEdit?: () => void;
   onRoleChange?: (newRole: UserRole) => void;
   onStatusChange?: (newStatus: UserStatus) => void;
+  onUpgradeToAdmin?: (userId: string) => void;
+  onRevokeAdmin?: (userId: string) => void;
   className?: string;
 }
 
@@ -33,6 +35,8 @@ export default function ProfileCard({
   onEdit,
   onRoleChange,
   onStatusChange,
+  onUpgradeToAdmin,
+  onRevokeAdmin,
   className = ''
 }: ProfileCardProps) {
   const [showRoleModal, setShowRoleModal] = useState(false);
@@ -238,27 +242,42 @@ export default function ProfileCard({
 
       {/* 관리자 모드 액션 버튼 */}
       {mode === 'admin' && (
-        <div className="mt-6 pt-4 border-t flex gap-2">
-          {onRoleChange && (
+        <div className="mt-6 pt-4 border-t space-y-2">
+          <div className="flex gap-2">
+            {onRoleChange && (
+              <button
+                onClick={() => setShowRoleModal(true)}
+                className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                등급 변경
+              </button>
+            )}
+            {onStatusChange && (
+              <button
+                className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                상태 변경
+              </button>
+            )}
+          </div>
+
+          {/* 관리자 승격/회수 버튼 */}
+          {user.role === UserRole.EXAMINER && onUpgradeToAdmin && (
             <button
-              onClick={() => setShowRoleModal(true)}
-              className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              onClick={() => onUpgradeToAdmin(user.id)}
+              className="w-full inline-flex items-center justify-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
             >
-              등급 변경
+              관리자로 승격
             </button>
           )}
-          {onStatusChange && (
+          {user.role === UserRole.ADMIN && onRevokeAdmin && (
             <button
-              className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              onClick={() => onRevokeAdmin(user.id)}
+              className="w-full inline-flex items-center justify-center px-4 py-2 border border-orange-300 text-sm font-medium rounded-md text-orange-700 bg-orange-50 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
             >
-              상태 변경
+              관리자 권한 회수
             </button>
           )}
-          <button
-            className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            상세 보기
-          </button>
         </div>
       )}
 

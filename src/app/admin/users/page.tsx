@@ -171,12 +171,43 @@ export default function UsersManagementPage() {
     return true;
   });
 
-  const handleRoleChange = (userId: string, newRole: UserRole) => {
-    setUsers(users.map(user =>
-      user.id === userId ? { ...user, role: newRole } : user
-    ));
-    // API 호출 추가 필요
-    console.log(`Changed user ${userId} role to ${newRole}`);
+  const handleRoleChange = async (userId: string, newRole: UserRole) => {
+    try {
+      // API 호출하여 역할 변경
+      const response = await fetch(`/api/admin/users/${userId}/role`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          newRole,
+          profileData: {
+            reason: '관리자가 역할 변경'
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to change role');
+      }
+
+      const result = await response.json();
+
+      // 로컬 상태 업데이트
+      setUsers(users.map(user =>
+        user.id === userId ? { ...user, role: newRole } : user
+      ));
+
+      alert(`역할이 ${newRole}(으)로 변경되었습니다.`);
+      console.log(`Changed user ${userId} role to ${newRole}`, result);
+
+      // 사용자 목록 새로고침
+      await fetchUsers();
+    } catch (error: any) {
+      console.error('Failed to change role:', error);
+      alert(`역할 변경 실패: ${error.message}`);
+    }
   };
 
   const handleStatusChange = (userId: string, newStatus: UserStatus) => {
@@ -185,6 +216,77 @@ export default function UsersManagementPage() {
     ));
     // API 호출 추가 필요
     console.log(`Changed user ${userId} status to ${newStatus}`);
+  };
+
+  // 관리자 권한 승격 (examiner → admin)
+  const handleUpgradeToAdmin = async (userId: string) => {
+    if (!confirm('이 사용자를 관리자로 승격하시겠습니까?')) {
+      return;
+    }
+
+    const reason = prompt('승격 사유를 입력하세요:', '관리자 권한 부여');
+    if (!reason) return;
+
+    try {
+      const response = await fetch(`/api/admin/users/${userId}/upgrade`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reason,
+          permissions: ['admin_dashboard', 'user_management', 'consultation_management'],
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to upgrade to admin');
+      }
+
+      const result = await response.json();
+      alert(`관리자로 승격되었습니다: ${result.message}`);
+
+      // 사용자 목록 새로고침
+      await fetchUsers();
+    } catch (error: any) {
+      console.error('Failed to upgrade to admin:', error);
+      alert(`관리자 승격 실패: ${error.message}`);
+    }
+  };
+
+  // 관리자 권한 회수 (admin → user)
+  const handleRevokeAdmin = async (userId: string) => {
+    if (!confirm('이 사용자의 관리자 권한을 회수하시겠습니까?')) {
+      return;
+    }
+
+    const reason = prompt('회수 사유를 입력하세요:', '관리자 권한 해제');
+    if (!reason) return;
+
+    try {
+      const response = await fetch(`/api/admin/users/${userId}/upgrade`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reason }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to revoke admin');
+      }
+
+      const result = await response.json();
+      alert(`관리자 권한이 회수되었습니다: ${result.message}`);
+
+      // 사용자 목록 새로고침
+      await fetchUsers();
+    } catch (error: any) {
+      console.error('Failed to revoke admin:', error);
+      alert(`관리자 권한 회수 실패: ${error.message}`);
+    }
   };
 
   const handleExport = () => {
@@ -282,12 +384,39 @@ export default function UsersManagementPage() {
           actions={(user) => (
             <div className="flex items-center gap-2">
               <button
-                onClick={() => handleRoleChange(user.id, UserRole.EXAMINER)}
+                onClick={() => setSelectedUser(user)}
                 className="text-purple-600 hover:text-purple-900 text-sm"
               >
                 등급변경
               </button>
-              <button className="text-blue-600 hover:text-blue-900 text-sm">
+              {user.role === UserRole.EXAMINER && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUpgradeToAdmin(user.id);
+                  }}
+                  className="text-red-600 hover:text-red-900 text-sm font-medium"
+                  title="관리자로 승격"
+                >
+                  관리자승격
+                </button>
+              )}
+              {user.role === UserRole.ADMIN && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRevokeAdmin(user.id);
+                  }}
+                  className="text-orange-600 hover:text-orange-900 text-sm font-medium"
+                  title="관리자 권한 회수"
+                >
+                  권한회수
+                </button>
+              )}
+              <button
+                onClick={() => setSelectedUser(user)}
+                className="text-blue-600 hover:text-blue-900 text-sm"
+              >
                 상세
               </button>
             </div>
@@ -302,6 +431,8 @@ export default function UsersManagementPage() {
               mode="admin"
               onRoleChange={(newRole) => handleRoleChange(user.id, newRole)}
               onStatusChange={(newStatus) => handleStatusChange(user.id, newStatus)}
+              onUpgradeToAdmin={handleUpgradeToAdmin}
+              onRevokeAdmin={handleRevokeAdmin}
             />
           ))}
         </div>
@@ -325,6 +456,14 @@ export default function UsersManagementPage() {
                 }}
                 onStatusChange={(newStatus) => {
                   handleStatusChange(selectedUser.id, newStatus);
+                  setSelectedUser(null);
+                }}
+                onUpgradeToAdmin={(userId) => {
+                  handleUpgradeToAdmin(userId);
+                  setSelectedUser(null);
+                }}
+                onRevokeAdmin={(userId) => {
+                  handleRevokeAdmin(userId);
                   setSelectedUser(null);
                 }}
               />
