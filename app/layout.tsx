@@ -6,13 +6,20 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Providers } from '@/components/Providers';
 import PageVisitTracker from '@/components/analytics/PageVisitTracker';
+import { getOrganizationSchema } from '@/lib/json-ld';
 
 export const metadata: Metadata = {
   title: '나라똔(NARADDON) - 정부정책자금 전문 컨설팅 | 중소기업 지원금 플랫폼',
   description:
     '나라똔은 인증 기업심사관과 함께 정책자금, R&D지원금, 수출바우처 등 정부지원사업을 연결하는 대한민국 1위 플랫폼입니다. 연간 450만원 절약, 100% 책임보증제도',
   keywords:
-    '정책자금, 정부지원금, 중소기업지원, R&D자금, 수출바우처, 창업지원금, 나라똔, NARADDON, 기업심사관, 정부보조금, 사업자대출',
+    '정부정책자금, 정부지원자금, 정부지원금, 정부보조금, 정책자금, 정책지원금, ' +
+    '중소기업정책자금, 중소기업지원자금, 중소기업지원금, 중소기업보조금, 중소기업자금지원, 중소벤처기업부지원금, ' +
+    'R&D지원금, R&D정책자금, R&D자금, 기술개발지원금, 기술혁신지원금, 연구개발지원금, ' +
+    '수출지원금, 수출바우처, 수출지원자금, 무역지원금, 해외진출지원금, ' +
+    '창업지원금, 창업자금, 초기창업지원금, 청년창업지원금, ' +
+    '기업심사관, 인증기업심사관, 정책자금컨설팅, 정책자금신청, ' +
+    '나라똔, NARADDON, 사업자대출, 기업운영자금, 시설투자자금, 중소기업지원',
   authors: [{ name: '나라똔' }],
   creator: '나라똔',
   publisher: '나라똔',

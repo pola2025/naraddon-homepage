@@ -50,6 +50,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
+      url: `${baseUrl}/certified-examiners`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
       url: `${baseUrl}/auth/signin`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -127,6 +133,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
 
+    // 인증심사관 상세 페이지 URL 생성
+    const examiners = await db
+      .collection('expert-examiners')
+      .find({ isPublished: true })
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    const examinerUrls: MetadataRoute.Sitemap = examiners.map((examiner) => ({
+      url: `${baseUrl}/certified-examiners/${examiner._id}`,
+      lastModified: examiner.updatedAt || examiner.createdAt || new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    }));
+
     // 모든 URL 병합
     return [
       ...staticPages,
@@ -134,6 +154,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ...policyAnalysisUrls,
       ...ttontokUrls,
       ...ddontalkUrls,
+      ...examinerUrls,
     ];
   } catch (error) {
     console.error('Sitemap generation error:', error);
