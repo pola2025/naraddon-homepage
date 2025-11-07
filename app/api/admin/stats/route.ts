@@ -142,6 +142,11 @@ export async function GET(request: NextRequest) {
     //   }, { status: 403 });
     // }
 
+    // 날짜 파라미터 파싱 (쿼리스트링에서)
+    const { searchParams } = new URL(request.url);
+    const startDateParam = searchParams.get('startDate');
+    const endDateParam = searchParams.get('endDate');
+
     // MongoDB 연결
     const client = await clientPromise;
     const db = client.db('naraddon');
@@ -516,10 +521,11 @@ export async function GET(request: NextRequest) {
       ? (bouncedSessions / totalSessions) * 100
       : 0;
 
-    // 기준 기간 계산 (최근 7일)
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(endDate.getDate() - 7);
+    // 기준 기간 계산 (URL 파라미터 또는 기본 7일)
+    const endDate = endDateParam ? new Date(endDateParam) : new Date();
+    const startDate = startDateParam
+      ? new Date(startDateParam)
+      : new Date(endDate.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     const formatDate = (date: Date) => {
       const year = date.getFullYear();

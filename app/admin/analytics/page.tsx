@@ -96,16 +96,40 @@ export default function AdminAnalyticsPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d'>('7d');
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [dateRange]);
 
   const loadData = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/admin/stats');
+      // 날짜 범위 계산
+      const endDate = new Date();
+      const startDate = new Date();
+
+      switch (dateRange) {
+        case '7d':
+          startDate.setDate(endDate.getDate() - 7);
+          break;
+        case '30d':
+          startDate.setDate(endDate.getDate() - 30);
+          break;
+        case '90d':
+          startDate.setDate(endDate.getDate() - 90);
+          break;
+      }
+
+      const formatDate = (date: Date) => {
+        return date.toISOString().split('T')[0];
+      };
+
+      const response = await fetch(
+        `/api/admin/stats?startDate=${formatDate(startDate)}&endDate=${formatDate(endDate)}`
+      );
+
       if (!response.ok) {
         throw new Error('데이터를 불러오는데 실패했습니다');
       }
@@ -159,10 +183,28 @@ export default function AdminAnalyticsPage() {
       {/* 헤더 */}
       <header className="bg-white shadow-sm border-b">
         <div className="px-6 py-4">
-          <h1 className="text-2xl font-semibold text-gray-900">상세 통계 분석</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            심층 분석 및 인사이트 · 기준 기간: {stats.period?.startDate || '최근 7일'} ~ {stats.period?.endDate || '오늘'}
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900">상세 통계 분석</h1>
+              <p className="mt-1 text-sm text-gray-500">
+                심층 분석 및 인사이트 · 기준 기간: {stats.period?.startDate || '최근 7일'} ~ {stats.period?.endDate || '오늘'}
+              </p>
+            </div>
+
+            {/* 날짜 범위 선택 */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">기간:</label>
+              <select
+                value={dateRange}
+                onChange={(e) => setDateRange(e.target.value as '7d' | '30d' | '90d')}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="7d">최근 7일</option>
+                <option value="30d">최근 30일</option>
+                <option value="90d">최근 90일</option>
+              </select>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -178,16 +220,18 @@ export default function AdminAnalyticsPage() {
               </p>
             </div>
             <div className="p-6">
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={350}>
                 <PieChart>
                   <Pie
                     data={deviceData}
                     cx="50%"
-                    cy="50%"
+                    cy="45%"
                     innerRadius={60}
                     outerRadius={100}
                     paddingAngle={2}
                     dataKey="value"
+                    label={({ name, value }) => `${value.toLocaleString()}회`}
+                    labelLine={{ stroke: '#666', strokeWidth: 1 }}
                   >
                     {deviceData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={DEVICE_COLORS[index % DEVICE_COLORS.length]} />
@@ -196,8 +240,25 @@ export default function AdminAnalyticsPage() {
                   <Tooltip content={<CustomTooltip />} />
                   <Legend
                     verticalAlign="bottom"
-                    height={36}
-                    formatter={(value, entry: any) => `${value}: ${entry.payload.value.toLocaleString()}회`}
+                    height={60}
+                    content={(props: any) => {
+                      const { payload } = props;
+                      return (
+                        <div className="flex justify-center gap-6 mt-4">
+                          {payload.map((entry: any, index: number) => (
+                            <div key={`legend-${index}`} className="flex items-center gap-2">
+                              <div
+                                className="w-4 h-4 rounded"
+                                style={{ backgroundColor: entry.color }}
+                              />
+                              <span className="text-sm text-gray-700">
+                                {entry.value}: <span className="font-semibold">{deviceData[index].value.toLocaleString()}회</span>
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -213,16 +274,18 @@ export default function AdminAnalyticsPage() {
               </p>
             </div>
             <div className="p-6">
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={350}>
                 <PieChart>
                   <Pie
                     data={trafficData}
                     cx="50%"
-                    cy="50%"
+                    cy="45%"
                     innerRadius={60}
                     outerRadius={100}
                     paddingAngle={2}
                     dataKey="value"
+                    label={({ name, value }) => `${value.toLocaleString()}회`}
+                    labelLine={{ stroke: '#666', strokeWidth: 1 }}
                   >
                     {trafficData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={TRAFFIC_COLORS[index % TRAFFIC_COLORS.length]} />
@@ -231,8 +294,25 @@ export default function AdminAnalyticsPage() {
                   <Tooltip content={<CustomTooltip />} />
                   <Legend
                     verticalAlign="bottom"
-                    height={36}
-                    formatter={(value, entry: any) => `${value}: ${entry.payload.value.toLocaleString()}회`}
+                    height={60}
+                    content={(props: any) => {
+                      const { payload } = props;
+                      return (
+                        <div className="flex justify-center gap-4 mt-4 flex-wrap">
+                          {payload.map((entry: any, index: number) => (
+                            <div key={`legend-${index}`} className="flex items-center gap-2">
+                              <div
+                                className="w-4 h-4 rounded"
+                                style={{ backgroundColor: entry.color }}
+                              />
+                              <span className="text-sm text-gray-700">
+                                {entry.value}: <span className="font-semibold">{trafficData[index].value.toLocaleString()}회</span>
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }}
                   />
                 </PieChart>
               </ResponsiveContainer>
