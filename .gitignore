@@ -81,3 +81,10 @@ app/api/git-execute/
 
 # 모니터링 상태 파일
 .claude/tasks/monitor-state.json
+
+# Analytics API 관련 민감 정보
+docs/analytics-api-setup.md
+docs/analytics-integration-guide.md
+scripts/get-google-refresh-token.py
+scripts/*google*.js
+umami.env

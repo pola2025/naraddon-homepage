@@ -56,6 +56,26 @@ interface DashboardStats {
     avgTimeSpent: number;
     bounceRate: number;
   };
+  umami?: {
+    pageviews: number;
+    visitors: number;
+    visits: number;
+    bounceRate: number;
+    avgSessionTime: number;
+  };
+  googleSearch?: {
+    totalClicks: number;
+    totalImpressions: number;
+    avgCTR: string;
+    avgPosition: string;
+    topQueries: Array<{
+      query: string;
+      clicks: number;
+      impressions: number;
+      ctr: string;
+      position: string;
+    }>;
+  };
 }
 
 interface Activity {
@@ -655,6 +675,160 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               </div>
+
+              {/* Google Search Console 통계 */}
+              {stats?.googleSearch && (
+                <div className="bg-white rounded-lg shadow mb-8">
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <h2 className="text-lg font-semibold text-gray-900">Google 검색 성능 (최근 28일)</h2>
+                    <p className="text-sm text-gray-500 mt-1">Google 검색 결과에서의 사이트 성능</p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6">
+                    <div className="text-center">
+                      <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mx-auto mb-3">
+                        <svg
+                          className="h-6 w-6 text-blue-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"
+                          />
+                        </svg>
+                      </div>
+                      <p className="text-sm font-medium text-gray-500">총 클릭 수</p>
+                      <p className="text-2xl font-semibold text-gray-900 mt-1">
+                        {stats.googleSearch.totalClicks.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">검색 결과 클릭</p>
+                    </div>
+
+                    <div className="text-center">
+                      <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mx-auto mb-3">
+                        <svg
+                          className="h-6 w-6 text-green-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                      </div>
+                      <p className="text-sm font-medium text-gray-500">총 노출 수</p>
+                      <p className="text-2xl font-semibold text-gray-900 mt-1">
+                        {stats.googleSearch.totalImpressions.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">검색 결과 노출</p>
+                    </div>
+
+                    <div className="text-center">
+                      <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full mx-auto mb-3">
+                        <svg
+                          className="h-6 w-6 text-purple-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                          />
+                        </svg>
+                      </div>
+                      <p className="text-sm font-medium text-gray-500">평균 CTR</p>
+                      <p className="text-2xl font-semibold text-gray-900 mt-1">
+                        {stats.googleSearch.avgCTR}%
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">클릭률</p>
+                    </div>
+
+                    <div className="text-center">
+                      <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-full mx-auto mb-3">
+                        <svg
+                          className="h-6 w-6 text-orange-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"
+                          />
+                        </svg>
+                      </div>
+                      <p className="text-sm font-medium text-gray-500">평균 순위</p>
+                      <p className="text-2xl font-semibold text-gray-900 mt-1">
+                        {stats.googleSearch.avgPosition}위
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">검색 결과 위치</p>
+                    </div>
+                  </div>
+
+                  {/* 상위 검색어 목록 */}
+                  {stats.googleSearch.topQueries.length > 0 && (
+                    <div className="px-6 pb-6">
+                      <h3 className="text-md font-semibold text-gray-900 mb-4">상위 검색어 (Top 10)</h3>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">순위</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">검색어</th>
+                              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">클릭 수</th>
+                              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">노출 수</th>
+                              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">CTR</th>
+                              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">평균 순위</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {stats.googleSearch.topQueries.map((query, index) => (
+                              <tr key={index} className="hover:bg-gray-50">
+                                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                                  {index + 1}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  {query.query}
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-900">
+                                  {query.clicks.toLocaleString()}
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-500">
+                                  {query.impressions.toLocaleString()}
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-500">
+                                  {query.ctr}
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-500">
+                                  {query.position}위
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* 나라똔튜브 관리 */}
               <div className="bg-white rounded-lg shadow mb-8">
