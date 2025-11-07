@@ -52,10 +52,11 @@ export default function UsersManagementPage() {
           status: user.status || UserStatus.ACTIVE,
           provider: user.provider || 'naver',
           profile: user.profile || {},
+          mobile: user.mobile || null, // 🔥 전화번호 포함
           createdAt: new Date(user.createdAt),
           updatedAt: new Date(user.updatedAt),
           lastLoginAt: user.lastLoginAt ? new Date(user.lastLoginAt) : undefined
-        };
+        } as any;
 
         // 디버깅: 이재호 사용자
         if (user.name === '이재호' || user.email?.includes('framei')) {
@@ -127,6 +128,12 @@ export default function UsersManagementPage() {
       label: '회사',
       sortable: true,
       render: (user) => user.profile.company || '-'
+    },
+    {
+      key: 'mobile',
+      label: '전화번호',
+      sortable: true,
+      render: (user) => (user as any).mobile || '-'
     },
     {
       key: 'role',
