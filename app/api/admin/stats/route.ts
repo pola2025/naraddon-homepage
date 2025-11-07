@@ -516,6 +516,18 @@ export async function GET(request: NextRequest) {
       ? (bouncedSessions / totalSessions) * 100
       : 0;
 
+    // 기준 기간 계산 (최근 7일)
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - 7);
+
+    const formatDate = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
     return NextResponse.json({
       totalUsers,
       totalConsultations,
@@ -545,6 +557,11 @@ export async function GET(request: NextRequest) {
       umami: umamiData,
       // Google Search Console 데이터 추가
       googleSearch: googleSearchData,
+      // 기준 기간 추가
+      period: {
+        startDate: formatDate(startDate),
+        endDate: formatDate(endDate),
+      },
     });
   } catch (error) {
     console.error('Admin stats error:', error);
