@@ -191,7 +191,7 @@ export default function InterviewSection() {
                   title: video.title,
                   description: video.description,
                   thumbnailUrl: video.customThumbnail,
-                  displayThumbnail: video.customThumbnail || `https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`,
+                  displayThumbnail: video.customThumbnail || `https://img.youtube.com/vi/${video.youtubeId}/sddefault.jpg`,
                 };
               });
               setVideos(convertedVideos);
@@ -246,7 +246,7 @@ export default function InterviewSection() {
             title: video.title,
             description: video.description,
             thumbnailUrl: video.customThumbnail,
-            displayThumbnail: video.customThumbnail || `https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`,
+            displayThumbnail: video.customThumbnail || `https://img.youtube.com/vi/${video.youtubeId}/sddefault.jpg`,
           };
         });
 
@@ -256,7 +256,7 @@ export default function InterviewSection() {
         convertedVideos.slice(0, 6).forEach((video: InterviewVideo) => {
           if (video.youtubeId) {
             const img = new window.Image();
-            img.src = `https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`;
+            img.src = `https://img.youtube.com/vi/${video.youtubeId}/sddefault.jpg`;
           }
         });
       }
@@ -317,7 +317,8 @@ export default function InterviewSection() {
                 return match ? match[1] : '';
               };
               const videoId = video.youtubeId || extractYoutubeId(video.youtubeUrl);
-              const youtubeThumbnail = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+              // sddefault.jpg (640x480) - 품질과 성능의 균형
+              const youtubeThumbnail = `https://img.youtube.com/vi/${videoId}/sddefault.jpg`;
               const thumbnailUrl = video.displayThumbnail || video.thumbnailUrl || youtubeThumbnail;
 
               const isImageLoaded = loadedImages.has(thumbnailUrl);
@@ -360,11 +361,13 @@ export default function InterviewSection() {
                       onLoad={() => handleImageLoad(thumbnailUrl)}
                       onError={(e) => {
                         const target = e.currentTarget as HTMLImageElement;
-                        if (target.src.includes('mqdefault')) {
+                        // sddefault가 없으면 mqdefault로 폴백
+                        if (target.src.includes('sddefault')) {
+                          target.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+                        } else if (target.src.includes('mqdefault')) {
                           target.src = `https://img.youtube.com/vi/${videoId}/default.jpg`;
                         }
                       }}
-                      unoptimized
                     />
 
                     <div className="play-overlay">
