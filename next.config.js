@@ -58,6 +58,20 @@ const nextConfig = {
     return process.env.VERCEL_GIT_COMMIT_SHA || 'development';
   },
 
+  // Webpack 설정: Mongoose 바이너리 파일 제외
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Server Component에서 mongoose 사용 시 바이너리 파일 제외
+      config.externals.push({
+        '@napi-rs/snappy-linux-x64-gnu': 'commonjs @napi-rs/snappy-linux-x64-gnu',
+        '@napi-rs/snappy-linux-x64-musl': 'commonjs @napi-rs/snappy-linux-x64-musl',
+        '@napi-rs/snappy-darwin-x64': 'commonjs @napi-rs/snappy-darwin-x64',
+        '@napi-rs/snappy-win32-x64-msvc': 'commonjs @napi-rs/snappy-win32-x64-msvc',
+      });
+    }
+    return config;
+  },
+
   // 스마트 캐시 전략
   async headers() {
     return [
