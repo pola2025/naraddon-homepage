@@ -74,10 +74,11 @@
 .badgeWrapper {
   position: absolute;
   top: -20px;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100%;
+  display: flex !important;
+  justify-content: center !important;
   align-items: center;
   z-index: 10;
   pointer-events: none;
