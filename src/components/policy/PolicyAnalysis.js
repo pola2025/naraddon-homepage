@@ -571,7 +571,7 @@ const PolicyAnalysis = () => {
         </div>
       </section>
 
-      <section className="policy-analysis__news-section">
+      <section id="policy-news" className="policy-analysis__news-section">
         <PolicyNewsSection />
       </section>
 
