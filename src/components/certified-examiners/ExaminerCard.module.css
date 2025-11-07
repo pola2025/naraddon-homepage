@@ -70,14 +70,22 @@
   box-shadow: 0 15px 30px rgba(212, 175, 55, 0.15);
 }
 
-/* Naraddon Badge */
-.naraddonBadge {
+/* Badge Wrapper - Flexbox로 확실한 중앙 정렬 */
+.badgeWrapper {
   position: absolute;
   top: -20px;
   left: 0;
   right: 0;
-  margin: 0 auto;
-  width: fit-content;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Naraddon Badge */
+.naraddonBadge {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -87,7 +95,7 @@
   box-shadow:
     0 10px 30px rgba(212, 175, 55, 0.4),
     0 0 50px rgba(212, 175, 55, 0.2);
-  z-index: 10;
+  pointer-events: auto;
 }
 
 .naraddonBadge svg {
