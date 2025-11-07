@@ -43,18 +43,34 @@ export default function UsersManagementPage() {
       const userList = data.users || [];
 
       // DB 데이터를 User 타입으로 변환
-      const formattedUsers = userList.map((user: any) => ({
-        id: user._id || user.id,
-        email: user.email,
-        name: user.name || '사용자',
-        role: user.role || UserRole.USER,
-        status: user.status || UserStatus.ACTIVE,
-        provider: user.provider || 'naver',
-        profile: user.profile || {},
-        createdAt: new Date(user.createdAt),
-        updatedAt: new Date(user.updatedAt),
-        lastLoginAt: user.lastLoginAt ? new Date(user.lastLoginAt) : undefined
-      }));
+      const formattedUsers = userList.map((user: any) => {
+        const formatted = {
+          id: user._id || user.id,
+          email: user.email,
+          name: user.name || '사용자',
+          role: user.role || UserRole.USER,
+          status: user.status || UserStatus.ACTIVE,
+          provider: user.provider || 'naver',
+          profile: user.profile || {},
+          createdAt: new Date(user.createdAt),
+          updatedAt: new Date(user.updatedAt),
+          lastLoginAt: user.lastLoginAt ? new Date(user.lastLoginAt) : undefined
+        };
+
+        // 디버깅: 이재호 사용자
+        if (user.name === '이재호' || user.email?.includes('framei')) {
+          console.log('[이재호] API Response:', {
+            name: user.name,
+            email: user.email,
+            role_from_api: user.role,
+            role_formatted: formatted.role,
+            UserRole_ADMIN: UserRole.ADMIN,
+            match: formatted.role === UserRole.ADMIN
+          });
+        }
+
+        return formatted;
+      });
 
       console.log('[Users Page] Formatted users:', formattedUsers.length);
       setUsers(formattedUsers);
@@ -381,7 +397,13 @@ export default function UsersManagementPage() {
           onRowClick={(user) => setSelectedUser(user)}
           searchPlaceholder="이름, 이메일, 회사 검색..."
           pageSize={100}
-          actions={(user) => (
+          actions={(user) => {
+            // 디버깅: 이재호 사용자의 role 확인
+            if (user.name === '이재호' || user.email?.includes('이재호')) {
+              console.log('[이재호] role:', user.role, 'UserRole.ADMIN:', UserRole.ADMIN, 'match:', user.role === UserRole.ADMIN);
+            }
+
+            return (
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setSelectedUser(user)}
@@ -420,7 +442,8 @@ export default function UsersManagementPage() {
                 상세
               </button>
             </div>
-          )}
+            );
+          }}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
