@@ -147,6 +147,13 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
           rel="stylesheet"
         />
+
+        {/* Umami Analytics */}
+        <script
+          defer
+          src="https://naraddon-analytics.vercel.app/script.js"
+          data-website-id="8d93abb4-ca26-495d-b2db-119ed1e57a80"
+        />
       </head>
       <body>
         <Providers>
