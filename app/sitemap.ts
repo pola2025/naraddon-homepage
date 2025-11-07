@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import clientPromise from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 
 /**
  * 동적 Sitemap 생성
@@ -7,6 +7,7 @@ import clientPromise from '@/lib/mongodb';
  * @purpose SEO 최적화를 위한 전체 사이트맵 자동 생성
  * @context 정적 페이지 + MongoDB의 동적 콘텐츠 URL 포함
  * @note Next.js 14 App Router의 sitemap 기능 활용
+ * @fix Mongoose API 사용 (clientPromise → connectDB, client.db() → mongoose.connection.db)
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://naraddon.com';
@@ -70,8 +71,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    const client = await clientPromise;
-    const db = client.db('naraddon');
+    // Mongoose 연결 사용 (MongoDB Native Client 대신)
+    const mongoose = await connectDB();
+    const db = mongoose.connection.db;
 
     // 정책소식 게시글 URL 생성
     const policyNews = await db
