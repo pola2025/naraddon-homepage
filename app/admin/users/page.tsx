@@ -9,44 +9,16 @@ import {
   FunnelIcon,
   ArrowDownTrayIcon,
   MagnifyingGlassIcon,
-  PlusIcon,
-  EyeIcon,
-  XMarkIcon,
-  TrashIcon
+  PlusIcon
 } from '@heroicons/react/24/outline';
 
 // 빈 초기 데이터 (실제 DB에서 로드)
 const initialUsers: User[] = [];
 
-interface Examiner {
-  _id: string;
-  name: string;
-  position: string;
-  companyName: string;
-  userId?: string;
-}
-
 export default function UsersManagementPage() {
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [viewingUser, setViewingUser] = useState<User | null>(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [examinerModalUser, setExaminerModalUser] = useState<User | null>(null);
-  const [examinerAction, setExaminerAction] = useState<'create' | 'link'>('create');
-  const [examiners, setExaminers] = useState<Examiner[]>([]);
-  const [selectedExaminerId, setSelectedExaminerId] = useState<string>('');
-  const [examinerFormData, setExaminerFormData] = useState({
-    name: '',
-    position: '인증 기업심사관',
-    companyName: '',
-    category: 'funding',
-    specialties: [] as string[],
-    isPublished: true
-  });
-  const [deleteModalUser, setDeleteModalUser] = useState<User | null>(null);
-  const [deleteReason, setDeleteReason] = useState('');
-  const [deleteAdminNote, setDeleteAdminNote] = useState('');
 
   // 실제 사용자 데이터 로드
   useEffect(() => {
@@ -57,12 +29,22 @@ export default function UsersManagementPage() {
     try {
       setIsLoading(true);
       const response = await fetch('/api/admin/users');
-      if (response.ok) {
-        const data = await response.json();
-        // API 응답에서 users 배열 추출
-        const userList = data.users || data;
-        // DB 데이터를 User 타입으로 변환
-        const formattedUsers = (Array.isArray(userList) ? userList : []).map((user: any) => ({
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('API Error:', errorData);
+        throw new Error(errorData.message || 'Failed to fetch users');
+      }
+
+      const data = await response.json();
+      console.log('[Users Page] API Response:', data);
+
+      // API 응답 구조: { users: [...], total, limit, skip }
+      const userList = data.users || [];
+
+      // DB 데이터를 User 타입으로 변환
+      const formattedUsers = userList.map((user: any) => {
+        const formatted = {
           id: user._id || user.id,
           email: user.email,
           name: user.name || '사용자',
@@ -73,11 +55,28 @@ export default function UsersManagementPage() {
           createdAt: new Date(user.createdAt),
           updatedAt: new Date(user.updatedAt),
           lastLoginAt: user.lastLoginAt ? new Date(user.lastLoginAt) : undefined
-        }));
-        setUsers(formattedUsers);
-      }
+        };
+
+        // 디버깅: 이재호 사용자
+        if (user.name === '이재호' || user.email?.includes('framei')) {
+          console.log('[이재호] API Response:', {
+            name: user.name,
+            email: user.email,
+            role_from_api: user.role,
+            role_formatted: formatted.role,
+            UserRole_ADMIN: UserRole.ADMIN,
+            match: formatted.role === UserRole.ADMIN
+          });
+        }
+
+        return formatted;
+      });
+
+      console.log('[Users Page] Formatted users:', formattedUsers.length);
+      setUsers(formattedUsers);
     } catch (error) {
       console.error('Failed to fetch users:', error);
+      alert('사용자 목록을 불러오는데 실패했습니다. 콘솔을 확인해주세요.');
     } finally {
       setIsLoading(false);
     }
@@ -188,89 +187,43 @@ export default function UsersManagementPage() {
     return true;
   });
 
-  // 심사관 목록 가져오기
-  useEffect(() => {
-    if (examinerModalUser) {
-      fetchExaminers();
-      // 사용자 정보로 폼 초기화
-      setExaminerFormData({
-        name: examinerModalUser.name,
-        position: '인증 기업심사관',
-        companyName: examinerModalUser.profile?.company || '',
-        category: 'funding',
-        specialties: examinerModalUser.profile?.specialty || [],
-        isPublished: true
-      });
-    }
-  }, [examinerModalUser]);
-
-  const fetchExaminers = async () => {
+  const handleRoleChange = async (userId: string, newRole: UserRole) => {
     try {
-      console.log('[fetchExaminers] Fetching examiners...');
-      const response = await fetch('/api/admin/examiners');
-      console.log('[fetchExaminers] Response status:', response.status);
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('[fetchExaminers] Received data:', data);
-        console.log('[fetchExaminers] Examiners count:', data.examiners?.length || 0);
-        setExaminers(data.examiners || []);
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('[fetchExaminers] Failed:', response.status, errorData);
-        alert(`심사관 목록을 불러오는데 실패했습니다: ${errorData.error || response.status}`);
-      }
-    } catch (error) {
-      console.error('[fetchExaminers] Error:', error);
-      alert('심사관 목록을 불러오는 중 오류가 발생했습니다.');
-    }
-  };
-
-  const handleRoleChangeSubmit = async (userId: string, newRole: UserRole) => {
-    try {
-      let requestBody: any = {
-        newRole,
-        profileData: {}
-      };
-
-      // 기업심사관으로 변경 시
-      if (newRole === UserRole.EXAMINER) {
-        requestBody.examinerAction = {
-          action: examinerAction,
-          ...(examinerAction === 'link' && { examinerId: selectedExaminerId }),
-        };
-        requestBody.profileData = examinerAction === 'create' ? examinerFormData : {};
-      }
-
+      // API 호출하여 역할 변경
       const response = await fetch(`/api/admin/users/${userId}/role`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          newRole,
+          profileData: {
+            reason: '관리자가 역할 변경'
+          }
+        }),
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        alert(data.message);
-        fetchUsers(); // 목록 새로고침
-        setExaminerModalUser(null);
-        setSelectedExaminerId('');
-        setExaminerAction('create');
-      } else {
-        alert(data.error || '역할 변경에 실패했습니다.');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to change role');
       }
-    } catch (error) {
-      console.error('Failed to change role:', error);
-      alert('역할 변경 중 오류가 발생했습니다.');
-    }
-  };
 
-  const handleRoleChange = (userId: string, newRole: UserRole) => {
-    setUsers(users.map(user =>
-      user.id === userId ? { ...user, role: newRole } : user
-    ));
-    // API 호출 추가 필요
-    console.log(`Changed user ${userId} role to ${newRole}`);
+      const result = await response.json();
+
+      // 로컬 상태 업데이트
+      setUsers(users.map(user =>
+        user.id === userId ? { ...user, role: newRole } : user
+      ));
+
+      alert(`역할이 ${newRole}(으)로 변경되었습니다.`);
+      console.log(`Changed user ${userId} role to ${newRole}`, result);
+
+      // 사용자 목록 새로고침
+      await fetchUsers();
+    } catch (error: any) {
+      console.error('Failed to change role:', error);
+      alert(`역할 변경 실패: ${error.message}`);
+    }
   };
 
   const handleStatusChange = (userId: string, newStatus: UserStatus) => {
@@ -281,132 +234,102 @@ export default function UsersManagementPage() {
     console.log(`Changed user ${userId} status to ${newStatus}`);
   };
 
-  /**
-   * 사용자 목록 엑셀 다운로드
-   *
-   * @purpose 관리자가 사용자 데이터를 엑셀로 내보내기
-   * @context 회원 관리 페이지에서 데이터 분석 및 백업용
-   * @decision xlsx 라이브러리 사용, 필터링된 데이터만 다운로드
-   * @note 브라우저 환경에서만 동작하도록 동적 import 사용
-   */
-  const handleExport = async () => {
-    try {
-      // xlsx 라이브러리 동적 import (클라이언트 사이드에서만 실행)
-      const XLSX = await import('xlsx');
-
-      // 엑셀 데이터 준비 (필터링된 사용자 데이터)
-      const excelData = filteredUsers.map(user => ({
-        '이름': user.name,
-        '이메일': user.email,
-        '전화번호': user.mobile || '-',
-        '회사': user.profile.company || '-',
-        '등급': getRoleLabel(user.role),
-        '상태': getStatusLabel(user.status),
-        '가입일': new Date(user.createdAt).toLocaleDateString('ko-KR'),
-        '최근 접속': user.lastLoginAt
-          ? new Date(user.lastLoginAt).toLocaleDateString('ko-KR')
-          : '-',
-        '전문분야': user.profile.specialty?.join(', ') || '-',
-        '로그인 제공자': user.provider || '-'
-      }));
-
-      // 워크북 생성
-      const worksheet = XLSX.utils.json_to_sheet(excelData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, '회원목록');
-
-      // 컬럼 너비 자동 조정
-      const colWidths = [
-        { wch: 15 }, // 이름
-        { wch: 30 }, // 이메일
-        { wch: 15 }, // 전화번호
-        { wch: 20 }, // 회사
-        { wch: 12 }, // 등급
-        { wch: 10 }, // 상태
-        { wch: 15 }, // 가입일
-        { wch: 15 }, // 최근 접속
-        { wch: 30 }, // 전문분야
-        { wch: 15 }  // 로그인 제공자
-      ];
-      worksheet['!cols'] = colWidths;
-
-      // 파일명 생성 (현재 날짜 포함)
-      const today = new Date().toISOString().split('T')[0];
-      const fileName = `나라똔_회원목록_${today}.xlsx`;
-
-      // 파일 다운로드
-      XLSX.writeFile(workbook, fileName);
-
-      console.log(`✅ 엑셀 다운로드 완료: ${fileName} (${filteredUsers.length}명)`);
-    } catch (error) {
-      console.error('❌ 엑셀 다운로드 실패:', error);
-      alert('엑셀 파일 생성 중 오류가 발생했습니다.');
-    }
-  };
-
-  /**
-   * 사용자 탈퇴 처리
-   *
-   * @purpose 관리자가 악의적 사용자나 정책 위반 사용자를 강제 탈퇴
-   * @context 관리자 페이지에서 사용자 관리 시 필요
-   * @decision 탈퇴 사유 입력 필수, 탈퇴 기록은 withdrawal_reasons 컬렉션에 저장
-   */
-  const handleDeleteUser = async () => {
-    if (!deleteModalUser) return;
-
-    // 탈퇴 사유 필수
-    if (!deleteReason.trim()) {
-      alert('탈퇴 사유를 입력해주세요.');
+  // 관리자 권한 승격 (examiner → admin)
+  const handleUpgradeToAdmin = async (userId: string) => {
+    if (!confirm('이 사용자를 관리자로 승격하시겠습니까?')) {
       return;
     }
 
+    const reason = prompt('승격 사유를 입력하세요:', '관리자 권한 부여');
+    if (!reason) return;
+
     try {
-      const response = await fetch(`/api/admin/users/${deleteModalUser.id}/delete`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch(`/api/admin/users/${userId}/upgrade`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          reason: deleteReason,
-          adminNote: deleteAdminNote
-        })
+          reason,
+          permissions: ['admin_dashboard', 'user_management', 'consultation_management'],
+        }),
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        alert(data.message);
-        fetchUsers(); // 목록 새로고침
-        setDeleteModalUser(null);
-        setDeleteReason('');
-        setDeleteAdminNote('');
-      } else {
-        alert(data.error || '계정 탈퇴 처리에 실패했습니다.');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to upgrade to admin');
       }
-    } catch (error) {
-      console.error('Failed to delete user:', error);
-      alert('계정 탈퇴 처리 중 오류가 발생했습니다.');
+
+      const result = await response.json();
+      alert(`관리자로 승격되었습니다: ${result.message}`);
+
+      // 사용자 목록 새로고침
+      await fetchUsers();
+    } catch (error: any) {
+      console.error('Failed to upgrade to admin:', error);
+      alert(`관리자 승격 실패: ${error.message}`);
     }
   };
 
+  // 관리자 권한 회수 (admin → user)
+  const handleRevokeAdmin = async (userId: string) => {
+    if (!confirm('이 사용자의 관리자 권한을 회수하시겠습니까?')) {
+      return;
+    }
+
+    const reason = prompt('회수 사유를 입력하세요:', '관리자 권한 해제');
+    if (!reason) return;
+
+    try {
+      const response = await fetch(`/api/admin/users/${userId}/upgrade`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reason }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to revoke admin');
+      }
+
+      const result = await response.json();
+      alert(`관리자 권한이 회수되었습니다: ${result.message}`);
+
+      // 사용자 목록 새로고침
+      await fetchUsers();
+    } catch (error: any) {
+      console.error('Failed to revoke admin:', error);
+      alert(`관리자 권한 회수 실패: ${error.message}`);
+    }
+  };
+
+  const handleExport = () => {
+    // 엑셀 다운로드 로직 추가 필요
+    console.log('Exporting users to Excel...');
+  };
+
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6">
       {/* 헤더 */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">회원 관리</h1>
           <p className="mt-1 text-sm text-gray-500">
             전체 회원 {users.length}명 | 활성 {users.filter(u => u.status === UserStatus.ACTIVE).length}명
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setViewMode(viewMode === 'table' ? 'cards' : 'table')}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 whitespace-nowrap"
+            className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             {viewMode === 'table' ? '카드 보기' : '테이블 보기'}
           </button>
           <button
             onClick={handleExport}
-            className="inline-flex items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 whitespace-nowrap"
+            className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
             엑셀 다운로드
@@ -471,61 +394,56 @@ export default function UsersManagementPage() {
         <DataTable
           data={filteredUsers}
           columns={columns}
-          onRowClick={(user) => {
-            setViewingUser(user);
-            setShowDetailModal(true);
-          }}
+          onRowClick={(user) => setSelectedUser(user)}
           searchPlaceholder="이름, 이메일, 회사 검색..."
           pageSize={100}
-          actions={(user) => (
+          actions={(user) => {
+            // 디버깅: 이재호 사용자의 role 확인
+            if (user.name === '이재호' || user.email?.includes('이재호')) {
+              console.log('[이재호] role:', user.role, 'UserRole.ADMIN:', UserRole.ADMIN, 'match:', user.role === UserRole.ADMIN);
+            }
+
+            return (
             <div className="flex items-center gap-2">
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setViewingUser(user);
-                  setShowDetailModal(true);
-                }}
-                className="text-gray-600 hover:text-gray-900"
-                title="상세보기"
+                onClick={() => setSelectedUser(user)}
+                className="text-purple-600 hover:text-purple-900 text-sm"
               >
-                <EyeIcon className="w-5 h-5" />
+                등급변경
               </button>
-              {user.role !== UserRole.ADMIN && user.role !== 'super_admin' && (
+              {user.role === UserRole.EXAMINER && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (confirm(`${user.name}님을 관리자로 지정하시겠습니까?`)) {
-                      handleRoleChangeSubmit(user.id, UserRole.ADMIN);
-                    }
+                    handleUpgradeToAdmin(user.id);
                   }}
                   className="text-red-600 hover:text-red-900 text-sm font-medium"
+                  title="관리자로 승격"
                 >
-                  관리자 지정
+                  관리자승격
                 </button>
               )}
-              {user.role !== UserRole.EXAMINER && (
+              {user.role === UserRole.ADMIN && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setExaminerModalUser(user);
+                    handleRevokeAdmin(user.id);
                   }}
-                  className="text-purple-600 hover:text-purple-900 text-sm font-medium"
+                  className="text-orange-600 hover:text-orange-900 text-sm font-medium"
+                  title="관리자 권한 회수"
                 >
-                  심사관 지정
+                  권한회수
                 </button>
               )}
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDeleteModalUser(user);
-                }}
-                className="text-red-600 hover:text-red-900"
-                title="사용자 탈퇴"
+                onClick={() => setSelectedUser(user)}
+                className="text-blue-600 hover:text-blue-900 text-sm"
               >
-                <TrashIcon className="w-5 h-5" />
+                상세
               </button>
             </div>
-          )}
+            );
+          }}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -536,6 +454,8 @@ export default function UsersManagementPage() {
               mode="admin"
               onRoleChange={(newRole) => handleRoleChange(user.id, newRole)}
               onStatusChange={(newStatus) => handleStatusChange(user.id, newStatus)}
+              onUpgradeToAdmin={handleUpgradeToAdmin}
+              onRevokeAdmin={handleRevokeAdmin}
             />
           ))}
         </div>
@@ -561,6 +481,14 @@ export default function UsersManagementPage() {
                   handleStatusChange(selectedUser.id, newStatus);
                   setSelectedUser(null);
                 }}
+                onUpgradeToAdmin={(userId) => {
+                  handleUpgradeToAdmin(userId);
+                  setSelectedUser(null);
+                }}
+                onRevokeAdmin={(userId) => {
+                  handleRevokeAdmin(userId);
+                  setSelectedUser(null);
+                }}
               />
               <button
                 onClick={() => setSelectedUser(null)}
@@ -568,391 +496,6 @@ export default function UsersManagementPage() {
               >
                 ✕
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 심사관 지정 모달 */}
-      {examinerModalUser && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen px-4">
-            <div
-              className="fixed inset-0 bg-gray-500 bg-opacity-75"
-              onClick={() => setExaminerModalUser(null)}
-            />
-            <div className="relative bg-white rounded-lg max-w-3xl w-full p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                기업심사관 지정
-              </h2>
-              <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  <strong>{examinerModalUser.name}</strong> ({examinerModalUser.email})님을 기업심사관으로 지정합니다.
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                {/* 액션 선택 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    심사관 프로필 설정
-                  </label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        value="create"
-                        checked={examinerAction === 'create'}
-                        onChange={() => setExaminerAction('create')}
-                        className="mr-2"
-                      />
-                      <span className="text-sm">신규 프로필 생성</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        value="link"
-                        checked={examinerAction === 'link'}
-                        onChange={() => setExaminerAction('link')}
-                        className="mr-2"
-                      />
-                      <span className="text-sm">기존 심사관과 연결</span>
-                    </label>
-                  </div>
-                </div>
-
-                {/* 신규 생성 폼 */}
-                {examinerAction === 'create' && (
-                  <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        이름
-                      </label>
-                      <input
-                        type="text"
-                        value={examinerFormData.name}
-                        onChange={(e) => setExaminerFormData({...examinerFormData, name: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        직책
-                      </label>
-                      <input
-                        type="text"
-                        value={examinerFormData.position}
-                        onChange={(e) => setExaminerFormData({...examinerFormData, position: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        회사명
-                      </label>
-                      <input
-                        type="text"
-                        value={examinerFormData.companyName}
-                        onChange={(e) => setExaminerFormData({...examinerFormData, companyName: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        카테고리
-                      </label>
-                      <select
-                        value={examinerFormData.category}
-                        onChange={(e) => setExaminerFormData({...examinerFormData, category: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                      >
-                        <option value="funding">자금</option>
-                        <option value="tax">세무</option>
-                        <option value="legal">법무</option>
-                        <option value="hr">노무</option>
-                        <option value="marketing">마케팅</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-
-                {/* 기존 심사관 연결 */}
-                {examinerAction === 'link' && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      연결할 심사관 선택
-                    </label>
-                    <select
-                      value={selectedExaminerId}
-                      onChange={(e) => setSelectedExaminerId(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    >
-                      <option value="">선택하세요 (전체 {examiners.length}명)</option>
-                      {examiners.map((examiner) => (
-                        <option
-                          key={examiner._id}
-                          value={examiner._id}
-                          disabled={!!examiner.userId}
-                        >
-                          {examiner.name} - {examiner.position} ({examiner.companyName})
-                          {examiner.userId ? ' [이미 연결됨]' : ''}
-                        </option>
-                      ))}
-                    </select>
-                    {examiners.filter(e => !e.userId).length === 0 && examiners.length > 0 && (
-                      <p className="mt-2 text-sm text-amber-600">
-                        ⚠️ 모든 심사관이 이미 사용자와 연결되어 있습니다.
-                      </p>
-                    )}
-                    {examiners.length === 0 && (
-                      <p className="mt-2 text-sm text-red-600">
-                        ❌ 등록된 심사관이 없습니다.
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-6 flex justify-end gap-3">
-                <button
-                  onClick={() => setExaminerModalUser(null)}
-                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
-                >
-                  취소
-                </button>
-                <button
-                  onClick={() => handleRoleChangeSubmit(examinerModalUser.id, UserRole.EXAMINER)}
-                  disabled={examinerAction === 'link' && !selectedExaminerId}
-                  className="px-4 py-2 text-sm text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:bg-gray-400"
-                >
-                  심사관 지정하기
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 사용자 탈퇴 확인 모달 */}
-      {deleteModalUser && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen px-4">
-            <div
-              className="fixed inset-0 bg-gray-500 bg-opacity-75"
-              onClick={() => setDeleteModalUser(null)}
-            />
-            <div className="relative bg-white rounded-lg max-w-lg w-full p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                사용자 탈퇴 처리
-              </h2>
-
-              {/* 경고 메시지 */}
-              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-800">
-                  <strong className="font-semibold">⚠️ 주의:</strong> 이 작업은 되돌릴 수 없습니다.
-                </p>
-                <p className="text-sm text-red-700 mt-2">
-                  <strong>{deleteModalUser.name}</strong> ({deleteModalUser.email})님의 계정이 영구적으로 삭제됩니다.
-                </p>
-                {deleteModalUser.role === UserRole.EXAMINER && (
-                  <p className="text-sm text-red-700 mt-1">
-                    • 심사관 카드와의 연결이 해제됩니다.
-                  </p>
-                )}
-                <p className="text-sm text-red-700 mt-1">
-                  • 게시글과 댓글은 보존됩니다.
-                </p>
-              </div>
-
-              {/* 탈퇴 사유 입력 */}
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    탈퇴 사유 <span className="text-red-600">*</span>
-                  </label>
-                  <textarea
-                    value={deleteReason}
-                    onChange={(e) => setDeleteReason(e.target.value)}
-                    placeholder="예: 스팸 활동, 정책 위반, 악의적 행위 등"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
-                    rows={3}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    관리자 메모 (선택)
-                  </label>
-                  <textarea
-                    value={deleteAdminNote}
-                    onChange={(e) => setDeleteAdminNote(e.target.value)}
-                    placeholder="추가 정보나 참고사항"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-gray-500 focus:border-gray-500"
-                    rows={2}
-                  />
-                </div>
-              </div>
-
-              {/* 버튼 */}
-              <div className="mt-6 flex justify-end gap-3">
-                <button
-                  onClick={() => {
-                    setDeleteModalUser(null);
-                    setDeleteReason('');
-                    setDeleteAdminNote('');
-                  }}
-                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
-                >
-                  취소
-                </button>
-                <button
-                  onClick={handleDeleteUser}
-                  className="px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700 disabled:bg-gray-400"
-                  disabled={!deleteReason.trim()}
-                >
-                  탈퇴 처리
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 사용자 상세보기 모달 */}
-      {showDetailModal && viewingUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              {/* 헤더 */}
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">사용자 상세 정보</h2>
-                <button
-                  onClick={() => setShowDetailModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <XMarkIcon className="w-6 h-6" />
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                {/* 기본 정보 */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">기본 정보</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500 mb-1">이름</label>
-                      <p className="text-base font-semibold text-gray-900">{viewingUser.name}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500 mb-1">이메일</label>
-                      <p className="text-base text-gray-900">{viewingUser.email}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500 mb-1">전화번호</label>
-                      <p className="text-base text-gray-900">{viewingUser.mobile || '-'}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500 mb-1">회사</label>
-                      <p className="text-base text-gray-900">{viewingUser.profile.company || '-'}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 계정 정보 */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">계정 정보</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500 mb-1">등급</label>
-                      <p className="text-base">
-                        <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
-                          viewingUser.role === UserRole.ADMIN ? 'bg-red-100 text-red-800' :
-                          viewingUser.role === UserRole.EXAMINER ? 'bg-purple-100 text-purple-800' :
-                          viewingUser.role === UserRole.EXPERT ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {getRoleLabel(viewingUser.role)}
-                        </span>
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500 mb-1">상태</label>
-                      <p className="text-base">
-                        <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
-                          viewingUser.status === UserStatus.ACTIVE ? 'bg-green-100 text-green-800' :
-                          viewingUser.status === UserStatus.INACTIVE ? 'bg-yellow-100 text-yellow-800' :
-                          viewingUser.status === UserStatus.SUSPENDED ? 'bg-red-100 text-red-800' :
-                          'bg-orange-100 text-orange-800'
-                        }`}>
-                          {getStatusLabel(viewingUser.status)}
-                        </span>
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500 mb-1">가입일</label>
-                      <p className="text-base text-gray-900">
-                        {new Date(viewingUser.createdAt).toLocaleString('ko-KR')}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500 mb-1">최근 접속</label>
-                      <p className="text-base text-gray-900">
-                        {viewingUser.lastLoginAt
-                          ? new Date(viewingUser.lastLoginAt).toLocaleString('ko-KR')
-                          : '-'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 전문 분야 */}
-                {viewingUser.profile.specialty && viewingUser.profile.specialty.length > 0 && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">전문 분야</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {viewingUser.profile.specialty.map((spec, idx) => (
-                        <span
-                          key={idx}
-                          className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
-                        >
-                          {spec}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* 기업심사관 정보 */}
-                {viewingUser.role === UserRole.EXAMINER && viewingUser.examinerId && (
-                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                    <h3 className="text-lg font-semibold text-purple-900 mb-3">심사관 정보</h3>
-                    <div className="text-sm text-purple-800">
-                      <p>심사관 ID: {viewingUser.examinerId}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* 배정된 상담 */}
-                {viewingUser.assignedConsultations !== undefined && (
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <h3 className="text-lg font-semibold text-blue-900 mb-2">활동 통계</h3>
-                    <p className="text-sm text-blue-800">
-                      배정된 상담: <span className="font-semibold">{viewingUser.assignedConsultations}건</span>
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* 닫기 버튼 */}
-              <div className="flex justify-end pt-6 border-t mt-6">
-                <button
-                  onClick={() => setShowDetailModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  닫기
-                </button>
-              </div>
             </div>
           </div>
         </div>
