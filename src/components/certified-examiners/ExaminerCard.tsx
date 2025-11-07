@@ -42,7 +42,9 @@ export default function ExaminerCard({ examiner, variant = 'grid' }: ExaminerCar
   return (
     <div className={`${styles.card} ${styles[variant]}`}>
       <div className={styles.naraddonBadge}>
-        <i className="fas fa-medal"></i>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+        </svg>
         <span>나라똔 인증</span>
       </div>
 
@@ -55,7 +57,9 @@ export default function ExaminerCard({ examiner, variant = 'grid' }: ExaminerCar
        */}
       {examiner.activityScore !== undefined && examiner.activityScore > 0 && (
         <div className={styles.activityBadge}>
-          <i className="fas fa-fire"></i>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 23C7.03 23 3 18.97 3 14C3 10.9 4.5 8.1 6.9 6.4C6.6 7.6 6.5 8.8 6.7 10.1C7.1 12.3 8.4 14.2 10.3 15.3C10.5 13.1 11.4 11 13 9.4C14.6 7.8 16.7 6.9 18.9 6.7C18.3 9.2 16.9 11.4 14.8 12.8C13.9 13.4 12.9 13.8 11.8 14C11.8 14.7 11.9 15.4 12.2 16.1C12.8 17.6 14.1 18.7 15.7 19.1C14.6 21.3 12.4 23 12 23Z"/>
+          </svg>
           <span>{examiner.activityScore}점</span>
         </div>
       )}
@@ -87,12 +91,18 @@ export default function ExaminerCard({ examiner, variant = 'grid' }: ExaminerCar
           <div className={styles.activityStats}>
             {examiner.activityStats.postsCreated > 0 && (
               <span className={styles.stat}>
-                <i className="fas fa-file-alt"></i> 게시글 {examiner.activityStats.postsCreated}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2M18 20H6V4H13V9H18V20M16 11H8V13H16V11M16 15H8V17H16V15Z"/>
+                </svg>
+                게시글 {examiner.activityStats.postsCreated}
               </span>
             )}
             {examiner.activityStats.commentsCreated > 0 && (
               <span className={styles.stat}>
-                <i className="fas fa-comment"></i> 댓글 {examiner.activityStats.commentsCreated}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M9 22C8.4 22 8 21.6 8 21V18H4C2.9 18 2 17.1 2 16V4C2 2.9 2.9 2 4 2H20C21.1 2 22 2.9 22 4V16C22 17.1 21.1 18 20 18H13.9L10.2 21.7C10 21.9 9.8 22 9.5 22H9M10 16V19.1L13.1 16H20V4H4V16H10Z"/>
+                </svg>
+                댓글 {examiner.activityStats.commentsCreated}
               </span>
             )}
           </div>

@@ -74,8 +74,10 @@
 .naraddonBadge {
   position: absolute;
   top: -20px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: fit-content;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -88,10 +90,12 @@
   z-index: 10;
 }
 
-.naraddonBadge i {
+.naraddonBadge svg {
   color: #FFD700;
-  font-size: 18px;
-  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+  width: 18px;
+  height: 18px;
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+  flex-shrink: 0;
 }
 
 .naraddonBadge span {
@@ -119,10 +123,12 @@
   animation: activityPulse 2s ease-in-out infinite;
 }
 
-.activityBadge i {
+.activityBadge svg {
   color: #FFD700;
-  font-size: 14px;
-  text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
+  width: 14px;
+  height: 14px;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8));
+  flex-shrink: 0;
 }
 
 .activityBadge span {
@@ -170,9 +176,11 @@
   font-weight: 600;
 }
 
-.activityStats .stat i {
+.activityStats .stat svg {
   color: #FFD700;
-  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
 .grid .activityStats {
@@ -396,13 +404,13 @@
 /* Pulse Animation for Badge */
 @keyframes pulse {
   0%, 100% {
-    transform: translateX(-50%) scale(1);
+    transform: scale(1);
     box-shadow:
       0 10px 30px rgba(212, 175, 55, 0.4),
       0 0 50px rgba(212, 175, 55, 0.2);
   }
   50% {
-    transform: translateX(-50%) scale(1.05);
+    transform: scale(1.05);
     box-shadow:
       0 15px 40px rgba(212, 175, 55, 0.6),
       0 0 70px rgba(212, 175, 55, 0.3);
