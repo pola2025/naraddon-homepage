@@ -29,28 +29,29 @@ interface Stats {
     thisMonth: number;
     total: number;
   };
-  marketing: {
+  marketingStats: {
     totalSessions: number;
-    avgPageviews: number;
+    avgPageViews: number;
     avgTimeSpent: number;
     bounceRate: number;
   };
-  devices: {
+  deviceStats: {
     mobile: number;
     desktop: number;
     tablet: number;
+    unknown?: number;
   };
-  traffic: {
+  trafficSourceStats: {
     direct: number;
     search: number;
     social: number;
-    referral: number;
+    other: number;
   };
-  referrers: Array<{
+  topReferrers: Array<{
     domain: string;
     visits: number;
   }>;
-  pages: Array<{
+  topPages: Array<{
     pathname: string;
     views: number;
   }>;
@@ -134,23 +135,23 @@ export default function AdminAnalyticsPage() {
 
   // 디바이스 타입 차트 데이터
   const deviceData = [
-    { name: '모바일', value: stats.devices.mobile },
-    { name: '데스크톱', value: stats.devices.desktop },
-    { name: '태블릿', value: stats.devices.tablet },
+    { name: '모바일', value: stats.deviceStats.mobile },
+    { name: '데스크톱', value: stats.deviceStats.desktop },
+    { name: '태블릿', value: stats.deviceStats.tablet },
   ].map(item => ({
     ...item,
-    total: stats.devices.mobile + stats.devices.desktop + stats.devices.tablet
+    total: stats.deviceStats.mobile + stats.deviceStats.desktop + stats.deviceStats.tablet
   }));
 
   // 유입 타입 차트 데이터
   const trafficData = [
-    { name: '직접 방문', value: stats.traffic.direct },
-    { name: '검색', value: stats.traffic.search },
-    { name: 'SNS', value: stats.traffic.social },
-    { name: '기타', value: stats.traffic.referral },
+    { name: '직접 방문', value: stats.trafficSourceStats.direct },
+    { name: '검색', value: stats.trafficSourceStats.search },
+    { name: 'SNS', value: stats.trafficSourceStats.social },
+    { name: '기타', value: stats.trafficSourceStats.other },
   ].map(item => ({
     ...item,
-    total: stats.traffic.direct + stats.traffic.search + stats.traffic.social + stats.traffic.referral
+    total: stats.trafficSourceStats.direct + stats.trafficSourceStats.search + stats.trafficSourceStats.social + stats.trafficSourceStats.other
   }));
 
   return (
@@ -248,9 +249,9 @@ export default function AdminAnalyticsPage() {
             </p>
           </div>
           <div className="p-6">
-            {stats.referrers && stats.referrers.length > 0 ? (
+            {stats.topReferrers && stats.topReferrers.length > 0 ? (
               <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={stats.referrers.slice(0, 10)} layout="vertical">
+                <BarChart data={stats.topReferrers.slice(0, 10)} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" />
                   <YAxis
@@ -282,9 +283,9 @@ export default function AdminAnalyticsPage() {
             </p>
           </div>
           <div className="p-6">
-            {stats.pages && stats.pages.length > 0 ? (
+            {stats.topPages && stats.topPages.length > 0 ? (
               <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={stats.pages.slice(0, 10)} layout="vertical">
+                <BarChart data={stats.topPages.slice(0, 10)} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" />
                   <YAxis
