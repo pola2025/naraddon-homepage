@@ -131,9 +131,28 @@ export const authOptions: NextAuthOptions = {
           console.log('[Auth] ✅ Existing user updated:', user.email);
         }
 
+        // 🔥 FIX: MongoDBAdapter가 사용자를 생성한 직후 조회하여 mobile 업데이트
         // 3. accounts 연결 확인 및 생성 (OAuthAccountNotLinked 해결)
         const currentUser = await usersCollection.findOne({ email: user.email });
         if (currentUser) {
+          // 🔥 3-1. mobile 무조건 업데이트 (신규/기존 무관, mobile 값이 있으면)
+          // NextAuth가 profile()의 mobile을 무시할 수 있으므로 여기서 강제 저장
+          if (mobile) {
+            await usersCollection.updateOne(
+              { _id: currentUser._id },
+              {
+                $set: {
+                  mobile: mobile,
+                  updatedAt: new Date()
+                }
+              }
+            );
+            console.log('[Auth] ✅ Mobile saved/updated:', user.email, mobile);
+          } else {
+            console.log('[Auth] ⚠️ No mobile received from Naver:', user.email);
+          }
+
+          // 3-2. accounts 연결
           const existingAccount = await accountsCollection.findOne({
             provider: account.provider,
             providerAccountId: account.providerAccountId
