@@ -102,6 +102,19 @@ export default function TtontokCompact() {
     return `${date.getMonth() + 1}/${date.getDate()}`;
   };
 
+  /**
+   * 제목 길이 제한 및 말줄임 처리
+   * @param title 원본 제목
+   * @param maxLength 최대 글자 수 (기본값: 20)
+   * @returns 제한된 제목
+   */
+  const truncateTitle = (title: string, maxLength: number = 20): string => {
+    if (title.length <= maxLength) {
+      return title;
+    }
+    return `${title.substring(0, maxLength)}...`;
+  };
+
   const handleWriteClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
 
@@ -109,6 +122,12 @@ export default function TtontokCompact() {
     if (!session) {
       alert('로그인 후 작성 가능합니다.');
       router.push('/auth/login?callbackUrl=/business-voice/ttontok/write');
+      return;
+    }
+
+    // 기업심사관 제한 (댓글만 작성 가능, 게시글 작성 불가)
+    if (session.user?.role === 'examiner') {
+      alert('이 게시판은 사업자들 간의 커뮤니케이션을 위한 공간입니다.\n기업심사관은 정책분석에 게시글을 남겨주시거나\n이 게시판에서는 댓글로 활동 바랍니다.');
       return;
     }
 
@@ -221,7 +240,7 @@ export default function TtontokCompact() {
                       </td>
                       <td className="title-cell">
                         <Link href={`/business-voice/ttontok/${post.id}`} className="title-link">
-                          {post.title}
+                          {truncateTitle(post.title)}
                           {post.replyCount > 0 && (
                             <span className="reply-count">[{post.replyCount}]</span>
                           )}

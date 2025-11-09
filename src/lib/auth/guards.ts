@@ -219,3 +219,15 @@ export async function checkPermission(
     return false;
   }
 }
+
+/**
+ * 기업심사관 역할 체크
+ *
+ * @purpose 기업심사관인지 확인 (게시글 작성 제한용)
+ * @param user 사용자 정보 (session.user)
+ * @returns boolean - 기업심사관이면 true
+ * @note 기업심사관은 댓글 작성은 가능하지만, 똔톡/묻고답하기 게시글 작성 불가
+ */
+export function isExaminer(user: any): boolean {
+  return user?.role === 'examiner';
+}

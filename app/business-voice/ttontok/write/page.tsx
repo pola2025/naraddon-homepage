@@ -50,19 +50,28 @@ export default function TtontokWritePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 인증 가드: 로그인하지 않은 경우 로그인 페이지로 리다이렉트
+  // 기업심사관인 경우 게시글 작성 불가
   useEffect(() => {
     if (status === 'loading') return; // 로딩 중에는 대기
 
     if (!session) {
       alert('로그인이 필요합니다.');
       router.push('/auth/login?callbackUrl=/business-voice/ttontok/write');
-    } else {
-      // 로그인한 경우 닉네임 자동 입력
-      setFormData(prev => ({
-        ...prev,
-        nickname: session.user?.name || '',
-      }));
+      return;
     }
+
+    // 기업심사관 제한 (댓글만 작성 가능, 게시글 작성 불가)
+    if (session.user?.role === 'examiner') {
+      alert('이 게시판은 사업자들 간의 커뮤니케이션을 위한 공간입니다.\n기업심사관은 정책분석에 게시글을 남겨주시거나\n이 게시판에서는 댓글로 활동 바랍니다.');
+      router.push('/business-voice');
+      return;
+    }
+
+    // 로그인한 경우 닉네임 자동 입력
+    setFormData(prev => ({
+      ...prev,
+      nickname: session.user?.name || '',
+    }));
   }, [session, status, router]);
 
   const handleInputChange = (

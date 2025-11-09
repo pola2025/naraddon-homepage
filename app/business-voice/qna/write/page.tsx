@@ -45,11 +45,21 @@ export default function QnAWritePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    if (status === 'loading') return; // 로딩 중에는 대기
+
     if (status === 'unauthenticated') {
       alert('로그인이 필요합니다.');
-      router.push('/auth/login');
+      router.push('/auth/login?callbackUrl=/business-voice/qna/write');
+      return;
     }
-  }, [status, router]);
+
+    // 기업심사관 제한 (댓글만 작성 가능, 게시글 작성 불가)
+    if (session?.user?.role === 'examiner') {
+      alert('이 게시판은 사업자가 질문을 하는 게시판입니다.\n기업심사관은 댓글로 작성 바랍니다.');
+      router.push('/business-voice');
+      return;
+    }
+  }, [status, session, router]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>

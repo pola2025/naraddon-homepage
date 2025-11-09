@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import './qna-section.css';
 
@@ -96,6 +98,8 @@ const mapAuthorRole = (
 };
 
 export default function QnASection() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [qnaItems, setQnaItems] = useState<QnAItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
@@ -174,6 +178,26 @@ export default function QnASection() {
       default:
         return null;
     }
+  };
+
+  const handleAskClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+
+    // 로그인 상태 확인
+    if (!session) {
+      alert('로그인 후 질문할 수 있습니다.');
+      router.push('/auth/login?callbackUrl=/business-voice/qna/write');
+      return;
+    }
+
+    // 기업심사관 제한 (댓글만 작성 가능, 게시글 작성 불가)
+    if (session.user?.role === 'examiner') {
+      alert('이 게시판은 사업자가 질문을 하는 게시판입니다.\n기업심사관은 댓글로 작성 바랍니다.');
+      return;
+    }
+
+    // 로그인한 경우 작성 페이지로 이동
+    router.push('/business-voice/qna/write');
   };
 
   return (
@@ -341,9 +365,9 @@ export default function QnASection() {
         )}
 
         <div className="qna-actions">
-          <Link href="/business-voice/qna/write" className="ask-btn">
+          <a href="#" onClick={handleAskClick} className="ask-btn">
             <i className="fas fa-edit" /> 질문하기
-          </Link>
+          </a>
           <Link href="/business-voice/qna" className="more-qa-btn">
             더 많은 Q&A 보기
           </Link>
