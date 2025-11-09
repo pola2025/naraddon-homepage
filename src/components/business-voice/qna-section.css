@@ -713,6 +713,7 @@
     flex-direction: column;
     gap: 12px;
     padding: 0 16px;
+    align-items: center;
   }
 
   .ask-btn,
@@ -721,6 +722,7 @@
     padding: 14px 24px;
     font-size: 0.95rem;
     min-height: 52px;
+    text-align: center;
   }
 
   /* 모바일 페이지네이션 슬림화 */

@@ -691,6 +691,8 @@
   .ttontok-actions {
     padding: 0 16px;
     margin-top: 12px;
+    display: flex;
+    justify-content: center;
   }
 
   .write-btn {
@@ -698,6 +700,7 @@
     padding: 12px;
     font-size: 0.95rem;
     min-height: 44px;
+    text-align: center;
   }
 
   /* 페이지네이션 모바일 - 슬림화 */
