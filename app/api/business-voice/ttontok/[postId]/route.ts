@@ -40,7 +40,13 @@ export async function GET(
   const includeReplies = (searchParams.get('includeReplies') ?? 'true') !== 'false';
   const replyLimit = Math.max(1, Math.min(Number(searchParams.get('replyLimit')) || DEFAULT_REPLY_LIMIT, 100));
 
-  const post = await TtontokPost.findById(postId).lean();
+  // 조회수 증가 및 게시글 조회
+  const post = await TtontokPost.findByIdAndUpdate(
+    postId,
+    { $inc: { viewCount: 1 } },
+    { new: true } // 증가된 값 반환
+  ).lean();
+
   if (!post || post.isArchived) {
     return NextResponse.json({ message: '게시글을 찾을 수 없습니다.' }, { status: 404 });
   }
@@ -52,7 +58,7 @@ export async function GET(
     category: post.category,
     nickname: post.nickname,
     tags: post.tags,
-    viewCount: post.viewCount,
+    viewCount: post.viewCount, // 증가된 조회수
     likeCount: post.likeCount,
     replyCount: post.replyCount,
     isBest: post.isBest,
