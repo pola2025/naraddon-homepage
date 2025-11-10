@@ -197,6 +197,8 @@ export default function UsersManagementPage() {
 
   const handleRoleChange = async (userId: string, newRole: UserRole, examinerId?: string, expertId?: string) => {
     try {
+      console.log('handleRoleChange called:', { userId, newRole, examinerId, expertId });
+
       const requestBody: any = {
         newRole,
         profileData: {
@@ -219,6 +221,8 @@ export default function UsersManagementPage() {
           expertId: expertId
         };
       }
+
+      console.log('Request body:', requestBody);
 
       // API 호출하여 역할 변경
       const response = await fetch(`/api/admin/users/${userId}/role`, {
