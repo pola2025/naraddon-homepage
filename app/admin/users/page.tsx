@@ -195,20 +195,38 @@ export default function UsersManagementPage() {
     return true;
   });
 
-  const handleRoleChange = async (userId: string, newRole: UserRole) => {
+  const handleRoleChange = async (userId: string, newRole: UserRole, examinerId?: string, expertId?: string) => {
     try {
+      const requestBody: any = {
+        newRole,
+        profileData: {
+          reason: '관리자가 역할 변경'
+        }
+      };
+
+      // 심사관으로 변경 시
+      if (newRole === UserRole.EXAMINER && examinerId) {
+        requestBody.examinerAction = {
+          action: 'link',
+          examinerId: examinerId
+        };
+      }
+
+      // 전문가로 변경 시
+      if (newRole === UserRole.EXPERT && expertId) {
+        requestBody.expertAction = {
+          action: 'link',
+          expertId: expertId
+        };
+      }
+
       // API 호출하여 역할 변경
       const response = await fetch(`/api/admin/users/${userId}/role`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          newRole,
-          profileData: {
-            reason: '관리자가 역할 변경'
-          }
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {

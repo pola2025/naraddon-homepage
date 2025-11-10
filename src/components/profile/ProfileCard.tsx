@@ -21,7 +21,7 @@ interface ProfileCardProps {
   mode: 'admin' | 'mypage';
   editable?: boolean;
   onEdit?: () => void;
-  onRoleChange?: (newRole: UserRole) => void;
+  onRoleChange?: (newRole: UserRole, examinerId?: string, expertId?: string) => void;
   onStatusChange?: (newStatus: UserStatus) => void;
   onUpgradeToAdmin?: (userId: string) => void;
   onRevokeAdmin?: (userId: string) => void;
@@ -40,6 +40,53 @@ export default function ProfileCard({
   className = ''
 }: ProfileCardProps) {
   const [showRoleModal, setShowRoleModal] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
+  const [examiners, setExaminers] = useState<any[]>([]);
+  const [experts, setExperts] = useState<any[]>([]);
+  const [selectedExaminerId, setSelectedExaminerId] = useState<string>('');
+  const [selectedExpertId, setSelectedExpertId] = useState<string>('');
+
+  // 심사관/전문가 목록 불러오기
+  const fetchExaminersAndExperts = async () => {
+    try {
+      const [examinersRes, expertsRes] = await Promise.all([
+        fetch('/api/admin/examiners'),
+        fetch('/api/admin/experts')
+      ]);
+
+      if (examinersRes.ok) {
+        const examinersData = await examinersRes.json();
+        setExaminers(examinersData.examiners || []);
+      }
+
+      if (expertsRes.ok) {
+        const expertsData = await expertsRes.json();
+        setExperts(expertsData.experts || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch examiners/experts:', error);
+    }
+  };
+
+  const handleRoleChangeSubmit = () => {
+    if (!selectedRole) return;
+
+    if (selectedRole === UserRole.EXAMINER && selectedExaminerId) {
+      onRoleChange?.(selectedRole, selectedExaminerId, undefined);
+    } else if (selectedRole === UserRole.EXPERT && selectedExpertId) {
+      onRoleChange?.(selectedRole, undefined, selectedExpertId);
+    } else if (selectedRole === UserRole.USER || selectedRole === UserRole.ADMIN) {
+      onRoleChange?.(selectedRole);
+    } else {
+      alert('심사관 또는 전문가를 선택해주세요.');
+      return;
+    }
+
+    setShowRoleModal(false);
+    setSelectedRole(null);
+    setSelectedExaminerId('');
+    setSelectedExpertId('');
+  };
 
   const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
@@ -246,7 +293,10 @@ export default function ProfileCard({
           <div className="flex gap-2">
             {onRoleChange && (
               <button
-                onClick={() => setShowRoleModal(true)}
+                onClick={() => {
+                  setShowRoleModal(true);
+                  fetchExaminersAndExperts();
+                }}
                 className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 등급 변경
@@ -299,11 +349,8 @@ export default function ProfileCard({
                   <label className="block text-sm font-medium text-gray-900">변경할 등급</label>
                   <select
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900"
-                    defaultValue={user.role}
-                    onChange={(e) => {
-                      onRoleChange?.(e.target.value as UserRole);
-                      setShowRoleModal(false);
-                    }}
+                    value={selectedRole || user.role}
+                    onChange={(e) => setSelectedRole(e.target.value as UserRole)}
                   >
                     <option value={UserRole.USER}>일반회원</option>
                     <option value={UserRole.EXAMINER}>기업심사관</option>
@@ -314,24 +361,57 @@ export default function ProfileCard({
                   </select>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-900">변경 사유</label>
-                  <textarea
-                    rows={3}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900"
-                    placeholder="등급 변경 사유를 입력하세요"
-                  />
-                </div>
+                {selectedRole === UserRole.EXAMINER && (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-900">심사관 선택</label>
+                    <select
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900"
+                      value={selectedExaminerId}
+                      onChange={(e) => setSelectedExaminerId(e.target.value)}
+                    >
+                      <option value="">심사관을 선택하세요</option>
+                      {examiners.map((examiner) => (
+                        <option key={examiner._id} value={examiner._id}>
+                          {examiner.name} - {examiner.companyName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {selectedRole === UserRole.EXPERT && (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-900">전문가 선택</label>
+                    <select
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900"
+                      value={selectedExpertId}
+                      onChange={(e) => setSelectedExpertId(e.target.value)}
+                    >
+                      <option value="">전문가를 선택하세요</option>
+                      {experts.map((expert) => (
+                        <option key={expert._id} value={expert._id}>
+                          {expert.name} - {expert.companyName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
 
               <div className="mt-6 flex gap-2">
                 <button
-                  onClick={() => setShowRoleModal(false)}
+                  onClick={() => {
+                    setShowRoleModal(false);
+                    setSelectedRole(null);
+                    setSelectedExaminerId('');
+                    setSelectedExpertId('');
+                  }}
                   className="flex-1 inline-flex justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                 >
                   취소
                 </button>
                 <button
+                  onClick={handleRoleChangeSubmit}
                   className="flex-1 inline-flex justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
                 >
                   변경
