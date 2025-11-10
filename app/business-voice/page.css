@@ -1,5 +1,10 @@
 /* 사업자 목소리 페이지 - 나라똔 녹색 테마 + 정책분석 히어로 스타일 */
 
+/* main padding 제거 - 히어로 섹션이 헤더 바로 아래 시작 */
+main:has(.business-voice-container) {
+  padding-top: 0;
+}
+
 /* 나라똔 컬러 시스템 */
 :root {
   --naraddon-primary: #00c896;
@@ -23,7 +28,7 @@
   --layout-padding-inline: 16px;
   --layout-padding-inline-lg: 60px;
   --business-voice-header-offset: 80px;
-  --business-voice-hero-top-padding: clamp(16px, 4vw, 32px);
+  --business-voice-hero-top-padding: clamp(32px, 6vw, 72px);
   --business-voice-hero-bottom-padding: clamp(48px, 6vw, 88px);
   --business-voice-hero-max-width: 1280px;
   --hero-background: linear-gradient(135deg, #e8f2ff 0%, #ffffff 55%, #f8fdf9 100%);
@@ -49,8 +54,8 @@
 
 .business-voice-container .expert-hero {
   position: relative;
-  margin-top: calc(-1 * var(--business-voice-header-offset));
-  padding-top: calc(var(--business-voice-header-offset) + var(--business-voice-hero-top-padding) - 40px);
+  margin-top: 0;
+  padding-top: var(--business-voice-hero-top-padding);
   padding-bottom: var(--business-voice-hero-bottom-padding);
   background: var(--hero-background);
   color: var(--hero-text-color);
@@ -1664,12 +1669,13 @@
 @media (max-width: 768px) {
   .business-voice-container {
     padding-top: 0;
+    --business-voice-hero-top-padding: 32px;
   }
 
   /* 히어로 섹션 모바일 최적화 - 정책분석과 동일한 설정 */
   .business-voice-container .expert-hero {
-    margin-top: calc(-1 * var(--business-voice-header-offset));
-    padding-top: calc(var(--business-voice-header-offset) + var(--business-voice-hero-top-padding) - 40px);
+    margin-top: 0;
+    padding-top: var(--business-voice-hero-top-padding);
     padding-bottom: var(--business-voice-hero-bottom-padding);
   }
 
@@ -1725,6 +1731,41 @@
 
   .section-header h2 {
     font-size: 1.5rem;
+  }
+
+  /* 버튼 가운데 정렬 */
+  .ttontok-actions,
+  .qna-actions {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    padding: 0 16px !important;
+  }
+
+  .write-btn,
+  .more-btn,
+  .ask-btn,
+  .more-qa-btn {
+    width: 100% !important;
+    max-width: 400px !important;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+
+  /* CTA 설명 모바일 */
+  .business-voice__cta-description {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    white-space: normal;
+  }
+
+  /* 모바일에서 br 태그 숨김 */
+  .business-voice__cta-description .business-voice__cta-break {
+    display: none;
   }
 
   /* 모바일: 1열 그리드 */
@@ -2087,11 +2128,17 @@
   font-size: 28px;
   color: #1a1a1a;
   margin-bottom: 10px;
+  text-align: center;
+  display: block;
+  width: 100%;
 }
 
 .interview-section-new .section-header p {
   color: #666;
   font-size: 16px;
+  text-align: center;
+  display: block;
+  width: 100%;
 }
 
 /* 비디오 컨테이너 */

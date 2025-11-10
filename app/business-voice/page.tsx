@@ -68,7 +68,7 @@ export default async function BusinessVoicePage() {
                 해결하시겠어요?
               </h2>
               <p className="business-voice__cta-description">
-                검증된 정책분석 전문가가 1:1로 맞춤 전략을 제안해드립니다.<br />
+                검증된 정책분석 전문가가 1:1로 맞춤 전략을 제안해드립니다.<br className="business-voice__cta-break" />
                 대표님의 사업에 필요한 정책을 바로 안내해드립니다.
               </p>
             </div>

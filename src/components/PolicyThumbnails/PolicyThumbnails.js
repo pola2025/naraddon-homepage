@@ -189,7 +189,9 @@ const PolicyThumbnails = ({ initialData }) => {
             <span className="thumbnails-eyebrow">나라똔에서 전해드리는</span>
             <h3 className="thumbnails-title">정책소식</h3>
             <p className="thumbnails-subtitle">
-              최신 정책과 지원사업 소식을 인증 심사관 시선으로 빠르게 전해드립니다
+              최신 정책과 지원사업 소식을
+              <br />
+              인증 심사관 시선으로 빠르게 전해드립니다.
             </p>
           </div>
           <Link href="/policy-analysis" className="thumbnails-action">

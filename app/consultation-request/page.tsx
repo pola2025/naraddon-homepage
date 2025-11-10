@@ -19,6 +19,7 @@ import './page.css';
 
 type ConsultationFormState = {
   name: string;
+  companyName: string;
   phone: string;
   region: string;
   desiredTime: string;
@@ -37,6 +38,7 @@ type ConsultationFormErrors = Partial<Record<keyof ConsultationFormState, string
 
 const INITIAL_FORM_STATE: ConsultationFormState = {
   name: '',
+  companyName: '',
   phone: '',
   region: '',
   desiredTime: '',
@@ -204,7 +206,7 @@ function FaqSection() {
       <div className="layout-container consultation-request__faq-inner">
         <div className="consultation-request__faq-header">
           <span className="consultation-request__faq-badge">정책자금 100문 100답</span>
-          <h2 className="consultation-request__faq-title">사업하면서 반드시<br />알아야 하는 100가지 필독!</h2>
+          <h2 className="consultation-request__faq-title">사업하면서 반드시 알아야 하는<br />100가지 필독!</h2>
           <p className="consultation-request__faq-description">
             정책자금 제도, 자격 조건,
             <br />
@@ -249,13 +251,13 @@ const FORM_STEPS: Array<{ id: FormStep; title: string; description: string; help
 ];
 
 const STEP_REQUIRED_FIELDS: Record<FormStep, (keyof ConsultationFormState)[]> = {
-  contact: ['name', 'phone', 'region', 'desiredTime'],
+  contact: ['name', 'companyName', 'phone', 'region', 'desiredTime'],
   business: ['consultType', 'annualRevenue', 'employeeCount', 'preferredTime'],
   details: ['privacyConsent'],
 };
 
 const STEP_ALL_FIELDS: Record<FormStep, (keyof ConsultationFormState)[]> = {
-  contact: ['name', 'phone', 'region', 'desiredTime', 'email', 'businessNumber'],
+  contact: ['name', 'companyName', 'phone', 'region', 'desiredTime', 'email', 'businessNumber'],
   business: ['consultType', 'annualRevenue', 'employeeCount', 'preferredTime'],
   details: ['message', 'privacyConsent', 'marketingConsent'],
 };
@@ -337,9 +339,9 @@ const PRIVACY_DETAIL = [
 ];
 
 const INFO_BENEFITS = [
-  '기업 현황을 진단하고 적합한 정책자금·보증 상품을 추천해 드립니다.',
-  '전담 심사관이 1:1로 상담 일정을 조율하고 준비 서류를 안내합니다.',
-  '신청 후 24시간 이내에 상담 진행 상황을 안내해 드립니다.',
+  '기업 현황을 진단하고 적합한 정책자금·보증 상품을 추천합니다.',
+  '전담 심사관이 1:1로 상담 일정을 조율하고 서류를 안내합니다.',
+  '신청 후 24시간 이내에 상담 진행 상황을 안내합니다.',
 ];
 
 const INFO_HIGHLIGHTS = [
@@ -356,7 +358,10 @@ function getConsultTypeLabel(value: string) {
 function validateContactStep(form: ConsultationFormState): ConsultationFormErrors {
   const nextErrors: ConsultationFormErrors = {};
   if (!form.name.trim()) {
-    nextErrors.name = '이름 또는 회사명을 입력해 주세요.';
+    nextErrors.name = '이름을 입력해 주세요.';
+  }
+  if (!form.companyName.trim()) {
+    nextErrors.companyName = '회사명을 입력해 주세요.';
   }
   if (!form.region.trim()) {
     nextErrors.region = '활동 지역을 입력해주세요.';
@@ -532,11 +537,11 @@ function StepPanel({
           <span className={styles.stepHeaderText}>
             <span id={`quick-step-${step.id}`} className={styles.stepTitle}>
               {step.title}
+              {isCompleted && <span className={styles.stepStatus}>완료</span>}
             </span>
             <span className={styles.stepDescription}>{step.description}</span>
           </span>
         </button>
-        {isCompleted && <span className={styles.stepStatus}>완료</span>}
       </header>
       <p className={styles.stepHelper}>{step.helper}</p>
       {isActive && (
@@ -601,7 +606,8 @@ type SummaryCardProps = {
 
 function FormSummary({ form }: SummaryCardProps) {
   const summaryItems = [
-    { label: '이름 / 회사명', value: form.name || '미입력' },
+    { label: '이름', value: form.name || '미입력' },
+    { label: '회사명', value: form.companyName || '미입력' },
     { label: '연락처', value: form.phone || '미입력' },
     { label: '지역', value: form.region || '미입력' },
     { label: '상담 희망 시간', value: form.desiredTime || '미입력' },
@@ -754,7 +760,7 @@ function QuickConsultForm() {
         userName: form.name,
         userPhone: form.phone,
         userEmail: form.email || '',
-        companyName: form.name, // 이름을 회사명으로도 사용
+        companyName: form.companyName, // 회사명 별도 필드 사용
         businessNumber: form.businessNumber || '',
         consultationType: form.consultType || '기업심사관 상담',
         message: form.message || '',
@@ -793,10 +799,11 @@ function QuickConsultForm() {
 
   const renderContactStep = () => (
     <div className={styles.stepContent}>
-      <div className={styles.fieldGrid}>
+      {/* PC: 3열 구조, 모바일: 2열 구조 */}
+      <div className={styles.fieldGridThree}>
         <div className={styles.field}>
           <label htmlFor="consult-name" className={styles.fieldLabel}>
-            이름 / 회사명<span className={styles.requiredMark}>*</span>
+            이름<span className={styles.requiredMark}>*</span>
           </label>
           <input
             id="consult-name"
@@ -809,11 +816,34 @@ function QuickConsultForm() {
             data-error-field={errors.name ? 'true' : undefined}
             aria-invalid={errors.name ? 'true' : undefined}
             aria-describedby={errors.name ? 'consult-name-error' : undefined}
-            placeholder="예: 홍길동 / 나라똔"
+            placeholder="예: 홍길동"
           />
           {errors.name && (
             <p id="consult-name-error" className={styles.errorText} role="alert">
               {errors.name}
+            </p>
+          )}
+        </div>
+        <div className={styles.field}>
+          <label htmlFor="consult-company-name" className={styles.fieldLabel}>
+            회사명<span className={styles.requiredMark}>*</span>
+          </label>
+          <input
+            id="consult-company-name"
+            name="companyName"
+            type="text"
+            autoComplete="organization"
+            className={styles.input}
+            value={form.companyName}
+            onChange={handleInputChange('companyName')}
+            data-error-field={errors.companyName ? 'true' : undefined}
+            aria-invalid={errors.companyName ? 'true' : undefined}
+            aria-describedby={errors.companyName ? 'consult-company-name-error' : undefined}
+            placeholder="예: 나라똔"
+          />
+          {errors.companyName && (
+            <p id="consult-company-name-error" className={styles.errorText} role="alert">
+              {errors.companyName}
             </p>
           )}
         </div>
@@ -841,8 +871,46 @@ function QuickConsultForm() {
             </p>
           )}
         </div>
-      </div>
-      <div className={styles.fieldGrid}>
+        <div className={styles.field}>
+          <label htmlFor="consult-region" className={styles.fieldLabel}>
+            지역<span className={styles.requiredMark}>*</span>
+          </label>
+          <input
+            id="consult-region"
+            name="region"
+            type="text"
+            className={styles.input}
+            value={form.region}
+            onChange={handleInputChange('region')}
+            data-error-field={errors.region ? 'true' : undefined}
+            aria-invalid={errors.region ? 'true' : undefined}
+            aria-describedby={errors.region ? 'consult-region-error' : undefined}
+            placeholder="예: 서울 강남구"
+          />
+          {errors.region && (
+            <p id="consult-region-error" className={styles.errorText} role="alert">
+              {errors.region}
+            </p>
+          )}
+        </div>
+        <div className={styles.field}>
+          <div className={styles.fieldLabelRow}>
+            <label htmlFor="consult-business-number" className={styles.fieldLabel}>
+              사업자등록번호
+            </label>
+            <span className={styles.optionalBadge}>선택</span>
+          </div>
+          <input
+            id="consult-business-number"
+            name="businessNumber"
+            type="text"
+            inputMode="numeric"
+            className={styles.input}
+            value={form.businessNumber}
+            onChange={handleInputChange('businessNumber')}
+            placeholder="123-45-67890"
+          />
+        </div>
         <div className={styles.field}>
           <div className={styles.fieldLabelRow}>
             <label htmlFor="consult-email" className={styles.fieldLabel}>
@@ -869,48 +937,9 @@ function QuickConsultForm() {
             </p>
           )}
         </div>
-        <div className={styles.field}>
-          <div className={styles.fieldLabelRow}>
-            <label htmlFor="consult-business-number" className={styles.fieldLabel}>
-              사업자등록번호
-            </label>
-            <span className={styles.optionalBadge}>선택</span>
-          </div>
-          <input
-            id="consult-business-number"
-            name="businessNumber"
-            type="text"
-            inputMode="numeric"
-            className={styles.input}
-            value={form.businessNumber}
-            onChange={handleInputChange('businessNumber')}
-            placeholder="123-45-67890"
-          />
-        </div>
       </div>
-      <div className={styles.fieldGrid}>
-        <div className={styles.field}>
-          <label htmlFor="consult-region" className={styles.fieldLabel}>
-            지역<span className={styles.requiredMark}>*</span>
-          </label>
-          <input
-            id="consult-region"
-            name="region"
-            type="text"
-            className={styles.input}
-            value={form.region}
-            onChange={handleInputChange('region')}
-            data-error-field={errors.region ? 'true' : undefined}
-            aria-invalid={errors.region ? 'true' : undefined}
-            aria-describedby={errors.region ? 'consult-region-error' : undefined}
-            placeholder="예: 서울 강남구"
-          />
-          {errors.region && (
-            <p id="consult-region-error" className={styles.errorText} role="alert">
-              {errors.region}
-            </p>
-          )}
-        </div>
+
+      <div className={styles.fieldSingle}>
         <div className={styles.field}>
           <label htmlFor="consult-desired-time" className={styles.fieldLabel}>
             상담 희망 시간<span className={styles.requiredMark}>*</span>
@@ -940,31 +969,27 @@ function QuickConsultForm() {
   const renderBusinessStep = () => (
     <div className={styles.stepContent}>
       <div className={styles.field}>
-        <span className={styles.fieldLabel}>필요한 상담 유형<span className={styles.requiredMark}>*</span></span>
-        <div
-          className={styles.consultTypeGrid}
-          role="group"
-          aria-labelledby="consult-type-label"
+        <label htmlFor="consult-type" className={styles.fieldLabel}>
+          필요한 상담 유형<span className={styles.requiredMark}>*</span>
+        </label>
+        <select
+          id="consult-type"
+          className={styles.select}
+          value={form.consultType}
+          onChange={handleInputChange('consultType')}
           data-error-field={errors.consultType ? 'true' : undefined}
+          aria-invalid={errors.consultType ? 'true' : undefined}
+          aria-describedby={errors.consultType ? 'consult-type-error' : undefined}
         >
-          {CONSULTATION_TYPE_OPTIONS.map((option) => {
-            const isSelected = form.consultType === option.value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                className={classNames(styles.consultTypeOption, isSelected && styles.consultTypeOptionActive)}
-                onClick={() => handleFieldChange('consultType')(option.value)}
-                aria-pressed={isSelected}
-              >
-                <span className={styles.consultTypeIcon}>{CONSULTATION_TYPE_ICONS[option.value] ?? '?'}</span>
-                <span>{option.label}</span>
-              </button>
-            );
-          })}
-        </div>
+          <option value="">선택해 주세요</option>
+          {CONSULTATION_TYPE_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
         {errors.consultType && (
-          <p className={styles.errorText} role="alert">
+          <p id="consult-type-error" className={styles.errorText} role="alert">
             {errors.consultType}
           </p>
         )}
@@ -1073,16 +1098,14 @@ function QuickConsultForm() {
           {form.message.length}/{MESSAGE_MAX_LENGTH}
         </div>
       </div>
-      <div
-        className={classNames(styles.consentCard, errors.privacyConsent && styles.consentCardError)}
-        data-error-field={errors.privacyConsent ? 'true' : undefined}
-      >
-        <label className={styles.checkboxRow}>
+      <div className={styles.consentSection}>
+        <label className={classNames(styles.checkboxRowConsent, errors.privacyConsent && styles.checkboxRowError)}>
           <input
             type="checkbox"
             checked={form.privacyConsent}
             onChange={handleCheckboxChange('privacyConsent')}
             aria-invalid={errors.privacyConsent ? 'true' : undefined}
+            data-error-field={errors.privacyConsent ? 'true' : undefined}
           />
           <span>
             개인정보 수집 및 이용에 동의합니다<span className={styles.requiredMark}>*</span>
@@ -1111,7 +1134,7 @@ function QuickConsultForm() {
           </p>
         )}
       </div>
-      <label className={styles.checkboxRow}>
+      <label className={styles.checkboxRowMarketing}>
         <input type="checkbox" checked={form.marketingConsent} onChange={handleCheckboxChange('marketingConsent')} />
         <span>정책 정보와 맞춤 알림을 받아볼게요 (선택)</span>
       </label>
@@ -1208,7 +1231,9 @@ function CtaSection() {
                 맞춤 전략을 준비하세요
               </h3>
               <p className="consultation-request__cta-subtitle">
-                정책자금 전문 심사관이 신청 기업을 1:1로 지원하며 최적의 성공 전략을 설계해 드립니다.
+                정책자금 전문 심사관이 신청 기업을 1:1로
+                <br />
+                지원하며, 최적의 성공 전략 설계
               </p>
             </div>
             <Link href="/consultation-request#form-section" className="consultation-request__cta-button">

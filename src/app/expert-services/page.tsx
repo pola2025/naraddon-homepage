@@ -31,6 +31,8 @@ interface Expert {
   imageUrl: string;
   imageAlt?: string;
   legacyKey?: string;
+  specialties?: string[];
+  introduction?: string;
 }
 
 export default function ExpertServicesPage() {
@@ -41,9 +43,8 @@ export default function ExpertServicesPage() {
   const [isPrivacyOpen, setPrivacyOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
-  // Expert carousel state
+  // Expert state
   const [experts, setExperts] = useState<Expert[]>([]);
-  const [activeIndex, setActiveIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   // Mount state
@@ -81,41 +82,6 @@ export default function ExpertServicesPage() {
   }, []);
 
   const heroSubtitle = { __html: expertServiceHero.subtitleHtml };
-
-  // Get 3 visible experts (prev, current, next)
-  const getVisibleExperts = useCallback(() => {
-    if (experts.length === 0) return [];
-    if (experts.length === 1) return [experts[0]];
-    if (experts.length === 2) {
-      return [experts[activeIndex], experts[(activeIndex + 1) % 2]];
-    }
-
-    const prevIndex = (activeIndex - 1 + experts.length) % experts.length;
-    const nextIndex = (activeIndex + 1) % experts.length;
-
-    return [
-      experts[prevIndex],
-      experts[activeIndex],
-      experts[nextIndex]
-    ];
-  }, [experts, activeIndex]);
-
-  const visibleExperts = getVisibleExperts();
-
-  const nextExpert = () => {
-    setActiveIndex((prev) => (prev + 1) % experts.length);
-  };
-
-  const prevExpert = () => {
-    setActiveIndex((prev) => (prev - 1 + experts.length) % experts.length);
-  };
-
-  const handleCardClick = (expert: Expert) => {
-    const expertIndex = experts.indexOf(expert);
-    if (expertIndex !== activeIndex && expertIndex !== -1) {
-      setActiveIndex(expertIndex);
-    }
-  };
 
   const resetForm = () => {
     setForm(defaultFormState);
@@ -191,16 +157,19 @@ export default function ExpertServicesPage() {
   }
 
   return (
-    <div className="expert-services-page bg-slate-50">
-      <section className="expert-hero layout-hero relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-sky-100">
+    <div className="expert-services-page" style={{background: 'var(--bg-cream)'}}>
+      <section className="expert-hero layout-hero relative overflow-hidden">
         <div className="layout-container">
           <div className="max-w-3xl">
-            <span className="inline-flex items-center rounded-full bg-blue-100 px-4 py-1 text-sm font-semibold text-blue-600">
-              {expertServiceHero.badge}
+            <span className="inline-flex items-center gap-2 rounded-full px-8 py-3" style={{background: 'linear-gradient(135deg, var(--primary-green) 0%, var(--green-dark) 100%)', boxShadow: 'var(--shadow-green)'}}>
+              <i className="fas fa-award" style={{color: 'white', fontSize: '18px'}} />
+              <span style={{color: 'white', fontSize: '13px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase'}}>
+                {expertServiceHero.badge}
+              </span>
             </span>
             <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
               {expertServiceHero.title}
-              <span className="block text-blue-600">{expertServiceHero.highlight}</span>
+              <span className="block" style={{background: 'linear-gradient(135deg, var(--primary-green) 0%, var(--green-dark) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text'}}>{expertServiceHero.highlight}</span>
             </h1>
             <p
               className="mt-6 text-lg leading-7 text-slate-600"
@@ -218,7 +187,10 @@ export default function ExpertServicesPage() {
               ))}
               <a
                 href="#expert-consultation-form"
-                className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-6 py-3 text-base font-semibold text-white shadow-lg transition hover:bg-emerald-600"
+                className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-base font-semibold text-white shadow-lg transition"
+                style={{background: 'linear-gradient(135deg, var(--primary-green) 0%, var(--green-dark) 100%)'}}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
               >
                 <i className="fas fa-headset" aria-hidden="true" /> 상담 요청하기
               </a>
@@ -227,13 +199,17 @@ export default function ExpertServicesPage() {
         </div>
       </section>
 
-      <section className="expert-services__experts layout-section" id="expert-cards">
+      <section className="expert-services__experts layout-section" id="expert-cards" style={{background: 'var(--bg-cream)'}}>
         <div className="layout-container">
-          <div className="expert-services__experts-header">
-            <p className="expert-services__experts-eyebrow">Expert Network</p>
-            <h2 className="expert-services__experts-title">검증된 전문가 네트워크</h2>
-            <p className="expert-services__experts-description">
-              분야별 인증 전문가가 실제 상담 경험을 바탕으로 맞춤형 실행 전략을 제안합니다.
+          <div className="expert-services__experts-header" style={{textAlign: 'center'}}>
+            <span style={{display: 'inline-block', padding: '8px 20px', background: 'var(--bg-light)', color: 'var(--green-dark)', borderRadius: '50px', fontSize: '13px', fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '16px'}}>
+              Expert Network
+            </span>
+            <h2 className="expert-services__experts-title" style={{fontSize: '42px', fontWeight: 700, color: 'var(--text-black)', marginBottom: '16px', letterSpacing: '-0.5px'}}>
+              검증된 전문가를 만나보세요
+            </h2>
+            <p className="expert-services__experts-description" style={{fontSize: '16px', color: 'var(--text-gray)', lineHeight: 1.6}}>
+              각 분야 최고의 전문성을 갖춘 나라똔 인증 전문가들입니다
             </p>
           </div>
 
@@ -249,84 +225,82 @@ export default function ExpertServicesPage() {
             ) : (
               <>
                 <div className="expert-carousel__track">
-                  {visibleExperts.map((expert, visibleIndex) => {
-                    const isCenter = visibleIndex === 1 || (experts.length === 1 && visibleIndex === 0);
-
-                    return (
-                      <article
-                        key={expert._id}
-                        className="expert-card-horizontal"
-                        data-position={isCenter ? 'center' : 'side'}
-                        onClick={() => {
-                          if (!isCenter && experts.length > 1) {
-                            handleCardClick(expert);
-                          }
-                        }}
-                        tabIndex={isCenter ? 0 : -1}
-                      >
-                        <div className="card-inner">
-                          <div className="card-image-section">
-                            <img
-                              src={expert.imageUrl}
-                              alt={expert.imageAlt || `${expert.name} 프로필`}
-                              loading="lazy"
-                              onError={(e) => {
-                                const img = e.currentTarget;
-                                img.style.display = 'none';
-                                const placeholder = img.parentElement?.querySelector('.image-placeholder-new');
-                                if (placeholder) {
-                                  placeholder.classList.remove('hidden');
-                                }
-                              }}
-                            />
-                            <div className="image-placeholder-new hidden" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#f0f0f0'}}>
-                              <i className="fas fa-user-tie" style={{fontSize: '48px', color: '#999'}} />
-                            </div>
+                  {experts.map((expert) => (
+                    <article
+                      key={expert._id}
+                      className="expert-card-horizontal"
+                    >
+                      <div className="card-inner">
+                        <div className="card-image-section">
+                          <img
+                            src={expert.imageUrl}
+                            alt={expert.imageAlt || `${expert.name} 프로필`}
+                            loading="lazy"
+                            onError={(e) => {
+                              const img = e.currentTarget;
+                              img.style.display = 'none';
+                              const placeholder = img.parentElement?.querySelector('.image-placeholder-new');
+                              if (placeholder) {
+                                (placeholder as HTMLElement).style.display = 'flex';
+                              }
+                            }}
+                          />
+                          <div className="image-placeholder-new hidden" style={{display: 'none', alignItems: 'center', justifyContent: 'center', height: '120px', background: 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)', borderRadius: '20px'}}>
+                            <i className="fas fa-user-tie" style={{fontSize: '48px', color: 'white', opacity: 0.5}} />
                           </div>
-
-                          <div className="card-content-section">
-                            <div className="expert-header">
-                              <span className="expert-badge">인증 전문가</span>
-                              <h3 className="expert-name">{expert.name}</h3>
-                              <p className="expert-title">{expert.position}</p>
-                              <p className="expert-company">{expert.companyName}</p>
-                            </div>
-                          </div>
+                          <span className="expert-badge">인증 전문가</span>
                         </div>
 
-                        <a
-                          href="#expert-consultation-form"
-                          className="consult-cta"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          상담 요청하기
-                          <i className="fas fa-arrow-right" aria-hidden="true" />
-                        </a>
-                      </article>
-                    );
-                  })}
-                </div>
+                        <div className="card-content-section">
+                          <div className="expert-header">
+                            <h3 className="expert-name">{expert.name}</h3>
+                            <p className="expert-company">{expert.companyName}</p>
+                          </div>
+                        </div>
+                      </div>
 
-                {experts.length > 1 && (
-                  <>
-                    <button
-                      type="button"
-                      className="carousel-control prev"
-                      onClick={prevExpert}
-                      aria-label="이전 전문가"
-                    >
-                      <i className="fas fa-chevron-left" />
-                    </button>
-                    <button
-                      type="button"
-                      className="carousel-control next"
-                      onClick={nextExpert}
-                      aria-label="다음 전문가"
-                    >
-                      <i className="fas fa-chevron-right" />
-                    </button>
-                  </>
-                )}
+                      {expert.introduction && (
+                        <p className="expert-intro" style={{fontSize: '15px', color: 'var(--text-gray)', lineHeight: '1.7', marginBottom: '20px'}}>
+                          {expert.introduction}
+                        </p>
+                      )}
+
+                      {expert.specialties && expert.specialties.length > 0 && (
+                        <div className="expert-specialties">
+                          {expert.specialties.map((specialty, idx) => (
+                            <span key={idx} className="specialty-tag">{specialty}</span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Naraddon Logo - Small */}
+                      <div style={{display: 'flex', justifyContent: 'flex-end', marginBottom: '16px'}}>
+                        <div style={{
+                          width: '40px',
+                          height: '40px',
+                          background: 'linear-gradient(135deg, var(--primary-green) 0%, var(--green-dark) 100%)',
+                          borderRadius: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: '0 2px 8px rgba(76, 175, 80, 0.2)'
+                        }}>
+                          <svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <text x="50" y="70" fontSize="60" fontWeight="700" fill="white" textAnchor="middle" fontFamily="'Pretendard', sans-serif">N</text>
+                          </svg>
+                        </div>
+                      </div>
+
+                      <a
+                        href="#expert-consultation-form"
+                        className="consult-cta"
+                      >
+                        자세히 보기
+                        <i className="fas fa-arrow-right" aria-hidden="true" />
+                      </a>
+                    </article>
+                  ))}
+                </div>
               </>
             )}
           </div>

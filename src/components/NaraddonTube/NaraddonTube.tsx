@@ -326,7 +326,9 @@ const NaraddonTube: React.FC<NaraddonTubeProps> = () => {
               <h2 className="tube-title">나라똔 튜브</h2>
             </div>
             <p className="tube-subtitle">
-              영상으로 만나는 정책자금 활용 사례와 실전 가이드를 만나보세요
+              영상으로 만나는 나라똔 정책자금 활용 케이스
+              <br />
+              생생한 대표님들의 인터뷰 확인하기
             </p>
             <div className="tube-actions">
               <button type="button" className="tube-admin-button" onClick={handleAdminButtonClick}>

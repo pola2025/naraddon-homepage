@@ -247,11 +247,10 @@
   }
 
   .footer-top {
-    display: grid !important;
-    grid-template-columns: 1.2fr 0.8fr !important;
+    display: flex !important;
+    flex-direction: column !important;
     gap: 20px !important;
     padding-bottom: 24px !important;
-    align-items: start !important;
   }
 
   /* 모바일에서 footer-left-column 유지 */
@@ -325,45 +324,9 @@
     height: 12px !important;
   }
 
-  /* 모바일 서비스 메뉴 - 우측 배치 */
+  /* 모바일 서비스 메뉴 - 숨김 */
   .footer-menu-wrapper {
-    display: block !important;
-    padding: 0 !important;
-    border-bottom: none !important;
-  }
-
-  .footer-menu {
-    text-align: left !important;
-  }
-
-  .footer-menu .footer-title {
-    font-size: 14px !important;
-    margin-bottom: 10px !important;
-    padding-top: 0 !important;
-    border-top: none !important;
-    font-weight: 600 !important;
-  }
-
-  /* 서비스 메뉴 1열 */
-  .footer-menu .footer-list {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 6px !important;
-  }
-
-  .footer-list li {
-    margin-bottom: 0 !important;
-  }
-
-  .footer-list a {
-    font-size: 12px !important;
-    display: block !important;
-    padding: 2px 0 !important;
-    color: rgba(255, 255, 255, 0.8) !important;
-  }
-
-  .footer-list a:hover {
-    padding-left: 0 !important;
+    display: none !important;
   }
 
   /* 모바일 하단 영역 */

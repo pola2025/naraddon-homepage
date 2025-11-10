@@ -234,6 +234,11 @@
   z-index: 10;
 }
 
+/* Mobile line break - 데스크톱에서는 숨김 */
+.mobileBr {
+  display: none;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .contactCta {
@@ -252,6 +257,11 @@
 
   .finalCta h3 {
     font-size: 1.5rem;
+  }
+
+  /* 모바일에서 줄바꿈 표시 */
+  .mobileBr {
+    display: block;
   }
 
   .btn {

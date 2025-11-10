@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 
-const PolicyAnalysis = dynamic(() => import('@/components/policy/PolicyAnalysis'), {
+const PolicyAnalysis = dynamic(() => import('@/src/components/policy/PolicyAnalysis'), {
   ssr: false,
   loading: () => (
     <div className="min-h-screen flex items-center justify-center">

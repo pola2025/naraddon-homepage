@@ -107,7 +107,9 @@ const NaraddonTubeSimple: React.FC<NaraddonTubeSimpleProps> = ({ initialData }) 
               <h2 className="tube-simple-title">나라똔 튜브</h2>
             </div>
             <p className="tube-simple-subtitle">
-              영상으로 만나는 나라똔 정책자금 활용 케이스 및 대표님 인터뷰
+              영상으로 만나는 나라똔 정책자금 활용 케이스
+              <br />
+              생생한 대표님들의 인터뷰 확인하기
             </p>
           </div>
 

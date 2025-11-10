@@ -18,7 +18,8 @@
       "Bash(taskkill:*)",
       "Bash(echo:*)",
       "Bash(npx ts-node scripts/test-telegram.ts)",
-      "Bash(node scripts/test-telegram.js:*)"
+      "Bash(node scripts/test-telegram.js:*)",
+      "Bash(node scripts/add-jeon-success-cases.js:*)"
     ],
     "deny": [],
     "ask": []

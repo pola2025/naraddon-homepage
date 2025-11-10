@@ -364,6 +364,45 @@ const PolicyAnalysis = () => {
     setVisiblePosts(5);
   }, [posts.length]);
 
+  // 해시 기반 스크롤 처리 (데이터 로딩 완료 후)
+  useEffect(() => {
+    if (typeof window === 'undefined' || isLoading) return;
+
+    // 데이터 로딩 완료 후 해시 확인 및 스크롤
+    const hash = window.location.hash;
+    if (hash) {
+      setTimeout(() => {
+        const element = document.querySelector(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 800); // 800ms 지연으로 DOM 렌더링 충분히 대기
+    }
+  }, [isLoading, posts.length]);
+
+  // 같은 페이지 내 해시 변경 감지
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash) {
+        setTimeout(() => {
+          const element = document.querySelector(hash);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
+
   // 검색 기능 제거로 인한 useEffect 제거
   // useEffect(() => {
   //   setVisiblePosts(5);
@@ -575,7 +614,7 @@ const PolicyAnalysis = () => {
         <PolicyNewsSection />
       </section>
 
-      <div className="main-content">
+      <div id="policy-analysis" className="main-content">
         <div className="top-section">
           <div className="section-header">
             <h2>
@@ -824,12 +863,12 @@ const PolicyAnalysis = () => {
             <div className="policy-analysis__cta-content">
               <p className="policy-analysis__cta-eyebrow">Policy Analysis</p>
                             <h2 id="policy-analysis-cta-title" className="policy-analysis__cta-title">
-                인증 기업심사관과 함께 정책자금을
-                <br className="policy-analysis__cta-break" />
-                찾아보시겠어요?
+                인증 기업심사관과 함께<br />
+                정책자금을 찾아보시겠어요?
               </h2>
               <p className="policy-analysis__cta-description">
-                검증된 정책분석 전문가가 1:1로 맞춤 전략을 제안해드립니다.<br />대표님의 사업에 필요한 정책을 바로 안내해드립니다.
+                검증된 정책분석 전문가가 1:1로 맞춤 전략을 제안해드립니다.{' '}
+                대표님의 사업에 필요한 정책을 바로 안내해드립니다.
               </p>
             </div>
             <Link href="/consultation-request#form-section" className="policy-analysis__cta-button">

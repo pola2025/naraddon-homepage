@@ -186,7 +186,9 @@ export default function QnADetailPage() {
             </p>
             <div className="auth-divider"></div>
             <p className="auth-description">
-              본 서비스는 나라똔 회원만 이용할 수 있습니다.<br />
+              본 서비스는 나라똔 회원만<br />
+              이용할 수 있습니다.<br />
+              <br />
               가입 후 이용하시면 바로 확인 가능합니다.
             </p>
             <div className="auth-buttons">

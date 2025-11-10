@@ -68,13 +68,6 @@ export default function HeroSection({ examiner }: HeroSectionProps) {
             <span>나라똔 인증</span>
           </div>
 
-          <button 
-            className={liked ? `${styles.floatingLikeBtn} ${styles.liked}` : styles.floatingLikeBtn}
-            onClick={handleLike}
-          >
-            <i className={liked ? 'fas fa-heart' : 'far fa-heart'}></i>
-          </button>
-
           <div className={styles.cardImageContainer}>
             {examiner.imageUrl ? (
               <Image
@@ -90,6 +83,13 @@ export default function HeroSection({ examiner }: HeroSectionProps) {
                 <i className="fas fa-user-tie"></i>
               </div>
             )}
+
+            <button
+              className={liked ? `${styles.floatingLikeBtn} ${styles.liked}` : styles.floatingLikeBtn}
+              onClick={handleLike}
+            >
+              <i className={liked ? 'fas fa-heart' : 'far fa-heart'}></i>
+            </button>
           </div>
 
           <div className={styles.profileInfo}>
@@ -99,8 +99,6 @@ export default function HeroSection({ examiner }: HeroSectionProps) {
                 <div className={styles.companyBlock}>{examiner.companyName}</div>
               )}
             </div>
-
-            <p className={styles.positionText}>{examiner.position}</p>
 
             {examiner.specialties && examiner.specialties.length > 0 && (
               <div className={styles.hashtags}>

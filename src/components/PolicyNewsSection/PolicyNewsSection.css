@@ -84,7 +84,7 @@
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
-  height: 600px; /* 높이 조정 - 공백 줄임 */
+  height: 700px; /* 높이 증가 */
   width: 100%;
   border: 1px solid #e0e0e0;
 }
@@ -92,7 +92,7 @@
 .slider-container {
   position: relative;
   width: 100%;
-  height: 600px; /* 컨테이너 높이 조정 - 공백 줄임 */
+  height: 700px; /* 컨테이너 높이 증가 */
 }
 
 .slide-item {
@@ -100,7 +100,7 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 600px; /* 높이 조정 - 공백 줄임 */
+  height: 700px; /* 높이 증가 */
   opacity: 0;
   visibility: hidden;
   transition: all 0.6s ease;
@@ -689,7 +689,7 @@
 
   .main-news-slider {
     height: auto;
-    min-height: 500px; /* 최소 높이 확보 */
+    min-height: 580px; /* 최소 높이 더 확보 */
     width: 100%;
     max-width: 100%;
     margin: 0 0 30px 0; /* 아래쪽 여백 추가 */
@@ -717,13 +717,13 @@
 
   .slider-container {
     height: auto;
-    min-height: 500px;
+    min-height: 580px; /* 높이 증가 */
     width: 100%;
   }
 
   .slide-item {
     height: auto;
-    min-height: 500px;
+    min-height: 580px; /* 높이 증가 */
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -733,26 +733,54 @@
     position: relative;
     top: auto;
     height: auto;
-    min-height: 150px;
-    padding: 20px;
+    min-height: 200px; /* 최소 높이 더 증가 */
+    padding: 20px 20px 18px; /* 하단 패딩 더 확보 */
     background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
 
   .slider-control {
     top: 35%; /* 이미지 중앙에 배치 */
   }
 
-  .slide-content {
-    min-height: 80px;
-    padding: 12px 20px;
+  .slide-meta {
+    display: flex !important; /* 모바일에서 명시적으로 표시 */
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto; /* 하단에 고정 */
+    padding-top: 10px;
+    font-size: 11px;
+    color: #94a3b8;
+    border-top: 1px solid rgba(226, 232, 240, 0.8);
   }
 
   .slide-title {
     font-size: 16px;
+    margin-bottom: 8px;
   }
 
   .slide-excerpt {
-    -webkit-line-clamp: 1;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-line-clamp: 2; /* 2줄로 변경 */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex: 1;
+  }
+
+  .news-stats {
+    display: flex;
+    gap: 10px;
+  }
+
+  .news-stats span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
   }
 
   /* 모바일 최근게시글 메타 정보 개선 */
@@ -838,10 +866,13 @@
   .news-item {
     flex: 0 0 260px;
     min-width: 260px;
+    max-height: none; /* 최대 높이 제한 제거 */
+    min-height: 320px; /* 최소 높이 더 확보 - 통계 영역까지 완전히 보이도록 */
     flex-direction: column;
     align-items: flex-start;
-    padding: 18px;
+    padding: 18px 18px 20px; /* 하단 패딩 증가 */
     scroll-snap-align: start;
+    overflow: visible; /* 오버플로우 방지 */
   }
 
   .news-item:hover {
@@ -850,13 +881,18 @@
 
   .news-item-thumbnail {
     width: 100%;
-    height: 180px;
+    height: 160px; /* 썸네일 높이 줄여서 하단 공간 확보 */
+    flex-shrink: 0;
   }
 
   .news-item-content {
     width: 100%;
     margin-left: 0;
-    min-height: 0;
+    min-height: 120px; /* 최소 높이 더 확보 - 제목+메타 정보 공간 */
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 10px; /* 하단 여백 추가 */
   }
 
   .news-item-header {
@@ -869,6 +905,27 @@
   .news-item-category {
     margin-bottom: 2px;
   }
+
+  /* 모바일 슬라이드에서 메타 정보 표시 */
+  .news-item-meta {
+    display: flex !important; /* 모바일에서 메타 정보 표시 */
+    padding-top: 10px;
+    padding-bottom: 5px; /* 하단 여백 추가 */
+    margin-top: auto; /* 하단에 고정 */
+    font-size: 11px; /* 폰트 크기 명시 */
+  }
+
+  .news-item-stats {
+    display: flex;
+    gap: 10px;
+  }
+
+  .news-item-stats span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -878,7 +935,7 @@
 
   .main-news-slider {
     height: auto;
-    min-height: 450px;
+    min-height: 550px; /* 최소 높이 더 확보 */
     width: 100%;
     max-width: 100%;
     margin: 0 0 25px 0; /* 아래쪽 여백 추가 */
@@ -894,19 +951,23 @@
 
   .slider-container {
     height: auto;
-    min-height: 450px;
+    min-height: 550px; /* 높이 증가 */
   }
 
   .slide-item {
     height: auto;
-    min-height: 450px;
+    min-height: 550px; /* 높이 증가 */
   }
 
   .slide-content {
     position: relative;
     top: auto;
     height: auto;
-    min-height: 120px;
+    min-height: 190px; /* 최소 높이 더 증가 */
+    padding: 18px 15px 15px; /* 하단 패딩 더 확보 */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 
   .slider-control {
@@ -919,9 +980,43 @@
     font-size: 14px;
   }
 
-  .slide-content {
-    padding: 10px 15px;
-    min-height: 70px;
+  .slide-meta {
+    display: flex !important; /* 모바일에서 명시적으로 표시 */
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto; /* 하단에 고정 */
+    padding-top: 8px;
+    font-size: 10px; /* 폰트 크기 축소 */
+    color: #94a3b8;
+    border-top: 1px solid rgba(226, 232, 240, 0.8);
+  }
+
+  .slide-title {
+    font-size: 15px; /* 제목 크기 조정 */
+    line-height: 1.3;
+    margin-bottom: 6px;
+  }
+
+  .slide-excerpt {
+    font-size: 13px; /* 내용 크기 조정 */
+    line-height: 1.4;
+    -webkit-line-clamp: 2; /* 2줄로 제한 */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex: 1;
+  }
+
+  .news-stats {
+    display: flex;
+    gap: 8px;
+  }
+
+  .news-stats span {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
   }
 
   .news-items-wrapper {
@@ -940,18 +1035,40 @@
   .news-item {
     flex: 0 0 220px;
     min-width: 220px;
+    max-height: none; /* 최대 높이 제한 제거 */
+    min-height: 300px; /* 최소 높이 더 확보 */
     flex-direction: column;
-    padding: 15px;
+    padding: 15px 15px 18px; /* 하단 패딩 증가 */
+    overflow: visible; /* 오버플로우 방지 */
   }
 
   .news-item-thumbnail {
     width: 100%;
-    height: 160px;
+    height: 140px; /* 썸네일 높이 줄여서 하단 공간 확보 */
+    flex-shrink: 0;
   }
 
   .news-item-title {
-    font-size: 15px;
-    min-height: 68px; /* 3줄에 맞게 높이 조정 */
+    font-size: 14px;
+    min-height: auto; /* 자동 높이로 변경 */
+    -webkit-line-clamp: 2; /* 2줄로 제한 */
+  }
+
+  .news-item-content {
+    min-height: 120px; /* 컨텐츠 영역 최소 높이 증가 */
+    padding-bottom: 10px; /* 하단 여백 추가 */
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* 480px 이하에서도 메타 정보 표시 */
+  .news-item-meta {
+    display: flex !important;
+    padding-top: 10px;
+    padding-bottom: 5px;
+    margin-top: auto;
+    font-size: 10px;
   }
 }
 

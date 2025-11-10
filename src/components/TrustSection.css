@@ -1209,7 +1209,8 @@
   }
 
   .guarantee-title-compact {
-    font-size: 26px;
+    font-size: 20px;
+    line-height: 1.4;
   }
 
   .guarantee-subtitle-compact {

@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useState, useCallback } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { StandardBottomCta } from '@/components/ui/StandardBottomCta';
 import {
@@ -31,6 +31,8 @@ interface Expert {
   imageUrl: string;
   imageAlt?: string;
   legacyKey?: string;
+  specialties?: string[];
+  introduction?: string;
 }
 
 export default function ExpertServicesPage() {
@@ -41,15 +43,53 @@ export default function ExpertServicesPage() {
   const [isPrivacyOpen, setPrivacyOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
-  // Expert carousel state
+  // Expert state
   const [experts, setExperts] = useState<Expert[]>([]);
-  const [activeIndex, setActiveIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   // Mount state
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // 해시 기반 스크롤 처리 (전문가 로딩 완료 후)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !isMounted || isLoading) return;
+
+    const scrollToForm = () => {
+      const hash = window.location.hash;
+      if (hash === '#expert-consultation-form') {
+        // DOM이 완전히 렌더링될 때까지 대기
+        setTimeout(() => {
+          // "상담이 필요한 분야" 섹션을 화면 중앙에 배치
+          const targetElement = document.getElementById('consultation-field-section');
+          if (targetElement) {
+            const elementPosition = targetElement.getBoundingClientRect().top;
+            const windowHeight = window.innerHeight;
+            const elementHeight = targetElement.offsetHeight;
+
+            // 요소가 화면 중앙에 오도록 계산
+            const offsetPosition = elementPosition + window.pageYOffset - (windowHeight / 2) + (elementHeight / 2);
+
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+          }
+        }, 500); // 500ms 지연 (전문가 카드 렌더링 대기)
+      }
+    };
+
+    // 페이지 로드 시 실행
+    scrollToForm();
+
+    // 해시 변경 감지
+    window.addEventListener('hashchange', scrollToForm);
+
+    return () => {
+      window.removeEventListener('hashchange', scrollToForm);
+    };
+  }, [isMounted, isLoading]);
 
   // Load experts from API
   useEffect(() => {
@@ -81,41 +121,6 @@ export default function ExpertServicesPage() {
   }, []);
 
   const heroSubtitle = { __html: expertServiceHero.subtitleHtml };
-
-  // Get 3 visible experts (prev, current, next)
-  const getVisibleExperts = useCallback(() => {
-    if (experts.length === 0) return [];
-    if (experts.length === 1) return [experts[0]];
-    if (experts.length === 2) {
-      return [experts[activeIndex], experts[(activeIndex + 1) % 2]];
-    }
-
-    const prevIndex = (activeIndex - 1 + experts.length) % experts.length;
-    const nextIndex = (activeIndex + 1) % experts.length;
-
-    return [
-      experts[prevIndex],
-      experts[activeIndex],
-      experts[nextIndex]
-    ];
-  }, [experts, activeIndex]);
-
-  const visibleExperts = getVisibleExperts();
-
-  const nextExpert = () => {
-    setActiveIndex((prev) => (prev + 1) % experts.length);
-  };
-
-  const prevExpert = () => {
-    setActiveIndex((prev) => (prev - 1 + experts.length) % experts.length);
-  };
-
-  const handleCardClick = (expert: Expert) => {
-    const expertIndex = experts.indexOf(expert);
-    if (expertIndex !== activeIndex && expertIndex !== -1) {
-      setActiveIndex(expertIndex);
-    }
-  };
 
   const resetForm = () => {
     setForm(defaultFormState);
@@ -192,16 +197,19 @@ export default function ExpertServicesPage() {
   }
 
   return (
-    <div className="expert-services-page bg-slate-50">
-      <section className="expert-hero layout-hero relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-sky-100">
+    <div className="expert-services-page" style={{background: 'var(--bg-cream)'}}>
+      <section className="expert-hero layout-hero relative overflow-hidden">
         <div className="layout-container">
           <div className="max-w-3xl">
-            <span className="inline-flex items-center rounded-full bg-blue-100 px-4 py-1 text-sm font-semibold text-blue-600">
-              {expertServiceHero.badge}
+            <span className="inline-flex items-center gap-2 rounded-full px-8 py-3" style={{background: 'linear-gradient(135deg, var(--primary-green) 0%, var(--green-dark) 100%)', boxShadow: 'var(--shadow-green)'}}>
+              <i className="fas fa-award" style={{color: 'white', fontSize: '18px'}} />
+              <span style={{color: 'white', fontSize: '13px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase'}}>
+                {expertServiceHero.badge}
+              </span>
             </span>
             <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
               {expertServiceHero.title}
-              <span className="block text-blue-600">{expertServiceHero.highlight}</span>
+              <span className="block" style={{background: 'linear-gradient(135deg, var(--primary-green) 0%, var(--green-dark) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text'}}>{expertServiceHero.highlight}</span>
             </h1>
             <p
               className="mt-6 text-lg leading-7 text-slate-600"
@@ -219,7 +227,10 @@ export default function ExpertServicesPage() {
               ))}
               <a
                 href="#expert-consultation-form"
-                className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-6 py-3 text-base font-semibold text-white shadow-lg transition hover:bg-emerald-600"
+                className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-base font-semibold text-white shadow-lg transition"
+                style={{background: 'linear-gradient(135deg, var(--primary-green) 0%, var(--green-dark) 100%)'}}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
               >
                 <i className="fas fa-headset" aria-hidden="true" /> 상담 요청하기
               </a>
@@ -228,13 +239,17 @@ export default function ExpertServicesPage() {
         </div>
       </section>
 
-      <section className="expert-services__experts layout-section" id="expert-cards">
+      <section className="expert-services__experts layout-section" id="expert-cards" style={{background: 'var(--bg-cream)'}}>
         <div className="layout-container">
-          <div className="expert-services__experts-header">
-            <p className="expert-services__experts-eyebrow">Expert Network</p>
-            <h2 className="expert-services__experts-title">검증된 전문가 네트워크</h2>
+          <div className="expert-services__experts-header" style={{textAlign: 'center'}}>
+            <span style={{display: 'inline-block', padding: '6px 12px', background: 'var(--bg-light)', color: 'var(--green-dark)', borderRadius: '20px', fontSize: '12px', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '16px'}}>
+              Expert Network
+            </span>
+            <h2 className="expert-services__experts-title">
+              검증된 전문가를 만나보세요
+            </h2>
             <p className="expert-services__experts-description">
-              분야별 인증 전문가가 실제 상담 경험을 바탕으로 맞춤형 실행 전략을 제안합니다.
+              각 분야 최고의 전문성을 갖춘<br />나라똔 인증 전문가들입니다
             </p>
           </div>
 
@@ -250,93 +265,75 @@ export default function ExpertServicesPage() {
             ) : (
               <>
                 <div className="expert-carousel__track">
-                  {visibleExperts.map((expert, visibleIndex) => {
-                    const isCenter = visibleIndex === 1 || (experts.length === 1 && visibleIndex === 0);
-
-                    return (
-                      <article
-                        key={expert._id}
-                        className="expert-card-horizontal"
-                        data-position={isCenter ? 'center' : 'side'}
-                        onClick={() => {
-                          if (!isCenter && experts.length > 1) {
-                            handleCardClick(expert);
-                          }
-                        }}
-                        tabIndex={isCenter ? 0 : -1}
-                      >
-                        <div className="card-inner">
-                          <div className="card-image-section">
-                            <img
-                              src={expert.imageUrl}
-                              alt={expert.imageAlt || `${expert.name} 프로필`}
-                              loading="lazy"
-                              onError={(e) => {
-                                const img = e.currentTarget;
-                                img.style.display = 'none';
-                                const placeholder = img.parentElement?.querySelector('.image-placeholder-new');
-                                if (placeholder) {
-                                  placeholder.classList.remove('hidden');
-                                }
-                              }}
-                            />
-                            <div className="image-placeholder-new hidden" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#f0f0f0'}}>
-                              <i className="fas fa-user-tie" style={{fontSize: '48px', color: '#999'}} />
-                            </div>
+                  {experts.map((expert) => (
+                    <article
+                      key={expert._id}
+                      className="expert-card-horizontal"
+                    >
+                      <div className="card-inner">
+                        <div className="card-image-section">
+                          <img
+                            src={expert.imageUrl}
+                            alt={expert.imageAlt || `${expert.name} 프로필`}
+                            loading="lazy"
+                            onError={(e) => {
+                              const img = e.currentTarget;
+                              img.style.display = 'none';
+                              const placeholder = img.parentElement?.querySelector('.image-placeholder-new');
+                              if (placeholder) {
+                                (placeholder as HTMLElement).style.display = 'flex';
+                              }
+                            }}
+                          />
+                          <div className="image-placeholder-new hidden" style={{display: 'none', alignItems: 'center', justifyContent: 'center', height: '120px', background: 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)', borderRadius: '20px'}}>
+                            <i className="fas fa-user-tie" style={{fontSize: '48px', color: 'white', opacity: 0.5}} />
                           </div>
-
-                          <div className="card-content-section">
-                            <div className="expert-header">
-                              <span className="expert-badge">인증 전문가</span>
-                              <h3 className="expert-name">{expert.name}</h3>
-                              <p className="expert-title">{expert.position}</p>
-                              <p className="expert-company">{expert.companyName}</p>
-                            </div>
-                          </div>
+                          <span className="expert-badge">인증 전문가</span>
                         </div>
 
-                        <a
-                          href="#expert-consultation-form"
-                          className="consult-cta"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          상담 요청하기
-                          <i className="fas fa-arrow-right" aria-hidden="true" />
-                        </a>
-                      </article>
-                    );
-                  })}
-                </div>
+                        <div className="card-content-section">
+                          <div className="expert-header">
+                            <h3 className="expert-name">
+                              {expert.name} {expert.position && <span className="expert-position">{expert.position}</span>}
+                            </h3>
+                            <p className="expert-company">{expert.companyName}</p>
+                          </div>
+                        </div>
+                      </div>
 
-                {experts.length > 1 && (
-                  <>
-                    <button
-                      type="button"
-                      className="carousel-control prev"
-                      onClick={prevExpert}
-                      aria-label="이전 전문가"
-                    >
-                      <i className="fas fa-chevron-left" />
-                    </button>
-                    <button
-                      type="button"
-                      className="carousel-control next"
-                      onClick={nextExpert}
-                      aria-label="다음 전문가"
-                    >
-                      <i className="fas fa-chevron-right" />
-                    </button>
-                  </>
-                )}
+                      {expert.introduction && (
+                        <p className="expert-intro" style={{fontSize: '15px', color: 'var(--text-gray)', lineHeight: '1.7', marginBottom: '20px'}}>
+                          {expert.introduction}
+                        </p>
+                      )}
+
+                      {expert.specialties && expert.specialties.length > 0 && (
+                        <div className="expert-specialties">
+                          {expert.specialties.map((specialty, idx) => (
+                            <span key={idx} className="specialty-tag">{specialty}</span>
+                          ))}
+                        </div>
+                      )}
+
+                      <Link
+                        href={`/expert-services/${expert._id}`}
+                        className="consult-cta"
+                      >
+                        자세히 보기
+                        <i className="fas fa-arrow-right" aria-hidden="true" />
+                      </Link>
+                    </article>
+                  ))}
+                </div>
               </>
             )}
           </div>
         </div>
       </section>
 
-      <section className="layout-section" id="expert-consultation-form">
+      <section className="layout-section">
         <div className="layout-container max-w-4xl">
-          <div className="max-w-2xl">
+          <div className="max-w-2xl" id="expert-consultation-form">
             <p className="text-sm font-semibold uppercase tracking-widest text-blue-600">
               Consultation
             </p>
@@ -357,7 +354,7 @@ export default function ExpertServicesPage() {
                 </span>
                 기본 정보
               </h3>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-2 gap-4">
                 <input
                   type="text"
                   placeholder="이름 *"
@@ -393,7 +390,7 @@ export default function ExpertServicesPage() {
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3" id="consultation-field-section">
               <h3 className="flex items-center text-lg font-semibold text-slate-900">
                 <span className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-600">
                   2
@@ -425,34 +422,32 @@ export default function ExpertServicesPage() {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <h3 className="flex items-center text-lg font-semibold text-slate-900">
                 <span className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-600">
                   3
                 </span>
                 희망 상담 시기
               </h3>
-              <div className="grid gap-4 md:grid-cols-4">
-                {timingOptions.map((option) => (
-                  <label
-                    key={option.value}
-                    className={`flex cursor-pointer items-center justify-center rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
-                      selectedTiming === option.value
-                        ? 'border-violet-600 bg-blue-50 text-blue-600 shadow'
-                        : 'border-slate-200 bg-white text-slate-600 hover:border-violet-300'
-                    }`}
+              <div className="max-w-md">
+                <label className="flex flex-col gap-2">
+                  <span className="text-sm font-semibold text-slate-700">
+                    상담 시기 선택 <span className="text-blue-600">*</span>
+                  </span>
+                  <select
+                    value={selectedTiming}
+                    onChange={(event) => setSelectedTiming(event.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm shadow-sm focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-200"
+                    required
                   >
-                    <input
-                      type="radio"
-                      name="consultTiming"
-                      value={option.value}
-                      checked={selectedTiming === option.value}
-                      onChange={() => setSelectedTiming(option.value)}
-                      className="hidden"
-                    />
-                    {option.label}
-                  </label>
-                ))}
+                    <option value="">희망하시는 상담 시기를 선택해 주세요</option>
+                    {timingOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
               </div>
             </div>
 
@@ -500,7 +495,7 @@ export default function ExpertServicesPage() {
                 </span>
               </label>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-col items-center gap-3">
                 <button
                   type="submit"
                   disabled={!agreePrivacy}

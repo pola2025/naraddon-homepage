@@ -61,9 +61,8 @@ body {
   .hero-standard {
     --hero-standard-top-gap: clamp(16px, 4vw, 32px);
     --hero-standard-bottom-gap: clamp(48px, 6vw, 88px);
-    --hero-standard-offset-adjust: 40px;
-    margin-top: calc(-1 * var(--hero-standard-header-offset, 0px));
-    padding-top: calc(var(--hero-standard-top-gap) + var(--hero-standard-header-offset, 0px) - var(--hero-standard-offset-adjust));
+    margin-top: 0;
+    padding-top: var(--hero-standard-top-gap);
     padding-bottom: var(--hero-standard-bottom-gap);
   }
   .layout-section {

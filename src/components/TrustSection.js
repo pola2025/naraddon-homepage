@@ -71,9 +71,9 @@ function TrustSection() {
                   인증 기업심사관이
                   <br />
                   <span className="highlight">
-                    최대한도 자금 끝까지
+                    최대한도 자금
                     <br />
-                    책임집니다.
+                    끝까지 책임집니다.
                   </span>
                 </h2>
                 <p className="guarantee-subtitle-compact">

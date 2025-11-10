@@ -106,7 +106,10 @@ export default function ContactSection({ examiner }: ContactSectionProps) {
 
         {/* 최종 CTA */}
         <div className={styles.finalCta}>
-          <h3>상담을 원하시면 아래 버튼을 클릭해주세요</h3>
+          <h3>
+            상담을 원하시면<br className={styles.mobileBr} />
+            아래 버튼을 클릭해주세요
+          </h3>
           <p>여러분의 창업 성공을 함께 만들어가겠습니다</p>
           <button
             className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSpotlight}`}
