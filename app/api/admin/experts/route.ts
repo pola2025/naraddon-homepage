@@ -12,15 +12,25 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || !session.user || session.user.role !== 'admin') {
+    if (!session || !session.user) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized: Admin access required' },
+        { success: false, error: 'Unauthorized: Login required' },
         { status: 401 }
       );
     }
 
     const client = await clientPromise;
     const db = client.db('naraddon');
+
+    // DB에서 실제 사용자 역할 확인
+    const currentUser = await db.collection('users').findOne({ email: session.user.email });
+
+    if (!currentUser || currentUser.role !== 'admin') {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Admin access required' },
+        { status: 401 }
+      );
+    }
 
     const experts = await db.collection('experts')
       .find({})
