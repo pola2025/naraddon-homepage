@@ -71,6 +71,12 @@ export default function ProfileCard({
   const handleRoleChangeSubmit = () => {
     if (!selectedRole) return;
 
+    console.log('Role change submit:', {
+      selectedRole,
+      selectedExaminerId,
+      selectedExpertId
+    });
+
     if (selectedRole === UserRole.EXAMINER && selectedExaminerId) {
       onRoleChange?.(selectedRole, selectedExaminerId, undefined);
     } else if (selectedRole === UserRole.EXPERT && selectedExpertId) {
