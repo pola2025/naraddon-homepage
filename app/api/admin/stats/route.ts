@@ -158,6 +158,14 @@ export async function GET(request: NextRequest) {
     yesterday.setDate(yesterday.getDate() - 1);
     const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
+    // 날짜 범위 설정 (URL 파라미터 또는 기본값)
+    const filterEndDate = endDateParam ? new Date(endDateParam) : new Date();
+    filterEndDate.setHours(23, 59, 59, 999); // 종료일의 마지막 시각
+    const filterStartDate = startDateParam
+      ? new Date(startDateParam)
+      : new Date(filterEndDate.getTime() - 7 * 24 * 60 * 60 * 1000); // 기본 7일
+    filterStartDate.setHours(0, 0, 0, 0); // 시작일의 첫 시각
+
     // 병렬로 통계 데이터 수집
     const [
       totalUsers,
@@ -226,10 +234,15 @@ export async function GET(request: NextRequest) {
       // 전체 방문자 수
       db.collection('page-visits').countDocuments(),
 
-      // 방문 기록 상세 (디바이스 및 유입경로 분석용)
+      // 방문 기록 상세 (디바이스 및 유입경로 분석용) - 날짜 필터 적용
       db.collection('page-visits')
-        .find({})
-        .project({ userAgent: 1, referer: 1, timestamp: 1 })
+        .find({
+          timestamp: {
+            $gte: filterStartDate,
+            $lte: filterEndDate
+          }
+        })
+        .project({ userAgent: 1, referer: 1, pathname: 1, timestamp: 1 })
         .toArray()
     ]);
 
@@ -349,7 +362,7 @@ export async function GET(request: NextRequest) {
     const topReferrers = Object.entries(referrerStats)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10)
-      .map(([domain, count]) => ({ domain, count }));
+      .map(([domain, visits]) => ({ domain, visits }));
 
     /**
      * 페이지뷰 분석
@@ -374,7 +387,7 @@ export async function GET(request: NextRequest) {
     const topPages = Object.entries(pageViewStats)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10)
-      .map(([pathname, count]) => ({ pathname, count }));
+      .map(([pathname, views]) => ({ pathname, views }));
 
     // 최근 활동 통합 및 정렬
     const recentActivities = [
@@ -521,12 +534,7 @@ export async function GET(request: NextRequest) {
       ? (bouncedSessions / totalSessions) * 100
       : 0;
 
-    // 기준 기간 계산 (URL 파라미터 또는 기본 7일)
-    const endDate = endDateParam ? new Date(endDateParam) : new Date();
-    const startDate = startDateParam
-      ? new Date(startDateParam)
-      : new Date(endDate.getTime() - 7 * 24 * 60 * 60 * 1000);
-
+    // 날짜 포맷 함수
     const formatDate = (date: Date) => {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -565,8 +573,8 @@ export async function GET(request: NextRequest) {
       googleSearch: googleSearchData,
       // 기준 기간 추가
       period: {
-        startDate: formatDate(startDate),
-        endDate: formatDate(endDate),
+        startDate: formatDate(filterStartDate),
+        endDate: formatDate(filterEndDate),
       },
     });
   } catch (error) {
