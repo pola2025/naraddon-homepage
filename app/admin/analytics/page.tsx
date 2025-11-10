@@ -96,7 +96,9 @@ export default function AdminAnalyticsPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d'>('7d');
+  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'custom'>('7d');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
 
   useEffect(() => {
     loadData();
@@ -107,19 +109,31 @@ export default function AdminAnalyticsPage() {
     setError(null);
     try {
       // 날짜 범위 계산
-      const endDate = new Date();
-      const startDate = new Date();
+      let endDate = new Date();
+      let startDate = new Date();
 
-      switch (dateRange) {
-        case '7d':
-          startDate.setDate(endDate.getDate() - 7);
-          break;
-        case '30d':
-          startDate.setDate(endDate.getDate() - 30);
-          break;
-        case '90d':
-          startDate.setDate(endDate.getDate() - 90);
-          break;
+      if (dateRange === 'custom') {
+        // 커스텀 날짜 사용
+        if (!customStartDate || !customEndDate) {
+          setError('시작일과 종료일을 모두 선택해주세요');
+          setLoading(false);
+          return;
+        }
+        startDate = new Date(customStartDate);
+        endDate = new Date(customEndDate);
+      } else {
+        // 기존 프리셋 날짜 범위
+        switch (dateRange) {
+          case '7d':
+            startDate.setDate(endDate.getDate() - 7);
+            break;
+          case '30d':
+            startDate.setDate(endDate.getDate() - 30);
+            break;
+          case '90d':
+            startDate.setDate(endDate.getDate() - 90);
+            break;
+        }
       }
 
       const formatDate = (date: Date) => {
@@ -192,17 +206,43 @@ export default function AdminAnalyticsPage() {
             </div>
 
             {/* 날짜 범위 선택 */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3 flex-wrap">
               <label className="text-sm font-medium text-gray-700">기간:</label>
               <select
                 value={dateRange}
-                onChange={(e) => setDateRange(e.target.value as '7d' | '30d' | '90d')}
+                onChange={(e) => setDateRange(e.target.value as '7d' | '30d' | '90d' | 'custom')}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="7d">최근 7일</option>
                 <option value="30d">최근 30일</option>
                 <option value="90d">최근 90일</option>
+                <option value="custom">직접 선택</option>
               </select>
+
+              {/* 커스텀 날짜 선택 */}
+              {dateRange === 'custom' && (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <span className="text-gray-500">~</span>
+                  <input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    onClick={loadData}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    조회
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

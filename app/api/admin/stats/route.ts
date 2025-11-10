@@ -440,18 +440,16 @@ export async function GET(request: NextRequest) {
     }
 
     /**
-     * Google Search Console 데이터 수집 (최근 28일)
+     * Google Search Console 데이터 수집
      *
      * @purpose 검색 유입 키워드 및 성능 통계
+     * @context 날짜 범위는 사용자 선택한 범위를 사용 (filterStartDate ~ filterEndDate)
      */
     let googleSearchData = { totalClicks: 0, totalImpressions: 0, avgCTR: '0', avgPosition: '0', topQueries: [] };
     try {
       const gscClient = new GoogleSearchConsoleClient();
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setDate(endDate.getDate() - 28);
 
-      const formatDate = (date: Date) => {
+      const formatGscDate = (date: Date) => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
@@ -459,9 +457,12 @@ export async function GET(request: NextRequest) {
       };
 
       const gscData = await gscClient.getSearchAnalytics(
-        formatDate(startDate),
-        formatDate(endDate)
+        formatGscDate(filterStartDate),
+        formatGscDate(filterEndDate)
       );
+
+      console.log('[Google Search Console] 조회 기간:', formatGscDate(filterStartDate), '~', formatGscDate(filterEndDate));
+      console.log('[Google Search Console] 응답 데이터:', gscData);
 
       googleSearchData = {
         totalClicks: gscData.rows?.reduce((sum: number, row: any) => sum + (row.clicks || 0), 0) || 0,
