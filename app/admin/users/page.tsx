@@ -111,6 +111,7 @@ export default function UsersManagementPage() {
       key: 'name',
       label: '이름',
       sortable: true,
+      width: '280px',
       render: (user) => (
         <div className="flex items-center">
           <div className="h-10 w-10 flex-shrink-0">
