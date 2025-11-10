@@ -291,14 +291,14 @@ export default function ProfileCard({
               <h3 className="text-lg font-medium text-gray-900 mb-4">회원 등급 변경</h3>
 
               <div className="space-y-3">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-900">
                   현재 등급: <span className="font-medium">{getRoleLabel(user.role)}</span>
                 </p>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">변경할 등급</label>
+                  <label className="block text-sm font-medium text-gray-900">변경할 등급</label>
                   <select
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900"
                     defaultValue={user.role}
                     onChange={(e) => {
                       onRoleChange?.(e.target.value as UserRole);
@@ -315,10 +315,10 @@ export default function ProfileCard({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">변경 사유</label>
+                  <label className="block text-sm font-medium text-gray-900">변경 사유</label>
                   <textarea
                     rows={3}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900"
                     placeholder="등급 변경 사유를 입력하세요"
                   />
                 </div>
