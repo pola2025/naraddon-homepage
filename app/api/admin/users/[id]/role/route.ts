@@ -19,7 +19,7 @@ export async function PUT(
     }
 
     const userId = params.id;
-    const { newRole, profileData, examinerAction } = await request.json();
+    const { newRole, profileData, examinerAction, expertAction } = await request.json();
 
     // 유효한 역할인지 확인
     const validRoles = ['user', 'examiner', 'expert', 'admin'];
@@ -132,7 +132,26 @@ export async function PUT(
       }
     }
 
-    // 전문가로 전환 시
+    // 전문가(expert)로 전환 시
+    if (newRole === 'expert' && expertAction) {
+      if (expertAction.action === 'link' && expertAction.expertId) {
+        // 기존 전문가 프로필과 연결
+        updateData.expertId = expertAction.expertId;
+
+        // 전문가 프로필에 userId 추가
+        await db.collection('experts').updateOne(
+          { _id: new ObjectId(expertAction.expertId) },
+          {
+            $set: {
+              userId: userId,
+              updatedAt: new Date()
+            }
+          }
+        );
+      }
+    }
+
+    // 전문가로 전환 시 (기존 profileData 기반 로직 유지)
     if (newRole === 'expert' && profileData) {
       updateData['expertProfile'] = {
         field: profileData.field || '',
@@ -174,7 +193,8 @@ export async function PUT(
     return NextResponse.json({
       success: true,
       message: `사용자 역할이 ${newRole}(으)로 변경되었습니다.`,
-      examinerId: updateData.examinerId
+      examinerId: updateData.examinerId,
+      expertId: updateData.expertId
     });
   } catch (error) {
     console.error('Failed to update user role:', error);
