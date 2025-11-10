@@ -89,85 +89,74 @@ export async function PUT(
       }
 
       // users에서 examinerId 제거
-      updateData.$unset = { examinerId: '' };
+      if (!updateData.$unset) updateData.$unset = {};
+      updateData.$unset.examinerId = '';
+    }
+
+    // 전문가에서 다른 역할로 전환 시 (역할 해제)
+    if (user.role === 'expert' && newRole !== 'expert') {
+      // experts에서 userId 제거
+      if (user.expertId) {
+        await db.collection('experts').updateOne(
+          { _id: new ObjectId(user.expertId) },
+          {
+            $unset: { userId: '' },
+            $set: { updatedAt: new Date() }
+          }
+        );
+      }
+
+      // users에서 expertId 제거
+      if (!updateData.$unset) updateData.$unset = {};
+      updateData.$unset.expertId = '';
     }
 
     // 기업심사관(examiner)으로 전환 시
-    if (newRole === 'examiner' && examinerAction) {
-      if (examinerAction.action === 'create') {
-        // 신규 심사관 프로필 생성
-        const examinerProfile = {
-          name: profileData?.name || user.name,
-          position: profileData?.position || '인증 기업심사관',
-          companyName: profileData?.companyName || user.profile?.company || '',
-          category: profileData?.category || 'funding',
-          specialties: profileData?.specialties || user.profile?.specialty || [],
-          imageUrl: profileData?.imageUrl || '',
-          imageAlt: `${profileData?.name || user.name} 인증 기업심사관`,
-          sortOrder: profileData?.sortOrder || 999,
-          legacyKey: profileData?.legacyKey || user.email.split('@')[0].toLowerCase(),
-          isPublished: profileData?.isPublished !== false,
-          userId: userId,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
-
-        const examinerResult = await db.collection('expert-examiners').insertOne(examinerProfile);
-        updateData.examinerId = examinerResult.insertedId.toString();
-
-      } else if (examinerAction.action === 'link' && examinerAction.examinerId) {
-        // 기존 심사관 프로필과 연결
-        updateData.examinerId = examinerAction.examinerId;
-
-        // 심사관 프로필에 userId 추가
-        await db.collection('expert-examiners').updateOne(
-          { _id: new ObjectId(examinerAction.examinerId) },
-          {
-            $set: {
-              userId: userId,
-              updatedAt: new Date()
-            }
-          }
-        );
+    if (newRole === 'examiner') {
+      // examinerAction이 없으면 에러 반환
+      if (!examinerAction || !examinerAction.examinerId) {
+        return NextResponse.json({
+          error: '기업심사관 프로필을 선택해주세요.'
+        }, { status: 400 });
       }
+
+      // 기존 심사관 프로필과 연결
+      updateData.examinerId = examinerAction.examinerId;
+
+      // 심사관 프로필에 userId 추가
+      await db.collection('expert-examiners').updateOne(
+        { _id: new ObjectId(examinerAction.examinerId) },
+        {
+          $set: {
+            userId: userId,
+            updatedAt: new Date()
+          }
+        }
+      );
     }
 
     // 전문가(expert)로 전환 시
-    if (newRole === 'expert' && expertAction) {
-      if (expertAction.action === 'link' && expertAction.expertId) {
-        // 기존 전문가 프로필과 연결
-        updateData.expertId = expertAction.expertId;
-
-        // 전문가 프로필에 userId 추가
-        await db.collection('experts').updateOne(
-          { _id: new ObjectId(expertAction.expertId) },
-          {
-            $set: {
-              userId: userId,
-              updatedAt: new Date()
-            }
-          }
-        );
+    if (newRole === 'expert') {
+      // expertAction이 없으면 에러 반환
+      if (!expertAction || !expertAction.expertId) {
+        return NextResponse.json({
+          error: '전문가 프로필을 선택해주세요.'
+        }, { status: 400 });
       }
-    }
 
-    // 전문가로 전환 시 (기존 profileData 기반 로직 유지)
-    if (newRole === 'expert' && profileData) {
-      updateData['expertProfile'] = {
-        field: profileData.field || '',
-        specialty: profileData.specialty || [],
-        experience: profileData.experience || 0,
-        education: profileData.education || [],
-        certifications: profileData.certifications || [],
-        introduction: profileData.introduction || '',
-        achievements: profileData.achievements || [],
-        consultationAreas: profileData.consultationAreas || [],
-        consultationFee: profileData.consultationFee || '',
-        profileImage: profileData.profileImage || '',
-        rating: 0,
-        reviewCount: 0,
-        isPublic: profileData.isPublic !== false
-      };
+      // 기존 전문가 프로필과 연결
+      updateData.expertId = expertAction.expertId;
+
+      // 전문가 프로필에 userId 추가
+      await db.collection('experts').updateOne(
+        { _id: new ObjectId(expertAction.expertId) },
+        {
+          $set: {
+            userId: userId,
+            updatedAt: new Date()
+          }
+        }
+      );
     }
 
     // 사용자 정보 업데이트
