@@ -122,6 +122,10 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+.question-item:hover .question-title {
+  color: #111827;
+}
+
 .question-main {
   flex: 1;
   min-width: 0;
