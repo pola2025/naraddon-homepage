@@ -20,9 +20,9 @@ export async function POST(request: NextRequest) {
     // 세션 확인
     const session = await getServerSession(authOptions);
 
-    if (!session || session.user.role !== 'expert') {
+    if (!session || (session.user.role !== 'expert' && session.user.role !== 'admin')) {
       return NextResponse.json(
-        { success: false, error: '전문가 권한이 필요합니다.' },
+        { success: false, error: 'Unauthorized: Expert or Admin access required' },
         { status: 401 }
       );
     }
@@ -119,9 +119,9 @@ export async function DELETE(request: NextRequest) {
     // 세션 확인
     const session = await getServerSession(authOptions);
 
-    if (!session || session.user.role !== 'expert') {
+    if (!session || (session.user.role !== 'expert' && session.user.role !== 'admin')) {
       return NextResponse.json(
-        { success: false, error: '전문가 권한이 필요합니다.' },
+        { success: false, error: 'Unauthorized: Expert or Admin access required' },
         { status: 401 }
       );
     }

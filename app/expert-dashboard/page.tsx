@@ -42,11 +42,11 @@ export default function ExpertDashboardPage() {
   const [uploadingImages, setUploadingImages] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
-  // 전문가 권한 확인 및 프로필 로드
+  // 전문가 또는 관리자 권한 확인 및 프로필 로드
   useEffect(() => {
     if (status === 'loading') return;
 
-    if (!session || session.user.role !== 'expert') {
+    if (!session || (session.user.role !== 'expert' && session.user.role !== 'admin')) {
       router.push('/');
       return;
     }

@@ -8,16 +8,16 @@ import { ObjectId } from 'mongodb';
  * GET: 현재 로그인한 전문가의 프로필 조회
  * @purpose 전문가 대시보드에서 본인의 프로필 정보를 불러옴
  * @context 세션의 userId로 experts 컬렉션의 userId 필드를 조회
- * @security expert 역할만 접근 가능
+ * @security expert 또는 admin 역할 접근 가능
  */
 export async function GET(request: NextRequest) {
   try {
     // 세션 확인
     const session = await getServerSession(authOptions);
 
-    if (!session || !session.user || session.user.role !== 'expert') {
+    if (!session || !session.user || (session.user.role !== 'expert' && session.user.role !== 'admin')) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized: Expert access required' },
+        { success: false, error: 'Unauthorized: Expert or Admin access required' },
         { status: 401 }
       );
     }
@@ -73,16 +73,16 @@ export async function GET(request: NextRequest) {
  * PUT: 전문가 프로필 정보 수정
  * @purpose 전문가가 본인의 프로필 정보를 업데이트
  * @context 세션의 userId와 일치하는 전문가만 수정 가능
- * @security expert 역할만 접근 가능, 본인 프로필만 수정 가능
+ * @security expert 또는 admin 역할 접근 가능, 본인 프로필만 수정 가능
  */
 export async function PUT(request: NextRequest) {
   try {
     // 세션 확인
     const session = await getServerSession(authOptions);
 
-    if (!session || !session.user || session.user.role !== 'expert') {
+    if (!session || !session.user || (session.user.role !== 'expert' && session.user.role !== 'admin')) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized: Expert access required' },
+        { success: false, error: 'Unauthorized: Expert or Admin access required' },
         { status: 401 }
       );
     }

@@ -14,7 +14,8 @@ import {
   BriefcaseIcon,
   ShieldCheckIcon,
   DocumentTextIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  AcademicCapIcon
 } from '@heroicons/react/24/outline';
 
 interface AdminSidebarProps {
@@ -81,6 +82,11 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
           icon: ExclamationTriangleIcon,
         },
       ],
+    },
+    {
+      name: '전문가 관리',
+      href: '/admin/experts',
+      icon: AcademicCapIcon,
     },
     {
       name: '심사관 상담관리',
