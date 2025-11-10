@@ -101,7 +101,10 @@ export default function AdminAnalyticsPage() {
   const [customEndDate, setCustomEndDate] = useState('');
 
   useEffect(() => {
-    loadData();
+    // custom 모드가 아닐 때만 자동 로드
+    if (dateRange !== 'custom') {
+      loadData();
+    }
   }, [dateRange]);
 
   const loadData = async () => {
