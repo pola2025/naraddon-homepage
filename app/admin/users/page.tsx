@@ -482,7 +482,7 @@ export default function UsersManagementPage() {
               key={user.id}
               user={user}
               mode="admin"
-              onRoleChange={(newRole) => handleRoleChange(user.id, newRole)}
+              onRoleChange={(newRole, examinerId, expertId) => handleRoleChange(user.id, newRole, examinerId, expertId)}
               onStatusChange={(newStatus) => handleStatusChange(user.id, newStatus)}
               onUpgradeToAdmin={handleUpgradeToAdmin}
               onRevokeAdmin={handleRevokeAdmin}
@@ -503,8 +503,8 @@ export default function UsersManagementPage() {
               <ProfileCard
                 user={selectedUser}
                 mode="admin"
-                onRoleChange={(newRole) => {
-                  handleRoleChange(selectedUser.id, newRole);
+                onRoleChange={(newRole, examinerId, expertId) => {
+                  handleRoleChange(selectedUser.id, newRole, examinerId, expertId);
                   setSelectedUser(null);
                 }}
                 onStatusChange={(newStatus) => {
