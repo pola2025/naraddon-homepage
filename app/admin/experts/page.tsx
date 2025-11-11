@@ -147,11 +147,12 @@ export default function AdminExpertsPage() {
 
         <div className="experts-grid">
           {experts.map((expert) => {
-            // expert.userId는 문자열, user._id는 ObjectId이므로 toString()으로 비교
-            const linkedUser = users.find(u =>
-              (u._id && u._id.toString && u._id.toString() === expert.userId) ||
-              u.id === expert.userId
-            );
+            // expert.userId와 user._id 모두 문자열로 변환하여 비교
+            // API에서 이미 _id를 문자열로 변환하여 반환하므로 직접 비교
+            const linkedUser = users.find(u => {
+              const userId = typeof u._id === 'string' ? u._id : u._id?.toString();
+              return userId === expert.userId || u.id === expert.userId;
+            });
 
             return (
               <div key={expert._id} className={`expert-card ${!expert.isActive ? 'inactive' : ''}`}>
