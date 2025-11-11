@@ -40,6 +40,7 @@ const ALL_NAV_ITEMS = [...PRIMARY_NAV, ...SECONDARY_NAV];
 
 const ADMIN_NAV: NavItem = { href: "/admin", label: "관리자" };
 const EXAMINER_NAV: NavItem = { href: "/examiner/dashboard", label: "심사관" };
+const EXPERT_NAV: NavItem = { href: "/expert-dashboard", label: "전문가" };
 
 export default function Header() {
   const pathname = usePathname();
@@ -146,7 +147,9 @@ export default function Header() {
       ? "관리자"
       : user?.role === "examiner"
         ? "심사관"
-        : "일반 회원";
+        : user?.role === "expert"
+          ? "전문가"
+          : "일반 회원";
 
   const handleLogout = async () => {
     // 먼저 서버에 로그아웃 요청을 보내 세션 정리
@@ -277,6 +280,9 @@ export default function Header() {
                   <CanAccess role="examiner" key="examiner-dropdown">
                     <li>{renderNavLink(EXAMINER_NAV, styles.dropdownItem)}</li>
                   </CanAccess>
+                  <CanAccess role="expert" key="expert-dropdown">
+                    <li>{renderNavLink(EXPERT_NAV, styles.dropdownItem)}</li>
+                  </CanAccess>
                 </ul>
               </div>
             </div>
@@ -334,6 +340,11 @@ export default function Header() {
                     <CanAccess role="examiner" key="examiner-mobile">
                       <Link href="/examiner/dashboard" className={styles.profileLink}>
                         심사관 대시보드
+                      </Link>
+                    </CanAccess>
+                    <CanAccess role="expert" key="expert-mobile">
+                      <Link href="/expert-dashboard" className={styles.profileLink}>
+                        전문가 대시보드
                       </Link>
                     </CanAccess>
                     <Link href="/my-consultations" className={styles.profileLink}>
@@ -425,6 +436,15 @@ export default function Header() {
                 {renderNavLink(
                   EXAMINER_NAV,
                   clsx(styles.mobileNavLink, isActivePath(EXAMINER_NAV.href) && styles.mobileNavLinkActive),
+                  closeMobileMenu
+                )}
+              </li>
+            </CanAccess>
+            <CanAccess role="expert" key="expert-mobile-nav">
+              <li className={styles.mobileNavItem}>
+                {renderNavLink(
+                  EXPERT_NAV,
+                  clsx(styles.mobileNavLink, isActivePath(EXPERT_NAV.href) && styles.mobileNavLinkActive),
                   closeMobileMenu
                 )}
               </li>

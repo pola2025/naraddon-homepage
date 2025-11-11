@@ -1,8 +1,8 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
 import './page.css';
 
 interface SuccessCase {
@@ -31,9 +31,16 @@ interface ExpertProfile {
   email?: string;
 }
 
-export default function ExpertDashboardPage() {
+/**
+ * 전문가 대시보드 메인 컴포넌트 (Suspense 내부)
+ * @purpose URL 파라미터를 사용하므로 Suspense로 감싸야 함
+ */
+function ExpertDashboardContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const expertId = searchParams.get('expertId'); // URL 파라미터로 전문가 ID 받기
+
   const [profile, setProfile] = useState<ExpertProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -52,11 +59,17 @@ export default function ExpertDashboardPage() {
     }
 
     fetchProfile();
-  }, [session, status, router]);
+  }, [session, status, router, expertId]);
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch('/api/expert/profile');
+      // URL 파라미터로 expertId가 있으면 해당 전문가 프로필 조회 (관리자용)
+      // expertId가 없으면 본인 프로필 조회 (전문가 본인용)
+      const url = expertId
+        ? `/api/expert/profile?expertId=${expertId}`
+        : '/api/expert/profile';
+
+      const response = await fetch(url);
       const data = await response.json();
 
       if (data.success) {
@@ -746,5 +759,24 @@ export default function ExpertDashboardPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * 전문가 대시보드 페이지 Wrapper
+ * @purpose useSearchParams를 Suspense로 감싸기 위한 Wrapper 컴포넌트
+ */
+export default function ExpertDashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="expert-dashboard">
+        <div className="loading-container">
+          <div className="spinner" />
+          <p>페이지를 불러오는 중입니다...</p>
+        </div>
+      </div>
+    }>
+      <ExpertDashboardContent />
+    </Suspense>
   );
 }

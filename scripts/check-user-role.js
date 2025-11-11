@@ -1,69 +1,63 @@
-/**
- * 사용자 role 확인 스크립트
- *
- * @purpose 이재호 사용자의 실제 role 값 확인
- * @usage node scripts/check-user-role.js
- */
-
+const { MongoClient, ObjectId } = require('mongodb');
 require('dotenv').config({ path: '.env.local' });
-const mongoose = require('mongoose');
 
 async function checkUserRole() {
+  const client = new MongoClient(process.env.MONGODB_URI);
+
   try {
-    console.log('MongoDB 연결 중...');
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log('✓ MongoDB 연결 성공\n');
+    await client.connect();
+    const db = client.db('naraddon');
 
-    const User = mongoose.model('User', new mongoose.Schema({}, { strict: false }), 'users');
+    // 성민석 사용자 찾기
+    const user = await db.collection('users').findOne({
+      _id: new ObjectId('68ff41e9a6c25cf3fa9fcd11')
+    });
 
-    // 특정 사용자 찾기
-    console.log('사용자 검색 중: 이재호, 김도현, 김지완...');
-    const users = await User.find({
-      $or: [
-        { name: { $regex: '이재호', $options: 'i' } },
-        { email: { $regex: '이재호', $options: 'i' } },
-        { name: { $regex: '김도현', $options: 'i' } },
-        { email: { $regex: '김도현', $options: 'i' } },
-        { name: { $regex: '김지완', $options: 'i' } },
-        { email: { $regex: '김지완', $options: 'i' } }
-      ]
-    }).lean();
-
-    if (users.length === 0) {
-      console.log('❌ 해당 사용자를 찾을 수 없습니다.');
+    if (!user) {
+      console.log('사용자를 찾을 수 없습니다.');
       return;
     }
 
-    console.log(`✓ ${users.length}명의 사용자를 찾았습니다:\n`);
+    console.log('\n=== 성민석 사용자 정보 ===');
+    console.log('ID:', user._id.toString());
+    console.log('이름:', user.name);
+    console.log('이메일:', user.email);
+    console.log('역할:', user.role);
+    console.log('examinerId:', user.examinerId || '없음');
+    console.log('expertId:', user.expertId || '없음');
 
-    users.forEach((user, index) => {
-      console.log(`[${index + 1}] 사용자 정보:`);
-      console.log(`  - 이름: ${user.name}`);
-      console.log(`  - 이메일: ${user.email}`);
-      console.log(`  - Role: "${user.role}" (타입: ${typeof user.role})`);
-      console.log(`  - Status: ${user.status}`);
-      console.log(`  - 가입일: ${user.createdAt}`);
-      console.log('');
+    // 연결된 심사관 프로필 확인
+    if (user.examinerId) {
+      const examiner = await db.collection('expert-examiners').findOne({
+        _id: new ObjectId(user.examinerId)
+      });
+      console.log('\n=== 연결된 심사관 프로필 ===');
+      console.log(examiner);
+    }
 
-      // Role 체크
-      if (user.role === 'admin') {
-        console.log('  ✓ role이 "admin"입니다 - 권한회수 버튼이 보여야 합니다.');
-      } else if (user.role === 'super_admin') {
-        console.log('  ⚠ role이 "super_admin"입니다 - 권한회수 버튼이 안 보입니다.');
-      } else if (user.role === 'examiner') {
-        console.log('  ℹ role이 "examiner"입니다 - 관리자승격 버튼이 보여야 합니다.');
-      } else {
-        console.log(`  ⚠ role이 "${user.role}"입니다 - 예상과 다른 값입니다.`);
-      }
-      console.log('\n---\n');
+    // 연결된 전문가 프로필 확인
+    if (user.expertId) {
+      const expert = await db.collection('experts').findOne({
+        _id: new ObjectId(user.expertId)
+      });
+      console.log('\n=== 연결된 전문가 프로필 ===');
+      console.log(expert);
+    }
+
+    // 배정된 상담 확인
+    const consultations = await db.collection('consultations').find({
+      assignedStaffId: user.email
+    }).toArray();
+
+    console.log('\n=== 배정된 상담 ===');
+    console.log('총:', consultations.length, '건');
+    consultations.forEach(c => {
+      console.log(`- ${c.companyName} (상태: ${c.status})`);
     });
 
-  } catch (error) {
-    console.error('❌ 오류 발생:', error);
   } finally {
-    await mongoose.disconnect();
-    console.log('MongoDB 연결 종료');
+    await client.close();
   }
 }
 
-checkUserRole();
+checkUserRole().catch(console.error);
