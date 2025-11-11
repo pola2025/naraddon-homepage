@@ -52,16 +52,44 @@ export default function AdminExpertsPage() {
       const expertsRes = await fetch('/api/admin/experts');
       const expertsData = await expertsRes.json();
 
+      console.log('[전문가 관리] Experts API 응답:', expertsData);
+
       if (expertsData.success) {
         setExperts(expertsData.experts);
+        console.log('[전문가 관리] Experts 설정됨:', expertsData.experts.length);
+
+        // 성민석 전문가 확인
+        const minseok = expertsData.experts.find((e: any) => e.name === '성민석');
+        if (minseok) {
+          console.log('[전문가 관리] 성민석 전문가:', {
+            _id: minseok._id,
+            userId: minseok.userId,
+            userId_type: typeof minseok.userId
+          });
+        }
       }
 
       // 사용자 목록 조회
       const usersRes = await fetch('/api/admin/users');
       const usersData = await usersRes.json();
 
-      if (usersData.success) {
-        setUsers(usersData.users);
+      console.log('[전문가 관리] Users API 응답:', usersData);
+
+      if (usersData.success !== undefined ? usersData.success : usersData.users) {
+        const userList = usersData.users || [];
+        setUsers(userList);
+        console.log('[전문가 관리] Users 설정됨:', userList.length);
+
+        // 성민석 사용자 확인
+        const minseokUser = userList.find((u: any) => u.name === '성민석' || u.email === 'kinomoto96@naver.com');
+        if (minseokUser) {
+          console.log('[전문가 관리] 성민석 사용자:', {
+            _id: minseokUser._id,
+            _id_type: typeof minseokUser._id,
+            name: minseokUser.name,
+            email: minseokUser.email
+          });
+        }
       }
     } catch (error) {
       console.error('Failed to fetch data:', error);
@@ -150,10 +178,32 @@ export default function AdminExpertsPage() {
             // expert.userId와 user._id 비교
             // API에서 _id를 문자열로 변환하여 반환하므로 직접 문자열 비교
             const linkedUser = users.find(u => {
-              if (!expert.userId) return false;  // userId가 없으면 매칭 안함
+              if (!expert.userId) {
+                if (expert.name === '성민석') {
+                  console.log('[전문가 관리] 성민석 expert.userId가 없음!');
+                }
+                return false;  // userId가 없으면 매칭 안함
+              }
               const userId = typeof u._id === 'string' ? u._id : u._id?.toString();
-              return userId === expert.userId;
+              const matches = userId === expert.userId;
+
+              // 성민석 디버깅
+              if (expert.name === '성민석' && u.name === '성민석') {
+                console.log('[전문가 관리] 성민석 매칭 시도:', {
+                  expert_userId: expert.userId,
+                  user_id: u._id,
+                  userId_converted: userId,
+                  matches: matches
+                });
+              }
+
+              return matches;
             });
+
+            // 성민석 매칭 결과 로깅
+            if (expert.name === '성민석') {
+              console.log('[전문가 관리] 성민석 최종 linkedUser:', linkedUser ? linkedUser.name : '없음');
+            }
 
             return (
               <div key={expert._id} className={`expert-card ${!expert.isActive ? 'inactive' : ''}`}>
