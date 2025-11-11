@@ -101,6 +101,8 @@ function ExpertDashboardContent() {
 
       if (data.success) {
         setMessage({ type: 'success', text: '프로필이 저장되었습니다.' });
+        // 3초 후 메시지 자동 제거
+        setTimeout(() => setMessage(null), 3000);
       } else {
         setMessage({ type: 'error', text: data.error || '저장에 실패했습니다.' });
       }
@@ -272,6 +274,9 @@ function ExpertDashboardContent() {
           <div className={`message ${message.type}`}>
             <i className={`fas fa-${message.type === 'success' ? 'check-circle' : 'exclamation-circle'}`} />
             <span>{message.text}</span>
+            <button onClick={() => setMessage(null)} className="message-close" aria-label="닫기">
+              <i className="fas fa-times" />
+            </button>
           </div>
         )}
 

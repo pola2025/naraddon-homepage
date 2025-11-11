@@ -70,6 +70,19 @@
   border-radius: 12px;
   margin-bottom: 24px;
   font-weight: 500;
+  position: relative;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .message.success {
@@ -86,6 +99,30 @@
 
 .message i {
   font-size: 1.25rem;
+}
+
+.message span {
+  flex: 1;
+}
+
+.message-close {
+  background: none;
+  border: none;
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.message-close:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.message-close i {
+  font-size: 1rem;
 }
 
 /* 탭 네비게이션 */
