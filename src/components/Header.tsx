@@ -274,16 +274,15 @@ export default function Header() {
 
                   <li className={styles.dropdownDivider} role="presentation" />
 
-                  {/* 역할별 대시보드 메뉴 - 정확한 역할만 표시 */}
-                  {user?.role === 'admin' && (
+                  <CanAccess role="admin" key="admin-dropdown">
                     <li>{renderNavLink(ADMIN_NAV, styles.dropdownItem)}</li>
-                  )}
-                  {user?.role === 'examiner' && (
+                  </CanAccess>
+                  <CanAccess role="examiner" key="examiner-dropdown">
                     <li>{renderNavLink(EXAMINER_NAV, styles.dropdownItem)}</li>
-                  )}
-                  {user?.role === 'expert' && (
-                    <li>{renderNavLink(EXPERT_NAV, styles.dropdownItem)}</li>
-                  )}
+                  </CanAccess>
+                  <CanAccess role="expert" key="expert-dropdown">
+                    <li>{renderNavLink({ href: "/admin/expert-dashboards", label: "전문가" }, styles.dropdownItem)}</li>
+                  </CanAccess>
                 </ul>
               </div>
             </div>
@@ -333,22 +332,21 @@ export default function Header() {
                     {/* <Link href="/mypage" className={styles.profileLink}>
                       프로필 관리
                     </Link> */}
-                    {/* 역할별 대시보드 - 정확한 역할만 표시 */}
-                    {user?.role === 'admin' && (
+                    <CanAccess role="admin" key="admin-mobile">
                       <Link href="/admin/dashboard" className={styles.profileLink}>
                         관리자 대시보드
                       </Link>
-                    )}
-                    {user?.role === 'examiner' && (
+                    </CanAccess>
+                    <CanAccess role="examiner" key="examiner-mobile">
                       <Link href="/examiner/dashboard" className={styles.profileLink}>
                         심사관 대시보드
                       </Link>
-                    )}
-                    {user?.role === 'expert' && (
-                      <Link href="/expert-dashboard" className={styles.profileLink}>
+                    </CanAccess>
+                    <CanAccess role="expert" key="expert-mobile">
+                      <Link href={user?.role === 'expert' ? "/expert-dashboard" : "/admin/expert-dashboards"} className={styles.profileLink}>
                         전문가 대시보드
                       </Link>
-                    )}
+                    </CanAccess>
                     <Link href="/my-consultations" className={styles.profileLink}>
                       내 상담 내역
                     </Link>
