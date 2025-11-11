@@ -147,7 +147,7 @@ export default function AdminExpertsPage() {
 
         <div className="experts-grid">
           {experts.map((expert) => {
-            const linkedUser = users.find(u => u._id === expert.userId);
+            const linkedUser = users.find(u => u.id === expert.userId || u._id === expert.userId);
 
             return (
               <div key={expert._id} className={`expert-card ${!expert.isActive ? 'inactive' : ''}`}>
