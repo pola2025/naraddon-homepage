@@ -18,7 +18,7 @@ function EmpathySection() {
               <div className="cta-buttons">
                 <button className="cta-button primary">
                   <i className="fas fa-comment-dots"></i>
-                  무료 상담 시작하기
+                  무료 심사 시작하기
                 </button>
               </div>
             </div>

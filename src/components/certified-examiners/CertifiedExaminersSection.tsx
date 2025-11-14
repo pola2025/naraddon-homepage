@@ -230,10 +230,10 @@ export default function CertifiedExaminersSection() {
             맞춤형 성장 전략을 수립하세요
           </h3>
           <p className={styles.ctaDescription}>
-            상담 신청 후 24시간 이내에 전문가가 연락드립니다
+            심사 신청 후 24시간 이내에 전문가가 연락드립니다
           </p>
           <a href="/consultation-request#form-section" className={styles.ctaPrimaryBtn}>
-            지금 상담 신청하기
+            지금 무료심사신청
           </a>
         </div>
       </section>

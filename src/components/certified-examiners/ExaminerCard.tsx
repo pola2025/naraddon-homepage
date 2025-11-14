@@ -120,7 +120,7 @@ export default function ExaminerCard({ examiner, variant = 'grid' }: ExaminerCar
             className={styles.premiumCta}
             onClick={() => window.location.href = '/consultation-request#form-section'}
           >
-            상담 신청하기
+            무료심사신청
           </button>
         </div>
       </div>

@@ -25,7 +25,7 @@ const HeroSection = () => {
           <div className="hero-buttons">
             <a href="/consultation-request" className="hero-btn hero-btn-primary">
               <i className="fas fa-comments"></i>
-              <span>무료상담신청</span>
+              <span>무료심사신청</span>
             </a>
             <a href="/consultation-request#qna-section" className="hero-btn hero-btn-secondary">
               <i className="fas fa-question-circle"></i>

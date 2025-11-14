@@ -603,7 +603,7 @@ const PolicyAnalysis = () => {
                 href="/consultation-request#form-section"
                 className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-base font-semibold text-emerald-600 shadow-lg ring-1 ring-emerald-100 transition hover:bg-emerald-50"
               >
-                <i className="fas fa-headset" aria-hidden="true" /> 무료 상담 신청
+                <i className="fas fa-headset" aria-hidden="true" /> 무료 심사 신청
               </Link>
             </div>
           </div>
@@ -872,7 +872,7 @@ const PolicyAnalysis = () => {
               </p>
             </div>
             <Link href="/consultation-request#form-section" className="policy-analysis__cta-button">
-              상담 예약하기
+              심사 예약하기
             </Link>
           </div>
         </div>

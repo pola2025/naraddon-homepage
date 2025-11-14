@@ -40,7 +40,7 @@ export default async function BusinessVoicePage() {
                 href="/consultation-request#form-section"
                 className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-base font-semibold text-emerald-600 shadow-lg ring-1 ring-emerald-100 transition hover:bg-emerald-50"
               >
-                <i className="fas fa-headset" aria-hidden="true" /> 무료 상담 신청
+                <i className="fas fa-headset" aria-hidden="true" /> 무료 심사 시작하기
               </Link>
             </div>
           </div>
@@ -73,7 +73,7 @@ export default async function BusinessVoicePage() {
               </p>
             </div>
             <Link href="/consultation-request#form-section" className="business-voice__cta-button">
-              상담 예약하기
+              무료 심사 시작하기
             </Link>
           </div>
         </div>

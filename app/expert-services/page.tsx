@@ -181,11 +181,11 @@ export default function ExpertServicesPage() {
         window.alert(result.message || successMessage);
         resetForm();
       } else {
-        window.alert(result.error || '상담 신청 중 오류가 발생했습니다.');
+        window.alert(result.error || '심사 신청 중 오류가 발생했습니다.');
       }
     } catch (error) {
-      console.error('상담 신청 실패:', error);
-      window.alert('상담 신청 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      console.error('심사 신청 실패:', error);
+      window.alert('심사 신청 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     }
   };
 
@@ -337,7 +337,7 @@ export default function ExpertServicesPage() {
             <p className="text-sm font-semibold uppercase tracking-widest text-blue-600">
               Consultation
             </p>
-            <h2 className="mt-2 text-3xl font-bold text-slate-900">전문가 상담 신청서</h2>
+            <h2 className="mt-2 text-3xl font-bold text-slate-900">전문가 무료심사 신청서</h2>
             <p className="mt-3 text-slate-600">
               연락 받을 정보를 남겨주시면 하루 이내 맞춤형 전문가를 매칭해 드립니다.
             </p>

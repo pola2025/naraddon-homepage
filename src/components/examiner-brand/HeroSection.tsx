@@ -125,7 +125,7 @@ export default function HeroSection({ examiner }: HeroSectionProps) {
             <div className={styles.ctaButtons}>
               <button className={styles.btnPrimary} onClick={handleConsultation}>
                 <i className="fas fa-comments"></i>
-                <span>상담 신청하기</span>
+                <span>심사 신청하기</span>
               </button>
             </div>
           </div>

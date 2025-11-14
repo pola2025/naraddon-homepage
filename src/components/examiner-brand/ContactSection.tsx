@@ -117,7 +117,7 @@ export default function ContactSection({ examiner }: ContactSectionProps) {
             onMouseMove={handleMouseMove}
           >
             <i className="fas fa-headset"></i>
-            <span>지금 바로 상담 신청하기</span>
+            <span>심사 신청하기</span>
           </button>
         </div>
       </div>

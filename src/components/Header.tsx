@@ -33,7 +33,7 @@ const PRIMARY_NAV: NavItem[] = [
 
 const SECONDARY_NAV: NavItem[] = [
   { href: "/expert-services", label: "전문가 서비스" },
-  { href: "/consultation-request", label: "상담신청" },
+  { href: "/consultation-request", label: "무료심사신청" },
 ];
 
 const ALL_NAV_ITEMS = [...PRIMARY_NAV, ...SECONDARY_NAV];
@@ -348,7 +348,7 @@ export default function Header() {
                       </Link>
                     </CanAccess>
                     <Link href="/my-consultations" className={styles.profileLink}>
-                      내 상담 내역
+                      내 심사 내역
                     </Link>
                     <button type="button" className={styles.profileLogout} onClick={handleLogout}>
                       로그아웃
@@ -459,7 +459,7 @@ export default function Header() {
               프로필 관리
             </Link> */}
             <Link href="/my-consultations" className={styles.mobileFooterLink} onClick={closeMobileMenu}>
-              내 상담 내역
+              내 심사 내역
             </Link>
             <button type="button" className={styles.mobileLogoutButton} onClick={handleLogout}>
               로그아웃

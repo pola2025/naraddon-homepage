@@ -27,7 +27,7 @@ export default function ForbiddenPage() {
             href="/consultation-request"
             className="block w-full bg-gray-200 text-gray-700 rounded-md py-3 px-4 hover:bg-gray-300 transition-colors"
           >
-            상담 신청하기
+            무료심사 신청하기
           </Link>
         </div>
       </div>

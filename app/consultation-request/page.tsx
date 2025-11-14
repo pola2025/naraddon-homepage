@@ -129,7 +129,7 @@ function ConsultationHero() {
             정책자금 전문 컨시어지
           </span>
           <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-            정책자금 상담 신청
+            정책자금 무료심사신청
             <span className="block text-blue-600">맞춤 전문가가 함께합니다</span>
           </h1>
           <p className="mt-6 text-lg leading-7 text-slate-600">
@@ -137,14 +137,14 @@ function ConsultationHero() {
             <br />
             기업 상황을 분석하고 최적의 전략을 제안합니다.
             <br />
-            무료 상담 신청 시 24시간 이내로 연락드립니다.
+            1차 무료심사 후 2차 대면상담으로 진행됩니다.
           </p>
           <div className="mt-10 flex flex-wrap items-center gap-6">
             <Link
               href="/consultation-request#form-section"
               className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-6 py-3 text-base font-semibold text-white shadow-lg transition hover:bg-emerald-600"
             >
-              <i className="fas fa-headset" aria-hidden="true" /> 무료 상담 신청
+              <i className="fas fa-headset" aria-hidden="true" /> 무료 심사 시작하기
             </Link>
           </div>
         </div>
@@ -238,15 +238,15 @@ const FORM_STEPS: Array<{ id: FormStep; title: string; description: string; help
   },
   {
     id: 'business',
-    title: '상담 조건',
-    description: '기업 규모와 원하는 상담 유형을 선택해 주세요.',
+    title: '심사 조건',
+    description: '기업 규모와 원하는 심사 유형을 선택해 주세요.',
     helper: '선택한 정보는 요약 카드에 바로 반영됩니다.',
   },
   {
     id: 'details',
     title: '상세 요청 및 동의',
     description: '필요한 내용을 남겨 주시면 더 정확히 도와드릴 수 있어요.',
-    helper: '개인정보 수집 및 이용에 동의해야 상담이 가능합니다.',
+    helper: '개인정보 수집 및 이용에 동의해야 심사가 가능합니다.',
   },
 ];
 
@@ -332,22 +332,22 @@ function quickConsultReducer(state: QuickConsultState, action: QuickConsultActio
 const PHONE_MIN_LENGTH = 10;
 
 const PRIVACY_DETAIL = [
-  '수집 항목: 이름, 연락처, 이메일, 상담 요청 내용',
-  '수집 목적: 상담 신청 확인 및 맞춤 상담 제공',
-  '보유 기간: 상담 종료 후 3년 보관 후 파기',
+  '수집 항목: 이름, 연락처, 이메일, 심사 요청 내용',
+  '수집 목적: 심사 신청 확인 및 맞춤 심사 제공',
+  '보유 기간: 심사 종료 후 3년 보관 후 파기',
   '문의: jjk_naraddon@naver.com / 02-6914-5567',
 ];
 
 const INFO_BENEFITS = [
   '기업 현황을 진단하고 적합한 정책자금·보증 상품을 추천합니다.',
-  '전담 심사관이 1:1로 상담 일정을 조율하고 서류를 안내합니다.',
-  '신청 후 24시간 이내에 상담 진행 상황을 안내합니다.',
+  '전담 심사관이 1:1로 심사 일정을 조율하고 서류를 안내합니다.',
+  '신청 후 24시간 이내에 심사 진행 상황을 안내합니다.',
 ];
 
 const INFO_HIGHLIGHTS = [
   { label: '운영시간', value: '평일 09:00 ~ 18:00' },
   { label: '응답 약속', value: '신청 후 24시간 이내 연락' },
-  { label: '상담 채널', value: '전화 · 방문 · 화상 상담' },
+  { label: '심사 채널', value: '전화 · 방문 · 화상 심사' },
 ];
 
 function getConsultTypeLabel(value: string) {
@@ -367,7 +367,7 @@ function validateContactStep(form: ConsultationFormState): ConsultationFormError
     nextErrors.region = '활동 지역을 입력해주세요.';
   }
   if (!form.desiredTime.trim()) {
-    nextErrors.desiredTime = '상담 희망 시간을 입력해주세요.';
+    nextErrors.desiredTime = '심사 희망 시간을 입력해주세요.';
   }
   const phoneDigits = form.phone.replace(/\D/g, '');
   if (!phoneDigits) {
@@ -384,7 +384,7 @@ function validateContactStep(form: ConsultationFormState): ConsultationFormError
 function validateBusinessStep(form: ConsultationFormState): ConsultationFormErrors {
   const nextErrors: ConsultationFormErrors = {};
   if (!form.consultType) {
-    nextErrors.consultType = '필요한 상담 유형을 선택해 주세요.';
+    nextErrors.consultType = '필요한 심사 유형을 선택해 주세요.';
   }
   if (!form.annualRevenue) {
     nextErrors.annualRevenue = '연 매출 규모를 선택해 주세요.';
@@ -393,7 +393,7 @@ function validateBusinessStep(form: ConsultationFormState): ConsultationFormErro
     nextErrors.employeeCount = '직원 수를 선택해 주세요.';
   }
   if (!form.preferredTime) {
-    nextErrors.preferredTime = '희망 상담 시기를 선택해 주세요.';
+    nextErrors.preferredTime = '희망 심사 시기를 선택해 주세요.';
   }
   return nextErrors;
 }
@@ -594,7 +594,7 @@ function StepActions({ canGoBack, isLastStep, isSubmitting, onPrev, onNext, vari
         onClick={!isLastStep ? onNext : undefined}
         disabled={isSubmitting}
       >
-        {isSubmitting ? '전송 중...' : isLastStep ? '상담 신청 보내기' : '다음 단계'}
+        {isSubmitting ? '전송 중...' : isLastStep ? '무료심사 신청 보내기' : '다음 단계'}
       </button>
     </div>
   );
@@ -610,16 +610,16 @@ function FormSummary({ form }: SummaryCardProps) {
     { label: '회사명', value: form.companyName || '미입력' },
     { label: '연락처', value: form.phone || '미입력' },
     { label: '지역', value: form.region || '미입력' },
-    { label: '상담 희망 시간', value: form.desiredTime || '미입력' },
+    { label: '심사 희망 시간', value: form.desiredTime || '미입력' },
     { label: '이메일', value: form.email || '미입력' },
-    { label: '상담 유형', value: getConsultTypeLabel(form.consultType) },
+    { label: '심사 유형', value: getConsultTypeLabel(form.consultType) },
     { label: '연 매출', value: ANNUAL_REVENUE_OPTIONS.find((item) => item.value === form.annualRevenue)?.label || '미선택' },
     { label: '직원 수', value: EMPLOYEE_COUNT_OPTIONS.find((item) => item.value === form.employeeCount)?.label || '미선택' },
-    { label: '상담 희망 시간 (선택)', value: PREFERRED_TIME_OPTIONS.find((item) => item.value === form.preferredTime)?.label || '미선택' },
+    { label: '심사 희망 시간 (선택)', value: PREFERRED_TIME_OPTIONS.find((item) => item.value === form.preferredTime)?.label || '미선택' },
   ];
 
   return (
-    <aside className={styles.summaryCard} aria-label="상담 신청 요약">
+    <aside className={styles.summaryCard} aria-label="심사 신청 요약">
       <span className={styles.summaryEyebrow}>신청 정보 요약</span>
       <h3 className={styles.summaryTitle}>현재 입력 내용</h3>
       <dl className={styles.summaryList}>
@@ -636,11 +636,11 @@ function FormSummary({ form }: SummaryCardProps) {
 
 function InfoCard() {
   return (
-    <section className={styles.infoCard} aria-label="상담 안내">
-      <span className={styles.summaryEyebrow}>상담 안내</span>
-      <h3 className={styles.infoTitle}>전담 상담팀이 도와드립니다</h3>
+    <section className={styles.infoCard} aria-label="심사 안내">
+      <span className={styles.summaryEyebrow}>심사 안내</span>
+      <h3 className={styles.infoTitle}>전담 심사팀이 도와드립니다</h3>
       <p className={styles.infoDescription}>
-        기본 정보를 남겨주시면 전담 매니저가 기업 현황을 확인하고 최적의 실행 전략을 제안합니다.
+        기본 정보를 남겨주시면 전담 심사관이 기업 현황을 확인하고 최적의 실행 전략을 제안합니다.
       </p>
       <ul className={styles.infoList}>
         {INFO_BENEFITS.map((item) => (
@@ -791,7 +791,7 @@ function QuickConsultForm() {
       }, 3200);
     } catch (error) {
       console.error('Submission error:', error);
-      window.alert('상담 신청 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      window.alert('심사 신청 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     } finally {
       dispatch({ type: 'SET_SUBMITTING', value: false });
     }
@@ -942,7 +942,7 @@ function QuickConsultForm() {
       <div className={styles.fieldSingle}>
         <div className={styles.field}>
           <label htmlFor="consult-desired-time" className={styles.fieldLabel}>
-            상담 희망 시간<span className={styles.requiredMark}>*</span>
+            심사 희망 시간<span className={styles.requiredMark}>*</span>
           </label>
           <input
             id="consult-desired-time"
@@ -970,7 +970,7 @@ function QuickConsultForm() {
     <div className={styles.stepContent}>
       <div className={styles.field}>
         <label htmlFor="consult-type" className={styles.fieldLabel}>
-          필요한 상담 유형<span className={styles.requiredMark}>*</span>
+          필요한 심사 유형<span className={styles.requiredMark}>*</span>
         </label>
         <select
           id="consult-type"
@@ -1048,7 +1048,7 @@ function QuickConsultForm() {
       </div>
       <div className={styles.field}>
         <label htmlFor="consult-preferred-time" className={styles.fieldLabel}>
-          희망 상담 시기<span className={styles.requiredMark}>*</span>
+          희망 심사 시기<span className={styles.requiredMark}>*</span>
         </label>
         <select
           id="consult-preferred-time"
@@ -1081,7 +1081,7 @@ function QuickConsultForm() {
       <div className={styles.field}>
         <div className={styles.fieldLabelRow}>
           <label htmlFor="consult-message" className={styles.fieldLabel}>
-            상담 요청 내용
+            심사 요청 내용
           </label>
           <span className={styles.optionalBadge}>선택</span>
         </div>
@@ -1152,8 +1152,8 @@ function QuickConsultForm() {
                 <path d="M8 12L11 15L16 9" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <h3 className={styles.successTitle}>상담 신청이 접수되었습니다!</h3>
-            <p className={styles.successDescription}>평일 기준 24시간 이내에 담당자가 연락드립니다. 빠르게 도와드릴게요.</p>
+            <h3 className={styles.successTitle}>무료심사 신청이 접수되었습니다!</h3>
+            <p className={styles.successDescription}>평일 기준 24시간 이내에 담당 심사관이 연락드립니다. 1차 무료심사 후 2차 대면상담으로 진행됩니다.</p>
             <div className={styles.successActions}>
               <a href="tel:0269145567" className={styles.successButton}>
                 <i className="fas fa-phone" aria-hidden="true" /> 바로 전화 연결
@@ -1224,7 +1224,7 @@ function CtaSection() {
         <div className="consultation-request__cta">
           <div className="consultation-request__cta-banner">
             <div className="consultation-request__cta-content">
-              <p className="consultation-request__cta-eyebrow">정책자금 상담 지원</p>
+              <p className="consultation-request__cta-eyebrow">정책자금 무료심사 지원</p>
               <h3 id="consultation-request-cta-title" className="consultation-request__cta-title">
                 지금 바로 전문가와
                 <br />
@@ -1237,7 +1237,7 @@ function CtaSection() {
               </p>
             </div>
             <Link href="/consultation-request#form-section" className="consultation-request__cta-button">
-              무료 상담 신청
+              무료 심사 시작하기
             </Link>
           </div>
         </div>
@@ -1258,10 +1258,10 @@ function MobileConsultationBar({ visible, onClick }: { visible: boolean; onClick
       type="button"
       className={classNames('consultation-request__mobile-bar', visible && 'consultation-request__mobile-bar--visible')}
       onClick={onClick}
-      aria-label="상담 신청 폼으로 이동"
+      aria-label="무료심사 신청 폼으로 이동"
     >
       <i className="fas fa-headset" aria-hidden="true" />
-      <span className="consultation-request__mobile-bar-label">상담 신청</span>
+      <span className="consultation-request__mobile-bar-label">무료심사 신청</span>
     </button>
   );
 }
@@ -1273,7 +1273,7 @@ function ConsultationArrivalToast({ visible }: { visible: boolean }) {
       aria-live="polite"
       className={classNames('consultation-request__arrival-toast', visible && 'consultation-request__arrival-toast--visible')}
     >
-      상담 신청 접수 중
+      무료심사 신청 접수 중
     </div>
   );
 }
