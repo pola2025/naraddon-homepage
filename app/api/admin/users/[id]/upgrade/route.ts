@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/auth-options';
 import clientPromise from '@/lib/mongodb-client';
 import { AdminRoleUpgrade, AdminActionType, AdminLogSeverity } from '@/types/admin-log.types';
+import { ObjectId } from 'mongodb';
 
 // POST /api/admin/users/[id]/upgrade - 사용자를 관리자로 승격
 export async function POST(
@@ -36,8 +37,14 @@ export async function POST(
     const client = await clientPromise;
     const db = client.db('naraddon');
 
-    // 대상 사용자 조회
-    const targetUser = await db.collection('users').findOne({ email: userId });
+    // 대상 사용자 조회 (ObjectId 또는 email로 검색)
+    let targetUser;
+    if (ObjectId.isValid(userId)) {
+      targetUser = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    }
+    if (!targetUser) {
+      targetUser = await db.collection('users').findOne({ email: userId });
+    }
 
     if (!targetUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -199,8 +206,14 @@ export async function DELETE(
     const client = await clientPromise;
     const db = client.db('naraddon');
 
-    // 대상 사용자 조회
-    const targetUser = await db.collection('users').findOne({ email: userId });
+    // 대상 사용자 조회 (ObjectId 또는 email로 검색)
+    let targetUser;
+    if (ObjectId.isValid(userId)) {
+      targetUser = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    }
+    if (!targetUser) {
+      targetUser = await db.collection('users').findOne({ email: userId });
+    }
 
     if (!targetUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
