@@ -9,6 +9,7 @@ interface User {
   email: string;
   name?: string;
   role: 'admin' | 'examiner' | 'user';
+  isAdmin?: boolean;  // 관리자 권한 플래그 (role과 별도)
   permissions?: string[];
 }
 
@@ -34,6 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: session.user.email!,
         name: session.user.name || undefined,
         role: (session.user as any).role || 'user',
+        isAdmin: (session.user as any).isAdmin || false,  // isAdmin 플래그 추가
         permissions: (session.user as any).permissions || [],
       });
     } else {
@@ -43,18 +45,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const hasPermission = (permission: string): boolean => {
     if (!user) return false;
-    if (user.role === 'admin') return true;
+    if (user.role === 'admin' || user.isAdmin) return true;  // isAdmin도 체크
     return user.permissions?.includes(permission) || false;
   };
 
   const hasRole = (role: string): boolean => {
     if (!user) return false;
+    // isAdmin 플래그가 있으면 admin 역할로 간주
+    if (role === 'admin' && user.isAdmin) return true;
     return user.role === role || (user.role === 'admin' && role !== 'admin');
   };
 
   const checkAccess = (resource: string, action: string): boolean => {
     if (!user) return false;
-    if (user.role === 'admin') return true;
+    if (user.role === 'admin' || user.isAdmin) return true;  // isAdmin도 체크
 
     const permission = `${resource}:${action}`;
     return hasPermission(permission);
