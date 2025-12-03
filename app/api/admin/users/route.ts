@@ -22,32 +22,36 @@ export async function GET(request: NextRequest) {
 
     // 관리자 권한 확인
     let userRole = (session.user as any)?.role;
-    console.log('[Admin Users API] Session role:', userRole, 'Email:', session.user.email);
+    let userIsAdmin = (session.user as any)?.isAdmin;
+    console.log('[Admin Users API] Session role:', userRole, 'isAdmin:', userIsAdmin, 'Email:', session.user.email);
 
     // 🔥 HOTFIX: role이 undefined인 경우 DB에서 직접 조회
-    if (!userRole) {
-      console.warn('[Admin Users API] Role is undefined, fetching from DB');
+    if (!userRole || userIsAdmin === undefined) {
+      console.warn('[Admin Users API] Role/isAdmin is undefined, fetching from DB');
       try {
         const client = await clientPromise;
         const db = client.db('naraddon');
         const dbUser = await db.collection('users').findOne(
           { email: session.user.email },
-          { projection: { role: 1 } }
+          { projection: { role: 1, isAdmin: 1 } }
         );
 
-        if (dbUser?.role) {
-          userRole = dbUser.role;
-          console.log('[Admin Users API] ✅ Role from DB:', userRole);
+        if (dbUser) {
+          userRole = dbUser.role || userRole;
+          userIsAdmin = dbUser.isAdmin || false;
+          console.log('[Admin Users API] ✅ From DB - Role:', userRole, 'isAdmin:', userIsAdmin);
         } else {
-          console.error('[Admin Users API] ❌ No role found in DB for:', session.user.email);
+          console.error('[Admin Users API] ❌ No user found in DB for:', session.user.email);
         }
       } catch (dbError) {
         console.error('[Admin Users API] ❌ DB query failed:', dbError);
       }
     }
 
-    if (userRole !== 'admin' && userRole !== 'super_admin') {
-      console.log('[Admin Users API] Forbidden - insufficient permissions. Role:', userRole);
+    // admin, super_admin 역할이거나 isAdmin이 true인 경우 허용
+    const hasAdminAccess = userRole === 'admin' || userRole === 'super_admin' || userIsAdmin === true;
+    if (!hasAdminAccess) {
+      console.log('[Admin Users API] Forbidden - insufficient permissions. Role:', userRole, 'isAdmin:', userIsAdmin);
       return NextResponse.json({
         error: 'Forbidden',
         message: '관리자 권한이 필요합니다.',
@@ -116,6 +120,7 @@ export async function GET(request: NextRequest) {
           mobile: user.mobile, // 네이버 OAuth에서 받은 전화번호
           role: user.role || 'user',
           status: user.status || 'active',
+          isAdmin: user.isAdmin || false, // 관리자 권한 플래그
           profile: user.profile || {},
           examinerProfile: user.examinerProfile || user.auditorProfile, // 하위 호환성 지원
           expertProfile: user.expertProfile,
