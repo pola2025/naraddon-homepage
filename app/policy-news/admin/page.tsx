@@ -43,8 +43,10 @@ export default function PolicyNewsAdminPage() {
   const [newViews, setNewViews] = useState(0);
   const [updatingViews, setUpdatingViews] = useState(false);
 
-  // 관리자 권한 체크
-  const isAdmin = session?.user?.role === 'admin' || session?.user?.role === 'super_admin';
+  // 관리자 권한 체크 (isAdmin 플래그 또는 role이 admin/super_admin)
+  const isAdmin = (session?.user as any)?.isAdmin === true ||
+                  session?.user?.role === 'admin' ||
+                  session?.user?.role === 'super_admin';
 
   useEffect(() => {
     if (status === 'unauthenticated') {
