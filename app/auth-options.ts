@@ -205,20 +205,21 @@ export const authOptions: NextAuthOptions = {
         token.email = user.email;
       }
 
-      // 🔥 FIX: MongoDB에서 role, mobile, examinerId 조회하여 token에 저장
+      // 🔥 FIX: MongoDB에서 role, mobile, isAdmin, examinerId 조회하여 token에 저장
       if (token.email) {
         try {
           const client = await clientPromise;
           const db = client.db('naraddon');
           const dbUser = await db.collection('users').findOne(
             { email: token.email as string },
-            { projection: { role: 1, mobile: 1, _id: 1 } }
+            { projection: { role: 1, mobile: 1, isAdmin: 1, _id: 1 } }
           );
           if (dbUser) {
             token.role = dbUser.role || 'user';
             token.id = dbUser._id.toString();
-            token.mobile = dbUser.mobile || null; // 🔥 mobile 정보 추가
-            console.log('[JWT Callback] Role set from DB:', token.role, 'Mobile:', token.mobile ? 'exists' : 'none');
+            token.mobile = dbUser.mobile || null;
+            token.isAdmin = dbUser.isAdmin || false; // 🔥 관리자 권한 플래그 추가
+            console.log('[JWT Callback] Role:', token.role, 'isAdmin:', token.isAdmin, 'Mobile:', token.mobile ? 'exists' : 'none');
 
             // 🔥 심사관 여부 확인 및 examinerId 조회 (브랜드 페이지 접근용)
             // expert-examiners 테이블에 있으면 심사관으로 간주 (role 무관)
@@ -269,13 +270,16 @@ export const authOptions: NextAuthOptions = {
         // 🔥 mobile 정보 포함 (전화번호 모달 표시 여부 판단용)
         (session.user as any).mobile = token.mobile || null;
 
+        // 🔥 관리자 권한 플래그 포함
+        (session.user as any).isAdmin = token.isAdmin || false;
+
         // 🔥 심사관인 경우 examinerId 포함 (브랜드 페이지 접근용)
         if (token.examinerId) {
           (session.user as any).examinerId = token.examinerId;
           console.log('[Session Callback] ExaminerId from token:', token.examinerId);
         }
 
-        console.log('[Session Callback] Role from token:', token.role, 'Mobile:', token.mobile ? 'exists' : 'none');
+        console.log('[Session Callback] Role:', token.role, 'isAdmin:', token.isAdmin, 'Mobile:', token.mobile ? 'exists' : 'none');
       }
       return session;
     },
