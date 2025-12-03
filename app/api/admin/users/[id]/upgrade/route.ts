@@ -16,11 +16,13 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // super_admin 또는 admin만 다른 사용자를 관리자로 승격 가능
+    // super_admin, admin 역할이거나 isAdmin 플래그가 있는 사용자만 권한 부여 가능
     const currentRole = (session.user as any)?.role;
-    if (currentRole !== 'super_admin' && currentRole !== 'admin') {
+    const currentIsAdmin = (session.user as any)?.isAdmin;
+    const hasAdminAccess = currentRole === 'super_admin' || currentRole === 'admin' || currentIsAdmin === true;
+    if (!hasAdminAccess) {
       return NextResponse.json(
-        { error: 'Only super admin or admin can upgrade users to admin' },
+        { error: 'Only admin can upgrade users to admin' },
         { status: 403 }
       );
     }
@@ -185,11 +187,13 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // super_admin 또는 admin만 관리자 권한 해제 가능
+    // super_admin, admin 역할이거나 isAdmin 플래그가 있는 사용자만 권한 해제 가능
     const currentRole = (session.user as any)?.role;
-    if (currentRole !== 'super_admin' && currentRole !== 'admin') {
+    const currentIsAdmin = (session.user as any)?.isAdmin;
+    const hasAdminAccess = currentRole === 'super_admin' || currentRole === 'admin' || currentIsAdmin === true;
+    if (!hasAdminAccess) {
       return NextResponse.json(
-        { error: 'Only super admin or admin can revoke admin privileges' },
+        { error: 'Only admin can revoke admin privileges' },
         { status: 403 }
       );
     }
