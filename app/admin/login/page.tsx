@@ -13,9 +13,9 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  // 이미 admin 권한이 있으면 대시보드로 자동 이동
+  // 이미 admin 권한이 있으면 대시보드로 자동 이동 (isAdmin 플래그 또는 role === 'admin')
   useEffect(() => {
-    if (session && (session.user as any)?.role === 'admin') {
+    if (session && ((session.user as any)?.isAdmin || (session.user as any)?.role === 'admin')) {
       router.replace('/admin/dashboard');
     }
   }, [session, router]);
