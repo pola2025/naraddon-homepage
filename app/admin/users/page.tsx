@@ -52,7 +52,8 @@ export default function UsersManagementPage() {
           status: user.status || UserStatus.ACTIVE,
           provider: user.provider || 'naver',
           profile: user.profile || {},
-          mobile: user.mobile || null, // 🔥 전화번호 포함
+          mobile: user.mobile || null,
+          isAdmin: user.isAdmin || false,
           createdAt: new Date(user.createdAt),
           updatedAt: new Date(user.updatedAt),
           lastLoginAt: user.lastLoginAt ? new Date(user.lastLoginAt) : undefined
@@ -147,10 +148,18 @@ export default function UsersManagementPage() {
           [UserRole.EXPERT]: 'bg-blue-100 text-blue-800',
           [UserRole.USER]: 'bg-gray-100 text-gray-800'
         };
+        const isAdmin = (user as any).isAdmin;
         return (
-          <span className={`inline-flex px-2 text-xs font-semibold rounded-full ${roleColors[user.role]}`}>
-            {getRoleLabel(user.role)}
-          </span>
+          <div className="flex items-center gap-1">
+            <span className={`inline-flex px-2 text-xs font-semibold rounded-full ${roleColors[user.role]}`}>
+              {getRoleLabel(user.role)}
+            </span>
+            {isAdmin && (
+              <span className="inline-flex px-2 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                관리자
+              </span>
+            )}
+          </div>
         );
       }
     },
@@ -441,19 +450,19 @@ export default function UsersManagementPage() {
               >
                 등급변경
               </button>
-              {(user.role === UserRole.USER || user.role === UserRole.EXAMINER || user.role === UserRole.EXPERT) && (
+              {!(user as any).isAdmin && user.role !== UserRole.ADMIN && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleUpgradeToAdmin(user.id);
                   }}
                   className="text-red-600 hover:text-red-900 text-sm font-medium"
-                  title="관리자로 승격"
+                  title="관리자 권한 부여"
                 >
-                  관리자승격
+                  관리자권한
                 </button>
               )}
-              {user.role === UserRole.ADMIN && (
+              {((user as any).isAdmin || user.role === UserRole.ADMIN) && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();

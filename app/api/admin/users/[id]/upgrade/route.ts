@@ -50,10 +50,10 @@ export async function POST(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // 이미 관리자인지 확인
-    if (targetUser.role === 'admin' || targetUser.role === 'super_admin') {
+    // 이미 관리자 권한이 있는지 확인
+    if (targetUser.isAdmin || targetUser.role === 'super_admin') {
       return NextResponse.json(
-        { error: 'User is already an admin' },
+        { error: 'User already has admin privileges' },
         { status: 400 }
       );
     }
@@ -88,12 +88,12 @@ export async function POST(
 
     try {
       await session_db.withTransaction(async () => {
-        // 1. 사용자 역할 업데이트
+        // 1. 사용자에게 관리자 권한 추가 (기존 role 유지, isAdmin 플래그 추가)
         await db.collection('users').updateOne(
-          { email: userId },
+          { _id: targetUser._id },
           {
             $set: {
-              role: 'admin',
+              isAdmin: true,
               adminSince: new Date(),
               adminUpgradedBy: session.user?.email,
               adminPermissions: upgradeRecord.permissions,
@@ -227,20 +227,20 @@ export async function DELETE(
       );
     }
 
-    // 관리자가 아닌 경우
-    if (targetUser.role !== 'admin') {
+    // 관리자 권한이 없는 경우
+    if (!targetUser.isAdmin) {
       return NextResponse.json(
-        { error: 'User is not an admin' },
+        { error: 'User does not have admin privileges' },
         { status: 400 }
       );
     }
 
-    // 권한 해제 처리
+    // 권한 해제 처리 (기존 role 유지, isAdmin만 제거)
     await db.collection('users').updateOne(
-      { email: userId },
+      { _id: targetUser._id },
       {
         $set: {
-          role: 'user',
+          isAdmin: false,
           updatedAt: new Date()
         },
         $unset: {
