@@ -19,8 +19,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 세션의 role 대신 MongoDB에서 직접 최신 role 조회 (캐시 우회)
+    // 세션의 role 대신 MongoDB에서 직접 최신 role, isAdmin 조회 (캐시 우회)
     let userRole = (session.user as any)?.role;
+    let isAdmin = (session.user as any)?.isAdmin || false;
 
     if (session.user?.email) {
       try {
@@ -29,17 +30,19 @@ export async function GET(request: NextRequest) {
         const user = await db.collection('users').findOne({ email: session.user.email });
 
         console.log('[check-session] Email:', session.user.email);
-        console.log('[check-session] User from DB:', user ? { email: user.email, role: user.role } : 'NOT FOUND');
+        console.log('[check-session] User from DB:', user ? { email: user.email, role: user.role, isAdmin: user.isAdmin } : 'NOT FOUND');
 
-        if (user && user.role) {
-          userRole = user.role;
-          console.log('[check-session] Role set to:', userRole);
-        } else {
-          console.log('[check-session] No role found in DB, using session role:', userRole);
+        if (user) {
+          if (user.role) {
+            userRole = user.role;
+          }
+          // isAdmin 플래그 확인
+          isAdmin = user.isAdmin === true;
+          console.log('[check-session] Role:', userRole, 'isAdmin:', isAdmin);
         }
       } catch (dbError) {
         console.error('[check-session] MongoDB query error:', dbError);
-        // DB 조회 실패 시 세션의 role 사용
+        // DB 조회 실패 시 세션 값 사용
       }
     }
 
@@ -50,7 +53,8 @@ export async function GET(request: NextRequest) {
         user: {
           email: session.user?.email,
           name: session.user?.name,
-          role: userRole
+          role: userRole,
+          isAdmin: isAdmin
         }
       },
       { status: 200 }

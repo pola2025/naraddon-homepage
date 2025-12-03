@@ -89,16 +89,18 @@ export default function AdminLayout({
         if (res.ok) {
           const data = await res.json();
           const userRole = data.user?.role;
-          console.log('[AdminLayout] User role:', userRole);
+          const userIsAdmin = data.user?.isAdmin;
+          console.log('[AdminLayout] User role:', userRole, 'isAdmin:', userIsAdmin);
 
-          if (userRole === 'admin' || userRole === 'super_admin') {
+          // role이 admin/super_admin이거나 isAdmin 플래그가 true면 허용
+          if (userRole === 'admin' || userRole === 'super_admin' || userIsAdmin === true) {
             setIsAuthorized(true);
             setIsLoading(false);
             authCheckedRef.current = true;
             currentPathRef.current = pathname;
             retryCountRef.current = 0; // 성공 시 카운터 리셋
           } else {
-            console.log('[AdminLayout] Not authorized (role:', userRole, '), redirecting to login');
+            console.log('[AdminLayout] Not authorized (role:', userRole, 'isAdmin:', userIsAdmin, '), redirecting to login');
             router.push('/admin/login');
             setIsLoading(false);
             authCheckedRef.current = true; // 리다이렉트 후 재시도 방지
