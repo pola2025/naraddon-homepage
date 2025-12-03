@@ -551,6 +551,130 @@ app/api/admin/
 
 ---
 
-*문서 버전: 1.1*
+---
+
+## 13. 역할별 접근 권한 상세 정의
+
+### 13.1 상담 흐름 (확정)
+
+```
+일반사용자 → 무료심사 신청
+      ↓
+관리자 → 접수 확인 → 심사관/전문가에게 배정
+      ↓
+심사관/전문가 → 본인 대시보드에서 배정된 건만 처리
+```
+
+**핵심 원칙:**
+- 심사관/전문가는 상담을 "직접 접수"하지 않음
+- 관리자가 상담을 접수하고 적절한 담당자에게 배정
+- 각 담당자는 본인에게 배정된 건만 접근 가능
+
+### 13.2 최종 역할별 권한 매트릭스
+
+| 기능 | 관리자 | 기업심사관 | 전문가 | 일반사용자 |
+|------|--------|-----------|--------|-----------|
+| **관리자 대시보드** | ✅ 전체 | ❌ | ❌ | ❌ |
+| **심사관 대시보드** | ✅ 전체 | ✅ 본인만 | ❌ | ❌ |
+| **전문가 대시보드** | ✅ 전체 | ❌ | ✅ 본인만 | ❌ |
+| **정책분석 작성** | ✅ | ✅ | ❌ | ❌ |
+| **정책소식 작성** | ✅ | ✅ | ❌ | ❌ |
+| **사용자 관리** | ✅ | ❌ | ❌ | ❌ |
+| **역할 부여** | ✅ super_admin만 | ❌ | ❌ | ❌ |
+| **상담 접수/배정** | ✅ | ❌ | ❌ | ❌ |
+| **배정된 상담 처리** | ✅ 전체 | ✅ 배정건 | ✅ 배정건 | ❌ |
+| **무료심사 신청** | ✅ | ✅ | ✅ | ✅ |
+| **본인 신청 상담 조회** | ✅ | ✅ | ✅ | ✅ 본인건 |
+| **게시글 조회** | ✅ | ✅ | ✅ | ✅ |
+
+### 13.3 핵심 접근 제어 함수
+
+```typescript
+// lib/auth/role-check.ts
+
+// 상담 정보 인터페이스
+interface ConsultationAccess {
+  applicantId: string;          // 상담 신청자 ID (일반사용자)
+  assignedExaminerId?: string;  // 배정된 심사관 ID (관리자가 배정)
+  assignedExpertId?: string;    // 배정된 전문가 ID (관리자가 배정)
+}
+
+// 상담 접근 권한 체크
+canAccessConsultation(user, consultation: ConsultationAccess)
+// - 관리자: 모든 상담 접근 (접수/배정 담당)
+// - 심사관: 본인에게 배정된 상담만 접근
+// - 전문가: 본인에게 배정된 상담만 접근
+// - 일반사용자: 본인이 신청한 상담만 접근
+
+// 심사관 대시보드 접근
+canAccessExaminerDashboard(user, targetExaminerId)
+// - 관리자: 모든 심사관 대시보드
+// - 심사관: 본인 대시보드만
+
+// 전문가 대시보드 접근
+canAccessExpertDashboard(user, targetExpertId)
+// - 관리자: 모든 전문가 대시보드
+// - 전문가: 본인 대시보드만
+```
+
+### 13.4 ROLE_PERMISSIONS 매트릭스
+
+```typescript
+const ROLE_PERMISSIONS = {
+  // 관리자 - 상담 접수/배정 총괄
+  admin: {
+    adminDashboard: true,
+    allExaminerDashboards: true,
+    allExpertDashboards: true,
+    allConsultations: true,           // 모든 상담 접근 (접수/배정/관리)
+    consultationAssignment: true,     // 심사관/전문가에게 상담 배정
+    userManagement: true,
+    contentManagement: true,
+    roleAssignment: false,            // super_admin만
+  },
+  // 기업심사관 - 상담 직접 접수 안함, 관리자가 배정
+  examiner: {
+    adminDashboard: false,
+    ownExaminerDashboard: true,
+    otherExaminerDashboards: false,
+    contentWrite: true,               // 정책분석, 정책소식 작성
+    assignedConsultations: true,      // 관리자가 배정한 상담만 접근
+    directConsultationAccept: false,  // 직접 상담 접수 불가
+  },
+  // 전문가 - 상담 직접 접수 안함, 관리자가 배정
+  expert: {
+    adminDashboard: false,
+    ownExpertDashboard: true,
+    otherExpertDashboards: false,
+    assignedConsultations: true,      // 관리자가 배정한 상담만 접근
+    directConsultationAccept: false,  // 직접 상담 접수 불가
+  },
+  // 일반 사용자
+  user: {
+    adminDashboard: false,
+    viewContent: true,
+    submitConsultation: true,         // 무료심사 신청 가능
+    ownConsultationHistory: true,     // 본인 신청 건 진행상황 확인
+  },
+};
+```
+
+### 13.5 확인 완료 사항
+
+**✅ 확정된 내용:**
+- 상담 흐름: 일반사용자 신청 → 관리자 접수/배정 → 담당자 처리
+- 심사관/전문가는 직접 상담 접수 불가 (관리자가 배정)
+- 각 역할은 본인에게 배정/관련된 리소스만 접근
+
+**⚠️ 추후 확인 필요 사항:**
+
+1. **기업심사관 + 전문가 겸직**
+   - 현재: 하나의 role만 가질 수 있음 (`examiner` 또는 `expert`)
+   - 질문: 한 사용자가 심사관이면서 전문가일 수 있나요?
+   - 제안: 필요시 `roles: ['examiner', 'expert']` 배열로 변경
+
+---
+
+*문서 버전: 1.3*
 *작성일: 2025-12-03*
-*업데이트: 전체 역할 권한 체계화 추가*
+*업데이트: 상담 흐름 확정 및 canAccessConsultation 함수 시그니처 변경*

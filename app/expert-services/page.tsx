@@ -337,7 +337,7 @@ export default function ExpertServicesPage() {
             <p className="text-sm font-semibold uppercase tracking-widest text-blue-600">
               Consultation
             </p>
-            <h2 className="mt-2 text-3xl font-bold text-slate-900">전문가 무료심사 신청서</h2>
+            <h2 className="mt-2 text-3xl font-bold text-slate-900">전문가 무료 상담 신청서</h2>
             <p className="mt-3 text-slate-600">
               연락 받을 정보를 남겨주시면 하루 이내 맞춤형 전문가를 매칭해 드립니다.
             </p>
