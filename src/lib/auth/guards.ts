@@ -3,6 +3,13 @@ import { authOptions } from '@/app/auth-options';
 import { NextResponse } from 'next/server';
 import { loadEffectivePermissions } from '@/lib/rbac/permissions';
 import { recordPermissionGranted, recordPermissionDenied } from '@/lib/rbac/monitoring';
+import {
+  isAdmin as checkIsAdmin,
+  isSuperAdmin as checkIsSuperAdmin,
+  isExaminer as checkIsExaminer,
+  isExpert as checkIsExpert,
+  canWriteContent,
+} from '@/lib/auth/role-check';
 
 /**
  * RBAC 기반 인증/권한 가드
@@ -10,6 +17,7 @@ import { recordPermissionGranted, recordPermissionDenied } from '@/lib/rbac/moni
  * @purpose DB 기반 역할/퍼미션 검증 + Redis 캐시
  * @context 역할 변경 즉시 반영, JWT 토큰 의존 최소화
  * @security 환경변수만 사용, 하드코딩 금지
+ * @note 역할 판단은 role-check.ts 단일 소스 사용
  */
 
 export interface AuthUser {
@@ -114,9 +122,9 @@ export async function requireLinkedAccount(): Promise<AuthUser> {
 export async function requirePerm(permission: string): Promise<AuthUser> {
   const user = await requireLogin();
 
-  // isAdmin 플래그가 true면 모든 권한 허용
-  if (user.isAdmin === true) {
-    console.log('[requirePerm] Permission granted (isAdmin):', {
+  // 관리자는 모든 권한 허용 (role-check.ts 사용)
+  if (checkIsAdmin(user)) {
+    console.log('[requirePerm] Permission granted (admin):', {
       email: user.email,
       permission,
     });
@@ -197,13 +205,13 @@ export async function requirePolicyWriter(): Promise<AuthUser> {
  *
  * @purpose 관리 기능 접근
  * @returns 사용자 정보 또는 403 에러
- * @note isAdmin 플래그 또는 role이 admin/super_admin인 경우 허용
+ * @note role-check.ts의 isAdmin() 사용
  */
 export async function requireAdmin(): Promise<AuthUser> {
   const user = await requireLogin();
 
-  // isAdmin 플래그가 true이거나 role이 admin/super_admin이면 허용
-  if (user.isAdmin === true || user.role === 'admin' || user.role === 'super_admin') {
+  // role-check.ts의 통합 함수 사용
+  if (checkIsAdmin(user)) {
     console.log('[requireAdmin] Access granted:', {
       email: user.email,
       role: user.role,
@@ -225,9 +233,18 @@ export async function requireAdmin(): Promise<AuthUser> {
  *
  * @purpose 역할 부여 등 민감한 기능
  * @returns 사용자 정보 또는 403 에러
+ * @note role-check.ts의 isSuperAdmin() 사용
  */
 export async function requireSuperAdmin(): Promise<AuthUser> {
-  return requireRole(['super_admin']);
+  const user = await requireLogin();
+
+  if (checkIsSuperAdmin(user)) {
+    console.log('[requireSuperAdmin] Access granted:', { email: user.email });
+    return user;
+  }
+
+  console.warn('[requireSuperAdmin] Access denied:', { email: user.email, role: user.role });
+  throw new Error('FORBIDDEN');
 }
 
 /**
@@ -252,12 +269,69 @@ export async function checkPermission(
 }
 
 /**
- * 기업심사관 역할 체크
+ * 심사관 전용
+ *
+ * @purpose 심사관 기능 접근 (정책분석 작성 등)
+ * @returns 사용자 정보 또는 403 에러
+ * @note role-check.ts의 isExaminer() 사용 (관리자도 포함)
+ */
+export async function requireExaminer(): Promise<AuthUser> {
+  const user = await requireLogin();
+
+  if (checkIsExaminer(user)) {
+    console.log('[requireExaminer] Access granted:', { email: user.email, role: user.role });
+    return user;
+  }
+
+  console.warn('[requireExaminer] Access denied:', { email: user.email, role: user.role });
+  throw new Error('FORBIDDEN');
+}
+
+/**
+ * 전문가 전용
+ *
+ * @purpose 전문가 기능 접근 (전문가 대시보드 등)
+ * @returns 사용자 정보 또는 403 에러
+ * @note role-check.ts의 isExpert() 사용 (관리자도 포함)
+ */
+export async function requireExpert(): Promise<AuthUser> {
+  const user = await requireLogin();
+
+  if (checkIsExpert(user)) {
+    console.log('[requireExpert] Access granted:', { email: user.email, role: user.role });
+    return user;
+  }
+
+  console.warn('[requireExpert] Access denied:', { email: user.email, role: user.role });
+  throw new Error('FORBIDDEN');
+}
+
+/**
+ * 콘텐츠 작성자 전용 (정책분석, 정책소식)
+ *
+ * @purpose 콘텐츠 작성 권한 체크
+ * @returns 사용자 정보 또는 403 에러
+ * @note 관리자 또는 심사관만 작성 가능
+ */
+export async function requireContentWriter(): Promise<AuthUser> {
+  const user = await requireLogin();
+
+  if (canWriteContent(user)) {
+    console.log('[requireContentWriter] Access granted:', { email: user.email, role: user.role });
+    return user;
+  }
+
+  console.warn('[requireContentWriter] Access denied:', { email: user.email, role: user.role });
+  throw new Error('FORBIDDEN');
+}
+
+/**
+ * 기업심사관 역할 체크 (Boolean 반환, 하위 호환성)
  *
  * @purpose 기업심사관인지 확인 (게시글 작성 제한용)
  * @param user 사용자 정보 (session.user)
  * @returns boolean - 기업심사관이면 true
- * @note 기업심사관은 댓글 작성은 가능하지만, 똔톡/묻고답하기 게시글 작성 불가
+ * @deprecated checkIsExaminer() 사용 권장
  */
 export function isExaminer(user: any): boolean {
   return user?.role === 'examiner';

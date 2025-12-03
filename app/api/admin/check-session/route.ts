@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/auth-options';
 import clientPromise from '@/lib/mongodb-client';
+import {
+  isAdmin,
+  isExaminer,
+  isExpert,
+  getRoleLabel,
+} from '@/lib/auth/role-check';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     // 세션의 role 대신 MongoDB에서 직접 최신 role, isAdmin 조회 (캐시 우회)
     let userRole = (session.user as any)?.role;
-    let isAdmin = (session.user as any)?.isAdmin || false;
+    let isAdminFlag = (session.user as any)?.isAdmin || false;
 
     if (session.user?.email) {
       try {
@@ -37,14 +43,17 @@ export async function GET(request: NextRequest) {
             userRole = user.role;
           }
           // isAdmin 플래그 확인
-          isAdmin = user.isAdmin === true;
-          console.log('[check-session] Role:', userRole, 'isAdmin:', isAdmin);
+          isAdminFlag = user.isAdmin === true;
+          console.log('[check-session] Role:', userRole, 'isAdmin:', isAdminFlag);
         }
       } catch (dbError) {
         console.error('[check-session] MongoDB query error:', dbError);
         // DB 조회 실패 시 세션 값 사용
       }
     }
+
+    // role-check.ts 기반 역할 판단
+    const userForCheck = { role: userRole, isAdmin: isAdminFlag };
 
     return NextResponse.json(
       {
@@ -54,7 +63,14 @@ export async function GET(request: NextRequest) {
           email: session.user?.email,
           name: session.user?.name,
           role: userRole,
-          isAdmin: isAdmin
+          isAdmin: isAdminFlag,
+          // role-check.ts 기반 역할 정보
+          permissions: {
+            isAdmin: isAdmin(userForCheck),
+            isExaminer: isExaminer(userForCheck),
+            isExpert: isExpert(userForCheck),
+          },
+          roleLabel: getRoleLabel(userForCheck),
         }
       },
       { status: 200 }
