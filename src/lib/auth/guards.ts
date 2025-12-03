@@ -17,6 +17,7 @@ export interface AuthUser {
   email: string;
   name: string;
   role: string; // 하위 호환성 유지 (deprecated)
+  isAdmin?: boolean; // 관리자 권한 플래그 (role과 별도)
 }
 
 /**
@@ -72,11 +73,13 @@ export async function requireLogin(): Promise<AuthUser> {
     email: session.user.email,
     name: session.user.name || '',
     role: (session.user as any).role || 'user', // 하위 호환성
+    isAdmin: (session.user as any).isAdmin || false, // 관리자 플래그
   };
 
   console.log('[requireLogin] User authenticated:', {
     email: user.email,
     userId: user.id,
+    isAdmin: user.isAdmin,
   });
 
   return user;
@@ -111,6 +114,15 @@ export async function requireLinkedAccount(): Promise<AuthUser> {
 export async function requirePerm(permission: string): Promise<AuthUser> {
   const user = await requireLogin();
 
+  // isAdmin 플래그가 true면 모든 권한 허용
+  if (user.isAdmin === true) {
+    console.log('[requirePerm] Permission granted (isAdmin):', {
+      email: user.email,
+      permission,
+    });
+    return user;
+  }
+
   // DB에서 사용자 권한 로드 (Redis 캐시 포함)
   const permissions = await loadEffectivePermissions(user.id);
 
@@ -125,6 +137,7 @@ export async function requirePerm(permission: string): Promise<AuthUser> {
       userId: user.id,
       requiredPerm: permission,
       userPermsCount: permissions.size,
+      isAdmin: user.isAdmin,
     });
 
     throw new Error('FORBIDDEN');
@@ -184,9 +197,27 @@ export async function requirePolicyWriter(): Promise<AuthUser> {
  *
  * @purpose 관리 기능 접근
  * @returns 사용자 정보 또는 403 에러
+ * @note isAdmin 플래그 또는 role이 admin/super_admin인 경우 허용
  */
 export async function requireAdmin(): Promise<AuthUser> {
-  return requireRole(['admin', 'super_admin']);
+  const user = await requireLogin();
+
+  // isAdmin 플래그가 true이거나 role이 admin/super_admin이면 허용
+  if (user.isAdmin === true || user.role === 'admin' || user.role === 'super_admin') {
+    console.log('[requireAdmin] Access granted:', {
+      email: user.email,
+      role: user.role,
+      isAdmin: user.isAdmin,
+    });
+    return user;
+  }
+
+  console.warn('[requireAdmin] Access denied:', {
+    email: user.email,
+    role: user.role,
+    isAdmin: user.isAdmin,
+  });
+  throw new Error('FORBIDDEN');
 }
 
 /**
