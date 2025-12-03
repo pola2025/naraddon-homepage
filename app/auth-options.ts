@@ -218,8 +218,9 @@ export const authOptions: NextAuthOptions = {
             token.role = dbUser.role || 'user';
             token.id = dbUser._id.toString();
             token.mobile = dbUser.mobile || null;
-            token.isAdmin = dbUser.isAdmin || false; // 🔥 관리자 권한 플래그 추가
-            console.log('[JWT Callback] Role:', token.role, 'isAdmin:', token.isAdmin, 'Mobile:', token.mobile ? 'exists' : 'none');
+            // 🔥 isAdmin은 명시적으로 true인 경우만 true
+            token.isAdmin = dbUser.isAdmin === true;
+            console.log('[JWT Callback] Role:', token.role, 'isAdmin:', token.isAdmin, 'DB isAdmin:', dbUser.isAdmin, 'Mobile:', token.mobile ? 'exists' : 'none');
 
             // 🔥 심사관 여부 확인 및 examinerId 조회 (브랜드 페이지 접근용)
             // expert-examiners 테이블에 있으면 심사관으로 간주 (role 무관)
