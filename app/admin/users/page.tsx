@@ -441,7 +441,7 @@ export default function UsersManagementPage() {
               >
                 등급변경
               </button>
-              {user.role === UserRole.EXAMINER && (
+              {(user.role === UserRole.USER || user.role === UserRole.EXAMINER || user.role === UserRole.EXPERT) && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
