@@ -401,8 +401,8 @@ export default function MyPage() {
                   설정
                 </button>
 
-                {/* 관리자 메뉴 (admin 역할인 경우만 표시) */}
-                {(user.role === 'admin' || user.role === 'super_admin') && (
+                {/* 관리자 메뉴 (isAdmin 플래그 또는 admin 역할인 경우 표시) */}
+                {((session?.user as any)?.isAdmin || user.role === 'admin' || user.role === 'super_admin') && (
                   <>
                     <hr className="my-2 border-gray-200" />
                     <div className="px-3 py-2">
@@ -589,8 +589,8 @@ export default function MyPage() {
               </div>
             )}
 
-            {/* 관리자 탭 (승격된 관리자용) */}
-            {activeTab === 'admin' && (user.role === 'admin' || user.role === 'super_admin') && (
+            {/* 관리자 탭 (isAdmin 플래그 또는 admin 역할인 경우 표시) */}
+            {activeTab === 'admin' && ((session?.user as any)?.isAdmin || user.role === 'admin' || user.role === 'super_admin') && (
               <div className="bg-white rounded-lg shadow-sm border p-6">
                 <div className="mb-6">
                   <h2 className="text-lg font-semibold text-gray-900">관리자 대시보드</h2>
