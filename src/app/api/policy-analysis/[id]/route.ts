@@ -5,7 +5,8 @@ import PolicyAnalysisPost from '@/models/PolicyAnalysisPost';
 import ExpertExaminer from '@/models/ExpertExaminer';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/auth-options';
-import { checkPermission } from '@/lib/rbac/check-permission';
+import { checkPermission } from '@/lib/auth/guards';
+import { isAdmin as checkIsAdmin } from '@/lib/auth/role-check';
 
 interface RouteParams {
   params: {
@@ -221,16 +222,29 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     let hasPermission = false;
     let authMethod = 'none';
 
-    // 2. RBAC 권한 확인 (admin만 가능 - 삭제는 관리자 전용)
-    if (session?.user?.id) {
-      const canManage = await checkPermission(
-        session.user.id,
-        'community:post:manage'  // 관리자만 삭제 가능
+    // 2. 관리자 권한 확인 (isAdmin 플래그 또는 admin/super_admin 역할)
+    if (session?.user) {
+      const sessionUser = session.user as any;
+
+      // DB에서 최신 권한 조회
+      const { default: clientPromise } = await import('@/lib/mongodb-client');
+      const { ObjectId } = await import('mongodb');
+      const client = await clientPromise;
+      const db = client.db('naraddon');
+      const dbUser = await db.collection('users').findOne(
+        { _id: new ObjectId(sessionUser.id) },
+        { projection: { role: 1, isAdmin: 1 } }
       );
 
-      if (canManage) {
+      const userForCheck = {
+        role: dbUser?.role || sessionUser.role || 'user',
+        isAdmin: dbUser?.isAdmin === true || sessionUser.isAdmin === true,
+      };
+
+      // isAdmin이면 삭제 권한 허용
+      if (checkIsAdmin(userForCheck)) {
         hasPermission = true;
-        authMethod = 'rbac';
+        authMethod = 'rbac-admin';
       }
     }
 
