@@ -29,8 +29,21 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const limitParam = searchParams.get('limit');
     const mainOnly = searchParams.get('mainOnly') === 'true';
+    const includeAll = searchParams.get('includeAll') === 'true'; // 관리자용: 임시저장 포함
 
-    const query = mainOnly ? { isMain: true } : {};
+    // 기본 쿼리: 임시저장이 아닌 글만 (일반 사용자용)
+    // includeAll=true 면 모든 글 조회 (관리자용)
+    let query: Record<string, unknown> = {};
+
+    if (mainOnly) {
+      // 메인만 조회 (임시저장 제외)
+      query = { isMain: true, isDraft: { $ne: true } };
+    } else if (!includeAll) {
+      // 일반 조회 (임시저장 제외)
+      query = { isDraft: { $ne: true } };
+    }
+    // includeAll=true면 query는 빈 객체 (모든 글 조회)
+
     const limit = limitParam ? parseInt(limitParam, 10) : undefined;
 
     const postsQuery = PolicyNewsPost.find(query).sort({ createdAt: -1 });
@@ -60,10 +73,18 @@ export async function POST(request: Request) {
     console.log('[policy-news][POST] User authenticated:', user.email, 'Role:', user.role);
 
     const body = await request.json();
-    const { title, content, category, excerpt, thumbnail, tags, isMain, isPinned, badge } = body;
+    const { title, content, category, excerpt, thumbnail, tags, isMain, isPinned, isDraft, badge } = body;
 
-    if (!title || !title.trim() || !content || !content.trim()) {
-      return NextResponse.json({ message: '제목과 내용을 입력해주세요.' }, { status: 400 });
+    // 임시저장이 아닌 경우에만 제목/내용 필수 체크
+    if (!isDraft) {
+      if (!title || !title.trim() || !content || !content.trim()) {
+        return NextResponse.json({ message: '제목과 내용을 입력해주세요.' }, { status: 400 });
+      }
+    } else {
+      // 임시저장이라도 제목은 필수
+      if (!title || !title.trim()) {
+        return NextResponse.json({ message: '임시저장할 제목을 입력해주세요.' }, { status: 400 });
+      }
     }
 
     await connectDB();
@@ -85,13 +106,14 @@ export async function POST(request: Request) {
      */
     const post = await PolicyNewsPost.create({
       title: title.trim(),
-      content,
+      content: content || '',
       category: category?.trim() || '기타',
       excerpt: excerpt?.trim() || '',
       thumbnail: thumbnail?.trim() || '',
       tags: normalizedTags,
-      isMain: Boolean(isMain),
+      isMain: isDraft ? false : Boolean(isMain),  // 임시저장은 메인 노출 안됨
       isPinned: Boolean(isPinned),
+      isDraft: Boolean(isDraft),
       badge: badge?.trim() || '',
       author: {
         email: user.email,

@@ -138,10 +138,17 @@ export async function PUT(request: Request, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { title, content, category, excerpt, thumbnail, tags, isMain, isPinned, badge, views } = body;
+    const { title, content, category, excerpt, thumbnail, tags, isMain, isPinned, isDraft, badge, views } = body;
 
-    if (!title || !title.trim() || !content || !content.trim()) {
-      return NextResponse.json({ message: '제목과 내용을 입력해주세요.' }, { status: 400 });
+    // 임시저장이 아닌 경우에만 제목/내용 필수 체크
+    if (!isDraft) {
+      if (!title || !title.trim() || !content || !content.trim()) {
+        return NextResponse.json({ message: '제목과 내용을 입력해주세요.' }, { status: 400 });
+      }
+    } else {
+      if (!title || !title.trim()) {
+        return NextResponse.json({ message: '임시저장할 제목을 입력해주세요.' }, { status: 400 });
+      }
     }
 
     const normalizedTags = Array.isArray(tags)
@@ -157,16 +164,17 @@ export async function PUT(request: Request, { params }: RouteParams) {
      * 업데이트 데이터 생성
      *
      * @purpose 관리자가 게시글 수정 시 조회수도 함께 업데이트 가능하도록 함
-     * @context views가 제공된 경우에만 업데이트
+     * @context views가 제공된 경우에만 업데이트, 임시저장은 메인 노출 안됨
      */
     const updateData: any = {
       title: title.trim(),
-      content,
+      content: content || '',
       category: category?.trim() || '기타',
       excerpt: excerpt?.trim() || '',
       thumbnail: thumbnail?.trim() || '',
       tags: normalizedTags,
-      isMain: Boolean(isMain),
+      isMain: isDraft ? false : Boolean(isMain),  // 임시저장은 메인 노출 안됨
+      isDraft: Boolean(isDraft),
       isPinned: Boolean(isPinned),
       badge: badge?.trim() || '',
     };

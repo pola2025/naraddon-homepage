@@ -22,7 +22,8 @@ interface PolicyNewsItem {
   views: number;
   likes: number;
   isPinned: boolean;
-  isMain: boolean;
+  isMain: boolean;      // 메인 노출 여부 (활성화/비활성화)
+  isDraft: boolean;     // 임시저장 여부
   createdAt: string;
   updatedAt: string;
   content?: string;
@@ -62,7 +63,8 @@ export default function PolicyNewsAdminPage() {
   const fetchPosts = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/policy-news?limit=100');
+      // includeAll=true: 임시저장 글도 포함하여 조회 (관리자용)
+      const response = await fetch('/api/policy-news?limit=100&includeAll=true');
       if (response.ok) {
         const data = await response.json();
         setPosts(data.posts || []);
@@ -243,13 +245,52 @@ export default function PolicyNewsAdminPage() {
                   <td className="title-cell">
                     <Link href={`/policy-news/${post._id}`} target="_blank">
                       {post.title}
-                      {post.isPinned && <span className="badge pinned">고정</span>}
-                      {post.isMain && <span className="badge main">메인</span>}
                     </Link>
                   </td>
                   <td>{post.category}</td>
                   <td>
-                    <span className="status-badge">게시중</span>
+                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                      {/* 임시저장 뱃지 */}
+                      {post.isDraft && (
+                        <span style={{
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          fontWeight: '600',
+                          background: '#FEF3C7',
+                          color: '#D97706',
+                          border: '1px solid #F59E0B'
+                        }}>
+                          임시저장
+                        </span>
+                      )}
+                      {/* 고정 뱃지 */}
+                      {post.isPinned && (
+                        <span style={{
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          fontWeight: '600',
+                          background: '#EDE9FE',
+                          color: '#7C3AED',
+                          border: '1px solid #A78BFA'
+                        }}>
+                          고정
+                        </span>
+                      )}
+                      {/* 메인 뱃지 - 활성화/비활성화에 따라 컬러 변경 */}
+                      <span style={{
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        background: post.isMain ? '#DCFCE7' : '#F3F4F6',
+                        color: post.isMain ? '#16A34A' : '#9CA3AF',
+                        border: post.isMain ? '1px solid #22C55E' : '1px solid #D1D5DB'
+                      }}>
+                        메인 {post.isMain ? 'ON' : 'OFF'}
+                      </span>
+                    </div>
                   </td>
                   <td>
                     <span

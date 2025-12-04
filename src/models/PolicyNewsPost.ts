@@ -7,8 +7,9 @@ export interface IPolicyNewsPost extends Document {
   excerpt?: string;
   thumbnail?: string;
   tags: string[];
-  isMain: boolean;
+  isMain: boolean;      // 메인 노출 여부 (true: 활성화/노출, false: 비활성화)
   isPinned: boolean;
+  isDraft: boolean;     // 임시저장 여부 (true: 임시저장, false: 정식 게시)
   badge?: string;
   views: number;
   likes: number;
@@ -57,6 +58,10 @@ const policyNewsSchema = new Schema<IPolicyNewsPost>(
       default: false,
     },
     isPinned: {
+      type: Boolean,
+      default: false,
+    },
+    isDraft: {
       type: Boolean,
       default: false,
     },
