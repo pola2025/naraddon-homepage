@@ -344,9 +344,63 @@ const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
     }
   };
 
-  const handleSaveDraft = () => {
-    localStorage.setItem('policyNewsDraft', JSON.stringify(formData));
-    alert('임시 저장되었습니다.');
+  /**
+   * 임시저장 - DB에 isDraft=true로 저장
+   * 저장 후 관리자 목록 페이지로 이동하여 사용자가 직관적으로 확인/수정 가능
+   */
+  const handleSaveDraft = async () => {
+    if (!formData.title.trim()) {
+      alert('임시저장하려면 제목을 입력해주세요.');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      const tagsArray = formData.tags
+        .split(',')
+        .map((tag) => tag.trim())
+        .filter((tag) => tag.length > 0);
+
+      const payload = {
+        title: formData.title,
+        category: formData.category || '기타',
+        excerpt: formData.excerpt || '',
+        content: formData.content || '',
+        thumbnail: formData.thumbnail || '',
+        tags: tagsArray,
+        isMain: false,  // 임시저장은 메인 노출 안됨
+        isDraft: true,  // 임시저장 플래그
+      };
+
+      // 수정 모드면 PUT, 작성 모드면 POST
+      const url = isEditMode ? `/api/policy-news/${postId}` : '/api/policy-news';
+      const method = isEditMode ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        alert(result?.message || '임시저장에 실패했습니다.');
+        return;
+      }
+
+      // localStorage 임시저장 삭제
+      localStorage.removeItem('policyNewsDraft');
+
+      alert('임시저장되었습니다. 관리자 목록에서 확인하세요.');
+      // 관리자 목록 페이지로 이동
+      router.push('/policy-news/admin');
+    } catch (error) {
+      console.error('임시저장 실패:', error);
+      alert('임시저장 중 오류가 발생했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleLoadDraft = () => {
