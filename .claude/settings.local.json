@@ -20,7 +20,8 @@
       "Bash(npx ts-node scripts/test-telegram.ts)",
       "Bash(node scripts/test-telegram.js:*)",
       "Bash(node scripts/add-jeon-success-cases.js:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
