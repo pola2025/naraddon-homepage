@@ -1,3 +1,20 @@
+/**
+ * ============================================================
+ * 정책분석 상세 API (Policy Analysis Detail)
+ * ============================================================
+ *
+ * @collection PolicyAnalysisPost (policy-analysis-posts)
+ * @path /api/policy-analysis/[id]
+ * @page /policy-analysis/[id]
+ *
+ * ⚠️ 주의: policy-news와 별개의 컬렉션입니다!
+ * - policy-analysis: 정책분석 (이 파일) - PolicyAnalysisPost 모델
+ * - policy-news: 정책소식 - PolicyNewsPost 모델
+ *
+ * @see app/api/policy-news/[id]/route.ts (정책소식 상세 API)
+ * ============================================================
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';

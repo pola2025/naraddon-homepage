@@ -1,3 +1,20 @@
+/**
+ * ============================================================
+ * 정책분석 API (Policy Analysis)
+ * ============================================================
+ *
+ * @collection PolicyAnalysisPost (policy-analysis-posts)
+ * @path /api/policy-analysis
+ * @page /policy-analysis, /policy-news (하단 섹션)
+ *
+ * ⚠️ 주의: policy-news와 별개의 컬렉션입니다!
+ * - policy-analysis: 정책분석 (이 파일) - PolicyAnalysisPost 모델
+ * - policy-news: 정책소식 - PolicyNewsPost 모델
+ *
+ * @see app/api/policy-news/route.ts (정책소식 API)
+ * ============================================================
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
@@ -6,7 +23,7 @@ import ExpertExaminer from '@/models/ExpertExaminer';
 import * as crypto from 'crypto';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/auth-options';
-import { checkPermission } from '@/lib/rbac/check-permission';
+import { checkPermission } from '@/lib/auth/guards';
 
 const ALLOWED_SORT_FIELDS: Record<string, Record<string, 1 | -1>> = {
   newest: { createdAt: -1 },

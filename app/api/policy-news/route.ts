@@ -1,3 +1,20 @@
+/**
+ * ============================================================
+ * 정책소식 API (Policy News)
+ * ============================================================
+ *
+ * @collection PolicyNewsPost (policy-news-posts)
+ * @path /api/policy-news
+ * @page /policy-news
+ *
+ * ⚠️ 주의: policy-analysis와 별개의 컬렉션입니다!
+ * - policy-news: 정책소식 (이 파일) - PolicyNewsPost 모델
+ * - policy-analysis: 정책분석 - PolicyAnalysisPost 모델
+ *
+ * @see src/app/api/policy-analysis/route.ts (정책분석 API)
+ * ============================================================
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/auth-options';
