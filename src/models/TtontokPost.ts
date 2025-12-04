@@ -22,6 +22,8 @@ export interface ITtontokPost extends Document {
   replyCount: number;
   isBest: boolean;
   isArchived: boolean;
+  isDraft: boolean;           // 임시저장 여부
+  draftExpiresAt?: Date;      // 임시저장 만료 시간 (2일 후 자동 삭제)
   createdAt: Date;
   updatedAt: Date;
 }
@@ -92,6 +94,16 @@ const TtontokPostSchema = new Schema<ITtontokPost>(
     isArchived: {
       type: Boolean,
       default: false,
+      index: true,
+    },
+    isDraft: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    draftExpiresAt: {
+      type: Date,
+      default: null,
       index: true,
     },
     createdAt: {

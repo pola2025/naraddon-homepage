@@ -39,10 +39,34 @@ const sanitizeOptionalText = (value: unknown) =>
 const sanitizeOptionalNumber = (value: unknown) =>
   typeof value === 'number' && Number.isFinite(value) ? value : null;
 
-export async function GET() {
+export async function GET(request: Request) {
   await connectDB();
 
-  const posts = await TtontokPost.find()
+  const { searchParams } = new URL(request.url);
+  const includeMyDrafts = searchParams.get('includeMyDrafts') === 'true';
+  const memberId = searchParams.get('memberId');
+
+  // 만료된 임시저장 글 자동 삭제 (2일 경과)
+  await TtontokPost.deleteMany({
+    isDraft: true,
+    draftExpiresAt: { $lt: new Date() }
+  });
+
+  // 기본: 임시저장이 아닌 글만 조회
+  // includeMyDrafts=true & memberId 있으면: 본인 임시저장도 포함
+  let query: Record<string, unknown> = { isDraft: { $ne: true } };
+
+  if (includeMyDrafts && memberId) {
+    // 공개글 + 본인 임시저장글
+    query = {
+      $or: [
+        { isDraft: { $ne: true } },
+        { isDraft: true, memberId: memberId }
+      ]
+    };
+  }
+
+  const posts = await TtontokPost.find(query)
     .sort({ createdAt: -1 })
     .lean();
 
@@ -52,6 +76,7 @@ export async function GET() {
       _id: post._id.toString(),
       createdAt: post.createdAt?.toISOString() ?? null,
       updatedAt: post.updatedAt?.toISOString() ?? null,
+      draftExpiresAt: post.draftExpiresAt?.toISOString() ?? null,
     })),
   });
 }
@@ -77,6 +102,8 @@ export async function POST(request: Request) {
     businessType,
     region,
     yearsInBusiness,
+    isDraft,
+    memberId,
   } = (body ?? {}) as {
     password?: string;
     category?: unknown;
@@ -87,6 +114,8 @@ export async function POST(request: Request) {
     businessType?: unknown;
     region?: unknown;
     yearsInBusiness?: unknown;
+    isDraft?: boolean;
+    memberId?: string;
   };
 
   if (!password || password !== WRITE_PASSWORD) {
@@ -98,12 +127,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: '유효한 카테고리를 선택해주세요.' }, { status: 400 });
   }
 
-  if (!title || typeof title !== 'string' || title.trim().length === 0) {
-    return NextResponse.json({ message: '제목을 입력해주세요.' }, { status: 400 });
-  }
+  // 임시저장이 아닌 경우에만 필수 체크
+  if (!isDraft) {
+    if (!title || typeof title !== 'string' || title.trim().length === 0) {
+      return NextResponse.json({ message: '제목을 입력해주세요.' }, { status: 400 });
+    }
 
-  if (!content || typeof content !== 'string' || content.trim().length < 30) {
-    return NextResponse.json({ message: '내용은 최소 30자 이상 입력해주세요.' }, { status: 400 });
+    if (!content || typeof content !== 'string' || content.trim().length < 30) {
+      return NextResponse.json({ message: '내용은 최소 30자 이상 입력해주세요.' }, { status: 400 });
+    }
+  } else {
+    // 임시저장이라도 제목은 필수
+    if (!title || typeof title !== 'string' || title.trim().length === 0) {
+      return NextResponse.json({ message: '임시저장하려면 제목을 입력해주세요.' }, { status: 400 });
+    }
   }
 
   const isAnonymousFlag = typeof isAnonymous === 'boolean' ? isAnonymous : false;
@@ -111,15 +148,23 @@ export async function POST(request: Request) {
   const resolvedNickname = (isAnonymousFlag ? '익명' : rawNickname || DEFAULT_NICKNAME).trim();
 
   try {
+    // 임시저장 시 2일 후 만료 설정
+    const draftExpiresAt = isDraft
+      ? new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)  // 2일 후
+      : null;
+
     const post = await TtontokPost.create({
       category: resolvedCategory,
-      title: title.trim(),
-      content: content.trim(),
+      title: (title as string).trim(),
+      content: typeof content === 'string' ? content.trim() : '',
       nickname: resolvedNickname,
       isAnonymous: isAnonymousFlag,
       businessType: isAnonymousFlag ? '' : sanitizeOptionalText(businessType),
       region: isAnonymousFlag ? '' : sanitizeOptionalText(region),
       yearsInBusiness: isAnonymousFlag ? null : sanitizeOptionalNumber(yearsInBusiness),
+      isDraft: Boolean(isDraft),
+      draftExpiresAt,
+      memberId: memberId || null,
     });
 
     return NextResponse.json(
