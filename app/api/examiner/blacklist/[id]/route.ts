@@ -11,6 +11,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/auth-options';
+import { requireExaminer, requireAdmin, handleAuthError } from '@/lib/auth/guards';
+import { isAdmin as checkIsAdmin } from '@/lib/auth/role-check';
 import connectDB from '@/lib/mongodb';
 import ExaminerBlacklist from '@/models/ExaminerBlacklist';
 
@@ -72,23 +74,13 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    // 1. 세션 확인 (기업심사관 및 관리자 접근 가능)
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: '로그인이 필요합니다.' },
-        { status: 401 }
-      );
-    }
-
-    const allowedRoles = ['examiner', 'admin', 'super_admin'];
-    if (!allowedRoles.includes(session.user.role)) {
-      return NextResponse.json(
-        { error: '접근 권한이 없습니다.' },
-        { status: 403 }
-      );
-    }
+    /**
+     * 블랙리스트 수정 권한 검증
+     *
+     * @purpose admin, super_admin, examiner, isAdmin:true 모두 수정 가능
+     * @context guards.ts의 requireExaminer 사용 (통합된 권한 체계)
+     */
+    await requireExaminer();
 
     // 2. 요청 데이터 파싱
     const body = await request.json();
@@ -152,6 +144,11 @@ export async function PUT(
     });
   } catch (error) {
     console.error('[Blacklist PUT Error]', error);
+
+    // 인증/권한 에러 처리
+    const authError = handleAuthError(error);
+    if (authError) return authError;
+
     return NextResponse.json(
       { error: '블랙리스트 수정 중 오류가 발생했습니다.' },
       { status: 500 }
@@ -160,30 +157,20 @@ export async function PUT(
 }
 
 /**
- * DELETE - 블랙리스트 삭제 (등록한 심사관만 가능)
+ * DELETE - 블랙리스트 삭제 (등록한 심사관 또는 관리자 가능)
  */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    // 1. 세션 확인 (기업심사관 및 관리자 접근 가능)
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: '로그인이 필요합니다.' },
-        { status: 401 }
-      );
-    }
-
-    const allowedRoles = ['examiner', 'admin', 'super_admin'];
-    if (!allowedRoles.includes(session.user.role)) {
-      return NextResponse.json(
-        { error: '접근 권한이 없습니다.' },
-        { status: 403 }
-      );
-    }
+    /**
+     * 블랙리스트 삭제 권한 검증
+     *
+     * @purpose 등록한 심사관 또는 관리자만 삭제 가능
+     * @context guards.ts의 requireExaminer 사용 (통합된 권한 체계)
+     */
+    const user = await requireExaminer();
 
     // 2. DB 연결
     await connectDB();
@@ -198,10 +185,13 @@ export async function DELETE(
       );
     }
 
-    // 4. 삭제 권한 확인 (등록한 심사관만 삭제 가능)
-    if (existingEntry.registeredBy.toString() !== session.user.id) {
+    // 4. 삭제 권한 확인 (등록한 심사관 또는 관리자만 삭제 가능)
+    const isOwner = existingEntry.registeredBy.toString() === user.id;
+    const isAdminUser = checkIsAdmin(user);
+
+    if (!isOwner && !isAdminUser) {
       return NextResponse.json(
-        { error: '등록한 심사관만 삭제할 수 있습니다.' },
+        { error: '등록한 심사관 또는 관리자만 삭제할 수 있습니다.' },
         { status: 403 }
       );
     }
@@ -215,6 +205,11 @@ export async function DELETE(
     });
   } catch (error) {
     console.error('[Blacklist DELETE Error]', error);
+
+    // 인증/권한 에러 처리
+    const authError = handleAuthError(error);
+    if (authError) return authError;
+
     return NextResponse.json(
       { error: '블랙리스트 삭제 중 오류가 발생했습니다.' },
       { status: 500 }

@@ -10,6 +10,8 @@ import {
   isExpert as checkIsExpert,
   canWriteContent,
 } from '@/lib/auth/role-check';
+import clientPromise from '@/lib/mongodb-client';
+import { ObjectId } from 'mongodb';
 
 /**
  * RBAC 기반 인증/권한 가드
@@ -64,10 +66,11 @@ export function handleAuthError(error: unknown): NextResponse | null {
 }
 
 /**
- * 로그인 필수
+ * 로그인 필수 (DB에서 최신 권한 정보 로드)
  *
  * @purpose 로그인한 사용자만 접근 가능 (권한 검증 없음)
  * @returns 사용자 정보 또는 401 에러
+ * @note JWT 토큰의 오래된 권한 정보 대신 DB에서 최신 정보 조회
  */
 export async function requireLogin(): Promise<AuthUser> {
   const session = await getServerSession(authOptions);
@@ -76,17 +79,53 @@ export async function requireLogin(): Promise<AuthUser> {
     throw new Error('UNAUTHENTICATED');
   }
 
-  const user: AuthUser = {
-    id: (session.user as any).id || '',
+  // 세션에서 기본 정보 가져오기
+  const sessionUser = session.user as any;
+  let user: AuthUser = {
+    id: sessionUser.id || '',
     email: session.user.email,
     name: session.user.name || '',
-    role: (session.user as any).role || 'user', // 하위 호환성
-    isAdmin: (session.user as any).isAdmin || false, // 관리자 플래그
+    role: sessionUser.role || 'user',
+    isAdmin: sessionUser.isAdmin || false,
   };
+
+  // 🔥 DB에서 최신 role과 isAdmin 조회 (세션 값이 오래된 경우 대비)
+  try {
+    if (user.id) {
+      const client = await clientPromise;
+      const db = client.db('naraddon');
+      const dbUser = await db.collection('users').findOne(
+        { _id: new ObjectId(user.id) },
+        { projection: { role: 1, isAdmin: 1 } }
+      );
+
+      if (dbUser) {
+        // DB 값이 세션 값과 다르면 DB 값 사용 (최신 정보 우선)
+        const dbRole = dbUser.role || 'user';
+        const dbIsAdmin = dbUser.isAdmin === true;
+
+        if (dbRole !== user.role || dbIsAdmin !== user.isAdmin) {
+          console.log('[requireLogin] Updating user info from DB:', {
+            email: user.email,
+            sessionRole: user.role,
+            dbRole,
+            sessionIsAdmin: user.isAdmin,
+            dbIsAdmin,
+          });
+          user.role = dbRole;
+          user.isAdmin = dbIsAdmin;
+        }
+      }
+    }
+  } catch (error) {
+    // DB 조회 실패해도 세션 값으로 계속 진행
+    console.error('[requireLogin] DB lookup failed, using session values:', error);
+  }
 
   console.log('[requireLogin] User authenticated:', {
     email: user.email,
     userId: user.id,
+    role: user.role,
     isAdmin: user.isAdmin,
   });
 
@@ -195,9 +234,27 @@ export async function requireRole(allowedRoles: string[]): Promise<AuthUser> {
  *
  * @purpose 정책분석, 정책소식 등 관리자급 콘텐츠 작성
  * @returns 사용자 정보 또는 403 에러
+ * @note role-check.ts의 canWriteContent 사용 (일관된 권한 체계)
  */
 export async function requirePolicyWriter(): Promise<AuthUser> {
-  return requirePerm('policy:analysis:write');
+  const user = await requireLogin();
+
+  // 관리자(isAdmin/admin/super_admin) 또는 심사관(examiner)이면 허용
+  if (canWriteContent(user)) {
+    console.log('[requirePolicyWriter] Access granted:', {
+      email: user.email,
+      role: user.role,
+      isAdmin: user.isAdmin,
+    });
+    return user;
+  }
+
+  console.warn('[requirePolicyWriter] Access denied:', {
+    email: user.email,
+    role: user.role,
+    isAdmin: user.isAdmin,
+  });
+  throw new Error('FORBIDDEN');
 }
 
 /**

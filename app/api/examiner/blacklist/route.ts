@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/auth-options';
+import { requireExaminer, handleAuthError } from '@/lib/auth/guards';
 import connectDB from '@/lib/mongodb';
 import ExaminerBlacklist from '@/models/ExaminerBlacklist';
 
@@ -74,23 +75,13 @@ async function checkDuplicate(data: {
  */
 export async function POST(request: NextRequest) {
   try {
-    // 1. 세션 확인 (기업심사관 및 관리자 접근 가능)
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: '로그인이 필요합니다.' },
-        { status: 401 }
-      );
-    }
-
-    const allowedRoles = ['examiner', 'admin', 'super_admin'];
-    if (!allowedRoles.includes(session.user.role)) {
-      return NextResponse.json(
-        { error: '접근 권한이 없습니다.' },
-        { status: 403 }
-      );
-    }
+    /**
+     * 블랙리스트 등록 권한 검증
+     *
+     * @purpose admin, super_admin, examiner, isAdmin:true 모두 등록 가능
+     * @context guards.ts의 requireExaminer 사용 (통합된 권한 체계)
+     */
+    const user = await requireExaminer();
 
     // 2. 요청 데이터 파싱
     const body = await request.json();
@@ -131,8 +122,8 @@ export async function POST(request: NextRequest) {
       companyName: companyName?.trim() || undefined,
       businessNumber: businessNumber?.trim() || undefined,
       reason: reason?.trim() || undefined,
-      registeredBy: session.user.id,
-      registeredByName: session.user.name || '알 수 없음',
+      registeredBy: user.id,
+      registeredByName: user.name || '알 수 없음',
       registeredAt: new Date(),
       memos: [],
     });
@@ -147,6 +138,11 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('[Blacklist POST Error]', error);
+
+    // 인증/권한 에러 처리
+    const authError = handleAuthError(error);
+    if (authError) return authError;
+
     return NextResponse.json(
       { error: '블랙리스트 등록 중 오류가 발생했습니다.' },
       { status: 500 }
@@ -159,23 +155,13 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    // 1. 세션 확인 (기업심사관 및 관리자 접근 가능)
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: '로그인이 필요합니다.' },
-        { status: 401 }
-      );
-    }
-
-    const allowedRoles = ['examiner', 'admin', 'super_admin'];
-    if (!allowedRoles.includes(session.user.role)) {
-      return NextResponse.json(
-        { error: '접근 권한이 없습니다.' },
-        { status: 403 }
-      );
-    }
+    /**
+     * 블랙리스트 조회 권한 검증
+     *
+     * @purpose admin, super_admin, examiner, isAdmin:true 모두 조회 가능
+     * @context guards.ts의 requireExaminer 사용 (통합된 권한 체계)
+     */
+    await requireExaminer();
 
     // 2. 쿼리 파라미터 파싱
     const { searchParams } = new URL(request.url);
@@ -220,6 +206,11 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('[Blacklist GET Error]', error);
+
+    // 인증/권한 에러 처리
+    const authError = handleAuthError(error);
+    if (authError) return authError;
+
     return NextResponse.json(
       { error: '블랙리스트 조회 중 오류가 발생했습니다.' },
       { status: 500 }
