@@ -171,7 +171,56 @@ const TtontokWritePage = () => {
     }));
   };
 
-  // 폼 제출
+  /**
+   * 임시저장 - DB에 isDraft=true로 저장
+   * 2일 후 자동 삭제됨
+   */
+  const handleSaveDraft = async () => {
+    if (!formData.title.trim()) {
+      alert('임시저장하려면 제목을 입력해주세요.');
+      return;
+    }
+
+    if (!formData.category) {
+      alert('카테고리를 선택해주세요.');
+      return;
+    }
+
+    if (!formData.password) {
+      alert('비밀번호를 입력해주세요.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/ttontok/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          nickname: formData.authorName || '익명',
+          isDraft: true,
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('임시저장되었습니다. (2일 후 자동 삭제)\n목록에서 확인하세요.');
+        router.push('/ttontok');
+      } else {
+        alert(data.message || '임시저장에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('임시저장 오류:', error);
+      alert('임시저장 중 오류가 발생했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // 폼 제출 (공개 게시)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -189,10 +238,14 @@ const TtontokWritePage = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/ttontok', {
+      const response = await fetch('/api/ttontok/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          ...formData,
+          nickname: formData.authorName,
+          isDraft: false,  // 공개 게시
+        })
       });
 
       const data = await response.json();
@@ -201,7 +254,7 @@ const TtontokWritePage = () => {
         alert('게시글이 등록되었습니다.');
         router.push('/ttontok');
       } else {
-        alert(data.error || '게시글 등록에 실패했습니다.');
+        alert(data.message || '게시글 등록에 실패했습니다.');
       }
     } catch (error) {
       console.error('게시글 등록 오류:', error);
@@ -447,6 +500,24 @@ const TtontokWritePage = () => {
 
         {/* 버튼 */}
         <div className="form-actions">
+          <button
+            type="button"
+            className="draft-btn"
+            onClick={handleSaveDraft}
+            disabled={isSubmitting}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: '#F59E0B',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontWeight: '600',
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              opacity: isSubmitting ? 0.6 : 1,
+            }}
+          >
+            {isSubmitting ? '저장 중...' : '임시저장'}
+          </button>
           <button
             type="submit"
             className="submit-btn"
