@@ -78,6 +78,21 @@ const Footer = () => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                </svg>
+                <span>고객센터: 032-345-9834</span>
+              </div>
+              <div className="contact-item">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                 </svg>
                 <span>사업자등록번호: 203-28-65630</span>
@@ -167,15 +182,16 @@ const Footer = () => {
         </div>
       </div>
       {legalModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 sm:p-6" onClick={handleCloseLegalModal}>
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="footer-legal-modal-title"
             aria-describedby={legalModalDescription ? 'footer-legal-modal-description' : undefined}
-            className="w-full max-w-2xl rounded-3xl bg-white p-8 shadow-2xl"
+            className="relative w-full max-w-2xl max-h-[80vh] flex flex-col rounded-3xl bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex items-start justify-between p-6 border-b border-slate-100">
               <div>
                 <h2 id="footer-legal-modal-title" className="text-lg font-semibold text-slate-900">
                   {legalModalTitle}
@@ -195,7 +211,7 @@ const Footer = () => {
                 <i className="fas fa-times" aria-hidden="true" />
               </button>
             </div>
-            <div className="mt-6 max-h-[70vh] space-y-6 overflow-y-auto pr-1 text-sm leading-6 text-slate-600">
+            <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-6 text-sm leading-6 text-slate-600">
               {legalModalSections.map((section) => (
                 <section key={section.title} className="space-y-2">
                   <h3 className="text-base font-semibold text-slate-900">{section.title}</h3>
@@ -222,7 +238,7 @@ const Footer = () => {
                 <p className="mt-3 text-slate-400">시행일자: {LEGAL_EFFECTIVE_DATE}</p>
               </div>
             </div>
-            <div className="mt-6 flex justify-end">
+            <div className="flex-shrink-0 p-6 pt-4 border-t border-slate-100 flex justify-end">
               <button
                 type="button"
                 onClick={handleCloseLegalModal}

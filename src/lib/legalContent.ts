@@ -16,9 +16,9 @@ export const LEGAL_BUSINESS_INFO: LegalBusinessInfo[] = [
   { label: '대표', value: '이서영' },
   { label: '사업자등록번호', value: '203-28-65630' },
   { label: '주소', value: '경기도 광명시 일직로 43, B동 14층 1402호, 1403호' },
-  { label: '고객센터', value: '02-6914-5567' },
+  { label: '고객센터', value: '032-345-9834' },
   { label: '운영시간', value: '평일 09:00-18:00' },
-  { label: '개인정보처리담당자', value: '이재호 (jjk_naraddon@naver.com)' },
+  { label: '개인정보처리담당자', value: '이재호 (mkt@polarad.co.kr)' },
 ];
 
 export const LEGAL_EFFECTIVE_DATE = '2025년 1월 18일';
@@ -112,7 +112,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     title: '5. 이용자 및 법정대리인의 권리와 행사 방법',
     description: '이용자는 언제든지 자신의 개인정보 열람, 정정, 삭제, 처리 정지를 요청할 수 있습니다.',
     bullets: [
-      '고객센터(02-6914-5567) 또는 이메일(jjk_naraddon@naver.com)로 개인정보 관련 권리를 요청할 수 있습니다.',
+      '고객센터(032-345-9834) 또는 이메일(mkt@polarad.co.kr)로 개인정보 관련 권리를 요청할 수 있습니다.',
       '법정대리인은 만 14세 미만 아동의 개인정보에 대한 권리를 행사할 수 있습니다.',
       '회사는 정당한 요청을 받은 경우 지체 없이 조치하며, 결과를 통지합니다.',
     ],
@@ -127,7 +127,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
   },
   {
     title: '7. 개인정보 보호책임자 및 담당자',
-    description: '회사는 이용자의 개인정보를 보호하고 관련 불만을 처리하기 위해 개인정보 보호책임자 및 개인정보처리담당자를 지정하고 있습니다. 담당자: 이재호 (jjk_naraddon@naver.com) / 고객센터 02-6914-5567',
+    description: '회사는 이용자의 개인정보를 보호하고 관련 불만을 처리하기 위해 개인정보 보호책임자 및 개인정보처리담당자를 지정하고 있습니다. 담당자: 이재호 (mkt@polarad.co.kr) / 고객센터 032-345-9834',
   },
   {
     title: '8. 고지의 의무',

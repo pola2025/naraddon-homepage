@@ -519,11 +519,8 @@ export default function AdminConsultationsPage() {
 
         {/* 배정 모달 */}
         {assignModalOpen && (
-          <div className="fixed inset-0 z-50 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4">
-              <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setAssignModalOpen(false)} />
-
-              <div className="relative w-full max-w-md bg-white rounded-lg shadow-xl p-6">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4" onClick={() => setAssignModalOpen(false)}>
+              <div className="relative w-full max-w-md max-h-[85vh] bg-white rounded-lg shadow-xl p-6 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                 <h3 className="text-lg font-semibold mb-4">담당자 배정</h3>
 
                 <div className="space-y-4">
@@ -576,7 +573,6 @@ export default function AdminConsultationsPage() {
                   </button>
                 </div>
               </div>
-            </div>
           </div>
         )}
       </div>

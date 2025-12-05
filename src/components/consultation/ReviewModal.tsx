@@ -96,12 +96,12 @@ export default function ReviewModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="fixed inset-0 bg-black bg-opacity-50" onClick={onClose} />
-
-        <div className="relative w-full max-w-3xl bg-white rounded-lg shadow-xl">
-          <div className="flex items-center justify-between p-6 border-b">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4" onClick={onClose}>
+        <div
+          className="relative w-full max-w-3xl max-h-[85vh] flex flex-col bg-white rounded-lg shadow-xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex-shrink-0 flex items-center justify-between p-6 border-b">
             <div>
               <h2 className="text-xl font-semibold">상담 평가하기</h2>
               <p className="text-sm text-gray-500 mt-1">
@@ -116,7 +116,7 @@ export default function ReviewModal({
             </button>
           </div>
 
-          <div className="p-6 max-h-[70vh] overflow-y-auto">
+          <div className="flex-1 min-h-0 p-6 overflow-y-auto">
             {/* 평가 항목 */}
             <div className="space-y-6">
               <h3 className="text-lg font-semibold">평가 항목</h3>
@@ -244,7 +244,7 @@ export default function ReviewModal({
             </div>
           </div>
 
-          <div className="flex justify-end items-center p-6 border-t bg-gray-50">
+          <div className="flex-shrink-0 flex justify-end items-center p-6 border-t bg-gray-50">
             <button
               onClick={onClose}
               className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 mr-3"
@@ -260,7 +260,6 @@ export default function ReviewModal({
             </button>
           </div>
         </div>
-      </div>
     </div>
   );
 }
