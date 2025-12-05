@@ -77,14 +77,14 @@
   padding-right: 0;
 }
 
-/* 메인 뉴스 슬라이더 (왼쪽) - 세로형 구조 */
+/* 메인 뉴스 슬라이더 (왼쪽) - 정사각형 이미지 + 콘텐츠 */
 .main-news-slider {
   position: relative;
   background: white;
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
-  height: 700px; /* 높이 증가 */
+  height: auto; /* 자동 높이 */
   width: 100%;
   border: 1px solid #e0e0e0;
 }
@@ -92,21 +92,25 @@
 .slider-container {
   position: relative;
   width: 100%;
-  height: 700px; /* 컨테이너 높이 증가 */
+  height: auto; /* 자동 높이 */
 }
 
 .slide-item {
-  position: absolute;
-  top: 0;
-  left: 0;
+  position: relative;
   width: 100%;
-  height: 700px; /* 높이 증가 */
+  height: auto; /* 자동 높이 */
   opacity: 0;
   visibility: hidden;
   transition: all 0.6s ease;
   cursor: pointer;
   display: flex;
   flex-direction: column;
+}
+
+.slide-item:not(.active) {
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .slide-item.active {
@@ -118,27 +122,25 @@
   box-shadow: inset 0 0 0 3px #667eea;
 }
 
-/* 이미지 영역 - 세로형 */
+/* 이미지 영역 - 정사각형 (1:1 비율) */
 .slide-image {
   position: relative;
   width: 100%;
-  height: 360px !important; /* 이미지 높이 조정 */
-  min-height: 360px !important;
-  max-height: 360px !important;
+  padding-bottom: 100%; /* 1:1 정사각형 비율 */
+  height: 0;
   overflow: hidden;
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-  display: flex;
-  align-items: flex-start; /* 이미지를 위로 정렬 */
-  justify-content: center;
 }
 
 /* Next.js Image 컴포넌트 스타일 */
 .slide-image img {
+  position: absolute !important;
+  top: 0;
+  left: 0;
   width: 100% !important;
-  height: auto !important;
-  position: relative !important;
-  object-fit: contain !important; /* 원본 비율 유지 */
-  object-position: top center !important; /* 이미지 상단 정렬 */
+  height: 100% !important;
+  object-fit: cover !important; /* 정사각형에 맞게 채우기 */
+  object-position: center !important;
   transition: transform 0.5s ease;
 }
 
@@ -204,18 +206,16 @@
 
 /* 콘텐츠 영역 - 이미지 아래 별도 영역 */
 .slide-content {
-  position: absolute;
-  top: 360px; /* 이미지 바로 아래 위치 */
+  position: relative;
   left: 0;
   right: 0;
-  bottom: 0;
-  padding: 25px 25px 16px; /* 상단 패딩 조정 */
+  padding: 20px 25px 16px;
   display: flex;
   flex-direction: column;
   background: linear-gradient(to bottom, #ffffff 0%, #fafbfc 100%);
-  height: 240px; /* 고정 높이 조정 - 공백 줄임 */
+  min-height: 180px;
   z-index: 5;
-  justify-content: space-between; /* 균등 배치로 변경 */
+  justify-content: space-between;
   gap: 0;
   border-top: 1px solid rgba(102, 126, 234, 0.1);
 }
@@ -318,7 +318,7 @@
 /* 슬라이드 컨트롤 - 이미지 영역 중앙에 배치 */
 .slider-control {
   position: absolute;
-  top: 180px; /* 이미지 영역 중앙 (360px의 절반) */
+  top: calc(50% - 90px); /* 정사각형 이미지 영역 중앙 */
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(102, 126, 234, 0.2);
   width: 45px;
@@ -363,8 +363,9 @@
 .news-list {
   display: flex;
   flex-direction: column;
-  height: 600px; /* 왼쪽 메인 슬라이더와 동일한 높이 - 조정 */
-  overflow: visible; /* 오버플로우 허용 */
+  height: auto; /* 자동 높이 */
+  min-height: 500px;
+  overflow: visible;
   padding-right: 0;
   position: relative;
 }
@@ -452,12 +453,12 @@
 .news-items {
   display: flex;
   flex-direction: column;
-  gap: 8px; /* 간격 축소하여 10개 공간 확보 */
-  flex: 1; /* 남은 공간 모두 차지 */
+  gap: 8px;
+  flex: 1;
   overflow-y: auto;
   padding-right: 10px;
-  max-height: calc(600px - 65px); /* 전체 높이에서 헤더 높이 제외 */
-  min-height: calc(600px - 65px); /* 최소 높이도 설정 - 10개 아이템 공간 */
+  max-height: 450px;
+  min-height: 400px;
 }
 
 /* 커스텀 스크롤바 */
