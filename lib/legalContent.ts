@@ -10,13 +10,14 @@ export interface LegalSection {
 
 export const LEGAL_BUSINESS_INFO = [
   { label: '상호명:', value: '나라똔' },
-  { label: '대표자:', value: '대표자명' },
-  { label: '사업자등록번호:', value: '123-45-67890' },
-  { label: '주소:', value: '서울특별시' },
-  { label: '고객센터:', value: '1588-0000' },
+  { label: '대표자:', value: '이서영' },
+  { label: '사업자등록번호:', value: '203-28-65630' },
+  { label: '주소:', value: '경기도 광명시 일직로 43, B동 14층 1402호, 1403호' },
+  { label: '운영시간:', value: '평일 09:00-18:00' },
+  { label: '개인정보처리담당자:', value: '이재호 (mkt@polarad.co.kr)' },
 ];
 
-export const LEGAL_EFFECTIVE_DATE = '2024년 1월 1일';
+export const LEGAL_EFFECTIVE_DATE = '2025년 1월 1일';
 
 export const TERMS_SECTIONS: LegalSection[] = [
   {
