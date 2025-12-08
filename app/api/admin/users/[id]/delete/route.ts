@@ -43,7 +43,7 @@ export async function DELETE(
 
     // 5. 요청 바디에서 사유 추출
     const body = await request.json();
-    const { reason, adminNote } = body;
+    const { reason, adminNote, addToBlacklist } = body;
 
     if (!reason || reason.trim() === '') {
       return NextResponse.json(
@@ -93,12 +93,27 @@ export async function DELETE(
       reason: reason.trim(),
       adminNote: adminNote?.trim() || null,
       withdrawalType: 'admin_forced', // 관리자 강제 탈퇴 표시
+      addedToBlacklist: addToBlacklist || false,
       adminId: currentUser._id,
       adminEmail: currentUser.email,
       adminName: currentUser.name,
       withdrawnAt: new Date(),
       userCreatedAt: targetUser.createdAt,
     });
+
+    // 9-1. 블랙리스트 등록 (옵션)
+    if (addToBlacklist) {
+      await db.collection('auth-blacklist').insertOne({
+        email: targetUser.email,
+        reason: reason.trim(),
+        adminNote: adminNote?.trim() || null,
+        blockedBy: currentUser.email,
+        blockedAt: new Date(),
+        originalUserId: targetUser._id,
+        originalUserName: targetUser.name,
+      });
+      console.log('[Admin User Delete] Added to blacklist:', targetUser.email);
+    }
 
     // 10. 관련 데이터 정리 (선택적)
     // expert-examiners에서 userId 참조 제거
@@ -122,14 +137,16 @@ export async function DELETE(
     }
 
     // 12. 성공 응답
+    const blacklistMsg = addToBlacklist ? ' (블랙리스트 등록됨)' : '';
     return NextResponse.json({
       success: true,
-      message: `${targetUser.name} (${targetUser.email}) 계정이 탈퇴 처리되었습니다`,
+      message: `${targetUser.name} (${targetUser.email}) 계정이 탈퇴 처리되었습니다${blacklistMsg}`,
       withdrawnUser: {
         email: targetUser.email,
         name: targetUser.name,
         role: targetUser.role
       },
+      addedToBlacklist: addToBlacklist || false,
       withdrawnAt: new Date().toISOString(),
     });
 

@@ -87,6 +87,13 @@ export const authOptions: NextAuthOptions = {
         const usersCollection = db.collection('users');
         const accountsCollection = db.collection('accounts');
 
+        // 🔥 블랙리스트 체크 (재가입 차단)
+        const blacklisted = await db.collection('auth-blacklist').findOne({ email: user.email });
+        if (blacklisted) {
+          console.log('[Auth] ⛔ Blocked blacklisted user:', user.email);
+          return false; // 로그인 거부
+        }
+
         // 🔥 네이버 프로필 디버깅
         console.log('[Auth] Naver profile received:', JSON.stringify(profile, null, 2));
 

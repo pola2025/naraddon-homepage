@@ -28,12 +28,14 @@ export default function UsersManagementPage() {
     user: User | null;
     reason: string;
     adminNote: string;
+    addToBlacklist: boolean;
     isProcessing: boolean;
   }>({
     isOpen: false,
     user: null,
     reason: '',
     adminNote: '',
+    addToBlacklist: false,
     isProcessing: false
   });
 
@@ -373,6 +375,7 @@ export default function UsersManagementPage() {
       user,
       reason: '',
       adminNote: '',
+      addToBlacklist: false,
       isProcessing: false
     });
   };
@@ -384,6 +387,7 @@ export default function UsersManagementPage() {
       user: null,
       reason: '',
       adminNote: '',
+      addToBlacklist: false,
       isProcessing: false
     });
   };
@@ -403,7 +407,8 @@ export default function UsersManagementPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           reason: withdrawalModal.reason.trim(),
-          adminNote: withdrawalModal.adminNote.trim() || null
+          adminNote: withdrawalModal.adminNote.trim() || null,
+          addToBlacklist: withdrawalModal.addToBlacklist
         })
       });
 
@@ -685,7 +690,7 @@ export default function UsersManagementPage() {
               </div>
 
               {/* 관리자 메모 */}
-              <div className="mb-6">
+              <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   관리자 메모 (선택)
                 </label>
@@ -696,6 +701,24 @@ export default function UsersManagementPage() {
                   rows={2}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm resize-none"
                 />
+              </div>
+
+              {/* 블랙리스트 등록 옵션 */}
+              <div className="mb-6 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={withdrawalModal.addToBlacklist}
+                    onChange={(e) => setWithdrawalModal(prev => ({ ...prev, addToBlacklist: e.target.checked }))}
+                    className="mt-0.5 h-4 w-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                  />
+                  <div>
+                    <span className="text-sm font-medium text-gray-900">재가입 차단 (블랙리스트 등록)</span>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      체크하면 이 이메일로 다시 가입할 수 없습니다
+                    </p>
+                  </div>
+                </label>
               </div>
 
               {/* 버튼 */}
