@@ -9,7 +9,9 @@ import {
   FunnelIcon,
   ArrowDownTrayIcon,
   MagnifyingGlassIcon,
-  PlusIcon
+  PlusIcon,
+  TrashIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 
 // 빈 초기 데이터 (실제 DB에서 로드)
@@ -19,6 +21,21 @@ export default function UsersManagementPage() {
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  // 탈퇴 모달 상태
+  const [withdrawalModal, setWithdrawalModal] = useState<{
+    isOpen: boolean;
+    user: User | null;
+    reason: string;
+    adminNote: string;
+    isProcessing: boolean;
+  }>({
+    isOpen: false,
+    user: null,
+    reason: '',
+    adminNote: '',
+    isProcessing: false
+  });
 
   // 실제 사용자 데이터 로드
   useEffect(() => {
@@ -349,6 +366,66 @@ export default function UsersManagementPage() {
     console.log('Exporting users to Excel...');
   };
 
+  // 탈퇴 모달 열기
+  const openWithdrawalModal = (user: User) => {
+    setWithdrawalModal({
+      isOpen: true,
+      user,
+      reason: '',
+      adminNote: '',
+      isProcessing: false
+    });
+  };
+
+  // 탈퇴 모달 닫기
+  const closeWithdrawalModal = () => {
+    setWithdrawalModal({
+      isOpen: false,
+      user: null,
+      reason: '',
+      adminNote: '',
+      isProcessing: false
+    });
+  };
+
+  // 사용자 탈퇴 처리
+  const handleWithdrawUser = async () => {
+    if (!withdrawalModal.user || !withdrawalModal.reason.trim()) {
+      alert('탈퇴 사유를 입력해주세요');
+      return;
+    }
+
+    setWithdrawalModal(prev => ({ ...prev, isProcessing: true }));
+
+    try {
+      const response = await fetch(`/api/admin/users/${withdrawalModal.user.id}/delete`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reason: withdrawalModal.reason.trim(),
+          adminNote: withdrawalModal.adminNote.trim() || null
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || '탈퇴 처리에 실패했습니다');
+      }
+
+      alert(result.message || '탈퇴 처리가 완료되었습니다');
+      closeWithdrawalModal();
+
+      // 사용자 목록 새로고침
+      await fetchUsers();
+    } catch (error: any) {
+      console.error('Failed to withdraw user:', error);
+      alert(`탈퇴 처리 실패: ${error.message}`);
+    } finally {
+      setWithdrawalModal(prev => ({ ...prev, isProcessing: false }));
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* 헤더 */}
@@ -480,6 +557,16 @@ export default function UsersManagementPage() {
               >
                 상세
               </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openWithdrawalModal(user);
+                }}
+                className="text-red-500 hover:text-red-700 text-sm"
+                title="회원 탈퇴"
+              >
+                탈퇴
+              </button>
             </div>
             );
           }}
@@ -535,6 +622,112 @@ export default function UsersManagementPage() {
               >
                 ✕
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 탈퇴 확인 모달 */}
+      {withdrawalModal.isOpen && withdrawalModal.user && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4">
+            <div
+              className="fixed inset-0 bg-gray-500 bg-opacity-75"
+              onClick={closeWithdrawalModal}
+            />
+            <div className="relative bg-white rounded-lg max-w-md w-full p-6 shadow-xl">
+              {/* 경고 아이콘 */}
+              <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
+                <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
+              </div>
+
+              {/* 제목 */}
+              <h3 className="text-lg font-semibold text-center text-gray-900 mb-2">
+                회원 탈퇴
+              </h3>
+
+              {/* 사용자 정보 */}
+              <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">이름:</span> {withdrawalModal.user.name}
+                </p>
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">이메일:</span> {withdrawalModal.user.email}
+                </p>
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">등급:</span> {getRoleLabel(withdrawalModal.user.role)}
+                </p>
+              </div>
+
+              {/* 경고 메시지 */}
+              <p className="text-sm text-red-600 mb-4 text-center">
+                이 작업은 되돌릴 수 없습니다. 계정이 영구적으로 삭제됩니다.
+              </p>
+
+              {/* 탈퇴 사유 입력 */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  탈퇴 사유 <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={withdrawalModal.reason}
+                  onChange={(e) => setWithdrawalModal(prev => ({ ...prev, reason: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm"
+                >
+                  <option value="">사유를 선택하세요</option>
+                  <option value="사용자 요청">사용자 요청</option>
+                  <option value="정책 위반">정책 위반</option>
+                  <option value="스팸/악의적 활동">스팸/악의적 활동</option>
+                  <option value="장기 미사용">장기 미사용</option>
+                  <option value="중복 계정">중복 계정</option>
+                  <option value="기타">기타</option>
+                </select>
+              </div>
+
+              {/* 관리자 메모 */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  관리자 메모 (선택)
+                </label>
+                <textarea
+                  value={withdrawalModal.adminNote}
+                  onChange={(e) => setWithdrawalModal(prev => ({ ...prev, adminNote: e.target.value }))}
+                  placeholder="추가 메모 (내부용)"
+                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm resize-none"
+                />
+              </div>
+
+              {/* 버튼 */}
+              <div className="flex gap-3">
+                <button
+                  onClick={closeWithdrawalModal}
+                  disabled={withdrawalModal.isProcessing}
+                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm font-medium disabled:opacity-50"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleWithdrawUser}
+                  disabled={withdrawalModal.isProcessing || !withdrawalModal.reason}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {withdrawalModal.isProcessing ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      처리 중...
+                    </>
+                  ) : (
+                    <>
+                      <TrashIcon className="w-4 h-4" />
+                      탈퇴 처리
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
