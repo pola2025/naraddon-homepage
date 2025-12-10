@@ -56,12 +56,20 @@ export default function ProfileCard({
 
       if (examinersRes.ok) {
         const examinersData = await examinersRes.json();
-        setExaminers(examinersData.examiners || []);
+        // 이름 기준 가나다순 정렬
+        const sortedExaminers = (examinersData.examiners || []).sort((a: any, b: any) =>
+          (a.name || '').localeCompare(b.name || '', 'ko')
+        );
+        setExaminers(sortedExaminers);
       }
 
       if (expertsRes.ok) {
         const expertsData = await expertsRes.json();
-        setExperts(expertsData.experts || []);
+        // 이름 기준 가나다순 정렬
+        const sortedExperts = (expertsData.experts || []).sort((a: any, b: any) =>
+          (a.name || '').localeCompare(b.name || '', 'ko')
+        );
+        setExperts(sortedExperts);
       }
     } catch (error) {
       console.error('Failed to fetch examiners/experts:', error);
