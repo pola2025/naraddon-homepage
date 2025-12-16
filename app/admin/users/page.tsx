@@ -93,8 +93,13 @@ export default function UsersManagementPage() {
         return formatted;
       });
 
-      console.log('[Users Page] Formatted users:', formattedUsers.length);
-      setUsers(formattedUsers);
+      // 이름 기준 가나다순 정렬
+      const sortedUsers = formattedUsers.sort((a: any, b: any) =>
+        (a.name || '').localeCompare(b.name || '', 'ko')
+      );
+
+      console.log('[Users Page] Formatted users:', sortedUsers.length);
+      setUsers(sortedUsers);
     } catch (error) {
       console.error('Failed to fetch users:', error);
       alert('사용자 목록을 불러오는데 실패했습니다. 콘솔을 확인해주세요.');
