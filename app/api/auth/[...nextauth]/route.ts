@@ -5,4 +5,4 @@ import { authOptions } from '../../../auth-options';
 // app/auth-options.ts에서 실제 설정 가져옴
 
 const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+export { handler as GET, handler as POST, authOptions };
