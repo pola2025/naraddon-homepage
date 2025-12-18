@@ -77,7 +77,11 @@ export default function ExaminersPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setExaminers(data.examiners || []);
+        // 심사관 목록을 이름 기준 가나다순으로 정렬
+        const sortedExaminers = (data.examiners || []).sort((a: Examiner, b: Examiner) =>
+          a.name.localeCompare(b.name, 'ko')
+        );
+        setExaminers(sortedExaminers);
       } else {
         alert('심사관 목록을 불러오는데 실패했습니다.');
       }
