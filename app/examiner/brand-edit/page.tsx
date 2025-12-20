@@ -184,10 +184,11 @@ export default function BrandEditPage() {
    *
    * @purpose 편집 중인 내용을 실제 브랜드 페이지에서 미리보기
    * @context 새 탭에서 /certified-examiners/[id] 페이지 열기
+   * @note preview=true 파라미터로 비공개 심사관도 미리보기 가능
    */
   const handlePreview = () => {
     if (profile?._id) {
-      window.open(`/certified-examiners/${profile._id}`, '_blank');
+      window.open(`/certified-examiners/${profile._id}?preview=true`, '_blank');
     }
   };
 

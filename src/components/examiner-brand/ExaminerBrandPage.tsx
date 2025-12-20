@@ -60,12 +60,23 @@ export default function ExaminerBrandPage({ examinerId }: ExaminerBrandPageProps
   const [examiner, setExaminer] = useState<ExaminerData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isPreview, setIsPreview] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
+    // URL에서 preview 파라미터 확인 (비공개 심사관 미리보기용)
+    const params = new URLSearchParams(window.location.search);
+    const previewMode = params.get('preview') === 'true';
+    setIsPreview(previewMode);
+
     const fetchExaminer = async () => {
       try {
-        const response = await fetch(`/api/certified-examiners/${examinerId}`);
+        // preview 모드면 allowPrivate=true 추가하여 비공개 심사관도 조회 가능
+        const apiUrl = previewMode
+          ? `/api/certified-examiners/${examinerId}?allowPrivate=true`
+          : `/api/certified-examiners/${examinerId}`;
+
+        const response = await fetch(apiUrl);
 
         if (!response.ok) {
           if (response.status === 404) {
