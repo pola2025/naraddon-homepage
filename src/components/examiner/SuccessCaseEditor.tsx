@@ -257,6 +257,8 @@ export default function SuccessCaseEditor({ successCases, onChange }: SuccessCas
     if (file) {
       handleImageUpload(index, file);
     }
+    // 파일 선택 후 초기화하여 같은 파일 재선택 가능하게
+    event.target.value = '';
   };
 
   return (
@@ -468,6 +470,8 @@ export default function SuccessCaseEditor({ successCases, onChange }: SuccessCas
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) handleNewCaseThumbnailUpload(file);
+                      // 파일 선택 후 초기화하여 같은 파일 재선택 가능하게
+                      e.target.value = '';
                     }}
                     disabled={uploading}
                     className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"

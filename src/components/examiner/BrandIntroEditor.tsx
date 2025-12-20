@@ -331,6 +331,8 @@ ${goalsList || '<li>지원 목표를 입력하세요</li>'}
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) handleLogoUpload(file);
+                // 파일 선택 후 초기화하여 같은 파일 재선택 가능하게
+                e.target.value = '';
               }}
               disabled={uploadingLogo}
               className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 disabled:opacity-50"

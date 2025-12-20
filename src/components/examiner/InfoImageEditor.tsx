@@ -147,6 +147,8 @@ export default function InfoImageEditor({ infoImage, onChange, onSave }: InfoIma
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) handleImageUpload(file);
+                    // 파일 선택 후 초기화하여 같은 파일 재선택 가능하게
+                    e.target.value = '';
                   }}
                   className="hidden"
                   disabled={uploading}
