@@ -183,7 +183,7 @@ export default function BrandIntroEditor({
       if (data.success && data.imageUrl) {
         setLocalLogo(data.imageUrl);
         onChange(localIntro, localUseDefault, data.imageUrl);
-        alert('로고가 업로드되었습니다.');
+        alert('로고가 업로드되었습니다.\n\n⚠️ 페이지 상단의 "저장" 버튼을 클릭해야 반영됩니다!');
       } else {
         throw new Error(data.error || '업로드 URL을 받지 못했습니다.');
       }
@@ -308,6 +308,23 @@ ${goalsList || '<li>지원 목표를 입력하세요</li>'}
         <p className="text-sm text-gray-600 mb-4">
           로고를 업로드하면 브랜드 페이지에 표시됩니다. 업로드하지 않으면 나라똔 기본 로고가 표시됩니다.
         </p>
+
+        {/* 로고 업로드 후 저장 안내 - 로고가 있을 때만 표시 */}
+        {localLogo && (
+          <div className="mb-4 p-4 bg-amber-50 border-2 border-amber-400 rounded-lg flex items-start gap-3">
+            <div className="flex-shrink-0 w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center">
+              <i className="fas fa-exclamation text-white text-sm"></i>
+            </div>
+            <div>
+              <p className="font-semibold text-amber-800">
+                로고가 업로드되었습니다!
+              </p>
+              <p className="text-sm text-amber-700 mt-1">
+                변경사항을 저장하려면 <span className="font-bold underline">페이지 상단의 "저장" 버튼</span>을 클릭하세요.
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="flex items-center space-x-6">
           {/* 로고 미리보기 */}
