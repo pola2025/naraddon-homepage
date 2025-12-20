@@ -83,8 +83,9 @@ export default function BrandEditPage() {
       setLoading(true);
 
       // 개발 환경: testId가 있으면 직접 브랜드 페이지 API 호출
+      // allowPrivate=true로 비공개 심사관도 조회 가능
       if (testId) {
-        const response = await fetch(`/api/certified-examiners/${testId}`);
+        const response = await fetch(`/api/certified-examiners/${testId}?allowPrivate=true`);
 
         if (!response.ok) {
           throw new Error('심사관 정보를 불러오는데 실패했습니다.');

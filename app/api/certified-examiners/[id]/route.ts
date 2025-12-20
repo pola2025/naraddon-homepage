@@ -57,8 +57,12 @@ export async function GET(
       );
     }
 
-    // 비공개 심사관은 조회 불가
-    if (!examiner.isPublished) {
+    // 비공개 심사관 조회 체크
+    // allowPrivate 파라미터가 있으면 비공개 심사관도 조회 가능 (편집 페이지용)
+    const { searchParams } = new URL(request.url);
+    const allowPrivate = searchParams.get('allowPrivate') === 'true';
+
+    if (!examiner.isPublished && !allowPrivate) {
       return NextResponse.json(
         { success: false, error: 'Examiner not published' },
         { status: 403 }
