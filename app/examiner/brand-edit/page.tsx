@@ -57,6 +57,7 @@ export default function BrandEditPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false); // 미저장 변경사항 추적
 
   // 개발 환경: URL 파라미터로 테스트 ID 받기
   const [testExaminerId, setTestExaminerId] = useState<string | null>(null);
@@ -166,6 +167,7 @@ export default function BrandEditPage() {
       console.log('[handleSave] Response data:', data);
 
       if (data.success) {
+        setHasUnsavedChanges(false); // 저장 성공 시 플래그 리셋
         alert('저장되었습니다.');
       } else {
         throw new Error(data.error || '저장 중 오류가 발생했습니다.');
@@ -225,7 +227,34 @@ export default function BrandEditPage() {
 
     return (
       <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+        {/* 미저장 변경사항 알림 배너 - 최상단 고정 */}
+        {hasUnsavedChanges && (
+          <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-amber-500 to-orange-500 text-white py-3 px-4 shadow-lg animate-pulse">
+            <div className="max-w-7xl mx-auto flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                  <i className="fas fa-exclamation-triangle text-xl"></i>
+                </div>
+                <div>
+                  <p className="font-bold text-lg">변경사항이 저장되지 않았습니다!</p>
+                  <p className="text-sm text-white/90">
+                    로고나 정보를 수정했다면 반드시 <span className="font-bold underline">저장 버튼</span>을 클릭하세요.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="px-6 py-2 bg-white text-orange-600 rounded-lg font-bold hover:bg-orange-50 transition-colors shadow-md flex items-center gap-2"
+              >
+                <i className="fas fa-save"></i>
+                {saving ? '저장 중...' : '지금 저장하기'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className={`max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 ${hasUnsavedChanges ? 'pt-20' : ''}`}>
           {/* 헤더 */}
           <div className="mb-6 sm:mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -298,6 +327,7 @@ export default function BrandEditPage() {
                   companyLogo={profile.brandPage?.companyLogo || ''}
                   useDefaultIntro={profile.brandPage?.useDefaultIntro ?? true}
                   onChange={(intro, useDefault, logo) => {
+                    setHasUnsavedChanges(true); // 변경사항 발생
                     setProfile({
                       ...profile,
                       brandPage: {
@@ -360,6 +390,7 @@ export default function BrandEditPage() {
                       console.log('[onApply] Response data:', data);
 
                       if (data.success) {
+                        setHasUnsavedChanges(false); // 저장 성공 시 플래그 리셋
                         alert('회사소개가 저장되었습니다.');
                       } else {
                         throw new Error(data.error || '저장 중 오류가 발생했습니다.');
@@ -379,6 +410,7 @@ export default function BrandEditPage() {
                 <CareerEditor
                   careers={profile.brandPage?.careers || []}
                   onChange={(careers) => {
+                    setHasUnsavedChanges(true); // 변경사항 발생
                     setProfile({
                       ...profile,
                       brandPage: {
@@ -399,6 +431,7 @@ export default function BrandEditPage() {
                 <SuccessCaseEditor
                   successCases={profile.brandPage?.successCases || []}
                   onChange={(successCases) => {
+                    setHasUnsavedChanges(true); // 변경사항 발생
                     setProfile({
                       ...profile,
                       brandPage: {
@@ -421,6 +454,7 @@ export default function BrandEditPage() {
                   consultationHours={profile.brandPage?.contactInfo?.consultationHours || ''}
                   address={profile.brandPage?.contactInfo?.address || ''}
                   onChange={(website, consultationHours, address) => {
+                    setHasUnsavedChanges(true); // 변경사항 발생
                     setProfile({
                       ...profile,
                       brandPage: {
@@ -445,6 +479,7 @@ export default function BrandEditPage() {
                 <InfoImageEditor
                   infoImage={profile.brandPage?.infoImage || ''}
                   onChange={(imageUrl) => {
+                    setHasUnsavedChanges(true); // 변경사항 발생
                     setProfile({
                       ...profile,
                       brandPage: {

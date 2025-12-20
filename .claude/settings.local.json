@@ -1,27 +1,18 @@
 {
   "permissions": {
     "allow": [
-      "Bash(start https://vercel.com/mkt9834-4301s-projects/homepage)",
-      "Bash(git branch:*)",
-      "Bash(git push:*)",
-      "Bash(gh api:*)",
-      "Bash(start https://vercel.com/mkt9834-4301s-projects/homepage/deployments)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(npm run build:*)",
-      "Bash(node scripts/migrate-examiner-ids.js:*)",
-      "Bash(node scripts/check-dohyun-status.js:*)",
-      "Bash(node scripts/fix-dohyun-final.js:*)",
-      "Bash(cat:*)",
-      "Bash(cp:*)",
-      "Bash(taskkill /F /PID 7412)",
-      "Bash(taskkill:*)",
-      "Bash(echo:*)",
-      "Bash(npx ts-node scripts/test-telegram.ts)",
-      "Bash(node scripts/test-telegram.js:*)",
-      "Bash(node scripts/add-jeon-success-cases.js:*)",
+      "Bash(powershell.exe -NoProfile -File - <<'PWSH'\n$player = New-Object -ComObject WMPlayer.OCX\n$player.URL = \"C:\\Users\\flame\\.claude\\9-Portal.m4a\"\nStart-Sleep -Seconds 3\nPWSH)",
+      "Bash(powershell.exe -NoProfile -Command \"Get-ChildItem -Path ''C:\\'' -Recurse -Filter ''ffmpeg.exe'' -ErrorAction SilentlyContinue | Select-Object -First 3 -ExpandProperty FullName\")",
       "Bash(node:*)",
-      "Bash(find:*)"
+      "Bash(claude config set:*)",
+      "Bash(cat:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build)",
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(git restore:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: 탈퇴 시 블랙리스트(재가입 차단) 옵션 추가\n\n- 탈퇴 모달에 ''재가입 차단'' 체크박스 추가\n- 탈퇴 API에 블랙리스트 등록 로직 추가 (auth-blacklist 컬렉션)\n- 로그인 시 블랙리스트 체크하여 차단된 이메일 로그인 거부\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
