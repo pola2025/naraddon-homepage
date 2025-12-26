@@ -45,6 +45,12 @@ const EXAMINER_TELEGRAM_CHAT_ID = rawExaminerTelegramChatId.trim().replace(/^["'
 const rawExaminerWebhookSecret = process.env.CONSULTATION_WEBHOOK_SECRET_EXAMINER || process.env.CONSULTATION_WEBHOOK_SECRET_AUDITOR || '';
 const EXAMINER_WEBHOOK_SECRET = rawExaminerWebhookSecret.trim().replace(/^["']|["']$/g, '');
 
+// Airtable 설정 (나라똔 상담접수)
+const AIRTABLE_API_TOKEN = process.env.AIRTABLE_API_TOKEN || '';
+const AIRTABLE_BASE_ID = 'appNSHE8lXo0RTG0b';
+const AIRTABLE_TABLE_ID = 'tbl7PO9zfoxfDsDA2'; // 나라똔_상담접수 테이블
+const GOOGLE_SHEETS_URL = process.env.NARADDON_SHEETS_URL || '';
+
 function parseEmailList(raw: string): string[] {
   return raw
     .split(',')
@@ -110,6 +116,17 @@ function convertConsultationField(value: string): string {
     'strategy': '경영전략'
   };
   return map[value] || value;
+}
+
+function convertConsultationType(value: string): string {
+  const map: Record<string, string> = {
+    'policy-fund': '정부지원금',
+    'grant': '정부지원금',
+    'certification': '인증',
+    'startup': '창업',
+    'other': '기타'
+  };
+  return map[value] || value || '정부지원금';
 }
 
 // GET /api/consultations - 상담 목록 조회
@@ -221,8 +238,55 @@ export async function POST(request: NextRequest) {
     const client = await clientPromise;
     const db = client.db('naraddon');
 
-    // 상담 신청 저장
+    // 상담 신청 저장 (MongoDB)
     const result = await db.collection('consultations').insertOne(consultation);
+
+    // ================================================
+    // Airtable 저장 (나라똔 상담접수 테이블)
+    // ================================================
+    let airtableSuccess = false;
+    if (AIRTABLE_API_TOKEN && data.isExaminerConsultation) {
+      try {
+        const airtableData = {
+          fields: {
+            '이름': consultation.userName || '',
+            '회사명': consultation.companyName || '',
+            '연락처': consultation.userPhone || '',
+            '이메일': consultation.userEmail || '',
+            '사업자번호': consultation.businessNumber || '',
+            '상담유형': convertConsultationType(data.consultType || ''),
+            '연매출': convertAnnualRevenue(consultation.annualRevenue || ''),
+            '직원수': convertEmployeeCount(consultation.employeeCount || ''),
+            '희망시간': data.desiredTime || consultation.preferredTime || '',
+            '지역': data.region || '',
+            '요청내용': consultation.message || '',
+            '접수일시': new Date().toISOString()
+          }
+        };
+
+        const airtableResponse = await fetch(
+          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${AIRTABLE_API_TOKEN}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(airtableData)
+          }
+        );
+
+        if (airtableResponse.ok) {
+          airtableSuccess = true;
+          console.log('[Airtable] 저장 성공');
+        } else {
+          const errorData = await airtableResponse.json();
+          console.error('[Airtable] 저장 실패:', errorData);
+        }
+      } catch (error) {
+        console.error('[Airtable] 오류:', error);
+      }
+    }
 
     // 웹훅 호출로 알림 발송
     let notificationsForwarded = false;
