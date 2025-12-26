@@ -29,20 +29,20 @@ const EXPERT_TELEGRAM_CHAT_ID = rawExpertTelegramChatId.trim().replace(/^["']|["
 const rawExpertWebhookSecret = process.env.CONSULTATION_WEBHOOK_SECRET_EXPERT || '';
 const EXPERT_WEBHOOK_SECRET = rawExpertWebhookSecret.trim().replace(/^["']|["']$/g, '');
 
-// 기업심사관 상담용 웹훅
-const rawExaminerWebhookUrl = process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL_EXAMINER || '';
+// 기업심사관 상담용 웹훅 (EXAMINER 또는 AUDITOR 환경변수 지원)
+const rawExaminerWebhookUrl = process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL_EXAMINER || process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL_AUDITOR || '';
 const EXAMINER_WEBHOOK_URL = rawExaminerWebhookUrl.trim().replace(/^["']|["']$/g, '');
 
-const rawExaminerNotificationEmails = process.env.CONSULTATION_NOTIFICATION_EMAILS_EXAMINER || '';
+const rawExaminerNotificationEmails = process.env.CONSULTATION_NOTIFICATION_EMAILS_EXAMINER || process.env.CONSULTATION_NOTIFICATION_EMAILS_AUDITOR || '';
 const EXAMINER_NOTIFICATION_EMAILS = rawExaminerNotificationEmails.trim().replace(/^["']|["']$/g, '');
 
-const rawExaminerTelegramToken = process.env.TELEGRAM_BOT_TOKEN_EXAMINER || '';
+const rawExaminerTelegramToken = process.env.TELEGRAM_BOT_TOKEN_EXAMINER || process.env.TELEGRAM_BOT_TOKEN_AUDITOR || '';
 const EXAMINER_TELEGRAM_BOT_TOKEN = rawExaminerTelegramToken.trim().replace(/^["']|["']$/g, '');
 
-const rawExaminerTelegramChatId = process.env.TELEGRAM_CHAT_ID_EXAMINER || '';
+const rawExaminerTelegramChatId = process.env.TELEGRAM_CHAT_ID_EXAMINER || process.env.TELEGRAM_CHAT_ID_AUDITOR || '';
 const EXAMINER_TELEGRAM_CHAT_ID = rawExaminerTelegramChatId.trim().replace(/^["']|["']$/g, '');
 
-const rawExaminerWebhookSecret = process.env.CONSULTATION_WEBHOOK_SECRET_EXAMINER || '';
+const rawExaminerWebhookSecret = process.env.CONSULTATION_WEBHOOK_SECRET_EXAMINER || process.env.CONSULTATION_WEBHOOK_SECRET_AUDITOR || '';
 const EXAMINER_WEBHOOK_SECRET = rawExaminerWebhookSecret.trim().replace(/^["']|["']$/g, '');
 
 function parseEmailList(raw: string): string[] {

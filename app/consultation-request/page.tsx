@@ -771,7 +771,7 @@ function QuickConsultForm() {
         region: form.region, // 지역 정보 추가
         privacyConsent: form.privacyConsent,
         marketingConsent: form.marketingConsent,
-        isAuditorConsultation: true // 기업심사관 상담 표시
+        isExaminerConsultation: true // 기업심사관 상담 표시
       };
 
       const response = await fetch('/api/consultations', {
