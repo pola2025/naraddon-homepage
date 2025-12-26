@@ -88,3 +88,8 @@ docs/analytics-integration-guide.md
 scripts/get-google-refresh-token.py
 scripts/*google*.js
 umami.env
+
+# Airtable/Sheets 자동화 스크립트 (API 토큰 포함)
+docs/airtable-automation-script.js
+docs/google-apps-script-sheets.js
+docs/airtable-sheets-telegram-guide.html
