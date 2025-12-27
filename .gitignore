@@ -93,3 +93,7 @@ umami.env
 docs/airtable-automation-script.js
 docs/google-apps-script-sheets.js
 docs/airtable-sheets-telegram-guide.html
+
+
+#Ignore vscode AI rules
+.github\instructions\codacy.instructions.md

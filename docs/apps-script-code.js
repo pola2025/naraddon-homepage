@@ -1,36 +1,14 @@
-# Google Apps Script – 상담신청 웹훅
-
-아래 코드를 새 Google Apps Script 프로젝트에 붙여 넣은 뒤 **웹 앱(Web App)** 으로 배포하세요. 스크립트 속성(Properties)에는 다음 값을 설정하면 됩니다.
-
-| 속성 키 | 설명 |
-| --- | --- |
-| `SPREADSHEET_ID` | 상담 데이터를 적재할 스프레드시트 ID (`1s1F6yw3ioJv1_pzI_OKG1u_st1S2pGRc99jqsUQbnIw`) |
-| `TARGET_SHEET_NAME` | (선택) 사용할 시트 이름. 지정하지 않으면 첫 번째 시트를 사용 |
-| `NOTIFICATION_EMAILS` | 이메일 수신자 목록. 쉼표로 구분 (예: `imjoo@jjk-biz.com,ijy@jjk-biz.com,syj@jjk-biz.com,mkt9834@gmail.com`) |
-| `WEBHOOK_SECRET` | 서버와 Apps Script가 공유하는 보안 키 (필수) |
-| `TELEGRAM_BOT_TOKEN` | 텔레그램 봇 토큰 (선택, 서버에서 전달되는 경우 생략 가능) |
-| `TELEGRAM_CHAT_ID` | 텔레그램 채팅 ID (선택) |
-| `NAVER_SENS_ENABLED` | `true` 혹은 `false` (기본 `false`) |
-| `NAVER_SENS_SERVICE_ID` | SENS 서비스 ID (선택) |
-| `NAVER_SENS_ACCESS_KEY` | SENS Access Key (선택) |
-| `NAVER_SENS_SECRET_KEY` | SENS Secret Key (선택) |
-| `NAVER_SENS_SENDER_NUMBER` | 발신 번호 (선택) |
-
-> **참고**: 서버(`/api/consultation/quick-submit`)에서 토큰·이메일 값이 JSON payload에 포함되어 오면 해당 값을 우선 사용하고, 없을 경우 위 스크립트 속성을 fallback으로 참조합니다.
-> **웹 앱 URL**: https://script.google.com/macros/s/AKfycbyzrH3BgdAyqyqw-Mzk013BGkCAZEPnej_Jd7DpN_0g-hKP8qJH85aEdCFlSHxRY3ybZQ/exec
-
-```gs
 // ================================================
 // 나라똔 브랜드 컬러 (따스한 녹색)
 // ================================================
 var BRAND_COLORS = {
-  primaryDark: '#1B4332',   // 매우 진한 녹색
-  primary: '#2D6A4F',       // 진한 녹색 (메인)
-  secondary: '#40916C',     // 중간 녹색
-  accent: '#52B788',        // 밝은 녹색
-  light: '#74C69D',         // 연한 녹색
-  veryLight: '#95D5B2',     // 아주 연한 녹색
-  background: '#D8F3DC',    // 배경용 녹색
+  primaryDark: '#1B4332',
+  primary: '#2D6A4F',
+  secondary: '#40916C',
+  accent: '#52B788',
+  light: '#74C69D',
+  veryLight: '#95D5B2',
+  background: '#D8F3DC',
   white: '#FFFFFF',
   text: '#1F2937',
   textLight: '#4B5563',
@@ -43,34 +21,33 @@ function doPost(e) {
       throw new Error('빈 요청입니다.');
     }
 
-    const payload = JSON.parse(e.postData.contents);
+    var payload = JSON.parse(e.postData.contents);
 
     if (!isAuthorized(payload)) {
       Logger.log('[consultation-webhook] invalid secret');
       return jsonResponse({ ok: false, message: 'Unauthorized request' }, 401);
     }
 
-    const submission = payload.submission || {};
-    const submittedAtIso = payload.submittedAt || new Date().toISOString();
-    const submittedAtText = formatKstDate(submittedAtIso);
+    var submission = payload.submission || {};
+    var submittedAtIso = payload.submittedAt || new Date().toISOString();
+    var submittedAtText = formatKstDate(submittedAtIso);
 
     appendToSpreadsheet(submission, submittedAtText);
 
-    const meta = payload.meta || {};
-    const notification = payload.notification || {};
+    var meta = payload.meta || {};
+    var notification = payload.notification || {};
 
-    const summaryText = buildSummaryText(submission, submittedAtText);
-    const staffEmailBody = buildStaffEmailBody(submission, submittedAtText, meta);
-    const customerEmailBody = buildCustomerEmailBody(submission, submittedAtText);
-    const smsBody = buildSmsContent(submission, submittedAtText);
+    var summaryText = buildSummaryText(submission, submittedAtText);
+    var staffEmailBody = buildStaffEmailBody(submission, submittedAtText, meta);
+    var customerEmailBody = buildCustomerEmailBody(submission, submittedAtText);
+    var smsBody = buildSmsContent(submission, submittedAtText);
 
-    // 담당자 이메일 발송
     dispatchEmails(notification, summaryText, staffEmailBody);
 
-    // 고객 이메일 발송 (이메일 주소가 있는 경우)
-    if (submission.email) {
-      dispatchCustomerEmail(submission.email, customerEmailBody);
-    }
+    // 고객 이메일은 Resend로 발송 (Next.js API에서 처리)
+    // if (submission.email) {
+    //   dispatchCustomerEmail(submission.email, customerEmailBody);
+    // }
 
     dispatchTelegram(notification, summaryText);
     dispatchSensSms(notification, submission.phone, smsBody);
@@ -83,71 +60,69 @@ function doPost(e) {
 }
 
 function isAuthorized(payload) {
-  const expectedSecret = getScriptProperty('WEBHOOK_SECRET');
+  var expectedSecret = getScriptProperty('WEBHOOK_SECRET');
   if (!expectedSecret) {
     return true;
   }
 
-  const providedSecret =
+  var providedSecret =
     payload && payload.auth && typeof payload.auth.secret === 'string' ? payload.auth.secret.trim() : '';
 
   return providedSecret && providedSecret === expectedSecret;
 }
 
 function appendToSpreadsheet(submission, submittedAtText) {
-  const spreadsheetId = getScriptProperty('SPREADSHEET_ID');
+  var spreadsheetId = getScriptProperty('SPREADSHEET_ID');
   if (!spreadsheetId) {
     throw new Error('SPREADSHEET_ID 속성이 설정되어 있지 않습니다.');
   }
 
-  const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
-  const sheetName = getScriptProperty('TARGET_SHEET_NAME');
-  const sheet = sheetName ? spreadsheet.getSheetByName(sheetName) : spreadsheet.getSheets()[0];
+  var spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  var sheetName = getScriptProperty('TARGET_SHEET_NAME');
+  var sheet = sheetName ? spreadsheet.getSheetByName(sheetName) : spreadsheet.getSheets()[0];
 
   if (!sheet) {
     throw new Error('대상 시트를 찾을 수 없습니다.');
   }
 
-  // 스프레드시트 컬럼 순서: 제출시간, 배정담당자, 상담결과, 지역, 사업자번호, 이름, 회사명, 연락처, 이메일, 상담희망분야, 연매출, 직원수, 상담희망시간, 희망상담시기, 문의사항, 개인정보동의, 마케팅동의
-  const row = [
-    submittedAtText,                              // 1. 제출시간
-    '',                                           // 2. 배정 담당자 (수동 입력)
-    '',                                           // 3. 상담결과 (수동 입력)
-    submission.region || '',                      // 4. 지역
-    submission.businessNumber || '',              // 5. 사업자번호
-    submission.name || '',                        // 6. 이름
-    submission.company || '',                     // 7. 회사명
-    submission.phone || '',                       // 8. 연락처
-    submission.email || '',                       // 9. 이메일
-    submission.consultType || '',                 // 10. 상담희망분야
-    submission.annualRevenue || '',               // 11. 연매출
-    submission.employeeCount || '',               // 12. 직원수
-    submission.desiredTime || '',                 // 13. 상담희망시간
-    submission.preferredTime || '',               // 14. 희망상담시기
-    submission.message || '',                     // 15. 문의사항
-    submission.privacyConsent ? '동의' : '미동의',  // 16. 개인정보 및 수집 이용 동의
-    submission.marketingConsent ? '동의' : '미동의', // 17. 마케팅 정보 수신 동의
+  var row = [
+    submittedAtText,
+    '',
+    '',
+    submission.region || '',
+    submission.businessNumber || '',
+    submission.name || '',
+    submission.company || '',
+    submission.phone || '',
+    submission.email || '',
+    submission.consultType || '',
+    submission.annualRevenue || '',
+    submission.employeeCount || '',
+    submission.desiredTime || '',
+    submission.preferredTime || '',
+    submission.message || '',
+    submission.privacyConsent ? '동의' : '미동의',
+    submission.marketingConsent ? '동의' : '미동의'
   ];
 
   sheet.appendRow(row);
 }
 
 function dispatchEmails(notification, summaryText, htmlBody) {
-  const recipients = resolveEmailRecipients(notification);
+  var recipients = resolveEmailRecipients(notification);
   if (!recipients.length) {
     return;
   }
 
-  const subject = '[나라똔] 신규 상담 신청 알림';
+  var subject = '[나라똔] 신규 상담 신청 알림';
   MailApp.sendEmail({
     to: recipients.join(','),
     subject: subject,
     htmlBody: htmlBody,
-    name: '나라똔 상담센터',
+    name: '나라똔 상담센터'
   });
 }
 
-// 고객 이메일 발송
 function dispatchCustomerEmail(customerEmail, htmlBody) {
   if (!customerEmail) {
     Logger.log('[consultation-webhook] 고객 이메일 주소가 없습니다.');
@@ -155,12 +130,12 @@ function dispatchCustomerEmail(customerEmail, htmlBody) {
   }
 
   try {
-    const subject = '[나라똔] 상담 신청이 접수되었습니다';
+    var subject = '[나라똔] 상담 신청이 접수되었습니다';
     MailApp.sendEmail({
       to: customerEmail,
       subject: subject,
       htmlBody: htmlBody,
-      name: '나라똔',
+      name: '나라똔'
     });
     Logger.log('[consultation-webhook] 고객 이메일 발송 완료: ' + customerEmail);
   } catch (error) {
@@ -169,24 +144,24 @@ function dispatchCustomerEmail(customerEmail, htmlBody) {
 }
 
 function dispatchTelegram(notification, summaryText) {
-  const config = resolveTelegramConfig(notification);
+  var config = resolveTelegramConfig(notification);
   if (!config.enabled) {
     return;
   }
 
-  const url = 'https://api.telegram.org/bot' + config.botToken + '/sendMessage';
-  const payload = {
+  var url = 'https://api.telegram.org/bot' + config.botToken + '/sendMessage';
+  var payload = {
     chat_id: config.chatId,
     text: summaryText,
     parse_mode: 'HTML',
-    disable_web_page_preview: true,
+    disable_web_page_preview: true
   };
 
-  const response = UrlFetchApp.fetch(url, {
+  var response = UrlFetchApp.fetch(url, {
     method: 'post',
     contentType: 'application/json',
     payload: JSON.stringify(payload),
-    muteHttpExceptions: true,
+    muteHttpExceptions: true
   });
 
   if (response.getResponseCode() >= 300) {
@@ -195,7 +170,7 @@ function dispatchTelegram(notification, summaryText) {
 }
 
 function dispatchSensSms(notification, recipientPhone, smsBody) {
-  const config = resolveSensConfig(notification);
+  var config = resolveSensConfig(notification);
   if (!config.enabled) {
     return;
   }
@@ -211,27 +186,27 @@ function dispatchSensSms(notification, recipientPhone, smsBody) {
   }
 
   try {
-    const sanitizedRecipient = recipientPhone.replace(/[^0-9]/g, '');
-    const urlPath = '/sms/v2/services/' + config.serviceId + '/messages';
-    const endpoint = 'https://sens.apigw.ntruss.com' + urlPath;
-    const timestamp = Date.now().toString();
+    var sanitizedRecipient = recipientPhone.replace(/[^0-9]/g, '');
+    var urlPath = '/sms/v2/services/' + config.serviceId + '/messages';
+    var endpoint = 'https://sens.apigw.ntruss.com' + urlPath;
+    var timestamp = Date.now().toString();
 
-    const signature = Utilities.computeHmacSha256Signature(
+    var signature = Utilities.computeHmacSha256Signature(
       'POST ' + urlPath + '\n' + timestamp + '\n' + config.accessKey,
       config.secretKey
     );
-    const signatureBase64 = Utilities.base64Encode(signature);
+    var signatureBase64 = Utilities.base64Encode(signature);
 
-    const payload = {
+    var payload = {
       type: 'SMS',
       contentType: 'COMM',
       countryCode: '82',
       from: config.senderNumber,
       content: smsBody,
-      messages: [{ to: sanitizedRecipient }],
+      messages: [{ to: sanitizedRecipient }]
     };
 
-    const options = {
+    var options = {
       method: 'post',
       contentType: 'application/json; charset=utf-8',
       payload: JSON.stringify(payload),
@@ -239,11 +214,11 @@ function dispatchSensSms(notification, recipientPhone, smsBody) {
       headers: {
         'x-ncp-apigw-timestamp': timestamp,
         'x-ncp-iam-access-key': config.accessKey,
-        'x-ncp-apigw-signature-v2': signatureBase64,
-      },
+        'x-ncp-apigw-signature-v2': signatureBase64
+      }
     };
 
-    const response = UrlFetchApp.fetch(endpoint, options);
+    var response = UrlFetchApp.fetch(endpoint, options);
     if (response.getResponseCode() >= 300) {
       Logger.log('[consultation-webhook] SENS 전송 실패: ' + response.getContentText());
     }
@@ -260,52 +235,51 @@ function resolveEmailRecipients(notification) {
 }
 
 function resolveTelegramConfig(notification) {
-  const raw = (notification && notification.telegram) || {};
-  const token = raw.botToken || getScriptProperty('TELEGRAM_BOT_TOKEN');
-  const chatId = raw.chatId || getScriptProperty('TELEGRAM_CHAT_ID');
-  const enabled =
+  var raw = (notification && notification.telegram) || {};
+  var token = raw.botToken || getScriptProperty('TELEGRAM_BOT_TOKEN');
+  var chatId = raw.chatId || getScriptProperty('TELEGRAM_CHAT_ID');
+  var enabled =
     typeof raw.enabled === 'boolean'
       ? raw.enabled
       : Boolean(token && chatId);
 
-  return { enabled, botToken: token, chatId: chatId };
+  return { enabled: enabled, botToken: token, chatId: chatId };
 }
 
 function resolveSensConfig(notification) {
-  const raw = (notification && notification.sms) || {};
-  const enabled =
+  var raw = (notification && notification.sms) || {};
+  var enabled =
     typeof raw.enabled === 'boolean'
       ? raw.enabled
       : getScriptProperty('NAVER_SENS_ENABLED').toLowerCase() === 'true';
 
   return {
-    enabled,
+    enabled: enabled,
     serviceId: raw.serviceId || getScriptProperty('NAVER_SENS_SERVICE_ID'),
     accessKey: raw.accessKey || getScriptProperty('NAVER_SENS_ACCESS_KEY'),
     secretKey: raw.secretKey || getScriptProperty('NAVER_SENS_SECRET_KEY'),
-    senderNumber: raw.senderNumber || getScriptProperty('NAVER_SENS_SENDER_NUMBER'),
+    senderNumber: raw.senderNumber || getScriptProperty('NAVER_SENS_SENDER_NUMBER')
   };
 }
 
 function buildSummaryText(submission, submittedAtText) {
-  const lines = [
+  var lines = [
     '[나라똔 홈페이지 신규상담신청]',
     '',
     '📨 신규 상담 신청',
     '• 접수시각: ' + submittedAtText,
     '• 이름: ' + (submission.name || '-'),
-    '• 회사명: ' + (submission.company || '-'),  // 🔥 회사명 분리 추가
+    '• 회사명: ' + (submission.company || '-'),
     '• 연락처: ' + (submission.phone || '-'),
     '• 지역: ' + (submission.region || '-'),
     '• 상담희망분야: ' + (submission.consultType || '-'),
-    '• 상담희망시간: ' + (submission.desiredTime || '-') + ' (' + (submission.preferredTime || '-') + ')',
+    '• 상담희망시간: ' + (submission.desiredTime || '-') + ' (' + (submission.preferredTime || '-') + ')'
   ];
 
   if (submission.message) {
     lines.push('• 문의사항: ' + submission.message);
   }
 
-  // 하단 스프레드시트 바로가기 추가
   lines.push('');
   lines.push('📊 스프레드시트 바로가기');
   lines.push('https://docs.google.com/spreadsheets/d/1s1F6yw3ioJv1_pzI_OKG1u_st1S2pGRc99jqsUQbnIw/edit?gid=0#gid=0');
@@ -314,35 +288,29 @@ function buildSummaryText(submission, submittedAtText) {
   return lines.join('\n');
 }
 
-// ================================================
-// 담당자용 이메일 템플릿 (따스한 녹색 테마)
-// ================================================
 function buildStaffEmailBody(submission, submittedAtText, meta) {
   var c = BRAND_COLORS;
 
-  // 고객 정보 섹션
   var customerRows = [
     ['이름', submission.name || '-'],
     ['연락처', submission.phone || '-'],
     ['이메일', submission.email || '-'],
-    ['지역', submission.region || '-'],
+    ['지역', submission.region || '-']
   ];
 
-  // 기업 정보 섹션
   var companyRows = [
     ['사업자번호', submission.businessNumber || '-'],
     ['연매출', submission.annualRevenue || '-'],
-    ['직원 수', submission.employeeCount || '-'],
+    ['직원 수', submission.employeeCount || '-']
   ];
 
-  // 상담 정보 섹션
   var consultRows = [
     ['상담 분야', submission.consultType || '-'],
     ['희망 시간', submission.desiredTime || '-'],
-    ['희망 시기', submission.preferredTime || '-'],
+    ['희망 시기', submission.preferredTime || '-']
   ];
 
-  function buildInfoTable(rows, iconColor) {
+  function buildInfoTable(rows) {
     return rows.map(function(row) {
       return '<tr>' +
         '<td style="padding:10px 12px;font-size:13px;color:' + c.textLight + ';width:100px;white-space:nowrap;border-bottom:1px solid ' + c.border + ';">' + row[0] + '</td>' +
@@ -353,22 +321,14 @@ function buildStaffEmailBody(submission, submittedAtText, meta) {
 
   var html = '' +
     '<div style="font-family:Pretendard,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;max-width:600px;margin:0 auto;background:' + c.white + ';">' +
-
-    // 헤더
     '<div style="background:linear-gradient(135deg, ' + c.primary + ' 0%, ' + c.secondary + ' 100%);padding:30px;border-radius:12px 12px 0 0;">' +
       '<h1 style="margin:0;color:' + c.white + ';font-size:22px;font-weight:700;">📋 신규 상담 신청</h1>' +
       '<p style="margin:8px 0 0;color:' + c.veryLight + ';font-size:14px;">나라똔 상담센터</p>' +
     '</div>' +
-
-    // 접수 시간 배너
     '<div style="background:' + c.background + ';padding:16px 24px;border-left:4px solid ' + c.accent + ';">' +
       '<p style="margin:0;font-size:14px;color:' + c.primary + ';"><strong>⏰ 접수시각:</strong> ' + submittedAtText + '</p>' +
     '</div>' +
-
-    // 본문
     '<div style="padding:24px;">' +
-
-      // 고객 정보 카드
       '<div style="background:' + c.white + ';border:1px solid ' + c.border + ';border-radius:8px;margin-bottom:20px;overflow:hidden;">' +
         '<div style="background:' + c.primary + ';padding:12px 16px;">' +
           '<h3 style="margin:0;color:' + c.white + ';font-size:14px;font-weight:600;">👤 고객 정보</h3>' +
@@ -377,8 +337,6 @@ function buildStaffEmailBody(submission, submittedAtText, meta) {
           buildInfoTable(customerRows) +
         '</table>' +
       '</div>' +
-
-      // 기업 정보 카드
       '<div style="background:' + c.white + ';border:1px solid ' + c.border + ';border-radius:8px;margin-bottom:20px;overflow:hidden;">' +
         '<div style="background:' + c.secondary + ';padding:12px 16px;">' +
           '<h3 style="margin:0;color:' + c.white + ';font-size:14px;font-weight:600;">🏢 기업 정보</h3>' +
@@ -387,8 +345,6 @@ function buildStaffEmailBody(submission, submittedAtText, meta) {
           buildInfoTable(companyRows) +
         '</table>' +
       '</div>' +
-
-      // 상담 정보 카드
       '<div style="background:' + c.white + ';border:1px solid ' + c.border + ';border-radius:8px;margin-bottom:20px;overflow:hidden;">' +
         '<div style="background:' + c.accent + ';padding:12px 16px;">' +
           '<h3 style="margin:0;color:' + c.white + ';font-size:14px;font-weight:600;">💬 상담 정보</h3>' +
@@ -398,7 +354,6 @@ function buildStaffEmailBody(submission, submittedAtText, meta) {
         '</table>' +
       '</div>';
 
-  // 문의사항이 있는 경우
   if (submission.message) {
     html += '' +
       '<div style="background:' + c.background + ';border:1px solid ' + c.light + ';border-radius:8px;padding:16px;margin-bottom:20px;">' +
@@ -407,36 +362,27 @@ function buildStaffEmailBody(submission, submittedAtText, meta) {
       '</div>';
   }
 
-  // 동의 정보
   html += '' +
       '<div style="background:#f9fafb;border-radius:8px;padding:12px 16px;font-size:12px;color:' + c.textLight + ';">' +
         '<span>개인정보 수집: ' + (submission.privacyConsent ? '✅ 동의' : '❌ 미동의') + '</span>' +
         '<span style="margin-left:16px;">마케팅 수신: ' + (submission.marketingConsent ? '✅ 동의' : '❌ 미동의') + '</span>' +
       '</div>' +
     '</div>' +
-
-    // 푸터
     '<div style="background:' + c.primaryDark + ';padding:20px;text-align:center;border-radius:0 0 12px 12px;">' +
       '<p style="margin:0;color:' + c.veryLight + ';font-size:12px;">나라똔 | 소상공인 정책자금 플랫폼</p>' +
       '<p style="margin:8px 0 0;color:' + c.light + ';font-size:11px;">본 메일은 자동 발송되었습니다.</p>' +
     '</div>' +
-
   '</div>';
 
   return html;
 }
 
-// ================================================
-// 고객용 이메일 템플릿 (따스한 녹색 테마)
-// ================================================
 function buildCustomerEmailBody(submission, submittedAtText) {
   var c = BRAND_COLORS;
   var customerName = submission.name || '고객';
 
   var html = '' +
     '<div style="font-family:Pretendard,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;max-width:600px;margin:0 auto;background:' + c.white + ';">' +
-
-    // 헤더
     '<div style="background:linear-gradient(135deg, ' + c.primary + ' 0%, ' + c.secondary + ' 100%);padding:40px 30px;border-radius:12px 12px 0 0;text-align:center;">' +
       '<div style="width:60px;height:60px;background:' + c.white + ';border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">' +
         '<span style="font-size:28px;">✅</span>' +
@@ -444,17 +390,11 @@ function buildCustomerEmailBody(submission, submittedAtText) {
       '<h1 style="margin:0;color:' + c.white + ';font-size:24px;font-weight:700;">상담 신청 완료</h1>' +
       '<p style="margin:12px 0 0;color:' + c.veryLight + ';font-size:15px;">접수가 정상적으로 완료되었습니다</p>' +
     '</div>' +
-
-    // 본문
     '<div style="padding:32px 24px;">' +
-
-      // 인사말
       '<div style="background:linear-gradient(135deg, ' + c.background + ' 0%, #f0fdf4 100%);padding:24px;border-radius:12px;margin-bottom:24px;border-left:4px solid ' + c.accent + ';">' +
         '<p style="margin:0 0 12px;font-size:18px;color:' + c.text + ';">안녕하세요, <strong style="color:' + c.primary + ';">' + sanitizeHtml(customerName) + '</strong>님</p>' +
         '<p style="margin:0;color:' + c.textLight + ';font-size:14px;line-height:1.7;">나라똔 상담 서비스에 신청해 주셔서 감사합니다.<br>전문 상담사가 빠른 시일 내에 연락드리겠습니다.</p>' +
       '</div>' +
-
-      // 접수 내용 카드
       '<div style="background:' + c.white + ';border:1px solid ' + c.border + ';border-radius:12px;overflow:hidden;margin-bottom:24px;">' +
         '<div style="background:' + c.primary + ';padding:16px 20px;">' +
           '<h3 style="margin:0;color:' + c.white + ';font-size:15px;font-weight:600;">📋 접수 내용</h3>' +
@@ -478,22 +418,16 @@ function buildCustomerEmailBody(submission, submittedAtText) {
           '</tr>' +
         '</table>' +
       '</div>' +
-
-      // 안내 박스
       '<div style="background:linear-gradient(135deg, ' + c.secondary + ' 0%, ' + c.accent + ' 100%);padding:24px;border-radius:12px;text-align:center;">' +
         '<p style="margin:0 0 8px;color:' + c.white + ';font-size:16px;font-weight:700;">📞 영업일 기준 24시간 이내</p>' +
         '<p style="margin:0;color:' + c.background + ';font-size:14px;">전문 상담사가 연락드리겠습니다</p>' +
       '</div>' +
-
     '</div>' +
-
-    // 푸터
     '<div style="background:' + c.primaryDark + ';padding:24px;text-align:center;border-radius:0 0 12px 12px;">' +
       '<p style="margin:0 0 8px;color:' + c.white + ';font-size:14px;font-weight:600;">나라똔</p>' +
       '<p style="margin:0 0 4px;color:' + c.light + ';font-size:12px;">소상공인 정책자금 플랫폼</p>' +
       '<p style="margin:12px 0 0;color:' + c.veryLight + ';font-size:11px;">본 메일은 발신 전용입니다. 문의사항은 상담사 연락을 기다려주세요.</p>' +
     '</div>' +
-
   '</div>';
 
   return html;
@@ -539,8 +473,7 @@ function sanitizeHtml(value) {
 
 function jsonResponse(payload, status) {
   return ContentService.createTextOutput(JSON.stringify(payload))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setResponseCode(status || 200);
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 function getScriptProperty(key, defaultValue) {
@@ -565,5 +498,3 @@ function getPropertyList(key) {
       return item.length > 0;
     });
 }
-```
-
