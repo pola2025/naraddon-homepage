@@ -166,8 +166,9 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (!existingAccount) {
+            // 🔥 FIX: userId를 ObjectId로 저장 (문자열 아님) - MongoDBAdapter와 타입 일치
             await accountsCollection.insertOne({
-              userId: currentUser._id.toString(),
+              userId: currentUser._id,  // toString() 제거 - ObjectId 그대로 저장
               type: account.type,
               provider: account.provider,
               providerAccountId: account.providerAccountId,
