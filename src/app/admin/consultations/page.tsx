@@ -556,17 +556,15 @@ export default function AdminConsultationsPage() {
                         >
                           상세
                         </button>
-                        {consultation.status !== ConsultationStatus.CANCELLED && (
-                          <button
-                            onClick={() => {
-                              setDeleteTargetId(consultation._id);
-                              setDeleteModalOpen(true);
-                            }}
-                            className="text-sm text-red-600 hover:text-red-800"
-                          >
-                            삭제
-                          </button>
-                        )}
+                        <button
+                          onClick={() => {
+                            setDeleteTargetId(consultation._id);
+                            setDeleteModalOpen(true);
+                          }}
+                          className="text-sm text-red-600 hover:text-red-800"
+                        >
+                          삭제
+                        </button>
                       </div>
                     </td>
                   </tr>
