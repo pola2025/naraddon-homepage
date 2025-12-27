@@ -120,7 +120,6 @@ export default function AdminConsultationsPage() {
     consultationType: ''
   });
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [deleteReason, setDeleteReason] = useState('');
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   // 권한 체크
@@ -220,24 +219,21 @@ export default function AdminConsultationsPage() {
     }
   };
 
-  // 상담 삭제 (취소) 처리
+  // 상담 완전 삭제 (DB에서 제거)
   const handleDelete = async () => {
     if (!deleteTargetId) return;
 
     try {
       const response = await fetch(`/api/consultations/${deleteTargetId}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: deleteReason || '관리자에 의해 삭제됨' })
+        method: 'DELETE'
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        alert('상담이 삭제(취소)되었습니다.');
+        alert('상담이 삭제되었습니다.');
         setDeleteModalOpen(false);
         setDeleteTargetId(null);
-        setDeleteReason('');
         fetchConsultations();
       } else {
         alert(data.error || '삭제에 실패했습니다.');
@@ -601,28 +597,14 @@ export default function AdminConsultationsPage() {
               </div>
 
               <p className="text-sm text-gray-600 mb-4">
-                이 상담을 삭제하시겠습니까? 삭제된 상담은 &apos;취소&apos; 상태로 변경됩니다.
+                이 상담을 삭제하시겠습니까? <strong className="text-red-600">삭제된 상담은 복구할 수 없습니다.</strong>
               </p>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  삭제 사유 (선택)
-                </label>
-                <textarea
-                  value={deleteReason}
-                  onChange={(e) => setDeleteReason(e.target.value)}
-                  rows={2}
-                  className="w-full border-gray-300 rounded-md text-sm"
-                  placeholder="삭제 사유를 입력하세요"
-                />
-              </div>
 
               <div className="flex justify-end space-x-2">
                 <button
                   onClick={() => {
                     setDeleteModalOpen(false);
                     setDeleteTargetId(null);
-                    setDeleteReason('');
                   }}
                   className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
                 >

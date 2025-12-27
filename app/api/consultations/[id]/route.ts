@@ -148,7 +148,7 @@ export async function PUT(
   }
 }
 
-// DELETE /api/consultations/[id] - 상담 취소/삭제
+// DELETE /api/consultations/[id] - 상담 완전 삭제 (DB에서 제거)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -166,47 +166,30 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { reason } = await request.json();
-
     const client = await clientPromise;
     const db = client.db('naraddon');
 
     const consultationId = new ObjectId(params.id);
 
-    // Soft delete - 상태를 cancelled로 변경
-    const updateResult = await db.collection('consultations').updateOne(
-      { _id: consultationId },
-      {
-        $set: {
-          status: 'cancelled',
-          cancelledBy: session.user?.email,
-          cancelledAt: new Date(),
-          cancelReason: reason,
-          updatedAt: new Date()
-        },
-        $push: {
-          history: {
-            action: 'cancelled',
-            performedBy: session.user?.email,
-            performedAt: new Date(),
-            details: { reason }
-          }
-        }
-      }
+    // DB에서 완전 삭제
+    const deleteResult = await db.collection('consultations').deleteOne(
+      { _id: consultationId }
     );
 
-    if (updateResult.matchedCount === 0) {
+    if (deleteResult.deletedCount === 0) {
       return NextResponse.json({ error: '상담을 찾을 수 없습니다.' }, { status: 404 });
     }
 
+    console.log(`Consultation ${params.id} deleted by ${session.user?.email}`);
+
     return NextResponse.json({
       success: true,
-      message: '상담이 취소되었습니다.'
+      message: '상담이 삭제되었습니다.'
     });
   } catch (error) {
-    console.error('Failed to cancel consultation:', error);
+    console.error('Failed to delete consultation:', error);
     return NextResponse.json(
-      { error: '상담 취소 중 오류가 발생했습니다.' },
+      { error: '상담 삭제 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }
