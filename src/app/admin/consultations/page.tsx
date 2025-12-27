@@ -1,3 +1,12 @@
+/**
+ * ⚠️ 주의: 이 파일은 사용되지 않습니다!
+ *
+ * 실제 사용되는 파일: /app/admin/consultations/page.tsx
+ * - Next.js는 app 폴더를 src/app보다 우선시함
+ * - 수정이 필요하면 /app/admin/consultations/page.tsx를 수정하세요
+ *
+ * @deprecated 이 파일 대신 /app/admin/consultations/page.tsx 사용
+ */
 'use client';
 
 import { useState, useEffect } from 'react';

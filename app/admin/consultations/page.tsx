@@ -1,3 +1,16 @@
+/**
+ * 상담 관리 페이지 (Admin)
+ *
+ * ⚠️ 중요: 이 파일이 실제 프로덕션에서 사용됩니다!
+ * - 위치: /app/admin/consultations/page.tsx (이 파일)
+ * - /src/app/admin/consultations/page.tsx는 사용되지 않음
+ * - Next.js는 app 폴더를 src/app보다 우선시함
+ *
+ * 주요 기능:
+ * - 상담 목록 조회 및 필터링
+ * - 담당자 배정
+ * - 상담 삭제 (취소 상태로 변경)
+ */
 'use client';
 
 import { useState, useEffect } from 'react';
