@@ -24,7 +24,8 @@ import {
   FunnelIcon,
   ArrowPathIcon,
   UserIcon,
-  BuildingOfficeIcon
+  BuildingOfficeIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline';
 
 interface Consultation {
@@ -106,6 +107,9 @@ export default function AdminConsultationsPage() {
     staffId: '',
     consultationType: ''
   });
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteReason, setDeleteReason] = useState('');
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   // 권한 체크
   useEffect(() => {
@@ -201,6 +205,34 @@ export default function AdminConsultationsPage() {
     } catch (error) {
       console.error('Failed to assign consultation:', error);
       alert('배정 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 상담 삭제 (취소) 처리
+  const handleDelete = async () => {
+    if (!deleteTargetId) return;
+
+    try {
+      const response = await fetch(`/api/consultations/${deleteTargetId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: deleteReason || '관리자에 의해 삭제됨' })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('상담이 삭제(취소)되었습니다.');
+        setDeleteModalOpen(false);
+        setDeleteTargetId(null);
+        setDeleteReason('');
+        fetchConsultations();
+      } else {
+        alert(data.error || '삭제에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Failed to delete consultation:', error);
+      alert('삭제 중 오류가 발생했습니다.');
     }
   };
 
@@ -529,6 +561,15 @@ export default function AdminConsultationsPage() {
                         >
                           상세
                         </button>
+                        <button
+                          onClick={() => {
+                            setDeleteTargetId(consultation._id);
+                            setDeleteModalOpen(true);
+                          }}
+                          className="text-sm text-red-600 hover:text-red-800"
+                        >
+                          삭제
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -537,6 +578,54 @@ export default function AdminConsultationsPage() {
             </tbody>
           </table>
         </div>
+
+        {/* 삭제 확인 모달 */}
+        {deleteModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4" onClick={() => setDeleteModalOpen(false)}>
+            <div className="relative w-full max-w-md bg-white rounded-lg shadow-xl p-6" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center mb-4">
+                <TrashIcon className="h-6 w-6 text-red-600 mr-2" />
+                <h3 className="text-lg font-semibold text-gray-900">상담 삭제</h3>
+              </div>
+
+              <p className="text-sm text-gray-600 mb-4">
+                이 상담을 삭제하시겠습니까? 삭제된 상담은 &apos;취소&apos; 상태로 변경됩니다.
+              </p>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  삭제 사유 (선택)
+                </label>
+                <textarea
+                  value={deleteReason}
+                  onChange={(e) => setDeleteReason(e.target.value)}
+                  rows={2}
+                  className="w-full border-gray-300 rounded-md text-sm"
+                  placeholder="삭제 사유를 입력하세요"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={() => {
+                    setDeleteModalOpen(false);
+                    setDeleteTargetId(null);
+                    setDeleteReason('');
+                  }}
+                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700"
+                >
+                  삭제하기
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 배정 모달 */}
         {assignModalOpen && (
