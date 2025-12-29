@@ -559,7 +559,7 @@ export default function AdminConsultationsPage() {
                       {formatDate(consultation.createdAt)}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex space-x-2">
+                      <div className="flex space-x-4">
                         {!consultation.assignedStaffId && (
                           <button
                             onClick={() => {
