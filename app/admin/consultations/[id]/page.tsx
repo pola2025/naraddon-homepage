@@ -47,6 +47,9 @@ interface ConsultationDetail {
   // 추가 정보
   annualRevenue?: string;
   employeeCount?: string;
+  region?: string;
+  desiredTime?: string;
+  consultTypeDetail?: string;
 
   // 상태 정보
   status: ConsultationStatus;
@@ -434,6 +437,15 @@ export default function ConsultationDetailPage() {
                         </div>
                       </div>
                     )}
+                    {consultation.region && (
+                      <div className="flex items-start">
+                        <span className="text-lg mr-2">📍</span>
+                        <div>
+                          <dt className="text-sm text-gray-500">지역</dt>
+                          <dd className="text-sm font-medium text-blue-600">{consultation.region}</dd>
+                        </div>
+                      </div>
+                    )}
                   </dl>
                 </div>
 
@@ -468,6 +480,18 @@ export default function ConsultationDetailPage() {
                       <div>
                         <dt className="text-sm text-gray-500">직원수</dt>
                         <dd className="text-sm font-medium">{consultation.employeeCount}명</dd>
+                      </div>
+                    )}
+                    {consultation.consultTypeDetail && (
+                      <div>
+                        <dt className="text-sm text-gray-500">상담희망분야</dt>
+                        <dd className="text-sm font-medium text-indigo-600">{consultation.consultTypeDetail}</dd>
+                      </div>
+                    )}
+                    {consultation.desiredTime && (
+                      <div>
+                        <dt className="text-sm text-gray-500">심사 희망 시간</dt>
+                        <dd className="text-sm font-medium">{consultation.desiredTime}</dd>
                       </div>
                     )}
                   </dl>

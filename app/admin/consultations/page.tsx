@@ -76,6 +76,9 @@ interface Consultation {
   // 추가 정보
   annualRevenue?: string;
   employeeCount?: string;
+  region?: string; // 지역 정보
+  desiredTime?: string; // 심사 희망 시간
+  consultTypeDetail?: string; // 상담희망분야
   history?: any[];
   memos?: any[];
 }
@@ -508,6 +511,11 @@ export default function AdminConsultationsPage() {
                           <div className="text-sm text-gray-500 flex items-center mt-1">
                             <BuildingOfficeIcon className="h-4 w-4 mr-1" />
                             {consultation.companyName}
+                          </div>
+                        )}
+                        {consultation.region && (
+                          <div className="text-sm text-blue-600 mt-1">
+                            📍 {consultation.region}
                           </div>
                         )}
                       </div>

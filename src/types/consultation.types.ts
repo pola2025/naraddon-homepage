@@ -173,9 +173,17 @@ export interface ConsultationRequest {
 
   // 상담 정보
   consultationType: string;        // 상담 유형
+  consultationField?: string;      // 상담 분야 (전문가 상담)
   message: string;                 // 상담 내용
   preferredDate?: Date;            // 희망 일자
   preferredTime?: string;          // 희망 시간
+
+  // 추가 정보 (기업심사관 상담)
+  annualRevenue?: string;          // 연매출
+  employeeCount?: string;          // 직원수
+  region?: string;                 // 지역
+  desiredTime?: string;            // 심사 희망 시간 (예: "평일 오후 2시 이후")
+  consultTypeDetail?: string;      // 상담희망분야 (정부지원금, 인증, 창업, 기타 등)
 
   // 상태 정보
   status: ConsultationStatus;      // 상태

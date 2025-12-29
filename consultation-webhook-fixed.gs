@@ -63,21 +63,26 @@ function appendToSpreadsheet(submission, submittedAtText) {
     throw new Error('대상 시트를 찾을 수 없습니다.');
   }
 
+  // 스프레드시트 헤더 순서:
+  // 제출시간 | 배정담당자 | 상담결과 | 지역 | 사업자번호 | 이름 | 회사명 | 연락처 | 이메일 | 상담희망분야 | 연매출 | 직원수 | 상담희망시간 | 희망상담시기 | 문의사항 | 개인정보동의 | 마케팅동의
   const row = [
-    submittedAtText,
-    submission.region || '',
-    submission.businessNumber || '',
-    submission.name || '',
-    submission.phone || '',
-    submission.email || '',
-    submission.consultType || '',
-    submission.annualRevenue || '',
-    submission.employeeCount || '',
-    submission.desiredTime || '',
-    submission.preferredTime || '',
-    submission.message || '',
-    submission.privacyConsent ? '동의' : '미동의',
-    submission.marketingConsent ? '동의' : '미동의',
+    submittedAtText,                              // 1. 제출시간
+    '',                                           // 2. 배정담당자 (관리자 작성 - 빈칸)
+    '',                                           // 3. 상담결과 (관리자 작성 - 빈칸)
+    submission.region || '',                      // 4. 지역
+    submission.businessNumber || '',              // 5. 사업자번호
+    submission.name || '',                        // 6. 이름
+    submission.company || '',                     // 7. 회사명 (API에서 company로 전송)
+    submission.phone || '',                       // 8. 연락처
+    submission.email || '',                       // 9. 이메일
+    submission.consultTypeDetail || submission.consultType || '',  // 10. 상담희망분야 (정부지원금, 인증 등)
+    submission.annualRevenue || '',               // 11. 연매출
+    submission.employeeCount || '',               // 12. 직원수
+    submission.desiredTime || '',                 // 13. 상담희망시간
+    submission.preferredTime || '',               // 14. 희망상담시기
+    submission.message || '',                     // 15. 문의사항
+    submission.privacyConsent ? '동의' : '미동의', // 16. 개인정보 동의
+    submission.marketingConsent ? '동의' : '미동의', // 17. 마케팅 동의
   ];
 
   sheet.appendRow(row);
@@ -99,22 +104,30 @@ function dispatchEmails(notification, summaryText, htmlBody) {
 }
 
 function dispatchTelegram(notification, summaryText) {
-  const config = resolveTelegramConfig(notification);
+  var config = resolveTelegramConfig(notification);
   if (!config.enabled) {
     return;
   }
 
-  const url = 'https://api.telegram.org/bot' + config.botToken + '/sendMessage';
-  const payload = {
+  // 스프레드시트 링크 추가 (HTML 형식)
+  var spreadsheetId = getScriptProperty('SPREADSHEET_ID');
+  var messageWithLink = summaryText;
+  if (spreadsheetId) {
+    var sheetUrl = 'https://docs.google.com/spreadsheets/d/' + spreadsheetId;
+    messageWithLink += '\n\n<a href="' + sheetUrl + '">📊 스프레드시트 바로가기</a>';
+  }
+
+  var url = 'https://api.telegram.org/bot' + config.botToken + '/sendMessage';
+  var payload = {
     chat_id: config.chatId,
-    text: summaryText,
-    parse_mode: 'Markdown',  // HTML 대신 Markdown 사용
+    text: messageWithLink,
+    parse_mode: 'HTML',  // Markdown에서 HTML로 변경 (하이퍼링크 지원)
     disable_web_page_preview: true,
   };
 
-  const response = UrlFetchApp.fetch(url, {
+  var response = UrlFetchApp.fetch(url, {
     method: 'post',
-    contentType: 'application/json; charset=utf-8',  // UTF-8 명시
+    contentType: 'application/json; charset=utf-8',
     payload: JSON.stringify(payload),
     muteHttpExceptions: true,
   });
@@ -239,6 +252,9 @@ function buildSummaryText(submission, submittedAtText) {
   // 전문가 상담일 때는 상담 분야 표시
   if (submission.consultType === '전문가 상담' && submission.consultField) {
     lines.push('• 상담분야: ' + submission.consultField);
+  } else if (submission.consultType === '기업심사관 상담') {
+    // 기업심사관 상담일 때는 상담희망분야 표시 (정부지원금, 인증 등)
+    lines.push('• 상담희망분야: ' + (submission.consultTypeDetail || '-'));
   } else {
     lines.push('• 상담희망분야: ' + (submission.consultType || '-'));
   }
@@ -264,86 +280,128 @@ function buildSummaryText(submission, submittedAtText) {
   return lines.join('\n');
 }
 
+// 나라똔 브랜드 컬러
+var BRAND_COLORS = {
+  primaryDark: '#1B4332',
+  primary: '#2D6A4F',
+  secondary: '#40916C',
+  accent: '#52B788',
+  light: '#74C69D',
+  veryLight: '#95D5B2',
+  background: '#D8F3DC',
+  white: '#FFFFFF',
+  text: '#1F2937',
+  textLight: '#4B5563',
+  border: '#E5E7EB'
+};
+
 function buildEmailBody(submission, submittedAtText, meta) {
+  var c = BRAND_COLORS;
+
   // 상담 유형에 따른 제목
-  var emailTitle = '신규 상담 신청이 접수되었습니다.';
+  var emailTitle = '📋 신규 상담 신청';
   if (submission.consultType === '전문가 상담') {
-    emailTitle = '[전문가 상담접수] 신규 상담 신청이 접수되었습니다.';
+    emailTitle = '📋 [전문가 상담] 신규 상담 신청';
   } else if (submission.consultType === '기업심사관 상담') {
-    emailTitle = '[기업심사관 상담접수] 신규 상담 신청이 접수되었습니다.';
+    emailTitle = '📋 [기업심사관 상담] 신규 상담 신청';
   }
 
-  const rows = [
-    ['접수시각', submittedAtText],
-    ['이름/회사명', submission.name || '-'],
+  var customerRows = [
+    ['이름', submission.name || '-'],
+    ['회사명', submission.company || '-'],
     ['연락처', submission.phone || '-'],
+    ['이메일', submission.email || '-']
   ];
 
-  // 지역 정보는 기업심사관 상담일 때만 추가
-  if (submission.consultType === '기업심사관 상담') {
-    rows.push(['지역', submission.region || '-']);
+  if (submission.consultType === '기업심사관 상담' && submission.region) {
+    customerRows.push(['지역', submission.region]);
   }
 
-  // 전문가 상담일 때는 상담 분야, 아니면 상담희망분야
+  var companyRows = [
+    ['사업자번호', submission.businessNumber || '-']
+  ];
+
+  if (submission.consultType === '기업심사관 상담') {
+    companyRows.push(['연매출', submission.annualRevenue || '-']);
+    companyRows.push(['직원 수', submission.employeeCount || '-']);
+  }
+
+  var consultRows = [
+    ['상담 분야', submission.consultType || '-']
+  ];
+
   if (submission.consultType === '전문가 상담' && submission.consultField) {
-    rows.push(['상담분야', submission.consultField]);
-  }
-  rows.push(['상담희망분야', submission.consultType || '-']);
-
-  rows.push(['희망 상담 시간', submission.desiredTime || '-']);
-  rows.push(['상담 희망 시기', submission.preferredTime || '-']);
-
-  // 기업심사관 상담일 때만 추가 정보 표시
-  if (submission.consultType === '기업심사관 상담') {
-    rows.push(['연매출', submission.annualRevenue || '-']);
-    rows.push(['직원 수', submission.employeeCount || '-']);
+    consultRows.push(['전문 분야', submission.consultField]);
   }
 
-  rows.push(['사업자번호', submission.businessNumber || '-']);
-  rows.push(['이메일', submission.email || '-']);
-  rows.push(['개인정보 수집 동의', submission.privacyConsent ? '동의' : '미동의']);
-  rows.push(['마케팅 수신 동의', submission.marketingConsent ? '동의' : '미동의']);
+  consultRows.push(['희망 시간', submission.desiredTime || '-']);
+  consultRows.push(['희망 시기', submission.preferredTime || '-']);
+
+  function buildInfoTable(rows) {
+    return rows.map(function(row) {
+      return '<tr>' +
+        '<td style="padding:10px 12px;font-size:13px;color:' + c.textLight + ';width:100px;white-space:nowrap;border-bottom:1px solid ' + c.border + ';">' + row[0] + '</td>' +
+        '<td style="padding:10px 12px;font-size:14px;color:' + c.text + ';font-weight:600;border-bottom:1px solid ' + c.border + ';">' + sanitizeHtml(row[1]) + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  var html = '' +
+    '<div style="font-family:Pretendard,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;max-width:600px;margin:0 auto;background:' + c.white + ';">' +
+    '<div style="background:linear-gradient(135deg, ' + c.primary + ' 0%, ' + c.secondary + ' 100%);padding:30px;border-radius:12px 12px 0 0;">' +
+      '<h1 style="margin:0;color:' + c.white + ';font-size:22px;font-weight:700;">' + emailTitle + '</h1>' +
+      '<p style="margin:8px 0 0;color:' + c.veryLight + ';font-size:14px;">나라똔 상담센터</p>' +
+    '</div>' +
+    '<div style="background:' + c.background + ';padding:16px 24px;border-left:4px solid ' + c.accent + ';">' +
+      '<p style="margin:0;font-size:14px;color:' + c.primary + ';"><strong>⏰ 접수시각:</strong> ' + submittedAtText + '</p>' +
+    '</div>' +
+    '<div style="padding:24px;">' +
+      '<div style="background:' + c.white + ';border:1px solid ' + c.border + ';border-radius:8px;margin-bottom:20px;overflow:hidden;">' +
+        '<div style="background:' + c.primary + ';padding:12px 16px;">' +
+          '<h3 style="margin:0;color:' + c.white + ';font-size:14px;font-weight:600;">👤 고객 정보</h3>' +
+        '</div>' +
+        '<table style="width:100%;border-collapse:collapse;">' +
+          buildInfoTable(customerRows) +
+        '</table>' +
+      '</div>' +
+      '<div style="background:' + c.white + ';border:1px solid ' + c.border + ';border-radius:8px;margin-bottom:20px;overflow:hidden;">' +
+        '<div style="background:' + c.secondary + ';padding:12px 16px;">' +
+          '<h3 style="margin:0;color:' + c.white + ';font-size:14px;font-weight:600;">🏢 기업 정보</h3>' +
+        '</div>' +
+        '<table style="width:100%;border-collapse:collapse;">' +
+          buildInfoTable(companyRows) +
+        '</table>' +
+      '</div>' +
+      '<div style="background:' + c.white + ';border:1px solid ' + c.border + ';border-radius:8px;margin-bottom:20px;overflow:hidden;">' +
+        '<div style="background:' + c.accent + ';padding:12px 16px;">' +
+          '<h3 style="margin:0;color:' + c.white + ';font-size:14px;font-weight:600;">💬 상담 정보</h3>' +
+        '</div>' +
+        '<table style="width:100%;border-collapse:collapse;">' +
+          buildInfoTable(consultRows) +
+        '</table>' +
+      '</div>';
 
   if (submission.message) {
-    rows.push(['문의사항', submission.message]);
+    html += '' +
+      '<div style="background:' + c.background + ';border:1px solid ' + c.light + ';border-radius:8px;padding:16px;margin-bottom:20px;">' +
+        '<p style="margin:0 0 8px;font-size:13px;color:' + c.secondary + ';font-weight:600;">📝 문의사항</p>' +
+        '<p style="margin:0;font-size:14px;color:' + c.text + ';line-height:1.6;">' + sanitizeHtml(submission.message) + '</p>' +
+      '</div>';
   }
 
-  if (meta) {
-    if (meta.ip || meta.forwardedFor) {
-      rows.push(['요청 IP', meta.forwardedFor || meta.ip || '-']);
-    }
-    if (meta.userAgent) {
-      rows.push(['User-Agent', meta.userAgent]);
-    }
-    if (meta.referer) {
-      rows.push(['Referer', meta.referer]);
-    }
-  }
+  html += '' +
+      '<div style="background:#f9fafb;border-radius:8px;padding:12px 16px;font-size:12px;color:' + c.textLight + ';">' +
+        '<span>개인정보 수집: ' + (submission.privacyConsent ? '✅ 동의' : '❌ 미동의') + '</span>' +
+        '<span style="margin-left:16px;">마케팅 수신: ' + (submission.marketingConsent ? '✅ 동의' : '❌ 미동의') + '</span>' +
+      '</div>' +
+    '</div>' +
+    '<div style="background:' + c.primaryDark + ';padding:20px;text-align:center;border-radius:0 0 12px 12px;">' +
+      '<p style="margin:0;color:' + c.veryLight + ';font-size:12px;">나라똔 | 소상공인 정책자금 플랫폼</p>' +
+      '<p style="margin:8px 0 0;color:' + c.light + ';font-size:11px;">본 메일은 자동 발송되었습니다.</p>' +
+    '</div>' +
+  '</div>';
 
-  const tableRows = rows
-    .map(function (row) {
-      return (
-        '<tr>' +
-        '<th style="padding:8px 12px;text-align:left;background:#0f172a;color:#fff;border-bottom:1px solid #e2e8f0;">' +
-        row[0] +
-        '</th>' +
-        '<td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;">' +
-        sanitizeHtml(row[1]) +
-        '</td>' +
-        '</tr>'
-      );
-    })
-    .join('');
-
-  return (
-    '<div style="font-family:Segoe UI,Helvetica,Arial,sans-serif;font-size:14px;color:#0f172a;">' +
-    '<h2 style="margin:0 0 16px;font-size:18px;">' + emailTitle + '</h2>' +
-    '<table style="border-collapse:collapse;min-width:360px;">' +
-    tableRows +
-    '</table>' +
-    '<p style="margin-top:16px;color:#475569;">본 메일은 자동 발송되었습니다.</p>' +
-    '</div>'
-  );
+  return html;
 }
 
 function buildSmsContent(submission, submittedAtText) {

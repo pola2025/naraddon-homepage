@@ -262,6 +262,9 @@ export async function POST(request: NextRequest) {
       // 추가 정보 (기업심사관 상담인 경우)
       annualRevenue: data.annualRevenue,
       employeeCount: data.employeeCount,
+      region: data.region, // 지역 정보
+      desiredTime: data.desiredTime, // 심사 희망 시간 (예: "평일 오후 2시 이후")
+      consultTypeDetail: data.consultType, // 상담희망분야 (정부지원금, 인증, 창업, 기타 등)
 
       // 상태 정보
       status: ConsultationStatus.PENDING,
@@ -377,6 +380,8 @@ export async function POST(request: NextRequest) {
         submissionData.employeeCount = convertEmployeeCount(consultation.employeeCount || '');
         submissionData.desiredTime = data.desiredTime || consultation.preferredTime || '';
         submissionData.region = data.region || '';
+        // 상담희망분야 (정부지원금, 인증, 창업 등) - 원본 값 그대로 전달
+        submissionData.consultTypeDetail = convertConsultationType(data.consultType || '');
       }
 
       const webhookPayload: Record<string, unknown> = {
