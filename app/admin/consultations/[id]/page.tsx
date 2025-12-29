@@ -419,33 +419,27 @@ export default function ConsultationDetailPage() {
                         <dd className="text-sm font-medium">{consultation.userPhone}</dd>
                       </div>
                     </div>
-                    {consultation.companyName && (
-                      <div className="flex items-start">
-                        <BuildingOfficeIcon className="h-5 w-5 text-gray-400 mr-2" />
-                        <div>
-                          <dt className="text-sm text-gray-500">회사명</dt>
-                          <dd className="text-sm font-medium">{consultation.companyName}</dd>
-                        </div>
+                    <div className="flex items-start">
+                      <BuildingOfficeIcon className="h-5 w-5 text-gray-400 mr-2" />
+                      <div>
+                        <dt className="text-sm text-gray-500">회사명</dt>
+                        <dd className="text-sm font-medium">{consultation.companyName || '-'}</dd>
                       </div>
-                    )}
-                    {consultation.businessNumber && (
-                      <div className="flex items-start">
-                        <DocumentTextIcon className="h-5 w-5 text-gray-400 mr-2" />
-                        <div>
-                          <dt className="text-sm text-gray-500">사업자번호</dt>
-                          <dd className="text-sm font-medium">{consultation.businessNumber}</dd>
-                        </div>
+                    </div>
+                    <div className="flex items-start">
+                      <DocumentTextIcon className="h-5 w-5 text-gray-400 mr-2" />
+                      <div>
+                        <dt className="text-sm text-gray-500">사업자번호</dt>
+                        <dd className="text-sm font-medium">{consultation.businessNumber || '-'}</dd>
                       </div>
-                    )}
-                    {consultation.region && (
-                      <div className="flex items-start">
-                        <span className="text-lg mr-2">📍</span>
-                        <div>
-                          <dt className="text-sm text-gray-500">지역</dt>
-                          <dd className="text-sm font-medium text-blue-600">{consultation.region}</dd>
-                        </div>
+                    </div>
+                    <div className="flex items-start">
+                      <span className="text-lg mr-2">📍</span>
+                      <div>
+                        <dt className="text-sm text-gray-500">지역</dt>
+                        <dd className="text-sm font-medium text-blue-600">{consultation.region || '-'}</dd>
                       </div>
-                    )}
+                    </div>
                   </dl>
                 </div>
 
@@ -461,39 +455,30 @@ export default function ConsultationDetailPage() {
                       <dt className="text-sm text-gray-500">상담 내용</dt>
                       <dd className="text-sm">{consultation.message}</dd>
                     </div>
-                    {consultation.preferredDate && (
-                      <div>
-                        <dt className="text-sm text-gray-500">희망 일시</dt>
-                        <dd className="text-sm font-medium">
-                          {formatDate(consultation.preferredDate)}
-                          {consultation.preferredTime && ` ${consultation.preferredTime}`}
-                        </dd>
-                      </div>
-                    )}
-                    {consultation.annualRevenue && (
-                      <div>
-                        <dt className="text-sm text-gray-500">연매출</dt>
-                        <dd className="text-sm font-medium">{consultation.annualRevenue}</dd>
-                      </div>
-                    )}
-                    {consultation.employeeCount && (
-                      <div>
-                        <dt className="text-sm text-gray-500">직원수</dt>
-                        <dd className="text-sm font-medium">{consultation.employeeCount}명</dd>
-                      </div>
-                    )}
-                    {consultation.consultTypeDetail && (
-                      <div>
-                        <dt className="text-sm text-gray-500">상담희망분야</dt>
-                        <dd className="text-sm font-medium text-indigo-600">{consultation.consultTypeDetail}</dd>
-                      </div>
-                    )}
-                    {consultation.desiredTime && (
-                      <div>
-                        <dt className="text-sm text-gray-500">심사 희망 시간</dt>
-                        <dd className="text-sm font-medium">{consultation.desiredTime}</dd>
-                      </div>
-                    )}
+                    <div>
+                      <dt className="text-sm text-gray-500">희망 일시</dt>
+                      <dd className="text-sm font-medium">
+                        {consultation.preferredDate
+                          ? `${formatDate(consultation.preferredDate)}${consultation.preferredTime ? ` ${consultation.preferredTime}` : ''}`
+                          : '-'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-500">연매출</dt>
+                      <dd className="text-sm font-medium">{consultation.annualRevenue || '-'}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-500">직원수</dt>
+                      <dd className="text-sm font-medium">{consultation.employeeCount ? `${consultation.employeeCount}명` : '-'}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-500">상담희망분야</dt>
+                      <dd className="text-sm font-medium text-indigo-600">{consultation.consultTypeDetail || '-'}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-500">상담 희망 시간</dt>
+                      <dd className="text-sm font-medium">{consultation.desiredTime || '-'}</dd>
+                    </div>
                   </dl>
 
                   {/* 담당자 정보 */}
