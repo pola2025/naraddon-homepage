@@ -82,6 +82,17 @@ export default function RootLayout({
   return (
     <html lang="ko" style={{ backgroundColor: '#ffffff' }}>
       <head>
+        {/* FOUC 방지 - CSS 로드 전 즉시 적용되는 스타일 */}
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              html, body {
+                background-color: #ffffff !important;
+              }
+            `,
+          }}
+        />
+
         {/* 파비콘 */}
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
