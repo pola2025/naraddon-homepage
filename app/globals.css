@@ -13,9 +13,9 @@
   }
 }
 
-/* 페이지 로딩 중 배경색 (인트로 화면과 동일한 검은색) */
+/* 페이지 기본 배경색 - FOUC 방지를 위해 흰색으로 통일 */
 html {
-  background-color: #000;
+  background-color: #ffffff;
 }
 
 :root {
@@ -30,15 +30,16 @@ html {
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
+/* 다크 모드 비활성화 - FOUC 방지 및 일관된 라이트 테마 유지 */
+/* @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
-}
+} */
 
 body {
-  background: var(--background);
+  background: #ffffff; /* FOUC 방지를 위해 직접 흰색 지정 */
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }

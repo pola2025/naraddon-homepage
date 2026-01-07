@@ -80,7 +80,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" style={{ backgroundColor: '#ffffff' }}>
       <head>
         {/* 파비콘 */}
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -156,7 +156,7 @@ export default function RootLayout({
           data-website-id="8d93abb4-ca26-495d-b2db-119ed1e57a80"
         />
       </head>
-      <body>
+      <body style={{ backgroundColor: '#ffffff' }}>
         {/* Google Analytics (gtag.js) */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-E6SP6XM3TP"
