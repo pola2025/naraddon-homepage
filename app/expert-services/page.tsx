@@ -178,6 +178,17 @@ export default function ExpertServicesPage() {
       const result = await response.json();
 
       if (response.ok && result.success) {
+        // GA4 폼 제출 이벤트 전송
+        if (typeof window !== 'undefined' && window.gtag) {
+          window.gtag('event', 'generate_lead', {
+            event_category: 'form',
+            event_label: 'expert_services',
+            form_name: 'expert_consultation',
+            page_path: window.location.pathname,
+            page_title: document.title,
+          });
+        }
+
         window.alert(result.message || successMessage);
         resetForm();
       } else {

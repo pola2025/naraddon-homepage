@@ -784,6 +784,17 @@ function QuickConsultForm() {
         throw new Error('Request failed');
       }
 
+      // GA4 폼 제출 이벤트 전송
+      if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('event', 'generate_lead', {
+          event_category: 'form',
+          event_label: 'consultation_request',
+          form_name: 'consultation_request',
+          page_path: window.location.pathname,
+          page_title: document.title,
+        });
+      }
+
       dispatch({ type: 'SET_SUCCESS', value: true });
       dispatch({ type: 'SET_ERRORS', errors: {} });
       setTimeout(() => {
