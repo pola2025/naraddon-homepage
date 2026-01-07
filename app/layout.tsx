@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import './globals.css';
 import '@/App.css';
 import '@/styles/components.css';
@@ -156,6 +157,19 @@ export default function RootLayout({
         />
       </head>
       <body>
+        {/* Google Analytics (gtag.js) */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-E6SP6XM3TP"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-E6SP6XM3TP');
+          `}
+        </Script>
         <Providers>
           <PageVisitTracker />
           <div className="App">
