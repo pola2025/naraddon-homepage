@@ -6,11 +6,11 @@ import HeroSection from './components/HeroSection/index';
 import IntroVideo from './components/IntroVideo';
 import { captions } from './constants/captions';
 import { prefetchPolicyNews } from '../../utils/prefetch';
+import PopupBanner from '../common/PopupBanner';
 
 // 동적 임포트로 초기 로딩 속도 개선
 const TrustSection = lazy(() => import('../TrustSection'));
 const PolicyThumbnails = lazy(() => import('../PolicyThumbnails'));
-const SaveSection = lazy(() => import('../SaveSection'));
 const NaraddonTube = lazy(() => import('../NaraddonTube/NaraddonTubeSimple'));
 const EmpathySection = lazy(() => import('../EmpathySection'));
 
@@ -178,6 +178,13 @@ function Home({ initialPolicyNews = [], initialTubeVideos = [] }) {
         />
       ) : (
         <div className="home-main-content">
+          {/* 프로모션 팝업 배너 - 인트로 후 표시 */}
+          <PopupBanner
+            imageSrc="https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/popup/popup-banner-fee-3percent.webp"
+            href="/consultation-request"
+            popupId="fee-3percent-202601"
+            alt="정책자금 컨설팅 업계 최저 수수료 3%"
+          />
           {/* 영상 배경 래퍼 */}
           <div className="home-hero-section">
             {/* 배경 영상 */}
@@ -219,9 +226,6 @@ function Home({ initialPolicyNews = [], initialTubeVideos = [] }) {
           </Suspense>
           <Suspense fallback={<SectionLoader />}>
             <NaraddonTube initialData={initialTubeVideos} />
-          </Suspense>
-          <Suspense fallback={<SectionLoader />}>
-            <SaveSection />
           </Suspense>
           <Suspense fallback={<SectionLoader />}>
             <EmpathySection />
