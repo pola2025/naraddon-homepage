@@ -6,7 +6,6 @@ import { StandardBottomCta } from '@/components/ui/StandardBottomCta';
 import {
   consultFields,
   expertServiceCta,
-  expertServiceHero,
   privacyNotice,
   successMessage,
   timingOptions,
@@ -120,10 +119,14 @@ export default function ExpertServicesPage() {
     return () => abortController.abort();
   }, []);
 
-  const heroSubtitle = { __html: expertServiceHero.subtitleHtml };
-
   const resetForm = () => {
-    setForm(defaultFormState);
+    setForm({
+      name: '',
+      phone: '',
+      email: '',
+      companyName: '',
+      content: '',
+    });
     setSelectedField('');
     setSelectedTiming('');
     setAgreePrivacy(false);
@@ -209,48 +212,9 @@ export default function ExpertServicesPage() {
 
   return (
     <div className="expert-services-page" style={{background: 'var(--bg-cream)'}}>
-      <section className="expert-hero layout-hero relative overflow-hidden">
-        <div className="layout-container">
-          <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 rounded-full px-8 py-3" style={{background: 'linear-gradient(135deg, var(--primary-green) 0%, var(--green-dark) 100%)', boxShadow: 'var(--shadow-green)'}}>
-              <i className="fas fa-award" style={{color: 'white', fontSize: '18px'}} />
-              <span style={{color: 'white', fontSize: '13px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase'}}>
-                {expertServiceHero.badge}
-              </span>
-            </span>
-            <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-              {expertServiceHero.title}
-              <span className="block" style={{background: 'linear-gradient(135deg, var(--primary-green) 0%, var(--green-dark) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text'}}>{expertServiceHero.highlight}</span>
-            </h1>
-            <p
-              className="mt-6 text-lg leading-7 text-slate-600"
-              dangerouslySetInnerHTML={heroSubtitle}
-            />
-            <div className="mt-10 flex flex-wrap items-center gap-6">
-              {expertServiceHero.stats.map((stat) => (
-                <div
-                  key={stat.label}
-                  className="rounded-2xl bg-white px-6 py-4 shadow ring-1 ring-slate-100"
-                >
-                  <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
-                  <p className="text-sm font-medium text-slate-500">{stat.label}</p>
-                </div>
-              ))}
-              <a
-                href="#expert-consultation-form"
-                className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-base font-semibold text-white shadow-lg transition"
-                style={{background: 'linear-gradient(135deg, var(--primary-green) 0%, var(--green-dark) 100%)'}}
-                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-              >
-                <i className="fas fa-headset" aria-hidden="true" /> 상담 요청하기
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Hero 섹션 삭제됨 (2025-01-08) */}
 
-      <section className="expert-services__experts layout-section" id="expert-cards" style={{background: 'var(--bg-cream)'}}>
+      <section className="expert-services__experts layout-section" id="expert-cards" style={{background: 'var(--bg-cream)', paddingTop: '60px'}}>
         <div className="layout-container">
           <div className="expert-services__experts-header" style={{textAlign: 'center'}}>
             <span style={{display: 'inline-block', padding: '6px 12px', background: 'var(--bg-light)', color: 'var(--green-dark)', borderRadius: '20px', fontSize: '12px', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '16px'}}>
@@ -313,15 +277,15 @@ export default function ExpertServicesPage() {
                       </div>
 
                       {expert.introduction && (
-                        <p className="expert-intro" style={{fontSize: '15px', color: 'var(--text-gray)', lineHeight: '1.7', marginBottom: '20px'}}>
+                        <p className="expert-intro">
                           {expert.introduction}
                         </p>
                       )}
 
                       {expert.specialties && expert.specialties.length > 0 && (
                         <div className="expert-specialties">
-                          {expert.specialties.map((specialty, idx) => (
-                            <span key={idx} className="specialty-tag">{specialty}</span>
+                          {expert.specialties.slice(0, 4).map((specialty, idx) => (
+                            <span key={idx} className="specialty-tag">{specialty.split(',')[0]}</span>
                           ))}
                         </div>
                       )}
@@ -523,19 +487,6 @@ export default function ExpertServicesPage() {
               </div>
             </div>
           </form>
-        </div>
-      </section>
-
-      <section className="certified-examiners__cta-section">
-        <div className="layout-container">
-          <StandardBottomCta
-            eyebrow="Ready to Consult"
-            title={expertServiceCta.title}
-            subtitle={expertServiceCta.subtitle}
-            buttonHref="#expert-consultation-form"
-            buttonLabel={expertServiceCta.primaryLabel}
-            buttonAriaLabel={expertServiceCta.primaryLabel}
-          />
         </div>
       </section>
 

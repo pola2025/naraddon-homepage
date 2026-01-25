@@ -10,8 +10,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import CanAccess from "./CanAccess";
 import styles from "./Header.module.css";
 
-const LOGO_URL = "/images/ttontok-logo.png";
-const LOGO_FALLBACK_URL = "/images/ttontok-logo.png";
+const LOGO_URL = "/images/logo-naraddon.png";
+const LOGO_FALLBACK_URL = "/images/logo-naraddon.png";
 const BRAND_NAME = "Naraddon";
 const TAGLINE = "No.1 정책자금 플랫폼";
 const LOGIN_LABEL = "로그인";
@@ -26,7 +26,7 @@ type Viewport = "desktop" | "tablet" | "mobile";
 
 const PRIMARY_NAV: NavItem[] = [
   { href: "/", label: "나라똔" }, // 메인 페이지는 인트로 없이 바로 접근
-  { href: "/policy-analysis", label: "정책분석" },
+  { href: "/policy-analysis", label: "정책 알리미" },
   { href: "/business-voice", label: "사업자 목소리" },
   { href: "/certified-examiners", label: "인증 기업심사관" },
 ];
@@ -371,14 +371,6 @@ export default function Header() {
         aria-hidden={!isMobileMenuOpen}
       >
         <div className={styles.mobileDrawerHeader}>
-          <Link href="/?intro=true" className={styles.mobileBrandLink} onClick={closeMobileMenu}>
-            {!logoError ? (
-              <img src={LOGO_URL} alt="나라똔 로고" className={styles.logo} />
-            ) : (
-              <img src={LOGO_FALLBACK_URL} alt="나라똔 로고" className={styles.logo} />
-            )}
-            {BRAND_NAME}
-          </Link>
           <button
             type="button"
             className={styles.mobileCloseButton}
@@ -396,7 +388,7 @@ export default function Header() {
           </button>
         </div>
 
-        {isAuthenticated ? (
+        {isAuthenticated && (
           <div className={styles.mobileProfileSummary}>
             <span className={styles.profileInitial}>{initials}</span>
             <div className={styles.mobileProfileInfo}>
@@ -405,10 +397,6 @@ export default function Header() {
               {user?.role && <span className={styles.profileRole}>{roleLabel}</span>}
             </div>
           </div>
-        ) : (
-          <Link href="/auth/login" className={styles.loginButton} onClick={closeMobileMenu}>
-            {LOGIN_LABEL}
-          </Link>
         )}
 
         <nav className={styles.mobileNav} aria-label="모바일 메뉴">
@@ -452,20 +440,26 @@ export default function Header() {
           </ul>
         </nav>
 
-        {isAuthenticated && (
-          <div className={styles.mobileFooter}>
-            {/* 프로필 관리 메뉴 숨김 처리 */}
-            {/* <Link href="/mypage" className={styles.mobileFooterLink} onClick={closeMobileMenu}>
-              프로필 관리
-            </Link> */}
-            <Link href="/my-consultations" className={styles.mobileFooterLink} onClick={closeMobileMenu}>
-              내 심사 내역
+        <div className={styles.mobileFooter}>
+          {isAuthenticated ? (
+            <>
+              {/* 프로필 관리 메뉴 숨김 처리 */}
+              {/* <Link href="/mypage" className={styles.mobileFooterLink} onClick={closeMobileMenu}>
+                프로필 관리
+              </Link> */}
+              <Link href="/my-consultations" className={styles.mobileFooterLink} onClick={closeMobileMenu}>
+                내 심사 내역
+              </Link>
+              <button type="button" className={styles.mobileLogoutButton} onClick={handleLogout}>
+                로그아웃
+              </button>
+            </>
+          ) : (
+            <Link href="/auth/login" className={styles.loginButton} onClick={closeMobileMenu}>
+              {LOGIN_LABEL}
             </Link>
-            <button type="button" className={styles.mobileLogoutButton} onClick={handleLogout}>
-              로그아웃
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </aside>
 
       <div

@@ -38,7 +38,7 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
       type: 'group',
       items: [
         {
-          name: '나라똔튜브',
+          name: '나라똔 인터뷰',
           href: '/naraddon-tube/admin',
           icon: VideoCameraIcon,
         },

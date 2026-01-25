@@ -4,7 +4,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import PolicyNewsSection from '../PolicyNewsSection/PolicyNewsSection';
-import './PolicyAnalysis.css';
 
 const categories = [
   { id: 'all', name: '전체', icon: 'fas fa-th' },

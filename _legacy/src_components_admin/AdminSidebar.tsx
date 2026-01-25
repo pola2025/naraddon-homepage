@@ -16,7 +16,8 @@ import {
   DocumentTextIcon,
   ExclamationTriangleIcon,
   AcademicCapIcon,
-  ClipboardDocumentListIcon
+  ClipboardDocumentListIcon,
+  WindowIcon,
 } from '@heroicons/react/24/outline';
 
 interface AdminSidebarProps {
@@ -60,6 +61,11 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
           name: '전문가서비스',
           href: '/admin/expert-services',
           icon: BriefcaseIcon,
+        },
+        {
+          name: '팝업 관리',
+          href: '/admin/popups',
+          icon: WindowIcon,
         },
       ],
     },
@@ -139,13 +145,13 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
                   <Link
                     key={subItem.href}
                     href={subItem.href}
-                    className={`
+                    className={\`
                       flex items-center px-3 py-2 text-sm font-medium rounded-md mb-1
-                      ${isActive(subItem.href)
+                      \${isActive(subItem.href)
                         ? 'bg-blue-50 text-blue-700'
                         : 'text-gray-700 hover:bg-gray-50'
                       }
-                    `}
+                    \`}
                   >
                     {subItem.icon && <subItem.icon className="w-5 h-5 mr-3" />}
                     {subItem.name}
@@ -159,13 +165,13 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
             <Link
               key={item.href}
               href={item.href!}
-              className={`
+              className={\`
                 flex items-center px-3 py-2 text-sm font-medium rounded-md
-                ${isActive(item.href!)
+                \${isActive(item.href!)
                   ? 'bg-blue-50 text-blue-700'
                   : 'text-gray-700 hover:bg-gray-50'
                 }
-              `}
+              \`}
             >
               {item.icon && <item.icon className="w-5 h-5 mr-3" />}
               {item.name}

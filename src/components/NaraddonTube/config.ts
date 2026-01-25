@@ -23,7 +23,7 @@ export const VIDEO_SOURCES = {
 
 // 텍스트 설정
 export const SECTION_TEXTS = {
-  title: '나라똔튜브',
+  title: '나라똔 인터뷰',
   subtitle: '성공적인 정책자금 활용 사례를 영상으로 만나보세요',
   thumbnails: [
     { id: 1, title: '정책자금 성공사례 1' },

@@ -488,7 +488,28 @@ main:has(.expert-services-page) {
   font-weight: 500;
 }
 
-/* Specialty Tags */
+/**
+ * 설명(introduction) 2줄 제한
+ * @purpose 카드 높이 통일을 위해 설명 텍스트를 2줄로 제한
+ */
+.expert-intro {
+  font-size: 15px;
+  color: var(--text-gray);
+  line-height: 1.7;
+  margin-bottom: 20px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 51px; /* 2줄 높이 고정: 15px * 1.7 * 2 = 51px */
+  max-height: 51px;
+}
+
+/**
+ * Specialty Tags - 최대 3개만 표시 (React에서 slice 처리)
+ * @purpose 카드 높이 통일을 위해 태그를 1줄로 제한
+ */
 .expert-specialties {
   display: flex;
   flex-wrap: wrap;

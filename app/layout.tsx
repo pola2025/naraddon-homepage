@@ -82,12 +82,50 @@ export default function RootLayout({
   return (
     <html lang="ko" style={{ backgroundColor: '#ffffff' }}>
       <head>
-        {/* FOUC 방지 - CSS 로드 전 즉시 적용되는 스타일 */}
+        {/* FOUC 방지 - body 전체 숨김 후 DOMContentLoaded에서 해제 */}
         <style
           dangerouslySetInnerHTML={{
             __html: `
+              /* FOUC 방지 - 페이지 로드 완료까지 숨김 */
+              .no-fouc {
+                visibility: hidden;
+                opacity: 0;
+              }
+              /* CSS 로드 후 부드럽게 표시 */
+              body:not(.no-fouc) {
+                visibility: visible;
+                opacity: 1;
+                transition: opacity 0.2s ease-in;
+              }
               html, body {
                 background-color: #ffffff !important;
+              }
+              /* 정책소식 섹션 Critical CSS - 레이아웃 깨짐 방지 */
+              .policy-thumbnails-section {
+                padding: 72px 0 60px;
+                background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
+              }
+              .policy-thumbnails-section .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 24px;
+              }
+              .thumbnails-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 24px;
+              }
+              .thumbnails-title {
+                font-size: 2rem;
+                font-weight: 700;
+                color: #0f172a;
+              }
+              @media (max-width: 1200px) {
+                .thumbnails-grid { grid-template-columns: repeat(3, 1fr); }
+              }
+              @media (max-width: 768px) {
+                .thumbnails-grid { display: none; }
+                .thumbnails-title { font-size: 24px; }
               }
             `,
           }}
@@ -167,7 +205,27 @@ export default function RootLayout({
           data-website-id="8d93abb4-ca26-495d-b2db-119ed1e57a80"
         />
       </head>
-      <body style={{ backgroundColor: '#ffffff' }}>
+      <body className="no-fouc" style={{ backgroundColor: '#ffffff' }}>
+        {/* FOUC 방지 - 모든 리소스 로드 완료 후 no-fouc 클래스 제거 */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // window.onload: CSS, 이미지 등 모든 리소스 로드 완료 후 실행
+              window.addEventListener("load", function() {
+                // 렌더링 완료 후 다음 프레임에서 표시 (더 안정적)
+                requestAnimationFrame(function() {
+                  document.body.classList.remove("no-fouc");
+                });
+              });
+              // 안전장치: 5초 후에도 클래스가 남아있으면 강제 제거
+              setTimeout(function() {
+                if (document.body.classList.contains("no-fouc")) {
+                  document.body.classList.remove("no-fouc");
+                }
+              }, 5000);
+            `,
+          }}
+        />
         {/* Google Analytics (gtag.js) */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-E6SP6XM3TP"

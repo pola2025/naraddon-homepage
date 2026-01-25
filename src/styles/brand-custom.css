@@ -124,3 +124,11 @@
   color: var(--text-cream, #e8e0d5);
   line-height: 1.8;
 }
+
+/* ===== 전문 영역, 지원 목표 섹션 숨기기 (2025-01-26) ===== */
+.brand-about-section:has(h4 .fa-star),
+.brand-about-section:has(h4 .fa-bullseye),
+.about-section:has(h4 .fa-star),
+.about-section:has(h4 .fa-bullseye) {
+  display: none !important;
+}

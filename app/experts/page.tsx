@@ -176,31 +176,6 @@ export default function ExpertServicesPage() {
           </div>
         </div>
       </section>
-
-      <section
-        className="expert-services__cta"
-        aria-labelledby="expert-services-cta-title"
-      >
-        <div className="expert-services__cta-inner">
-          <div className="expert-services__cta-text">
-            <h2
-              id="expert-services-cta-title"
-              className="expert-services__cta-title"
-            >
-              도움이 필요하신가요?
-            </h2>
-            <p className="expert-services__cta-description">
-              간단한 상담 요청만 주시면 전문가가 맞춤형 솔루션을 제안해 드립니다.
-            </p>
-          </div>
-          <Link
-            href="/consultation-request"
-            className="expert-services__cta-button"
-          >
-            상담 바로 요청하기
-          </Link>
-        </div>
-      </section>
     </div>
   );
 }

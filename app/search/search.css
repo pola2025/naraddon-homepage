@@ -1,0 +1,472 @@
+/**
+ * 검색 페이지 스타일
+ *
+ * @purpose 검색 결과 페이지 UI 스타일링
+ * @design 나라똔 브랜드 컬러(#4caf50) 사용
+ * @responsive 모바일/태블릿/데스크톱 반응형
+ */
+
+.search-page {
+  min-height: calc(100vh - 200px);
+  background: linear-gradient(180deg, #f8faf8 0%, #ffffff 100%);
+}
+
+/* 검색 헤더 */
+.search-header {
+  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+  padding: 60px 20px 80px;
+  color: #ffffff;
+}
+
+.search-header-content {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.search-page-title {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.search-page-subtitle {
+  font-size: 16px;
+  opacity: 0.9;
+  margin-bottom: 32px;
+}
+
+/* 검색 폼 */
+.search-form {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 50px;
+  padding: 8px 8px 8px 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.search-icon {
+  color: #9ca3af;
+  font-size: 18px;
+  margin-right: 12px;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  color: #333333;
+  background: transparent;
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+}
+
+.search-submit-btn {
+  background: #4caf50;
+  color: #ffffff;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 50px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.search-submit-btn:hover {
+  background: #388e3c;
+  transform: scale(1.02);
+}
+
+/* 검색 결과 컨테이너 */
+.search-results-container {
+  max-width: 1000px;
+  margin: -40px auto 60px;
+  padding: 0 20px;
+}
+
+/* 검색 상태 표시 */
+.search-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  padding: 20px 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+}
+
+.search-query-text {
+  font-size: 16px;
+  color: #666666;
+}
+
+.search-query-text strong {
+  color: #4caf50;
+}
+
+.search-count {
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+/* 로딩 상태 */
+.search-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: #666666;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #4caf50;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 검색 결과 없음 / 초기 상태 */
+.search-empty,
+.search-initial {
+  text-align: center;
+  padding: 80px 20px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.search-empty i,
+.search-initial i {
+  font-size: 64px;
+  color: #d1d5db;
+  margin-bottom: 24px;
+}
+
+.search-empty h3,
+.search-initial h3 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 12px;
+}
+
+.search-empty p,
+.search-initial p {
+  font-size: 16px;
+  color: #666666;
+  margin-bottom: 24px;
+}
+
+/* 추천 검색어 / 인기 검색어 */
+.search-suggestions,
+.popular-searches {
+  margin-top: 32px;
+}
+
+.search-suggestions p,
+.popular-searches p {
+  font-size: 14px;
+  color: #9ca3af;
+  margin-bottom: 12px;
+}
+
+.suggestion-tags,
+.popular-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.suggestion-tags button,
+.popular-tags button {
+  background: #f0f9f2;
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.suggestion-tags button:hover,
+.popular-tags button:hover {
+  background: #4caf50;
+  color: #ffffff;
+  border-color: #4caf50;
+}
+
+/* 검색 결과 그리드 */
+.search-results-grid {
+  display: grid;
+  gap: 20px;
+}
+
+/* 검색 결과 카드 */
+.search-result-card {
+  display: block;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.search-result-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+.result-card-header {
+  margin-bottom: 12px;
+}
+
+.result-category {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.result-category i {
+  font-size: 11px;
+}
+
+/* 카테고리별 색상 */
+.category-policy {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.category-community {
+  background: rgba(168, 85, 247, 0.1);
+  color: #a855f7;
+}
+
+.category-media {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.category-ai {
+  background: rgba(236, 72, 153, 0.1);
+  color: #ec4899;
+}
+
+.category-consult {
+  background: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+}
+
+.category-service {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.category-news {
+  background: rgba(6, 182, 212, 0.1);
+  color: #06b6d4;
+}
+
+.category-default {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
+
+.result-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333333;
+  margin-bottom: 8px;
+}
+
+.result-description {
+  font-size: 15px;
+  color: #666666;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+/* 매칭된 키워드 */
+.result-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.keyword-tag {
+  background: #f3f4f6;
+  color: #4b5563;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+/* 관련 섹션 */
+.result-sections {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.sections-label {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.section-link {
+  font-size: 13px;
+  color: #4caf50;
+  text-decoration: none;
+  padding: 4px 8px;
+  background: rgba(76, 175, 80, 0.08);
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.section-link:hover {
+  background: rgba(76, 175, 80, 0.16);
+}
+
+/* 자세히 보기 액션 */
+.result-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4caf50;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.result-action i {
+  transition: transform 0.2s ease;
+}
+
+.search-result-card:hover .result-action i {
+  transform: translateX(4px);
+}
+
+/* 반응형 - 태블릿 */
+@media (max-width: 768px) {
+  .search-header {
+    padding: 40px 16px 60px;
+  }
+
+  .search-page-title {
+    font-size: 28px;
+  }
+
+  .search-page-subtitle {
+    font-size: 14px;
+  }
+
+  .search-input-wrapper {
+    padding: 6px 6px 6px 16px;
+  }
+
+  .search-input {
+    font-size: 14px;
+  }
+
+  .search-submit-btn {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+
+  .search-results-container {
+    margin-top: -30px;
+    padding: 0 16px;
+  }
+
+  .search-status {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+
+  .search-result-card {
+    padding: 20px;
+  }
+
+  .result-title {
+    font-size: 18px;
+  }
+
+  .result-description {
+    font-size: 14px;
+  }
+}
+
+/* 반응형 - 모바일 */
+@media (max-width: 480px) {
+  .search-header {
+    padding: 32px 16px 50px;
+  }
+
+  .search-page-title {
+    font-size: 24px;
+  }
+
+  .search-input-wrapper {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .search-icon {
+    display: none;
+  }
+
+  .search-input {
+    width: 100%;
+    text-align: center;
+  }
+
+  .search-submit-btn {
+    width: 100%;
+  }
+
+  .search-empty i,
+  .search-initial i {
+    font-size: 48px;
+  }
+
+  .search-empty h3,
+  .search-initial h3 {
+    font-size: 20px;
+  }
+}

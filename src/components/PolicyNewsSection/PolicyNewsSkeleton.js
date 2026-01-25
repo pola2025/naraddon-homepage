@@ -5,19 +5,7 @@ const PolicyNewsSkeleton = () => {
   return (
     <div className="policy-news-section">
       <div className="policy-news-container">
-        <div className="policy-news__section-header">
-          <div className="policy-news__section-heading">
-            <h2 className="policy-news__section-title">
-              <i className="fas fa-newspaper"></i> 정책소식
-            </h2>
-            <p className="policy-news__section-subtitle">
-              나라똔에서 최신 정부정책 소식을 전달합니다.
-            </p>
-          </div>
-          <div className="policy-news__section-actions">
-            <div className="skeleton-button" style={{ width: '140px', height: '40px', borderRadius: '20px', background: '#f0f0f0' }}></div>
-          </div>
-        </div>
+        {/* 정책소식 헤더 섹션 삭제됨 - 2026-01-07 */}
 
         <div className="news-content-wrapper">
           <div className="main-news-slider">

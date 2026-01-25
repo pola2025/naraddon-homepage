@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나라똔 모바일 수정 요청 검토 결과</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            background: #f9fafb;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 48px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .header .date {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .legend {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-confirmed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-question {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-impossible {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-suggestion {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .item {
+            margin-bottom: 24px;
+            padding: 20px;
+            background: #fafafa;
+            border-radius: 12px;
+            border-left: 4px solid #e5e7eb;
+        }
+
+        .item.confirmed {
+            border-left-color: #10b981;
+        }
+
+        .item.question {
+            border-left-color: #f59e0b;
+        }
+
+        .item.impossible {
+            border-left-color: #ef4444;
+        }
+
+        .item.suggestion {
+            border-left-color: #3b82f6;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            gap: 12px;
+        }
+
+        .item-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: #111827;
+            color: white;
+            border-radius: 50%;
+            font-size: 13px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .item-title {
+            flex: 1;
+            font-weight: 600;
+            color: #374151;
+            font-size: 15px;
+        }
+
+        .item-response {
+            margin-left: 40px;
+            color: #4b5563;
+            font-size: 14px;
+        }
+
+        .item-response ul {
+            margin-top: 8px;
+            padding-left: 20px;
+        }
+
+        .item-response li {
+            margin-bottom: 4px;
+        }
+
+        .highlight {
+            background: #fef9c3;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .summary {
+            margin-top: 40px;
+            padding: 24px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 12px;
+        }
+
+        .summary h2 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #0c4a6e;
+            margin-bottom: 16px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .summary-item {
+            text-align: center;
+            padding: 16px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .summary-count {
+            font-size: 28px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            font-size: 13px;
+            color: #9ca3af;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+                padding: 24px;
+            }
+
+            .item {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>나라똔 모바일 수정 요청 검토 결과</h1>
+            <p class="date">검토일: 2026년 1월 16일</p>
+            <p style="margin-top: 12px; padding: 12px 20px; background: #f0fdf4; border-radius: 8px; color: #166534; font-weight: 600; display: inline-block;">
+                📅 예상 소요기간: 2026년 1월 19일(월) ~ 2월 2일(월)
+            </p>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <span class="status-badge status-confirmed">확인완료</span>
+                <span>즉시 반영 가능</span>
+            </div>
+            <div class="legend-item">
+                <span class="status-badge status-question">확인필요</span>
+                <span>추가 설명 요청</span>
+            </div>
+            <div class="legend-item">
+                <span class="status-badge status-impossible">불가</span>
+                <span>기술적 제한</span>
+            </div>
+            <div class="legend-item">
+                <span class="status-badge status-suggestion">제안</span>
+                <span>대안 제시</span>
+            </div>
+        </div>
+
+        <!-- 항목 1 -->
+        <div class="item confirmed">
+            <div class="item-header">
+                <span class="item-number">1</span>
+                <span class="item-title">로고 여백 기존대로, 색상은 괜찮습니다</span>
+                <span class="status-badge status-confirmed">확인완료</span>
+            </div>
+            <div class="item-response">
+                반영 가능합니다.
+            </div>
+        </div>
+
+        <!-- 항목 2 -->
+        <div class="item confirmed">
+            <div class="item-header">
+                <span class="item-number">2</span>
+                <span class="item-title">영상 테두리 둥글게 X → 기존대로</span>
+                <span class="status-badge status-confirmed">확인완료</span>
+            </div>
+            <div class="item-response">
+                반영 가능합니다.
+            </div>
+        </div>
+
+        <!-- 항목 3 -->
+        <div class="item question">
+            <div class="item-header">
+                <span class="item-number">3</span>
+                <span class="item-title">영상 부분에서 밑으로 스크롤 시 영상 커지는 효과 취소 요청</span>
+                <span class="status-badge status-question">확인필요</span>
+            </div>
+            <div class="item-response">
+                <ul>
+                    <li>요청 내용 이해가 어렵습니다. <span class="highlight">상세 설명이 필요합니다.</span></li>
+                    <li>어느 부분의 영상인지 정확한 위치 확인이 필요합니다.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 항목 4 -->
+        <div class="item confirmed">
+            <div class="item-header">
+                <span class="item-number">4</span>
+                <span class="item-title">무엇을 도와드릴까요 돋보기 색깔 진하게 변경 요청</span>
+                <span class="status-badge status-confirmed">확인완료</span>
+            </div>
+            <div class="item-response">
+                반영 가능합니다.
+            </div>
+        </div>
+
+        <!-- 항목 5 -->
+        <div class="item question">
+            <div class="item-header">
+                <span class="item-number">5</span>
+                <span class="item-title">무료심사신청 위로 스크롤시 100가지 필독! 안 나오도록 변경 요청</span>
+                <span class="status-badge status-question">확인필요</span>
+            </div>
+            <div class="item-response">
+                <ul>
+                    <li><span class="highlight">어느 페이지인지 확인 필요</span> (메인? 무료심사신청?)</li>
+                    <li>정확히 어느 페이지, 어떤 작동인지 이해하기 어렵습니다.</li>
+                    <li>현재 무료심사 페이지 정책자금 100문100답 안 보이게 하는 것인지?</li>
+                    <li>정확한 위치와 요청 내용 재요청 부탁드립니다.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 항목 6 -->
+        <div class="item confirmed">
+            <div class="item-header">
+                <span class="item-number">6</span>
+                <span class="item-title">사업하면서 반드시 알아야 하는 100가지 Q&A → 사업필독서 100가지로 변경</span>
+                <span class="status-badge status-confirmed">확인완료</span>
+            </div>
+            <div class="item-response">
+                반영 가능합니다.
+            </div>
+        </div>
+
+        <!-- 항목 7 -->
+        <div class="item confirmed">
+            <div class="item-header">
+                <span class="item-number">7</span>
+                <span class="item-title">사업필독서 탭 들어갔을 때 질문답변 닫혀 있는 상태로 변경 요청</span>
+                <span class="status-badge status-confirmed">확인완료</span>
+            </div>
+            <div class="item-response">
+                반영 가능합니다.
+            </div>
+        </div>
+
+        <!-- 항목 8 -->
+        <div class="item question">
+            <div class="item-header">
+                <span class="item-number">8</span>
+                <span class="item-title">맨 밑 무료 심사 시작하기 탭 모두 삭제 → 한 켠에 고정 (기획 후 전달 예정)</span>
+                <span class="status-badge status-question">확인필요</span>
+            </div>
+            <div class="item-response">
+                <span class="highlight">전달 전까지 삭제 상태로 바로 적용인지 확인 필요합니다.</span>
+            </div>
+        </div>
+
+        <!-- 항목 9 -->
+        <div class="item confirmed">
+            <div class="item-header">
+                <span class="item-number">9</span>
+                <span class="item-title">왼쪽 상단 더보기 탭 눌렀을 때 나라똔 로고, 글씨 삭제</span>
+                <span class="status-badge status-confirmed">확인완료</span>
+            </div>
+            <div class="item-response">
+                반영 가능합니다.
+            </div>
+        </div>
+
+        <!-- 항목 10 -->
+        <div class="item suggestion">
+            <div class="item-header">
+                <span class="item-number">10</span>
+                <span class="item-title">로그인탭을 밑으로 배치 → 카카오, 네이버로 로그인하기 순서대로 배치</span>
+                <span class="status-badge status-suggestion">제안</span>
+            </div>
+            <div class="item-response">
+                <ul>
+                    <li>카카오 로그인까지 적용 시 관리 어려움으로 <strong>네이버로만 운영</strong> 권장</li>
+                    <li>카카오 로그인 구현 시 얻는 이점보다 관리의 불편함과 오류율 발생 증가</li>
+                    <li><span class="highlight">제안: 네이버 로그인 버튼으로 교체 + 사이드바 메뉴 하단 위치 이동</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 항목 11 -->
+        <div class="item suggestion">
+            <div class="item-header">
+                <span class="item-number">11</span>
+                <span class="item-title">카카오로 로그인 준비중 확인, 아직 준비중인지 확인 요청</span>
+                <span class="status-badge status-suggestion">제안</span>
+            </div>
+            <div class="item-response">
+                <ul>
+                    <li><strong>카카오 로그인 도입 권장하지 않음</strong> (현재 버튼도 삭제 예정)</li>
+                    <li>카카오톡 안내 비즈메세지 및 실시간 상담안내 등 서비스 제공 사항이 없음</li>
+                    <li>고객 데이터를 이원화해서 네이버, 카카오 두 곳의 인증을 받을 필요 없음</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 항목 12 -->
+        <div class="item confirmed">
+            <div class="item-header">
+                <span class="item-number">12</span>
+                <span class="item-title">영상 밑 나라똔이 보증하는... 부분 크기 줄이고 가로 직사각형 네모박스 4개로 변경</span>
+                <span class="status-badge status-confirmed">확인완료</span>
+            </div>
+            <div class="item-response">
+                메인 나라똔 페이지 인트로 영상 하단 4개 박스 확인 - 반영 가능합니다.
+            </div>
+        </div>
+
+        <!-- 항목 13 -->
+        <div class="item confirmed">
+            <div class="item-header">
+                <span class="item-number">13</span>
+                <span class="item-title">정책 소식 → 정책 알리미로 호칭 변경, 밑 문구들 삭제 요청</span>
+                <span class="status-badge status-confirmed">확인완료</span>
+            </div>
+            <div class="item-response">
+                반영 가능합니다.
+            </div>
+        </div>
+
+        <!-- 항목 14 -->
+        <div class="item confirmed">
+            <div class="item-header">
+                <span class="item-number">14</span>
+                <span class="item-title">정책분석 숨김처리</span>
+                <span class="status-badge status-confirmed">확인완료</span>
+            </div>
+            <div class="item-response">
+                반영 가능합니다.
+            </div>
+        </div>
+
+        <!-- 항목 15 -->
+        <div class="item confirmed">
+            <div class="item-header">
+                <span class="item-number">15</span>
+                <span class="item-title">정책 알리미 로그인 없이도 열람 가능하도록 변경 요청</span>
+                <span class="status-badge status-confirmed">확인완료</span>
+            </div>
+            <div class="item-response">
+                반영 가능합니다.
+            </div>
+        </div>
+
+        <!-- 항목 16 -->
+        <div class="item confirmed">
+            <div class="item-header">
+                <span class="item-number">16</span>
+                <span class="item-title">정책 알리미 조회수, 하트, 업로드 날짜 삭제 요청</span>
+                <span class="status-badge status-confirmed">확인완료</span>
+            </div>
+            <div class="item-response">
+                반영 가능합니다.
+            </div>
+        </div>
+
+        <!-- 항목 17 -->
+        <div class="item suggestion">
+            <div class="item-header">
+                <span class="item-number">17</span>
+                <span class="item-title">나라똔 튜브 영상 눌렀을 때 제목 안 보이도록 삭제 요청</span>
+                <span class="status-badge status-suggestion">부분가능</span>
+            </div>
+            <div class="item-response">
+                <ul>
+                    <li><strong>하단 흰색 부분 제목</strong>: 삭제 가능</li>
+                    <li><strong>영상 내 유튜브 포맷상 제공되는 제목</strong>: 제거 불가 (유튜브 정책)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 항목 18 -->
+        <div class="item confirmed">
+            <div class="item-header">
+                <span class="item-number">18</span>
+                <span class="item-title">나라똔 튜브 → 나라똔 인터뷰로 호칭 변경</span>
+                <span class="status-badge status-confirmed">확인완료</span>
+            </div>
+            <div class="item-response">
+                반영 가능합니다.
+            </div>
+        </div>
+
+        <!-- 항목 19 -->
+        <div class="item question">
+            <div class="item-header">
+                <span class="item-number">19</span>
+                <span class="item-title">파트너십 제휴문의 → 업무 제휴 문의: 메일주소 나올 수 있게 검정색 오른쪽 맨 위 배치</span>
+                <span class="status-badge status-question">확인필요</span>
+            </div>
+            <div class="item-response">
+                <ul>
+                    <li><span class="highlight">정확한 위치 지정 필요</span> (캡처 이미지 내 메모 등)</li>
+                    <li>위치 확인이 어렵습니다. 메일주소를 표기해달라는 부분인지 확인 필요</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 항목 20 -->
+        <div class="item confirmed">
+            <div class="item-header">
+                <span class="item-number">20</span>
+                <span class="item-title">맨 밑 회사정보 부분 나라똔, 회사정보 글씨 그라데이션 → 로고 색상으로 변경</span>
+                <span class="status-badge status-confirmed">확인완료</span>
+            </div>
+            <div class="item-response">
+                반영 가능합니다.
+            </div>
+        </div>
+
+        <!-- 항목 21 -->
+        <div class="item confirmed">
+            <div class="item-header">
+                <span class="item-number">21</span>
+                <span class="item-title">인증기업심사관 탭 회사소개 밑 전문 영역, 지원 목표, 연락처 정보 삭제</span>
+                <span class="status-badge status-confirmed">확인완료</span>
+            </div>
+            <div class="item-response">
+                연락처 정보는 정보탭에만 표시되도록 반영 가능합니다.
+            </div>
+        </div>
+
+        <!-- 항목 22 -->
+        <div class="item confirmed">
+            <div class="item-header">
+                <span class="item-number">22</span>
+                <span class="item-title">인증 기업심사관과 함께하는 프리미엄 비즈니스 컨설팅 → 프리미엄 문구 삭제</span>
+                <span class="status-badge status-confirmed">확인완료</span>
+            </div>
+            <div class="item-response">
+                반영 가능합니다.
+            </div>
+        </div>
+
+        <!-- 항목 23 -->
+        <div class="item confirmed">
+            <div class="item-header">
+                <span class="item-number">23</span>
+                <span class="item-title">자동으로 하나씩 넘어가면서 심사관들 보여지는 테마 삭제 요청</span>
+                <span class="status-badge status-confirmed">확인완료</span>
+            </div>
+            <div class="item-response">
+                좌우 슬라이드 삭제로 반영 가능합니다.
+            </div>
+        </div>
+
+        <!-- 항목 24 -->
+        <div class="item confirmed">
+            <div class="item-header">
+                <span class="item-number">24</span>
+                <span class="item-title">심사관 한 줄에 두 명씩 배치, 밑으로 내렸을 때 더보기 없이 끝까지 내려가도록</span>
+                <span class="status-badge status-confirmed">확인완료</span>
+            </div>
+            <div class="item-response">
+                <ul>
+                    <li>카드 2개씩 배치 시 크기가 작아집니다 (양해 부탁드립니다)</li>
+                    <li>무한 로딩 형태로 반영 가능합니다.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 요약 -->
+        <div class="summary">
+            <h2>검토 결과 요약</h2>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-count" style="color: #10b981;">17</div>
+                    <div class="summary-label">확인완료<br>(즉시 반영)</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-count" style="color: #f59e0b;">4</div>
+                    <div class="summary-label">확인필요<br>(추가 설명)</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-count" style="color: #3b82f6;">3</div>
+                    <div class="summary-label">제안/부분가능<br>(대안 제시)</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-count" style="color: #9ca3af;">0</div>
+                    <div class="summary-label">불가<br>(기술 제한)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>나라똔 개발팀 | 문의사항은 담당자에게 연락 바랍니다.</p>
+        </div>
+    </div>
+</body>
+</html>

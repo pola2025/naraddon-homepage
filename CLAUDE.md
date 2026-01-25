@@ -9,52 +9,30 @@ NOTION_API_KEY=환경변수로_설정_필요
 
 스크립트 위치: `/scripts/notion-upload-env.js`
 
-## 🚀 개발 서버 포트 규칙
+## 🚀 개발 서버 포트 규칙 (CRITICAL)
 
-### 포트 할당 정책
-- **포트 3000**: Claude 자체 테스트 전용 (Claude가 코드 검증 시 사용)
-- **포트 3001**: 사용자 테스트 전용 (사용자가 브라우저에서 확인)
-- **포트 3002+**: 예비 포트 (필요시 추가 인스턴스)
+### ⚠️ 절대 규칙: 포트 3000번만 사용
+- **개발서버는 오직 포트 3000번만 사용**
+- **여러 개발서버 동시 실행 절대 금지**
+- **다른 포트(3001, 3002 등) 사용 금지**
 
-### 개발 서버 실행 가이드
-
-#### Windows PowerShell 실행 방법
-```powershell
-# PowerShell에서 포트 3001로 실행
-$env:PORT=3001; npm run dev
-
-# 또는 백그라운드 실행
-Start-Process npm -ArgumentList "run dev" -WindowStyle Hidden
-```
-
-#### Windows CMD 실행 방법
-```cmd
-# CMD에서 포트 3001로 실행
-set PORT=3001 && npm run dev
-```
-
-#### Cross-platform 실행 방법
+### 개발 서버 실행/재실행 절차
 ```bash
-# cross-env 사용 (가장 안정적)
-npx cross-env PORT=3001 npm run dev
-```
+# 1. 기존 3000번 프로세스 확인
+netstat -ano | findstr :3000
 
-### 사용 가이드
-```bash
-# Claude 테스트용 (포트 3000)
+# 2. 실행 중이면 종료
+taskkill /F /PID [PID번호]
+
+# 3. 개발서버 실행
 npm run dev
-
-# 사용자 테스트용 (포트 3001) - Windows PowerShell
-$env:PORT=3001; npm run dev
-
-# 또는 .env.local에 PORT=3001 설정
 ```
 
-### 주의사항
-- **동시에 여러 개발 서버 실행 금지** (성능 저하 원인)
-- **한 번에 하나의 포트만 사용**
-- **작업 종료 시 반드시 서버 종료** (Ctrl+C)
-- **포트 충돌 시 기존 프로세스 종료 후 재시작**
+### 재실행이 필요할 때
+```bash
+# 기존 서버 종료 후 재실행 (필수 순서)
+taskkill /F /IM node.exe && npm run dev
+```
 
 ### 포트 정리 명령어
 ```bash
@@ -64,10 +42,12 @@ taskkill /F /PID [PID번호]
 
 # 모든 Node.js 프로세스 종료
 taskkill /F /IM node.exe
-
-# 백그라운드 프로세스 확인
-wmic process where "name='node.exe'" get ProcessId,CommandLine
 ```
+
+### 금지 사항
+- ❌ 포트 3001, 3002 등 다른 포트 사용
+- ❌ 여러 개발서버 동시 실행
+- ❌ 기존 서버 종료 없이 새 서버 실행
 
 ## 프로젝트 정보
 

@@ -404,7 +404,7 @@ const NaraddonTubeAdminPage: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white rounded-lg shadow-sm p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">나라똔튜브 관리</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">나라똔 인터뷰 관리</h1>
         <p className="text-gray-600">
           영상을 등록하고 관리할 수 있습니다. 썸네일은 선택사항입니다.
         </p>

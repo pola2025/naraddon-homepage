@@ -122,12 +122,7 @@ export default function HeroSection({ examiner }: HeroSectionProps) {
               </div>
             </div>
 
-            <div className={styles.ctaButtons}>
-              <button className={styles.btnPrimary} onClick={handleConsultation}>
-                <i className="fas fa-comments"></i>
-                <span>심사 신청하기</span>
-              </button>
-            </div>
+            {/* 심사 신청하기 버튼 삭제됨 (2025-01-08) */}
           </div>
         </div>
       </div>

@@ -172,7 +172,7 @@ function FaqAnswer({ answer }: { answer: string }) {
   );
 }
 
-function FaqCard({ category }: { category: FaqCategory }) {
+function FaqCard({ category, isExpanded }: { category: FaqCategory; isExpanded: boolean }) {
   return (
     <article className="consultation-request__faq-card">
       <header className="consultation-request__faq-card-header">
@@ -186,7 +186,7 @@ function FaqCard({ category }: { category: FaqCategory }) {
       </header>
       <div className="consultation-request__faq-card-body">
         {category.questions.map((question: FaqQuestion) => (
-          <details key={question.id} className="consultation-request__faq-item">
+          <details key={question.id} className="consultation-request__faq-item" open={isExpanded}>
             <summary className="consultation-request__faq-question">
               <span className="consultation-request__faq-question-label">Q</span>
               <span className="consultation-request__faq-question-text">{question.question}</span>
@@ -201,10 +201,31 @@ function FaqCard({ category }: { category: FaqCategory }) {
 }
 
 function FaqSection() {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isSectionOpen, setIsSectionOpen] = useState(false);
+
+  // URL 해시가 #qna-section이면 펼침 상태로 설정
+  useEffect(() => {
+    const checkHash = () => {
+      const shouldOpen = window.location.hash === '#qna-section';
+      setIsExpanded(shouldOpen);
+      setIsSectionOpen(shouldOpen);
+    };
+    checkHash();
+    window.addEventListener('hashchange', checkHash);
+    return () => window.removeEventListener('hashchange', checkHash);
+  }, []);
+
   return (
     <section className="consultation-request__faq" id="qna-section">
       <div className="layout-container consultation-request__faq-inner">
-        <div className="consultation-request__faq-header">
+        <button
+          type="button"
+          className="consultation-request__faq-header consultation-request__faq-header--clickable"
+          onClick={() => setIsSectionOpen(!isSectionOpen)}
+          aria-expanded={isSectionOpen}
+          aria-controls="faq-content"
+        >
           <span className="consultation-request__faq-badge">정책자금 100문 100답</span>
           <h2 className="consultation-request__faq-title">사업하면서 반드시 알아야 하는<br />100가지 필독!</h2>
           <p className="consultation-request__faq-description">
@@ -216,12 +237,19 @@ function FaqSection() {
             <br />
             항목별로 정리했습니다.
           </p>
-        </div>
-        <div className="consultation-request__faq-grid">
-          {CONSULTATION_FAQ.map((category) => (
-            <FaqCard key={category.id} category={category} />
-          ))}
-        </div>
+          <span className={`consultation-request__faq-toggle-icon ${isSectionOpen ? 'consultation-request__faq-toggle-icon--open' : ''}`} aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </span>
+        </button>
+        {isSectionOpen && (
+          <div id="faq-content" className="consultation-request__faq-grid">
+            {CONSULTATION_FAQ.map((category) => (
+              <FaqCard key={category.id} category={category} isExpanded={isExpanded} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -1169,8 +1197,8 @@ function QuickConsultForm() {
               <a href="tel:0269145567" className={styles.successButton}>
                 <i className="fas fa-phone" aria-hidden="true" /> 바로 전화 연결
               </a>
-              <Link href="#qna-section" className={styles.successButtonSecondary}>
-                자주 묻는 질문 보기
+              <Link href="/business-guide-100" className={styles.successButtonSecondary}>
+                사업필독서 100가지 보기
               </Link>
             </div>
           </div>
@@ -1397,6 +1425,13 @@ export default function ConsultationRequestPage() {
       if (!hash) {
         return;
       }
+
+      // #qna-section 접근 시 사업필독서 100가지 페이지로 리다이렉트
+      if (hash === '#qna-section') {
+        window.location.href = '/business-guide-100';
+        return;
+      }
+
       const target = document.querySelector(hash) as HTMLElement | null;
       if (!target) {
         return;
@@ -1428,11 +1463,7 @@ export default function ConsultationRequestPage() {
 
   return (
     <div className="consultation-request">
-      <ConsultationHero />
-      <FaqSection />
       <QuickConsultForm />
-      <CtaSection />
-      <MobileConsultationBar visible={showMobileBar} onClick={handleMobileConsultClick} />
       <ConsultationArrivalToast visible={showToast} />
     </div>
   );

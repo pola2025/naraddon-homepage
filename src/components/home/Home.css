@@ -24,12 +24,16 @@
 .home-hero-section {
   position: relative;
   width: 100%;
-  min-height: max(620px, calc(100vh - var(--header-height-desktop, 80px))); /* 헤더 높이 보정 */
+  max-width: 1200px; /* 1200px로 제한 */
+  margin: 20px auto; /* 가운데 정렬 + 상하 여백 */
+  min-height: max(620px, calc(100vh - var(--header-height-desktop, 80px) - 40px)); /* 헤더 높이 보정 */
   overflow: hidden;
   background: #000;
   display: flex;
   align-items: center; /* 수직 중앙 정렬 */
   justify-content: center; /* 수평 중앙 정렬 */
+  border-radius: 24px; /* 모서리 라운드 */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15); /* 그림자 추가 */
 }
 
 /* 배경 비디오 */
@@ -153,6 +157,27 @@
     min-height: calc(100vh - var(--mobile-header-height, 60px) - 100px);
     align-items: flex-start;
     justify-content: flex-start;
+    /* 모바일 풀스크린: 좌우 여백 제거, 라운드 제거 */
+    max-width: 100%;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* iOS 스크롤 시 영상 확대 방지 */
+  .home-hero-section__background {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+
+  .home-hero-section__background video {
+    -webkit-transform: translate(-50%, -50%) translateZ(0);
+    transform: translate(-50%, -50%) translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    will-change: auto; /* will-change 비활성화 */
   }
 
   .home-page section {
@@ -177,7 +202,7 @@
 }
 
 .home-government-logos .home-government-logos__container {
-  max-width: var(--home-content-max-width, 1400px);
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 var(--home-content-padding-x, 20px);
 }

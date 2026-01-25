@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나라똔 로딩 애니메이션 미리보기 - 20가지 스타일</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --primary: #059669;
+            --primary-light: #10b981;
+            --primary-dark: #047857;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+        }
+
+        .loader-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .loader-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        .loader-preview {
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 12px;
+        }
+
+        .brand-text {
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 14px;
+            margin-top: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .slogan-text {
+            color: #6b7280;
+            font-size: 10px;
+            margin-top: 4px;
+        }
+
+        /* ========== 1. 클래식 스피너 ========== */
+        .loader-1 .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #e5e7eb;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ========== 2. 듀얼 링 ========== */
+        .loader-2 .dual-ring {
+            position: relative;
+            width: 56px;
+            height: 56px;
+        }
+
+        .loader-2 .dual-ring::before,
+        .loader-2 .dual-ring::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            border: 3px solid transparent;
+        }
+
+        .loader-2 .dual-ring::before {
+            width: 100%;
+            height: 100%;
+            border-top-color: var(--primary);
+            border-bottom-color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+
+        .loader-2 .dual-ring::after {
+            width: 70%;
+            height: 70%;
+            top: 15%;
+            left: 15%;
+            border-left-color: var(--primary-light);
+            border-right-color: var(--primary-light);
+            animation: spin 0.8s linear infinite reverse;
+        }
+
+        /* ========== 3. 펄스 도트 ========== */
+        .loader-3 .pulse-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .loader-3 .pulse-dots span {
+            width: 12px;
+            height: 12px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: pulse-dot 1.4s ease-in-out infinite;
+        }
+
+        .loader-3 .pulse-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loader-3 .pulse-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes pulse-dot {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* ========== 4. 리플 이펙트 ========== */
+        .loader-4 .ripple {
+            position: relative;
+            width: 56px;
+            height: 56px;
+        }
+
+        .loader-4 .ripple span {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: ripple 1.5s ease-out infinite;
+        }
+
+        .loader-4 .ripple span:nth-child(2) { animation-delay: 0.5s; }
+
+        @keyframes ripple {
+            0% { transform: scale(0.3); opacity: 1; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+
+        /* ========== 5. 그라데이션 로테이션 ========== */
+        .loader-5 .gradient-spinner {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, transparent 0%, var(--primary) 100%);
+            animation: spin 1s linear infinite;
+            -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), black calc(100% - 5px));
+            mask: radial-gradient(farthest-side, transparent calc(100% - 5px), black calc(100% - 5px));
+        }
+
+        /* ========== 6. 웨이브 바 ========== */
+        .loader-6 .wave-bars {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            height: 40px;
+        }
+
+        .loader-6 .wave-bars span {
+            width: 6px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 3px;
+            animation: wave 1s ease-in-out infinite;
+        }
+
+        .loader-6 .wave-bars span:nth-child(2) { animation-delay: 0.1s; }
+        .loader-6 .wave-bars span:nth-child(3) { animation-delay: 0.2s; }
+        .loader-6 .wave-bars span:nth-child(4) { animation-delay: 0.3s; }
+        .loader-6 .wave-bars span:nth-child(5) { animation-delay: 0.4s; }
+
+        @keyframes wave {
+            0%, 100% { height: 20px; }
+            50% { height: 40px; }
+        }
+
+        /* ========== 7. 바운스 도트 ========== */
+        .loader-7 .bounce-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .loader-7 .bounce-dots span {
+            width: 14px;
+            height: 14px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: bounce 0.6s ease-in-out infinite alternate;
+        }
+
+        .loader-7 .bounce-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loader-7 .bounce-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-20px); }
+        }
+
+        /* ========== 8. 모핑 서클 ========== */
+        .loader-8 .morph {
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            animation: morph 1.5s ease-in-out infinite;
+        }
+
+        @keyframes morph {
+            0%, 100% { border-radius: 50%; transform: rotate(0deg); }
+            25% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+            50% { border-radius: 50%; transform: rotate(180deg); }
+            75% { border-radius: 70% 30% 30% 70% / 70% 70% 30% 30%; }
+        }
+
+        /* ========== 9. 페이딩 서클 ========== */
+        .loader-9 .fade-circles {
+            position: relative;
+            width: 56px;
+            height: 56px;
+        }
+
+        .loader-9 .fade-circles span {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: fade-circle 2s ease-in-out infinite;
+        }
+
+        .loader-9 .fade-circles span:nth-child(2) { animation-delay: 0.66s; }
+        .loader-9 .fade-circles span:nth-child(3) { animation-delay: 1.32s; }
+
+        @keyframes fade-circle {
+            0%, 100% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1); opacity: 1; }
+        }
+
+        /* ========== 10. 프로그레스 링 ========== */
+        .loader-10 .progress-ring {
+            width: 56px;
+            height: 56px;
+            position: relative;
+        }
+
+        .loader-10 .progress-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .loader-10 .progress-ring circle {
+            fill: none;
+            stroke-width: 4;
+            stroke-linecap: round;
+        }
+
+        .loader-10 .progress-ring .bg {
+            stroke: #e5e7eb;
+        }
+
+        .loader-10 .progress-ring .progress {
+            stroke: var(--primary);
+            stroke-dasharray: 150;
+            stroke-dashoffset: 150;
+            animation: progress-fill 1.5s ease-in-out infinite;
+        }
+
+        @keyframes progress-fill {
+            0% { stroke-dashoffset: 150; }
+            50% { stroke-dashoffset: 0; }
+            100% { stroke-dashoffset: -150; }
+        }
+
+        /* ========== 11. 오르빗 도트 ========== */
+        .loader-11 .orbit {
+            position: relative;
+            width: 56px;
+            height: 56px;
+        }
+
+        .loader-11 .orbit .center {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .loader-11 .orbit .satellite {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            animation: orbit 1.5s linear infinite;
+        }
+
+        .loader-11 .orbit .satellite::before {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--primary-light);
+            border-radius: 50%;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        @keyframes orbit {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ========== 12. 글로우 펄스 ========== */
+        .loader-12 .glow-pulse {
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: glow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.4);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 20px 10px rgba(5, 150, 105, 0.2);
+                transform: scale(1.05);
+            }
+        }
+
+        /* ========== 13. 스케일 박스 ========== */
+        .loader-13 .scale-boxes {
+            display: flex;
+            gap: 6px;
+        }
+
+        .loader-13 .scale-boxes span {
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 4px;
+            animation: scale-box 1.2s ease-in-out infinite;
+        }
+
+        .loader-13 .scale-boxes span:nth-child(2) { animation-delay: 0.15s; }
+        .loader-13 .scale-boxes span:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes scale-box {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(0.5); opacity: 0.5; }
+        }
+
+        /* ========== 14. 로테이팅 스퀘어 ========== */
+        .loader-14 .rotating-square {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--primary);
+            animation: rotate-square 1.2s ease-in-out infinite;
+        }
+
+        @keyframes rotate-square {
+            0% { transform: rotate(0deg); border-radius: 0; }
+            25% { transform: rotate(90deg); border-radius: 10px; }
+            50% { transform: rotate(180deg); border-radius: 50%; }
+            75% { transform: rotate(270deg); border-radius: 10px; }
+            100% { transform: rotate(360deg); border-radius: 0; }
+        }
+
+        /* ========== 15. 체이스 도트 ========== */
+        .loader-15 .chase {
+            position: relative;
+            width: 56px;
+            height: 56px;
+            animation: spin 2s linear infinite;
+        }
+
+        .loader-15 .chase span {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: chase-dot 2s ease-in-out infinite;
+        }
+
+        .loader-15 .chase span:nth-child(1) { top: 0; left: 50%; transform: translateX(-50%); animation-delay: 0s; }
+        .loader-15 .chase span:nth-child(2) { top: 14%; right: 14%; animation-delay: 0.25s; }
+        .loader-15 .chase span:nth-child(3) { top: 50%; right: 0; transform: translateY(-50%); animation-delay: 0.5s; }
+        .loader-15 .chase span:nth-child(4) { bottom: 14%; right: 14%; animation-delay: 0.75s; }
+        .loader-15 .chase span:nth-child(5) { bottom: 0; left: 50%; transform: translateX(-50%); animation-delay: 1s; }
+        .loader-15 .chase span:nth-child(6) { bottom: 14%; left: 14%; animation-delay: 1.25s; }
+        .loader-15 .chase span:nth-child(7) { top: 50%; left: 0; transform: translateY(-50%); animation-delay: 1.5s; }
+        .loader-15 .chase span:nth-child(8) { top: 14%; left: 14%; animation-delay: 1.75s; }
+
+        @keyframes chase-dot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(0.4); opacity: 0.3; }
+        }
+
+        /* ========== 16. 플립 서클 ========== */
+        .loader-16 .flip-circle {
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: flip 1.2s ease-in-out infinite;
+            perspective: 600px;
+        }
+
+        @keyframes flip {
+            0% { transform: perspective(600px) rotateY(0deg); }
+            50% { transform: perspective(600px) rotateY(180deg); background: var(--primary-light); }
+            100% { transform: perspective(600px) rotateY(360deg); }
+        }
+
+        /* ========== 17. 로딩 바 ========== */
+        .loader-17 .loading-bar {
+            width: 120px;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .loader-17 .loading-bar::after {
+            content: '';
+            display: block;
+            width: 40%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            border-radius: 3px;
+            animation: loading-bar 1.5s ease-in-out infinite;
+        }
+
+        @keyframes loading-bar {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(350%); }
+        }
+
+        /* ========== 18. 스피닝 도트 링 ========== */
+        .loader-18 .dot-ring {
+            position: relative;
+            width: 56px;
+            height: 56px;
+        }
+
+        .loader-18 .dot-ring span {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: dot-ring-fade 1.2s linear infinite;
+        }
+
+        .loader-18 .dot-ring span:nth-child(1) { top: 0; left: 50%; transform: translateX(-50%); animation-delay: 0s; }
+        .loader-18 .dot-ring span:nth-child(2) { top: 7px; right: 7px; animation-delay: 0.15s; }
+        .loader-18 .dot-ring span:nth-child(3) { top: 50%; right: 0; transform: translateY(-50%); animation-delay: 0.3s; }
+        .loader-18 .dot-ring span:nth-child(4) { bottom: 7px; right: 7px; animation-delay: 0.45s; }
+        .loader-18 .dot-ring span:nth-child(5) { bottom: 0; left: 50%; transform: translateX(-50%); animation-delay: 0.6s; }
+        .loader-18 .dot-ring span:nth-child(6) { bottom: 7px; left: 7px; animation-delay: 0.75s; }
+        .loader-18 .dot-ring span:nth-child(7) { top: 50%; left: 0; transform: translateY(-50%); animation-delay: 0.9s; }
+        .loader-18 .dot-ring span:nth-child(8) { top: 7px; left: 7px; animation-delay: 1.05s; }
+
+        @keyframes dot-ring-fade {
+            0%, 100% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* ========== 19. 엘라스틱 서클 ========== */
+        .loader-19 .elastic {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: elastic 1.2s ease-in-out infinite;
+        }
+
+        @keyframes elastic {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.2, 0.8) rotate(90deg); }
+            50% { transform: scale(0.8, 1.2) rotate(180deg); }
+            75% { transform: scale(1.1, 0.9) rotate(270deg); }
+        }
+
+        /* ========== 20. 로고 펄스 (브랜드 강조) ========== */
+        .loader-20 .logo-pulse {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .loader-20 .logo-box {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: logo-pulse 2s ease-in-out infinite;
+            box-shadow: 0 8px 32px rgba(5, 150, 105, 0.3);
+        }
+
+        .loader-20 .logo-box img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+        }
+
+        .loader-20 .logo-ring {
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            border: 3px solid var(--primary);
+            border-radius: 20px;
+            animation: logo-ring 1.5s linear infinite;
+            opacity: 0.5;
+        }
+
+        @keyframes logo-pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 8px 32px rgba(5, 150, 105, 0.3);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 12px 48px rgba(5, 150, 105, 0.4);
+            }
+        }
+
+        @keyframes logo-ring {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+
+        /* ========== 로고 컨테이너 ========== */
+        .logo-container {
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+
+        .logo-container img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+        }
+
+        /* 번호 배지 */
+        .number-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            width: 28px;
+            height: 28px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        /* 추천 배지 */
+        .recommended-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #fbbf24;
+            color: #92400e;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        /* 선택 버튼 */
+        .select-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .select-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+        }
+
+        /* 복사 토스트 */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1f2937;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="min-h-screen py-12">
+    <div class="max-w-7xl mx-auto px-4">
+        <!-- 헤더 -->
+        <header class="text-center mb-12">
+            <div class="inline-flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center">
+                    <img src="/logo-naraddon.png" alt="나라똔" class="w-8 h-8" style="filter: brightness(0) invert(1);">
+                </div>
+                <h1 class="text-3xl font-bold text-gray-900">나라똔 로딩 애니메이션</h1>
+            </div>
+            <p class="text-gray-600 max-w-2xl mx-auto">
+                FOUC 방지 및 페이지 로딩 시 사용할 20가지 애니메이션 스타일입니다.<br>
+                마음에 드는 스타일 번호를 알려주시면 적용해드립니다.
+            </p>
+            <div class="mt-4 inline-flex gap-2 text-sm">
+                <span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full">순수 CSS</span>
+                <span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full">JavaScript 불필요</span>
+                <span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full">고성능</span>
+            </div>
+        </header>
+
+        <!-- 그리드 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+            <!-- 1. 클래식 스피너 -->
+            <div class="loader-card p-4 relative">
+                <span class="number-badge">1</span>
+                <div class="loader-preview loader-1">
+                    <div class="logo-container">
+                        <img src="/logo-naraddon.png" alt="나라똔">
+                    </div>
+                    <div class="spinner"></div>
+                    <span class="brand-text">나라똔</span>
+                    <span class="slogan-text">No.1 정책자금 플랫폼</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">클래식 스피너</span>
+                    <button class="select-btn" onclick="selectLoader(1)">선택</button>
+                </div>
+            </div>
+
+            <!-- 2. 듀얼 링 -->
+            <div class="loader-card p-4 relative">
+                <span class="number-badge">2</span>
+                <div class="loader-preview loader-2">
+                    <div class="logo-container">
+                        <img src="/logo-naraddon.png" alt="나라똔">
+                    </div>
+                    <div class="dual-ring"></div>
+                    <span class="brand-text">나라똔</span>
+                    <span class="slogan-text">No.1 정책자금 플랫폼</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">듀얼 링</span>
+                    <button class="select-btn" onclick="selectLoader(2)">선택</button>
+                </div>
+            </div>
+
+            <!-- 3. 펄스 도트 -->
+            <div class="loader-card p-4 relative">
+                <span class="number-badge">3</span>
+                <span class="recommended-badge">추천</span>
+                <div class="loader-preview loader-3">
+                    <div class="logo-container">
+                        <img src="/logo-naraddon.png" alt="나라똔">
+                    </div>
+                    <div class="pulse-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span class="brand-text">나라똔</span>
+                    <span class="slogan-text">No.1 정책자금 플랫폼</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">펄스 도트</span>
+                    <button class="select-btn" onclick="selectLoader(3)">선택</button>
+                </div>
+            </div>
+
+            <!-- 4. 리플 이펙트 -->
+            <div class="loader-card p-4 relative">
+                <span class="number-badge">4</span>
+                <div class="loader-preview loader-4">
+                    <div class="logo-container">
+                        <img src="/logo-naraddon.png" alt="나라똔">
+                    </div>
+                    <div class="ripple">
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span class="brand-text">나라똔</span>
+                    <span class="slogan-text">No.1 정책자금 플랫폼</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">리플 이펙트</span>
+                    <button class="select-btn" onclick="selectLoader(4)">선택</button>
+                </div>
+            </div>
+
+            <!-- 5. 그라데이션 로테이션 -->
+            <div class="loader-card p-4 relative">
+                <span class="number-badge">5</span>
+                <div class="loader-preview loader-5">
+                    <div class="logo-container">
+                        <img src="/logo-naraddon.png" alt="나라똔">
+                    </div>
+                    <div class="gradient-spinner"></div>
+                    <span class="brand-text">나라똔</span>
+                    <span class="slogan-text">No.1 정책자금 플랫폼</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">그라데이션 로테이션</span>
+                    <button class="select-btn" onclick="selectLoader(5)">선택</button>
+                </div>
+            </div>
+
+            <!-- 6. 웨이브 바 -->
+            <div class="loader-card p-4 relative">
+                <span class="number-badge">6</span>
+                <div class="loader-preview loader-6">
+                    <div class="logo-container">
+                        <img src="/logo-naraddon.png" alt="나라똔">
+                    </div>
+                    <div class="wave-bars">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span class="brand-text">나라똔</span>
+                    <span class="slogan-text">No.1 정책자금 플랫폼</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">웨이브 바</span>
+                    <button class="select-btn" onclick="selectLoader(6)">선택</button>
+                </div>
+            </div>
+
+            <!-- 7. 바운스 도트 -->
+            <div class="loader-card p-4 relative">
+                <span class="number-badge">7</span>
+                <div class="loader-preview loader-7">
+                    <div class="logo-container">
+                        <img src="/logo-naraddon.png" alt="나라똔">
+                    </div>
+                    <div class="bounce-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span class="brand-text">나라똔</span>
+                    <span class="slogan-text">No.1 정책자금 플랫폼</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">바운스 도트</span>
+                    <button class="select-btn" onclick="selectLoader(7)">선택</button>
+                </div>
+            </div>
+
+            <!-- 8. 모핑 서클 -->
+            <div class="loader-card p-4 relative">
+                <span class="number-badge">8</span>
+                <div class="loader-preview loader-8">
+                    <div class="logo-container">
+                        <img src="/logo-naraddon.png" alt="나라똔">
+                    </div>
+                    <div class="morph"></div>
+                    <span class="brand-text">나라똔</span>
+                    <span class="slogan-text">No.1 정책자금 플랫폼</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">모핑 서클</span>
+                    <button class="select-btn" onclick="selectLoader(8)">선택</button>
+                </div>
+            </div>
+
+            <!-- 9. 페이딩 서클 -->
+            <div class="loader-card p-4 relative">
+                <span class="number-badge">9</span>
+                <div class="loader-preview loader-9">
+                    <div class="logo-container">
+                        <img src="/logo-naraddon.png" alt="나라똔">
+                    </div>
+                    <div class="fade-circles">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span class="brand-text">나라똔</span>
+                    <span class="slogan-text">No.1 정책자금 플랫폼</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">페이딩 서클</span>
+                    <button class="select-btn" onclick="selectLoader(9)">선택</button>
+                </div>
+            </div>
+
+            <!-- 10. 프로그레스 링 -->
+            <div class="loader-card p-4 relative">
+                <span class="number-badge">10</span>
+                <div class="loader-preview loader-10">
+                    <div class="logo-container">
+                        <img src="/logo-naraddon.png" alt="나라똔">
+                    </div>
+                    <div class="progress-ring">
+                        <svg width="56" height="56">
+                            <circle class="bg" cx="28" cy="28" r="24"></circle>
+                            <circle class="progress" cx="28" cy="28" r="24"></circle>
+                        </svg>
+                    </div>
+                    <span class="brand-text">나라똔</span>
+                    <span class="slogan-text">No.1 정책자금 플랫폼</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">프로그레스 링</span>
+                    <button class="select-btn" onclick="selectLoader(10)">선택</button>
+                </div>
+            </div>
+
+            <!-- 11. 오르빗 도트 -->
+            <div class="loader-card p-4 relative">
+                <span class="number-badge">11</span>
+                <div class="loader-preview loader-11">
+                    <div class="logo-container">
+                        <img src="/logo-naraddon.png" alt="나라똔">
+                    </div>
+                    <div class="orbit">
+                        <div class="center"></div>
+                        <div class="satellite"></div>
+                    </div>
+                    <span class="brand-text">나라똔</span>
+                    <span class="slogan-text">No.1 정책자금 플랫폼</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">오르빗 도트</span>
+                    <button class="select-btn" onclick="selectLoader(11)">선택</button>
+                </div>
+            </div>
+
+            <!-- 12. 글로우 펄스 -->
+            <div class="loader-card p-4 relative">
+                <span class="number-badge">12</span>
+                <span class="recommended-badge">추천</span>
+                <div class="loader-preview loader-12">
+                    <div class="logo-container">
+                        <img src="/logo-naraddon.png" alt="나라똔">
+                    </div>
+                    <div class="glow-pulse"></div>
+                    <span class="brand-text">나라똔</span>
+                    <span class="slogan-text">No.1 정책자금 플랫폼</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">글로우 펄스</span>
+                    <button class="select-btn" onclick="selectLoader(12)">선택</button>
+                </div>
+            </div>
+
+            <!-- 13. 스케일 박스 -->
+            <div class="loader-card p-4 relative">
+                <span class="number-badge">13</span>
+                <div class="loader-preview loader-13">
+                    <div class="logo-container">
+                        <img src="/logo-naraddon.png" alt="나라똔">
+                    </div>
+                    <div class="scale-boxes">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span class="brand-text">나라똔</span>
+                    <span class="slogan-text">No.1 정책자금 플랫폼</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">스케일 박스</span>
+                    <button class="select-btn" onclick="selectLoader(13)">선택</button>
+                </div>
+            </div>
+
+            <!-- 14. 로테이팅 스퀘어 -->
+            <div class="loader-card p-4 relative">
+                <span class="number-badge">14</span>
+                <div class="loader-preview loader-14">
+                    <div class="logo-container">
+                        <img src="/logo-naraddon.png" alt="나라똔">
+                    </div>
+                    <div class="rotating-square"></div>
+                    <span class="brand-text">나라똔</span>
+                    <span class="slogan-text">No.1 정책자금 플랫폼</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">로테이팅 스퀘어</span>
+                    <button class="select-btn" onclick="selectLoader(14)">선택</button>
+                </div>
+            </div>
+
+            <!-- 15. 체이스 도트 -->
+            <div class="loader-card p-4 relative">
+                <span class="number-badge">15</span>
+                <div class="loader-preview loader-15">
+                    <div class="logo-container">
+                        <img src="/logo-naraddon.png" alt="나라똔">
+                    </div>
+                    <div class="chase">
+                        <span></span><span></span><span></span><span></span>
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                    <span class="brand-text">나라똔</span>
+                    <span class="slogan-text">No.1 정책자금 플랫폼</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">체이스 도트</span>
+                    <button class="select-btn" onclick="selectLoader(15)">선택</button>
+                </div>
+            </div>
+
+            <!-- 16. 플립 서클 -->
+            <div class="loader-card p-4 relative">
+                <span class="number-badge">16</span>
+                <div class="loader-preview loader-16">
+                    <div class="logo-container">
+                        <img src="/logo-naraddon.png" alt="나라똔">
+                    </div>
+                    <div class="flip-circle"></div>
+                    <span class="brand-text">나라똔</span>
+                    <span class="slogan-text">No.1 정책자금 플랫폼</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">플립 서클</span>
+                    <button class="select-btn" onclick="selectLoader(16)">선택</button>
+                </div>
+            </div>
+
+            <!-- 17. 로딩 바 -->
+            <div class="loader-card p-4 relative">
+                <span class="number-badge">17</span>
+                <div class="loader-preview loader-17">
+                    <div class="logo-container">
+                        <img src="/logo-naraddon.png" alt="나라똔">
+                    </div>
+                    <div class="loading-bar"></div>
+                    <span class="brand-text">나라똔</span>
+                    <span class="slogan-text">No.1 정책자금 플랫폼</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">로딩 바</span>
+                    <button class="select-btn" onclick="selectLoader(17)">선택</button>
+                </div>
+            </div>
+
+            <!-- 18. 스피닝 도트 링 -->
+            <div class="loader-card p-4 relative">
+                <span class="number-badge">18</span>
+                <div class="loader-preview loader-18">
+                    <div class="logo-container">
+                        <img src="/logo-naraddon.png" alt="나라똔">
+                    </div>
+                    <div class="dot-ring">
+                        <span></span><span></span><span></span><span></span>
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                    <span class="brand-text">나라똔</span>
+                    <span class="slogan-text">No.1 정책자금 플랫폼</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">스피닝 도트 링</span>
+                    <button class="select-btn" onclick="selectLoader(18)">선택</button>
+                </div>
+            </div>
+
+            <!-- 19. 엘라스틱 서클 -->
+            <div class="loader-card p-4 relative">
+                <span class="number-badge">19</span>
+                <div class="loader-preview loader-19">
+                    <div class="logo-container">
+                        <img src="/logo-naraddon.png" alt="나라똔">
+                    </div>
+                    <div class="elastic"></div>
+                    <span class="brand-text">나라똔</span>
+                    <span class="slogan-text">No.1 정책자금 플랫폼</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">엘라스틱 서클</span>
+                    <button class="select-btn" onclick="selectLoader(19)">선택</button>
+                </div>
+            </div>
+
+            <!-- 20. 로고 펄스 (브랜드 강조) -->
+            <div class="loader-card p-4 relative">
+                <span class="number-badge">20</span>
+                <span class="recommended-badge">추천</span>
+                <div class="loader-preview loader-20">
+                    <div class="logo-pulse">
+                        <div class="logo-box">
+                            <img src="/logo-naraddon.png" alt="나라똔">
+                        </div>
+                        <div class="logo-ring"></div>
+                    </div>
+                    <span class="brand-text">나라똔</span>
+                    <span class="slogan-text">No.1 정책자금 플랫폼</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">로고 펄스</span>
+                    <button class="select-btn" onclick="selectLoader(20)">선택</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 푸터 -->
+        <footer class="mt-12 text-center text-gray-500 text-sm">
+            <p>© 2025 나라똔. 모든 애니메이션은 순수 CSS로 구현되어 고성능을 보장합니다.</p>
+            <p class="mt-2">선호하는 스타일 번호를 알려주시면 해당 코드를 적용해드립니다.</p>
+            <div class="mt-4">
+                <span class="text-xs text-gray-400">추천: #3 펄스 도트, #12 글로우 펄스, #20 로고 펄스</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 토스트 -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        function selectLoader(num) {
+            const names = {
+                1: '클래식 스피너',
+                2: '듀얼 링',
+                3: '펄스 도트',
+                4: '리플 이펙트',
+                5: '그라데이션 로테이션',
+                6: '웨이브 바',
+                7: '바운스 도트',
+                8: '모핑 서클',
+                9: '페이딩 서클',
+                10: '프로그레스 링',
+                11: '오르빗 도트',
+                12: '글로우 펄스',
+                13: '스케일 박스',
+                14: '로테이팅 스퀘어',
+                15: '체이스 도트',
+                16: '플립 서클',
+                17: '로딩 바',
+                18: '스피닝 도트 링',
+                19: '엘라스틱 서클',
+                20: '로고 펄스'
+            };
+
+            showToast(`${num}번 "${names[num]}" 스타일이 선택되었습니다!`);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

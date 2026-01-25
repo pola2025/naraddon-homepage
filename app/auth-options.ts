@@ -1,5 +1,6 @@
 import type { NextAuthOptions } from 'next-auth';
 import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
+import CredentialsProvider from 'next-auth/providers/credentials';
 import clientPromise from '../lib/mongodb-client';
 import { notifyNewUserSignup } from '@/lib/telegram';
 
@@ -67,8 +68,78 @@ export const authOptions: NextAuthOptions = {
         };
       },
     },
+    /**
+     * 개발 환경 전용 테스트 로그인
+     *
+     * @purpose 개발 서버에서 네이버 OAuth 없이 테스트 가능
+     * @security NODE_ENV === 'development' && DEV_AUTO_LOGIN === 'true' 일 때만 활성화
+     * @warning 프로덕션에서는 절대 작동하지 않음
+     */
+    ...(process.env.NODE_ENV === 'development' && process.env.DEV_AUTO_LOGIN === 'true'
+      ? [
+          CredentialsProvider({
+            id: 'dev-login',
+            name: '개발자 테스트 로그인',
+            credentials: {
+              email: { label: 'Email', type: 'email' },
+              role: { label: 'Role', type: 'text' },
+            },
+            async authorize(credentials) {
+              // 🔥 보안: 개발 환경에서만 작동
+              if (process.env.NODE_ENV !== 'development') {
+                console.error('[Dev Login] ⛔ Blocked in non-development environment');
+                return null;
+              }
+
+              const email = credentials?.email || 'test@naraddon.dev';
+              const role = credentials?.role || 'user';
+
+              console.log('[Dev Login] ✅ Test user logged in:', email, 'Role:', role);
+
+              return {
+                id: 'dev-user-' + Date.now(),
+                email,
+                name: '테스트 사용자',
+                role,
+                image: null,
+              };
+            },
+          }),
+        ]
+      : []),
   ],
   callbacks: {
+    /**
+     * 리다이렉트 URL 처리
+     *
+     * @purpose 개발 환경에서 localhost 리다이렉트 허용
+     * @context NEXTAUTH_URL이 프로덕션으로 설정되어 있어도 개발 환경에서는 localhost로 리다이렉트
+     */
+    async redirect({ url, baseUrl }) {
+      // 개발 환경에서 localhost URL은 그대로 허용
+      if (process.env.NODE_ENV === 'development') {
+        // localhost로 시작하는 URL은 허용
+        if (url.startsWith('http://localhost')) {
+          return url;
+        }
+        // 상대 경로는 localhost 기준으로 처리
+        if (url.startsWith('/')) {
+          return `http://localhost:3001${url}`;
+        }
+      }
+
+      // 같은 사이트의 URL은 허용
+      if (url.startsWith(baseUrl)) {
+        return url;
+      }
+      // 상대 경로는 baseUrl 기준으로 처리
+      if (url.startsWith('/')) {
+        return `${baseUrl}${url}`;
+      }
+      // 그 외는 baseUrl로 리다이렉트
+      return baseUrl;
+    },
+
     /**
      * 로그인 시 사용자 정보를 MongoDB에 저장
      *

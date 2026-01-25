@@ -1,0 +1,7 @@
+name = "naraddon-resend-mail"
+main = "naraddon-email-worker.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+# 환경변수는 Cloudflare Dashboard 또는 wrangler secret으로 설정
+# RESEND_API_KEY = "secret으로 설정"

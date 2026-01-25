@@ -100,6 +100,52 @@ main:has(.consultation-request) {
   margin: 0 auto;
 }
 
+/* 클릭 가능한 FAQ 헤더 스타일 */
+.consultation-request__faq-header--clickable {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 24px;
+  border: 1px solid rgba(15, 118, 110, 0.15);
+  border-radius: 24px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.consultation-request__faq-header--clickable:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 8px 24px rgba(15, 118, 110, 0.1);
+}
+
+.consultation-request__faq-header--clickable:focus-visible {
+  outline: 3px solid rgba(16, 185, 129, 0.5);
+  outline-offset: 2px;
+}
+
+/* FAQ 섹션 토글 아이콘 */
+.consultation-request__faq-toggle-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.1);
+  color: #047857;
+  transition: transform 0.3s ease, background-color 0.2s ease;
+}
+
+.consultation-request__faq-toggle-icon--open {
+  transform: rotate(180deg);
+}
+
+.consultation-request__faq-header--clickable:hover .consultation-request__faq-toggle-icon {
+  background: rgba(16, 185, 129, 0.2);
+}
+
 .consultation-request__faq-badge {
   display: inline-flex;
   align-items: center;
@@ -566,3 +612,131 @@ main:has(.consultation-request) {
   }
 }
 
+/* 사업필독서 100가지 독립 페이지 스타일 */
+.consultation-request__faq--standalone {
+  padding-top: 120px;
+  min-height: 100vh;
+}
+
+.consultation-request__faq--standalone .consultation-request__faq-header {
+  cursor: default;
+}
+
+.consultation-request__faq--standalone .consultation-request__faq-title {
+  font-size: 2.5rem;
+}
+
+/* 카테고리 카드 클릭 가능 헤더 */
+.consultation-request__faq-card-header--clickable {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  text-align: left;
+  transition: background 0.2s ease;
+  position: relative;
+}
+
+.consultation-request__faq-card-header--clickable:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+/* 카테고리 토글 아이콘 */
+.consultation-request__faq-card-toggle {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  transition: transform 0.3s ease;
+}
+
+.consultation-request__faq-card-toggle--open {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* 정적 질문 아이템 (접히지 않음) */
+.consultation-request__faq-item--static {
+  padding: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.consultation-request__faq-question--static {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.consultation-request__faq-question--static .consultation-request__faq-question-label {
+  flex-shrink: 0;
+}
+
+.consultation-request__faq-question--static .consultation-request__faq-question-text {
+  font-weight: 600;
+  color: #1f2937;
+  line-height: 1.5;
+}
+
+.consultation-request__faq-cta {
+  text-align: center;
+  margin-top: 64px;
+  padding: 48px 24px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-radius: 24px;
+}
+
+.consultation-request__faq-cta p {
+  font-size: 1.125rem;
+  color: #374151;
+  margin-bottom: 20px;
+}
+
+.consultation-request__faq-cta-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 32px;
+  background: #10b981;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+}
+
+.consultation-request__faq-cta-button:hover {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+@media (max-width: 768px) {
+  .consultation-request__faq--standalone {
+    padding-top: 80px;
+  }
+
+  .consultation-request__faq--standalone .consultation-request__faq-title {
+    font-size: 1.75rem;
+  }
+
+  .consultation-request__faq-cta {
+    margin-top: 48px;
+    padding: 32px 20px;
+  }
+
+  .consultation-request__faq-cta p {
+    font-size: 1rem;
+  }
+
+  .consultation-request__faq-cta-button {
+    padding: 14px 28px;
+    font-size: 0.95rem;
+  }
+}

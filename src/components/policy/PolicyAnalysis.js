@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { FiCheckCircle } from 'react-icons/fi';
 import PolicyNewsSection from '../PolicyNewsSection/PolicyNewsSection';
-import './PolicyAnalysis.css';
 
 const categories = [
   { id: 'all', name: '전체', icon: 'fas fa-th' },
@@ -182,7 +181,7 @@ const normalizePost = (rawPost, index) => {
   };
 };
 
-const PolicyAnalysis = () => {
+const PolicyAnalysis = ({ showPolicyNews = true }) => {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [posts, setPosts] = useState([]);
@@ -572,49 +571,14 @@ const PolicyAnalysis = () => {
 
   return (
     <div className="policy-analysis-container">
-      <section className="expert-hero layout-hero relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-sky-100">
-        <div className="layout-container">
-          <div className="max-w-3xl">
-            <span className="inline-flex items-center rounded-full bg-blue-100 px-4 py-1 text-sm font-semibold text-blue-600">
-              POLICY ANALYSIS
-            </span>
-            <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-              나라똔의 정확한 정책분석
-              <span className="block text-blue-600">사업 성공의 길을 찾으세요</span>
-            </h1>
-            <p className="mt-6 text-lg leading-7 text-slate-600">
-              최신 정책 동향과 지원사업 데이터를
-              <br />
-              분석해 사업에 필요한 정보를 제공합니다
-              <span className="block">신속한 정책 매칭과 실행 전략을 안내합니다</span>
-            </p>
-            <div className="mt-10 flex flex-wrap items-center gap-6">
-              <a
-                href="#top-section"
-                onClick={(e) => {
-                  e.preventDefault();
-                  document.querySelector('.top-section')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-6 py-3 text-base font-semibold text-white shadow-lg transition hover:bg-emerald-600"
-              >
-                <i className="fas fa-chart-line" aria-hidden="true" /> 정책분석 보기
-              </a>
-              <Link
-                href="/consultation-request#form-section"
-                className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-base font-semibold text-emerald-600 shadow-lg ring-1 ring-emerald-100 transition hover:bg-emerald-50"
-              >
-                <i className="fas fa-headset" aria-hidden="true" /> 무료 심사 신청
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      {showPolicyNews && (
+        <section id="policy-news" className="policy-analysis__news-section">
+          <PolicyNewsSection />
+        </section>
+      )}
 
-      <section id="policy-news" className="policy-analysis__news-section">
-        <PolicyNewsSection />
-      </section>
-
-      <div id="policy-analysis" className="main-content">
+      {/* 정책분석 섹션 임시 숨김 처리 */}
+      <div id="policy-analysis" className="main-content" style={{ display: 'none' }}>
         <div className="top-section">
           <div className="section-header">
             <h2>
@@ -856,27 +820,6 @@ const PolicyAnalysis = () => {
           </button>
         </div>
       )}
-
-      <section className="policy-analysis__cta-section" aria-labelledby="policy-analysis-cta-title">
-        <div className="policy-analysis__cta-container">
-          <div className="policy-analysis__cta-banner">
-            <div className="policy-analysis__cta-content">
-              <p className="policy-analysis__cta-eyebrow">Policy Analysis</p>
-                            <h2 id="policy-analysis-cta-title" className="policy-analysis__cta-title">
-                인증 기업심사관과 함께<br />
-                정책자금을 찾아보시겠어요?
-              </h2>
-              <p className="policy-analysis__cta-description">
-                검증된 정책분석 전문가가 1:1로 맞춤 전략을 제안해드립니다.{' '}
-                대표님의 사업에 필요한 정책을 바로 안내해드립니다.
-              </p>
-            </div>
-            <Link href="/consultation-request#form-section" className="policy-analysis__cta-button">
-              심사 예약하기
-            </Link>
-          </div>
-        </div>
-      </section>
 
       {showWritePasswordModal && (
         <div className="write-modal-overlay">

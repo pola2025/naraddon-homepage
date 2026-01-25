@@ -31,7 +31,7 @@ const SOCIAL_PROVIDERS: SocialProvider[] = [
   {
     id: 'naver',
     label: '네이버 로그인',
-    helper: '네이버 아이디로 간편하게 시작하세요',
+    helper: '간편 로그인',
     className:
       'bg-[#03C75A] text-white hover:bg-[#02b351] hover:shadow-[0_12px_40px_rgba(3,199,90,0.35)] focus-visible:ring-[#02b351]',
     icon: (
@@ -52,30 +52,6 @@ const SOCIAL_PROVIDERS: SocialProvider[] = [
     ),
     helperClass: 'text-xs text-white/80 sm:text-sm',
     ctaClass: 'text-white/80 group-hover:text-white',
-  },
-  {
-    id: 'kakao',
-    label: '카카오 로그인',
-    helper: '카카오톡으로 쉽고 빠른 인증',
-    className:
-      'bg-[#FEE500] text-[#191600] hover:bg-[#f5dc00] hover:shadow-[0_12px_40px_rgba(254,229,0,0.35)] focus-visible:ring-[#3c1e1e] focus-visible:ring-offset-[#fbe403]',
-    icon: (
-      <svg
-        width="28"
-        height="28"
-        viewBox="0 0 56 56"
-        role="img"
-        aria-hidden="true"
-        className="rounded-lg"
-      >
-        <path
-          fill="#391B1B"
-          d="M28 8C15.85 8 6 16.12 6 26.08c0 6.23 4.24 11.66 10.67 14.62l-2.22 8.15a1 1 0 0 0 1.52 1.09l9.43-6.01a29 29 0 0 0 2.6.12c12.15 0 22-8.11 22-18.95C50 16.12 40.15 8 28 8z"
-        />
-      </svg>
-    ),
-    helperClass: 'text-xs text-[#2c2100] sm:text-sm',
-    ctaClass: 'text-[#191600]/70 group-hover:text-[#191600]',
   },
 ];
 
@@ -120,29 +96,28 @@ function LoginForm() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-white py-16 px-6">
+    <div className="relative min-h-screen overflow-hidden bg-white py-8 px-4">
       {/* 히어로 텍스트 섹션 */}
-      <div className="mb-12 text-center">
-        <span className="inline-flex items-center rounded-full bg-blue-50 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-blue-600">
+      <div className="mb-6 text-center">
+        <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-blue-600">
           Naraddon Sign In
         </span>
-        <h1 className="mt-6 text-4xl font-extrabold text-slate-900 sm:text-5xl lg:text-6xl">
+        <h1 className="mt-4 text-2xl font-extrabold text-slate-900 sm:text-3xl">
           SNS 계정 하나로
           <span className="block text-blue-600">안전하고 빠르게 로그인하세요</span>
         </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl">
-          별도의 아이디/비밀번호 없이 네이버·카카오 계정으로 바로 이용하실 수 있습니다.
-          로그인 후에는 정책자료, 상담내역 등 모든 서비스를 한 곳에서 확인할 수 있어요.
+        <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
+          별도의 아이디/비밀번호 없이 네이버 계정으로 바로 이용하실 수 있습니다.
         </p>
       </div>
 
       {/* 로그인 박스 */}
       <div className="flex justify-center">
-        <div className="w-full max-w-md rounded-3xl bg-white px-8 py-10 shadow-2xl ring-1 ring-slate-200 sm:px-10">
-            <div className="mb-8 text-center">
-              <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">소셜 로그인</h2>
-              <p className="mt-2 text-sm text-slate-500">
-                사용하고 계신 SNS 계정을 선택해 주세요. 추가 정보 입력 없이 바로 연결됩니다.
+        <div className="w-full max-w-md rounded-2xl bg-white px-6 py-6 shadow-xl ring-1 ring-slate-200">
+            <div className="mb-4 text-center">
+              <h2 className="text-xl font-bold text-slate-900">소셜 로그인</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                SNS 계정을 선택해 주세요
               </p>
             </div>
 
@@ -152,9 +127,7 @@ function LoginForm() {
                   key={provider.id}
                   type="button"
                   onClick={() => handleSocialLogin(provider)}
-                  className={`${styles.socialButton} ${
-                    provider.id === 'naver' ? styles.naverButton : styles.kakaoButton
-                  } group flex w-full items-center justify-between rounded-xl px-5 py-4 text-left shadow-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 ${provider.className}`}
+                  className={`${styles.socialButton} ${styles.naverButton} group flex w-full items-center justify-between rounded-xl px-5 py-4 text-left shadow-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 ${provider.className}`}
                 >
                   <span className="flex items-center gap-3">
                     <span className="flex h-8 w-8 items-center justify-center rounded-lg text-base font-semibold shadow-sm">
@@ -165,22 +138,58 @@ function LoginForm() {
                       <span className={provider.helperClass}>{provider.helper}</span>
                     </span>
                   </span>
-                  {provider.id === 'kakao' ? (
-                    <span className={`text-xs font-medium uppercase tracking-wider ${provider.ctaClass}`}>
-                      준비 중
-                    </span>
-                  ) : (
-                    <i className="fas fa-arrow-right text-white/70" aria-hidden="true" />
-                  )}
+                  <i className="fas fa-arrow-right text-white/70" aria-hidden="true" />
                 </button>
               ))}
+
+              {/* 개발 환경 테스트 로그인 버튼 */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mt-6 pt-6 border-t border-dashed border-orange-300">
+                  <p className="text-xs text-orange-600 mb-3 text-center font-semibold">
+                    🔧 개발 환경 테스트 로그인
+                  </p>
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const { signIn } = await import('next-auth/react');
+                        // 개발 환경에서는 현재 origin 기준으로 리다이렉트
+                        const callbackUrl = window.location.origin + redirect;
+                        signIn('dev-login', {
+                          callbackUrl,
+                          email: 'test@naraddon.dev',
+                          role: 'user'
+                        });
+                      }}
+                      className="w-full rounded-lg bg-orange-500 px-4 py-3 text-sm font-semibold text-white hover:bg-orange-600 transition"
+                    >
+                      👤 일반 사용자로 로그인
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const { signIn } = await import('next-auth/react');
+                        const callbackUrl = window.location.origin + redirect;
+                        signIn('dev-login', {
+                          callbackUrl,
+                          email: 'examiner@naraddon.dev',
+                          role: 'examiner'
+                        });
+                      }}
+                      className="w-full rounded-lg bg-purple-500 px-4 py-3 text-sm font-semibold text-white hover:bg-purple-600 transition"
+                    >
+                      📋 심사관으로 로그인
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <p className="mt-6 text-xs text-slate-400">
               소셜 로그인 시 나라똔 서비스 이용약관과 개인정보 처리방침에 동의하는 것으로 간주됩니다.
             </p>
 
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400">
+            <div className="mt-8 flex items-center justify-center gap-2 text-xs text-slate-400 whitespace-nowrap">
               <button
                 type="button"
                 onClick={() => handleOpenLegalModal('terms')}

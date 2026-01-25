@@ -12,7 +12,6 @@ import PopupBanner from '../common/PopupBanner';
 const TrustSection = lazy(() => import('../TrustSection'));
 const PolicyThumbnails = lazy(() => import('../PolicyThumbnails'));
 const NaraddonTube = lazy(() => import('../NaraddonTube/NaraddonTubeSimple'));
-const EmpathySection = lazy(() => import('../EmpathySection'));
 
 const CAPTION_FADE_DURATION = 850;
 
@@ -226,9 +225,6 @@ function Home({ initialPolicyNews = [], initialTubeVideos = [] }) {
           </Suspense>
           <Suspense fallback={<SectionLoader />}>
             <NaraddonTube initialData={initialTubeVideos} />
-          </Suspense>
-          <Suspense fallback={<SectionLoader />}>
-            <EmpathySection />
           </Suspense>
         </div>
       )}

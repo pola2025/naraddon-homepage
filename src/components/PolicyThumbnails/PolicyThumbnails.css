@@ -18,7 +18,7 @@
 }
 
 .policy-thumbnails-section .container {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 var(--home-content-padding-x, 24px);
   position: relative;
@@ -114,9 +114,12 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 24px;
   margin-bottom: 36px;
+  contain: layout style;
 }
 
 .thumbnail-item {
+  max-width: 100%;
+  min-height: 0;
   background: white;
   border-radius: 16px;
   overflow: hidden;
@@ -138,8 +141,10 @@
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
+  max-height: 280px;
   overflow: hidden;
   background: #f0f0f0;
+  contain: layout style paint;
 }
 
 .thumbnail-image {
@@ -260,7 +265,7 @@
 
 /* 정보 영역 */
 .thumbnail-info {
-  padding: 20px;
+  padding: 16px; /* 20px → 16px 축소 - 2026-01-26 */
 }
 
 .category-tag {
@@ -332,7 +337,7 @@
   font-size: 17px;
   font-weight: 600;
   color: #2c3e50;
-  margin-bottom: 12px;
+  margin-bottom: 0; /* 메타 정보 숨김으로 하단 여백 제거 - 2026-01-26 */
   line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -505,7 +510,7 @@
 }
 
 .mobile-thumbnail-info {
-  padding: 16px;
+  padding: 12px 16px; /* 상하 12px로 축소 - 2026-01-26 */
 }
 
 .mobile-category-tag {
@@ -566,7 +571,7 @@
   font-size: 15px;
   font-weight: 600;
   color: #2c3e50;
-  margin: 0 0 10px;
+  margin: 0; /* 하단 여백 제거 - 2026-01-26 */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -798,4 +803,62 @@
 .thumbnails-status__retry:focus-visible {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
+}
+
+/* 스켈레톤 로딩 애니메이션 */
+.skeleton-item {
+  pointer-events: none;
+}
+
+.skeleton-image {
+  background: linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-shimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton-tag {
+  width: 80px;
+  height: 24px;
+  background: #e2e8f0;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.skeleton-title {
+  width: 100%;
+  height: 20px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.skeleton-meta {
+  width: 60%;
+  height: 14px;
+  background: #e2e8f0;
+  border-radius: 4px;
 }
