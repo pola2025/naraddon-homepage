@@ -177,12 +177,21 @@ function Home({ initialPolicyNews = [], initialTubeVideos = [] }) {
         />
       ) : (
         <div className="home-main-content">
-          {/* 프로모션 팝업 배너 - 인트로 후 표시 */}
+          {/* 프로모션 팝업 배너 - 인트로 후 표시 (다중 팝업) */}
           <PopupBanner
-            imageSrc="https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/popup/popup-banner-fee-3percent.webp"
-            href="/consultation-request"
-            popupId="fee-3percent-202601"
-            alt="정책자금 컨설팅 업계 최저 수수료 3%"
+            items={[
+              {
+                imageSrc: "https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/popup/popup-banner-fee-3percent.webp",
+                href: "/consultation-request",
+                alt: "정책자금 컨설팅 업계 최저 수수료 3%"
+              },
+              {
+                imageSrc: "https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/popup/popup-broker-warning.webp",
+                href: "/consultation-request",
+                alt: "정책자금 불법 브로커 주의"
+              }
+            ]}
+            popupId="promo-202601"
           />
           {/* 영상 배경 래퍼 */}
           <div className="home-hero-section">
