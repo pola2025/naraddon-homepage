@@ -79,40 +79,37 @@ export default function PopupBanner({
   return (
     <div className="popup-banner-overlay" onClick={handleClose}>
       <div
-        className="popup-banner-wrapper"
+        className={`popup-banner-wrapper ${isMultiple ? 'popup-banner-wrapper--multiple' : ''}`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* 이미지 영역 - 다중일 때 가로 배치 */}
-        <div className={`popup-banner-images ${isMultiple ? 'popup-banner-images--multiple' : ''}`}>
-          {items.map((item, index) => (
-            <div key={index} className="popup-banner-container">
-              {/* 배너 이미지 (클릭 시 이동) */}
-              <Link href={item.href} className="popup-banner-link" onClick={handleClose}>
-                <img
-                  src={item.imageSrc}
-                  alt={item.alt || '프로모션 배너'}
-                  className="popup-banner-image"
-                />
-              </Link>
+        {/* 각 이미지별로 버튼 포함 */}
+        {items.map((item, index) => (
+          <div key={index} className="popup-banner-container">
+            {/* 배너 이미지 (클릭 시 이동) */}
+            <Link href={item.href} className="popup-banner-link" onClick={handleClose}>
+              <img
+                src={item.imageSrc}
+                alt={item.alt || '프로모션 배너'}
+                className="popup-banner-image"
+              />
+            </Link>
+            {/* 개별 버튼 영역 */}
+            <div className="popup-banner-footer">
+              <button
+                className="popup-banner-hide-today"
+                onClick={handleHideToday}
+              >
+                오늘 하루 보지 않기
+              </button>
+              <button
+                className="popup-banner-close-btn"
+                onClick={handleClose}
+              >
+                닫기
+              </button>
             </div>
-          ))}
-        </div>
-
-        {/* 하단 버튼 영역 (공통) */}
-        <div className="popup-banner-footer">
-          <button
-            className="popup-banner-hide-today"
-            onClick={handleHideToday}
-          >
-            오늘 하루 보지 않기
-          </button>
-          <button
-            className="popup-banner-close-btn"
-            onClick={handleClose}
-          >
-            닫기
-          </button>
-        </div>
+          </div>
+        ))}
       </div>
     </div>
   );
