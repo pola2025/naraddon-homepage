@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>팝업 미리보기</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    /* 오버레이 */
+    .popup-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* 카드 */
+    .popup-card {
+      background: rgba(30, 30, 30, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 30px 100px rgba(0, 0, 0, 0.6);
+    }
+
+    /* 이미지 영역 */
+    .popup-images {
+      display: flex;
+      gap: 3px;
+      padding: 3px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .popup-images a {
+      flex: 1;
+      display: block;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .popup-images img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* 버튼 영역 */
+    .popup-footer {
+      display: flex;
+      padding: 0;
+    }
+
+    .popup-footer button {
+      flex: 1;
+      padding: 16px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-hide {
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.6);
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-hide:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    .btn-close {
+      background: #22c55e;
+      color: #fff;
+    }
+
+    .btn-close:hover {
+      background: #16a34a;
+    }
+
+    /* 모바일 */
+    @media (max-width: 768px) {
+      .popup-images {
+        flex-direction: column;
+      }
+      .popup-card {
+        max-width: 90vw;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="popup-overlay">
+    <div class="popup-card">
+      <!-- 이미지 나란히 -->
+      <div class="popup-images">
+        <a href="#">
+          <img src="https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/popup/popup-banner-fee-3percent.webp" alt="수수료 3%">
+        </a>
+        <a href="#">
+          <img src="https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/popup/popup-broker-warning.webp" alt="불법 브로커 주의">
+        </a>
+      </div>
+      <!-- 버튼 하나씩 -->
+      <div class="popup-footer">
+        <button class="btn-hide">오늘 하루 보지 않기</button>
+        <button class="btn-close">닫기</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

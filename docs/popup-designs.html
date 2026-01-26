@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>팝업 디자인 4가지 안</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Pretendard', sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      padding: 40px 20px;
+    }
+    h1 { text-align: center; margin-bottom: 60px; font-size: 28px; color: #22c55e; }
+    h2 { text-align: center; margin-bottom: 20px; font-size: 18px; color: #888; }
+    .designs { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; }
+    .design-box {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid #333;
+      border-radius: 16px;
+      padding: 30px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    /* 공통 오버레이 스타일 */
+    .popup-preview {
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 12px;
+      padding: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* === 안1: 가로 나란히 + 하단 통합 버튼 === */
+    .design1 .popup-card {
+      background: #1e1e1e;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .design1 .images {
+      display: flex;
+      gap: 2px;
+    }
+    .design1 .images img {
+      flex: 1;
+      width: 50%;
+      height: auto;
+      display: block;
+    }
+    .design1 .footer {
+      display: flex;
+    }
+    .design1 .footer button {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .design1 .btn-hide { background: #2a2a2a; color: #888; }
+    .design1 .btn-close { background: #22c55e; color: #fff; }
+
+    /* === 안2: 카드형 (이미지 라운드 + 반투명 배경) === */
+    .design2 .popup-card {
+      background: rgba(30, 30, 30, 0.9);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 16px;
+    }
+    .design2 .images {
+      display: flex;
+      gap: 12px;
+    }
+    .design2 .images img {
+      flex: 1;
+      width: 50%;
+      border-radius: 12px;
+      display: block;
+    }
+    .design2 .footer {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .design2 .footer button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .design2 .btn-hide { background: rgba(255,255,255,0.1); color: #aaa; }
+    .design2 .btn-close { background: #22c55e; color: #fff; }
+
+    /* === 안3: 미니멀 (테두리 없음, 그림자만) === */
+    .design3 .popup-card {
+      display: flex;
+      gap: 16px;
+    }
+    .design3 .image-card {
+      background: #1a1a1a;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .design3 .image-card img {
+      width: 380px;
+      display: block;
+    }
+    .design3 .image-card .mini-footer {
+      display: flex;
+    }
+    .design3 .image-card .mini-footer button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .design3 .btn-hide { background: #222; color: #666; }
+    .design3 .btn-close { background: #22c55e; color: #fff; }
+
+    /* === 안4: 세로 슬라이드형 (모바일 스타일) === */
+    .design4 .popup-card {
+      background: #1a1a1a;
+      border-radius: 20px;
+      overflow: hidden;
+      width: 400px;
+    }
+    .design4 .images {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .design4 .images img {
+      width: 100%;
+      display: block;
+    }
+    .design4 .footer {
+      display: flex;
+    }
+    .design4 .footer button {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .design4 .btn-hide { background: #2a2a2a; color: #888; }
+    .design4 .btn-close { background: #22c55e; color: #fff; }
+
+    @media (max-width: 900px) {
+      .design1 .images, .design2 .images, .design3 .popup-card {
+        flex-direction: column;
+      }
+      .design1 .images img, .design2 .images img {
+        width: 100%;
+      }
+      .design3 .image-card img {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>팝업 디자인 4가지 안</h1>
+
+  <div class="designs">
+
+    <!-- 안1 -->
+    <div class="design-box design1">
+      <h2>안1. 가로 나란히 + 하단 통합 버튼</h2>
+      <div class="popup-preview">
+        <div class="popup-card">
+          <div class="images">
+            <img src="https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/popup/popup-banner-fee-3percent.webp">
+            <img src="https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/popup/popup-broker-warning.webp">
+          </div>
+          <div class="footer">
+            <button class="btn-hide">오늘 하루 보지 않기</button>
+            <button class="btn-close">닫기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 안2 -->
+    <div class="design-box design2">
+      <h2>안2. 카드형 (라운드 이미지 + 반투명 배경)</h2>
+      <div class="popup-preview">
+        <div class="popup-card">
+          <div class="images">
+            <img src="https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/popup/popup-banner-fee-3percent.webp">
+            <img src="https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/popup/popup-broker-warning.webp">
+          </div>
+          <div class="footer">
+            <button class="btn-hide">오늘 하루 보지 않기</button>
+            <button class="btn-close">닫기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 안3 -->
+    <div class="design-box design3">
+      <h2>안3. 개별 카드 (각각 버튼)</h2>
+      <div class="popup-preview">
+        <div class="popup-card">
+          <div class="image-card">
+            <img src="https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/popup/popup-banner-fee-3percent.webp">
+            <div class="mini-footer">
+              <button class="btn-hide">오늘 하루 보지 않기</button>
+              <button class="btn-close">닫기</button>
+            </div>
+          </div>
+          <div class="image-card">
+            <img src="https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/popup/popup-broker-warning.webp">
+            <div class="mini-footer">
+              <button class="btn-hide">오늘 하루 보지 않기</button>
+              <button class="btn-close">닫기</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 안4 -->
+    <div class="design-box design4">
+      <h2>안4. 세로 배치 (모바일 스타일)</h2>
+      <div class="popup-preview">
+        <div class="popup-card">
+          <div class="images">
+            <img src="https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/popup/popup-banner-fee-3percent.webp">
+            <img src="https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/popup/popup-broker-warning.webp">
+          </div>
+          <div class="footer">
+            <button class="btn-hide">오늘 하루 보지 않기</button>
+            <button class="btn-close">닫기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
