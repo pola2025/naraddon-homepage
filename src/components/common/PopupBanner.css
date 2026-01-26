@@ -1,8 +1,8 @@
 /**
  * 팝업 배너 스타일
  *
- * @purpose 프로모션 팝업 배너 UI
- * @responsive 모바일/태블릿/데스크톱 대응
+ * @purpose 프로모션 팝업 배너 UI (다중 이미지 지원)
+ * @responsive 모바일: 세로 스크롤, 데스크톱: 가로 나란히
  * @note 버튼은 이미지에 붙여서 배치, 녹색 계열 닫기 버튼
  */
 
@@ -31,19 +31,23 @@
   }
 }
 
-/* 팝업 컨테이너 - 화면 높이에 맞게 조정 */
-.popup-banner-container {
-  position: relative;
-  max-width: min(420px, calc(100vh - 140px));
-  width: 100%;
+/* 팝업 래퍼 - 다중 팝업 컨테이너 */
+.popup-banner-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: transparent;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  gap: 0;
+  max-width: min(420px, calc(100vh - 140px));
+  width: 100%;
   animation: popupSlideIn 0.3s ease-out;
+}
+
+/* 다중 팝업일 때 - 가로 배치 */
+.popup-banner-wrapper--multiple {
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 16px;
+  max-width: min(880px, 95vw);
 }
 
 @keyframes popupSlideIn {
@@ -55,6 +59,26 @@
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+/* 팝업 컨테이너 - 개별 팝업 */
+.popup-banner-container {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: transparent;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* 다중일 때 컨테이너 크기 조정 */
+.popup-banner-wrapper--multiple .popup-banner-container {
+  flex: 1;
+  max-width: 420px;
 }
 
 /* 우상단 X 버튼 숨김 (하단 버튼만 사용) */
@@ -77,10 +101,17 @@
   object-fit: contain;
 }
 
-/* 하단 버튼 영역 - 이미지에 붙여서 배치 */
+/* 하단 버튼 영역 - 전체 너비 */
 .popup-banner-footer {
   display: flex;
   width: 100%;
+  background: #1a1a1a;
+  border-radius: 0 0 16px 16px;
+}
+
+/* 다중 팝업일 때 버튼 영역 */
+.popup-banner-wrapper--multiple .popup-banner-footer {
+  max-width: 100%;
 }
 
 .popup-banner-footer button {
@@ -99,6 +130,7 @@
   background: rgba(0, 0, 0, 0.4);
   color: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(4px);
+  border-radius: 0 0 0 16px !important;
 }
 
 .popup-banner-hide-today:hover {
@@ -110,10 +142,27 @@
 .popup-banner-close-btn {
   background: #22c55e;
   color: #fff;
+  border-radius: 0 0 16px 0 !important;
 }
 
 .popup-banner-close-btn:hover {
   background: #16a34a;
+}
+
+/* 반응형: 태블릿 이하 - 다중 팝업 세로 스크롤 */
+@media (max-width: 768px) {
+  .popup-banner-wrapper--multiple {
+    flex-direction: column;
+    gap: 12px;
+    max-width: min(420px, calc(100vh - 140px));
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+  }
+
+  .popup-banner-wrapper--multiple .popup-banner-container {
+    flex: none;
+    width: 100%;
+  }
 }
 
 /* 반응형: 모바일 */
@@ -122,13 +171,28 @@
     padding: 16px;
   }
 
-  .popup-banner-container {
+  .popup-banner-wrapper {
     max-width: min(100%, calc(100vh - 100px));
+  }
+
+  .popup-banner-container {
     border-radius: 12px;
+  }
+
+  .popup-banner-footer {
+    border-radius: 0 0 12px 12px;
   }
 
   .popup-banner-footer button {
     padding: 12px 16px;
     font-size: 13px;
+  }
+
+  .popup-banner-hide-today {
+    border-radius: 0 0 0 12px !important;
+  }
+
+  .popup-banner-close-btn {
+    border-radius: 0 0 12px 0 !important;
   }
 }
