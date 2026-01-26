@@ -31,23 +31,15 @@
   }
 }
 
-/* 팝업 래퍼 - 다중 팝업 컨테이너 */
+/* 팝업 래퍼 - 항상 세로 배치 (이미지 영역 + 버튼) */
 .popup-banner-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0;
-  max-width: min(420px, calc(100vh - 140px));
   width: 100%;
+  max-width: 880px;
   animation: popupSlideIn 0.3s ease-out;
-}
-
-/* 다중 팝업일 때 - 가로 배치 */
-.popup-banner-wrapper--multiple {
-  flex-direction: row;
-  align-items: flex-end;
-  gap: 16px;
-  max-width: min(880px, 95vw);
 }
 
 @keyframes popupSlideIn {
@@ -59,6 +51,23 @@
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+/* 이미지 영역 - 단일일 때 */
+.popup-banner-images {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  max-width: 420px;
+}
+
+/* 이미지 영역 - 다중일 때 가로 배치 */
+.popup-banner-images--multiple {
+  flex-direction: row;
+  gap: 16px;
+  max-width: 880px;
 }
 
 /* 팝업 컨테이너 - 개별 팝업 */
@@ -76,9 +85,8 @@
 }
 
 /* 다중일 때 컨테이너 크기 조정 */
-.popup-banner-wrapper--multiple .popup-banner-container {
+.popup-banner-images--multiple .popup-banner-container {
   flex: 1;
-  max-width: 420px;
 }
 
 /* 우상단 X 버튼 숨김 (하단 버튼만 사용) */
@@ -101,17 +109,13 @@
   object-fit: contain;
 }
 
-/* 하단 버튼 영역 - 전체 너비 */
+/* 하단 버튼 영역 */
 .popup-banner-footer {
   display: flex;
   width: 100%;
+  max-width: 880px;
   background: #1a1a1a;
   border-radius: 0 0 16px 16px;
-}
-
-/* 다중 팝업일 때 버튼 영역 */
-.popup-banner-wrapper--multiple .popup-banner-footer {
-  max-width: 100%;
 }
 
 .popup-banner-footer button {
@@ -149,19 +153,21 @@
   background: #16a34a;
 }
 
-/* 반응형: 태블릿 이하 - 다중 팝업 세로 스크롤 */
+/* 반응형: 태블릿 이하 - 다중 팝업 세로 배치 */
 @media (max-width: 768px) {
-  .popup-banner-wrapper--multiple {
+  .popup-banner-images--multiple {
     flex-direction: column;
     gap: 12px;
-    max-width: min(420px, calc(100vh - 140px));
-    max-height: calc(100vh - 80px);
-    overflow-y: auto;
+    max-width: 420px;
   }
 
-  .popup-banner-wrapper--multiple .popup-banner-container {
+  .popup-banner-images--multiple .popup-banner-container {
     flex: none;
     width: 100%;
+  }
+
+  .popup-banner-footer {
+    max-width: 420px;
   }
 }
 
@@ -171,8 +177,8 @@
     padding: 16px;
   }
 
-  .popup-banner-wrapper {
-    max-width: min(100%, calc(100vh - 100px));
+  .popup-banner-images {
+    max-width: 100%;
   }
 
   .popup-banner-container {
@@ -180,6 +186,7 @@
   }
 
   .popup-banner-footer {
+    max-width: 100%;
     border-radius: 0 0 12px 12px;
   }
 
