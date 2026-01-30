@@ -554,14 +554,12 @@ h1 {
 }
 
 /**
- * 그리드 카드 하트 버튼 - flex 아이템으로 회사명 옆에 배치
+ * 그리드 카드 하트 버튼 - 2열 구조에서 숨김
  *
- * @position 회사명 바로 옆
- * @note 절대 위치 제거, flex 아이템으로 변경
+ * @note 자세히보기 상세 페이지에서만 표시
  */
 .grid-card .like-btn {
-    position: relative;
-    margin-left: 8px;
+    display: none;
 }
 
 /* 메인 카드 info-block - 이미지와 같은 너비 */
@@ -596,10 +594,12 @@ h1 {
  * @position 회사명 바로 옆
  * @note 절대 위치 제거, flex 아이템으로 변경
  */
+/**
+ * 메인 캐러셀 하트 버튼 - 숨김
+ * @note 자세히보기 상세 페이지에서만 표시
+ */
 .main-card-like {
-    position: relative !important;
-    margin-left: 12px;
-    z-index: 10;
+    display: none;
 }
 
 /* 하트 버튼 - 이름/회사명 오른쪽에 배치 */
@@ -788,7 +788,7 @@ h1 {
     white-space: nowrap;
 }
 
-/* Detail Button */
+/* Detail Button - PC: 얇고 컴팩트한 스타일 */
 .detail-btn {
     background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(184, 134, 11, 0.2) 100%);
     color: var(--gold);
@@ -797,6 +797,12 @@ h1 {
     box-shadow:
         0 8px 20px rgba(0, 0, 0, 0.2);
     align-self: center;
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    padding: 0 24px !important;
+    font-size: 13px;
+    border-radius: 10px;
 }
 
 .detail-btn:hover {
@@ -1419,17 +1425,17 @@ h1 {
         border-radius: 6px;
     }
 
-    /* 모바일 썸네일 이미지 - 고정 높이 */
+    /* 모바일 썸네일 이미지 - 원본 비율 유지 */
     .grid-card .grid-card-image {
         border-radius: 4px;
-        height: 90px;
+        height: auto;
         overflow: hidden;
     }
 
     .grid-card .grid-card-image img {
         width: 100%;
-        height: 100%;
-        object-fit: cover;
+        height: auto;
+        object-fit: contain;
         border-radius: 6px;
     }
 
@@ -1525,16 +1531,9 @@ h1 {
         margin-left: 8px;
     }
 
-    /* 모바일 그리드 카드 하트 - 이미지 안 오른쪽 아래 */
+    /* 모바일 그리드 카드 하트 - 2열 구조에서 숨김 */
     .grid-card .like-btn {
-        position: absolute;
-        right: 8px;
-        top: 78px;
-        width: 18px;
-        height: 18px;
-        font-size: 8px;
-        margin: 0;
-        z-index: 100;
+        display: none;
     }
 
     /* 모바일 버튼 그룹 - 세로 배치 */

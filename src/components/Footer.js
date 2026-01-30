@@ -84,8 +84,8 @@ const Footer = () => {
     <>
       {/* 파트너십 제휴문의 - 푸터 위 오른쪽 */}
       <div className="footer-partnership-above">
-        <span>파트너십 제휴문의: </span>
-        <a href="mailto:ijy@jjk-biz.com">ijy@jjk-biz.com</a>
+        <span>파트너십 제휴 문의: </span>
+        <a href="mailto:jjk-biz@naver.com">jjk-biz@naver.com 📩</a>
       </div>
       <footer className="footer-wrapper">
       <div className="footer-container">
