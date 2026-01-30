@@ -27,7 +27,7 @@ type Viewport = "desktop" | "tablet" | "mobile";
 const PRIMARY_NAV: NavItem[] = [
   { href: "/", label: "나라똔" }, // 메인 페이지는 인트로 없이 바로 접근
   { href: "/policy-analysis", label: "정책 알리미" },
-  { href: "/business-voice", label: "사업자 목소리" },
+  // { href: "/business-voice", label: "사업자 목소리" }, // 임시 숨김 처리
   { href: "/certified-examiners", label: "인증 기업심사관" },
 ];
 

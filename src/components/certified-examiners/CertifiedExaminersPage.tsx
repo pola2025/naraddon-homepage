@@ -293,9 +293,6 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
                       )}
                     </div>
                     <div className="button-group">
-                      <button className="premium-cta" onClick={handleConsultationClick}>
-                        <span className="button-text">무료심사신청</span>
-                      </button>
                       {examiner._id && (
                         <a href={`/certified-examiners/${examiner._id}`} className="detail-btn">
                           자세히보기
@@ -339,9 +336,6 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
                     )}
                   </div>
                   <div className="button-group">
-                    <button className="premium-cta" onClick={handleConsultationClick}>
-                      <span className="button-text">무료심사신청</span>
-                    </button>
                     {examiner._id && (
                       <a href={`/certified-examiners/${examiner._id}`} className="detail-btn">
                         자세히보기

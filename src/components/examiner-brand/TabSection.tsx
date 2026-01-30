@@ -37,14 +37,6 @@ export default function TabSection({ examiner }: TabSectionProps) {
   const renderCompanyTab = () => {
     const useDefault = !brandPage.companyIntro || brandPage.useDefaultIntro;
 
-    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      e.currentTarget.style.setProperty('--mouse-x', `${x}px`);
-      e.currentTarget.style.setProperty('--mouse-y', `${y}px`);
-    };
-
     return (
       <div className={styles.companySection}>
         {/* 로고 */}
@@ -68,17 +60,15 @@ export default function TabSection({ examiner }: TabSectionProps) {
             <div>
               <h3>나라똔 인증 기업심사관 소개</h3>
               <p>정부 지원사업 심사 대비를 돕는 경영컨설턴트입니다.</p>
-
-              <div className={styles.visionBox} onMouseMove={handleMouseMove}>
-                <strong>"나라똔 인증 기업심사관과 함께 성공적인 사업 기회를 만드세요"</strong>
-              </div>
             </div>
           ) : (
-            // 사용자 정의 회사소개
+            // 사용자 정의 회사소개 (강조문구 vision-box 제거)
             <div
               className={styles.customIntro}
               dangerouslySetInnerHTML={{
-                __html: brandPage.companyIntro.replace(/\n/g, '<br>')
+                __html: brandPage.companyIntro
+                  .replace(/\n/g, '<br>')
+                  .replace(/<div\s+class=["'](brand-vision-box|vision-box)["'][^>]*>[\s\S]*?<\/div>/gi, '')
               }}
             />
           )}
