@@ -374,7 +374,7 @@ export default function NaraddonTubeAdminPage() {
   return (
     <section className="interview-section-new">
       <div className="section-header">
-        <h2>나라똔 튜브 관리</h2>
+        <h2>나라똔 인터뷰 관리</h2>
         <p>영상을 등록, 수정, 삭제할 수 있습니다.</p>
       </div>
 
@@ -384,7 +384,7 @@ export default function NaraddonTubeAdminPage() {
           className="add-video-btn"
           onClick={() => setShowPasswordModal(true)}
         >
-          나라똔 튜브 영상 관리하기
+          나라똔 인터뷰 영상 관리하기
         </button>
       </div>
 
@@ -426,7 +426,7 @@ export default function NaraddonTubeAdminPage() {
           <div className="admin-board-panel" onClick={(event) => event.stopPropagation()}>
             <header className="admin-board-header">
               <div>
-                <h3>나라똔 튜브 영상 관리</h3>
+                <h3>나라똔 인터뷰 영상 관리</h3>
                 <p>등록, 수정, 삭제를 이 화면에서 바로 진행할 수 있습니다.</p>
               </div>
               <button type="button" className="close-board-btn" onClick={handleCloseBoard}>

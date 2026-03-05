@@ -74,44 +74,13 @@ button:active,
     66% { transform: rotate(240deg) scale(0.9); }
 }
 
-/* 별빛 배경 */
+/* 별빛 배경 - 숨김 처리 (2025-01-08) */
 .stars {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    pointer-events: none;
-    z-index: 1;
+    display: none;
 }
 
-.star {
-    position: absolute;
-    width: 2px;
-    height: 2px;
-    background: var(--gold);
-    border-radius: 50%;
-    opacity: 0;
-    animation: twinkle 10s infinite;
-}
-
-.moving-star {
-    position: absolute;
-    width: 2px;
-    height: 2px;
-    background: var(--gold);
-    border-radius: 50%;
-    opacity: 0.8;
-    animation: drift 60s infinite linear;
-}
-
-@keyframes twinkle {
-    0%, 100% { opacity: 0; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.5); }
-}
-
-@keyframes drift {
-    0% { transform: translateX(-10px) translateY(0); }
-    100% { transform: translateX(100px) translateY(-50px); }
+.star, .moving-star {
+    display: none;
 }
 
 .container {
@@ -147,8 +116,7 @@ button:active,
     position: relative;
     overflow: hidden;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    animation: premiumGlow 3s ease-in-out infinite alternate,
-               premiumFloat 4s ease-in-out infinite;
+    /* 애니메이션 제거 (2025-01-08) */
     box-shadow:
         0 0 30px rgba(212, 175, 55, 0.3),
         0 4px 15px rgba(0, 0, 0, 0.4),
@@ -166,7 +134,7 @@ button:active,
         transparent 0%,
         rgba(255, 215, 0, 0.3) 50%,
         transparent 100%);
-    animation: premiumShine 3s ease-in-out infinite;
+    /* animation 제거 */
 }
 
 .premium-badge::after {
@@ -185,7 +153,7 @@ button:active,
     opacity: 0;
     z-index: -1;
     transition: opacity 0.4s;
-    animation: borderRotate 4s linear infinite;
+    /* animation 제거 */
 }
 
 .premium-badge:hover {
@@ -240,7 +208,7 @@ button:active,
 .premium-badge i {
     color: var(--gold);
     font-size: 18px;
-    animation: iconPulse 2s ease-in-out infinite;
+    /* animation 제거 (2025-01-08) */
     filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.5));
     position: relative;
     z-index: 1;
@@ -279,7 +247,7 @@ button:active,
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: textGradient 3s linear infinite;
+    /* animation 제거 (2025-01-08) */
     position: relative;
     z-index: 1;
 }
@@ -314,6 +282,13 @@ h1 {
 /* Main Carousel Section */
 .main-carousel-section {
     padding: 60px 0;
+}
+
+/* 모바일에서 메인 슬라이더 숨기기 */
+@media (max-width: 768px) {
+    .main-carousel-section {
+        display: none !important;
+    }
 }
 
 .section-title {
@@ -579,14 +554,12 @@ h1 {
 }
 
 /**
- * 그리드 카드 하트 버튼 - flex 아이템으로 회사명 옆에 배치
+ * 그리드 카드 하트 버튼 - 2열 구조에서 숨김
  *
- * @position 회사명 바로 옆
- * @note 절대 위치 제거, flex 아이템으로 변경
+ * @note 자세히보기 상세 페이지에서만 표시
  */
 .grid-card .like-btn {
-    position: relative;
-    margin-left: 8px;
+    display: none;
 }
 
 /* 메인 카드 info-block - 이미지와 같은 너비 */
@@ -621,10 +594,12 @@ h1 {
  * @position 회사명 바로 옆
  * @note 절대 위치 제거, flex 아이템으로 변경
  */
+/**
+ * 메인 캐러셀 하트 버튼 - 숨김
+ * @note 자세히보기 상세 페이지에서만 표시
+ */
 .main-card-like {
-    position: relative !important;
-    margin-left: 12px;
-    z-index: 10;
+    display: none;
 }
 
 /* 하트 버튼 - 이름/회사명 오른쪽에 배치 */
@@ -813,7 +788,7 @@ h1 {
     white-space: nowrap;
 }
 
-/* Detail Button */
+/* Detail Button - PC: 얇고 컴팩트한 스타일 */
 .detail-btn {
     background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(184, 134, 11, 0.2) 100%);
     color: var(--gold);
@@ -822,6 +797,12 @@ h1 {
     box-shadow:
         0 8px 20px rgba(0, 0, 0, 0.2);
     align-self: center;
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    padding: 0 24px !important;
+    font-size: 13px;
+    border-radius: 10px;
 }
 
 .detail-btn:hover {
@@ -1025,6 +1006,8 @@ h1 {
 /* Grid Section */
 .grid-section {
     padding: 60px 0 100px;
+    overflow: hidden;
+    max-width: 100%;
 }
 
 .cards-grid {
@@ -1033,6 +1016,7 @@ h1 {
     gap: 40px;
     max-width: 1400px;
     margin: 0 auto;
+    overflow: hidden;
 }
 
 .grid-card {
@@ -1178,6 +1162,29 @@ h1 {
     transform: translateY(2px);
 }
 
+/* 무한스크롤 로딩 인디케이터 */
+.infinite-scroll-loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 0;
+}
+
+.loader-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(212, 175, 55, 0.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* Fade-in animation for new cards */
 @keyframes fadeInUp {
     from {
@@ -1292,9 +1299,10 @@ h1 {
     }
 
     .cards-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
         max-width: 100%;
-        padding: 0 20px;
+        padding: 0 8px;
         box-sizing: border-box;
     }
 
@@ -1405,15 +1413,34 @@ h1 {
         white-space: nowrap;
     }
 
-    /* 모바일 그리드 카드 콤팩트 디자인 */
+    /* 모바일 그리드 카드 콤팩트 디자인 - 2열 배치용 */
     .grid-card {
-        padding: 20px;
+        position: relative;
+        padding: 5px;
         box-sizing: border-box;
         width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        overflow: hidden;
+        border-radius: 6px;
+    }
+
+    /* 모바일 썸네일 이미지 - 원본 비율 유지 */
+    .grid-card .grid-card-image {
+        border-radius: 4px;
+        height: auto;
+        overflow: hidden;
+    }
+
+    .grid-card .grid-card-image img {
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+        border-radius: 6px;
     }
 
     .grid-card .info-block {
-        margin-top: 10px;
+        margin-top: 6px;
         gap: 0;
     }
 
@@ -1425,7 +1452,7 @@ h1 {
      * @fix font-weight: 600으로 통일
      */
     .grid-card .name-block {
-        font-size: 14px;
+        font-size: 11px;
         font-weight: 600;
         color: var(--gold);
         margin: 0;
@@ -1435,7 +1462,7 @@ h1 {
     }
 
     .grid-card .company-block {
-        font-size: 12px;
+        font-size: 9px;
         font-weight: 600;
         color: var(--text-muted);
         margin: 0;
@@ -1469,9 +1496,16 @@ h1 {
      * @note 데스크톱과 동일한 레이아웃 유지
      * @fix font-size: 0으로 inline 요소 간 공백 제거
      */
-    .main-card .name-company-row,
+    .main-card .name-company-row {
+        justify-content: center;
+        max-width: 100%;
+        overflow: hidden;
+    }
+
     .grid-card .name-company-row {
         justify-content: center;
+        max-width: 100%;
+        position: static; /* 하트가 grid-card 기준으로 위치하도록 */
     }
 
     .main-card .name-company-group,
@@ -1490,12 +1524,16 @@ h1 {
      * @size 28px (데스크톱 36px에서 축소)
      * @spacing 8px (회사명이 길 경우를 대비해 간격 축소)
      */
-    .main-card-like,
-    .grid-card .like-btn {
+    .main-card-like {
         width: 28px;
         height: 28px;
         font-size: 13px;
         margin-left: 8px;
+    }
+
+    /* 모바일 그리드 카드 하트 - 2열 구조에서 숨김 */
+    .grid-card .like-btn {
+        display: none;
     }
 
     /* 모바일 버튼 그룹 - 세로 배치 */
@@ -1508,8 +1546,8 @@ h1 {
     /* 그리드 카드는 버튼 간격 좁게, 세로 배치 */
     .grid-card .button-group {
         flex-direction: column;
-        gap: 6px;
-        margin-top: 8px;
+        gap: 4px;
+        margin-top: 6px;
         justify-content: center;
     }
 
@@ -1532,27 +1570,29 @@ h1 {
     }
 
     .grid-card .detail-btn {
-        width: auto !important;
-        min-width: 120px;
-        max-width: 150px;
-        height: 32px !important;
-        min-height: 32px !important;
-        max-height: 32px !important;
-        padding: 0 20px !important;
-        font-size: 11px !important;
+        width: 100% !important;
+        min-width: auto;
+        max-width: none;
+        height: 18px !important;
+        min-height: 18px !important;
+        max-height: 18px !important;
+        padding: 0 6px !important;
+        font-size: 8px !important;
+        border-radius: 3px !important;
     }
 
     .grid-card .premium-cta {
-        width: auto !important;
-        min-width: 120px;
-        max-width: 150px;
-        height: 32px !important;
-        min-height: 32px !important;
-        max-height: 32px !important;
-        padding: 0 20px !important;
-        font-size: 11px !important;
+        width: 100% !important;
+        min-width: auto;
+        max-width: none;
+        height: 18px !important;
+        min-height: 18px !important;
+        max-height: 18px !important;
+        padding: 0 6px !important;
+        font-size: 8px !important;
         margin-top: 0;
-        letter-spacing: 0.5px;
+        letter-spacing: 0;
+        border-radius: 3px !important;
     }
 
     /* 모바일 그리드 카드 뱃지 */

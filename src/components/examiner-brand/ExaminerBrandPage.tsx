@@ -6,7 +6,7 @@ import styles from './ExaminerBrandPage.module.css';
 import Breadcrumb from './Breadcrumb';
 import HeroSection from './HeroSection';
 import TabSection from './TabSection';
-import ContactSection from './ContactSection';
+// import ContactSection from './ContactSection'; // 삭제됨 - 2025-01-26
 
 /**
  * 심사관 브랜드 페이지 메인 컴포넌트
@@ -152,7 +152,7 @@ export default function ExaminerBrandPage({ examinerId }: ExaminerBrandPageProps
       </div>
       <HeroSection examiner={examiner} />
       <TabSection examiner={examiner} />
-      <ContactSection examiner={examiner} />
+      {/* ContactSection (연락처 정보) 삭제 - 2025-01-26 */}
     </div>
   );
 }

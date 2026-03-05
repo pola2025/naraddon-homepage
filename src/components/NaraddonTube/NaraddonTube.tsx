@@ -323,7 +323,7 @@ const NaraddonTube: React.FC<NaraddonTubeProps> = () => {
           <div className="tube-header">
             <div className="tube-heading">
               <span className="tube-eyebrow">나라똔에서 전해드리는</span>
-              <h2 className="tube-title">나라똔 튜브</h2>
+              <h2 className="tube-title">나라똔 인터뷰</h2>
             </div>
             <p className="tube-subtitle">
               영상으로 만나는 나라똔 정책자금 활용 케이스
@@ -519,7 +519,7 @@ const NaraddonTube: React.FC<NaraddonTubeProps> = () => {
               </svg>
             </button>
 
-            <h3 className="naraddon-modal__title">나라똔 튜브 영상 등록</h3>
+            <h3 className="naraddon-modal__title">나라똔 인터뷰 영상 등록</h3>
             <p className="naraddon-modal__description">썸네일과 영상 링크 2개를 입력해 주세요.</p>
 
             {uploadFeedback && (

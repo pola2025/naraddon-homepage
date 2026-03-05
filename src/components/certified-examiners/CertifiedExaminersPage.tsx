@@ -36,9 +36,8 @@ const shuffleArray = (array: any[]) => {
 
 export default function CertifiedExaminersPage({ initialExaminers = [] }: CertifiedExaminersPageProps) {
   const [visibleCount, setVisibleCount] = useState(6);
-  const [isExpanded, setIsExpanded] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [loading, setLoading] = useState(false); // 이제 로딩 없음
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Hydration 오류 방지: 서버에서는 원본 데이터 사용, 클라이언트에서만 랜덤 정렬
   const [allExaminers] = useState<Examiner[]>(initialExaminers);
@@ -102,23 +101,34 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
     }
   };
 
-  const handleShowMore = () => {
-    if (visibleCount < gridExaminers.length) {
-      setVisibleCount(prev => Math.min(prev + 6, gridExaminers.length));
-    }
-    if (visibleCount + 6 >= gridExaminers.length) {
-      setIsExpanded(true);
-    }
-  };
+  // 무한스크롤: 스크롤 시 더 많은 카드 로드
+  useEffect(() => {
+    const handleScroll = () => {
+      if (loadingMore) return;
 
-  const handleShowLess = () => {
-    setVisibleCount(6);
-    setIsExpanded(false);
-  };
+      const scrollTop = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const docHeight = document.documentElement.scrollHeight;
+
+      // 페이지 하단 300px 전에 더 로드
+      if (scrollTop + windowHeight >= docHeight - 300) {
+        if (visibleCount < gridExaminers.length) {
+          setLoadingMore(true);
+          setTimeout(() => {
+            setVisibleCount(prev => Math.min(prev + 4, gridExaminers.length));
+            setLoadingMore(false);
+          }, 300);
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [visibleCount, gridExaminers.length, loadingMore]);
 
   const handleConsultationClick = () => {
-    // 상담신청 페이지로 이동 후 form-section으로 스크롤
-    window.location.href = '/consultation-request#form-section';
+    // 100문100답 섹션으로 이동
+    window.location.href = '/consultation-request#qna-section';
   };
   useEffect(() => {
     // 별빛 배경 효과 생성
@@ -218,7 +228,7 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
         <div className="container">
           <div className="premium-badge fade-in">
             <i className="fas fa-award"></i>
-            <span>Premium Certification</span>
+            <span>나라똔 인증</span>
           </div>
           <h1 className="fade-in fade-in-delay-1">
             <span className="desktop-title">인증 기업심사관과 함께하는</span>
@@ -235,11 +245,9 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
         </div>
       </section>
 
-      {/* Main Carousel */}
+      {/* Main Carousel - 제목 없이 카드만 표시 */}
       <section className="main-carousel-section">
         <div className="container">
-          <p className="section-title">Featured Examiner</p>
-
           <Swiper
             modules={[Navigation, Pagination, Autoplay]}
             spaceBetween={30}
@@ -254,22 +262,17 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
             }}
             loop={featuredExaminers.length >= 2}
             effect="slide"
-            grabCursor={true}
+            grabCursor={false}
+            allowTouchMove={false}
             className="main-swiper"
           >
             {featuredExaminers.map((examiner, index) => (
               <SwiperSlide key={index}>
                 <div className="main-card hover-lift">
-                  <div className="naraddon-badge">
-                    <svg width="26" height="26" viewBox="0 0 512 512" fill="currentColor" aria-hidden="true">
-                      <path d="M223.7 130.8L149.1 7.77C147.1 2.949 141.9 0 136.3 0H16.03c-12.95 0-20.53 14.58-13.1 25.18l111.3 158.9C143.9 156.4 181.7 137.3 223.7 130.8zM256 160c-97.25 0-176 78.75-176 176S158.8 512 256 512s176-78.75 176-176S353.3 160 256 160zM348.5 317.3l-37.88 37l8.875 52.25c1.625 9.25-8.25 16.5-16.63 12l-46.88-24.62L209.1 418.5c-8.375 4.5-18.25-2.75-16.63-12l8.875-52.25l-37.88-37C156.6 310.6 160.5 299 169.9 297.6l52.38-7.625L245.7 242.5c4-8.25 15.75-8.25 19.75 0l23.38 47.5l52.38 7.625C350.6 299 354.4 310.6 348.5 317.3zM495.1 0H375.7c-5.621 0-10.83 2.949-13.72 7.77l-74.62 123c42 6.5 79.88 25.62 109.5 53.38l111.3-158.9C515.6 14.58 508 0 495.1 0z"/>
-                    </svg>
-                    <span>나라똔 인증</span>
-                  </div>
                   <div className="main-card-image">
                     <img
                       src={examiner.imageUrl || '/images/default-examiner.png'}
-                      alt={`${examiner.name}_${examiner.company}`}
+                      alt={`${examiner.name}_${examiner.companyName}`}
                       loading="lazy"
                     />
                   </div>
@@ -290,10 +293,6 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
                       )}
                     </div>
                     <div className="button-group">
-                      <button className="premium-cta" onClick={handleConsultationClick}>
-                        <span className="button-text">무료심사신청</span>
-                      </button>
-                      {/* 브랜드 페이지 공개: 자세히보기 버튼 활성화 */}
                       {examiner._id && (
                         <a href={`/certified-examiners/${examiner._id}`} className="detail-btn">
                           자세히보기
@@ -308,22 +307,16 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
         </div>
       </section>
 
-      {/* Grid Section */}
+      {/* Grid Section - 제목 없이 카드만 표시 */}
       <section className="grid-section">
         <div className="container">
-          <p className="section-title">Certified Professionals</p>
-
           <div className="cards-grid">
             {gridExaminers.slice(0, visibleCount).map((examiner, index) => (
               <div key={index} className="grid-card hover-lift fade-in">
-                <div className="naraddon-badge">
-                  <i className="fas fa-certificate"></i>
-                  <span>나라똔 인증</span>
-                </div>
                 <div className="grid-card-image">
                   <img
                     src={examiner.imageUrl || '/images/default-examiner.png'}
-                    alt={`${examiner.name}_${examiner.company}`}
+                    alt={`${examiner.name}_${examiner.companyName}`}
                   />
                 </div>
                 <div className="info-block">
@@ -343,10 +336,6 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
                     )}
                   </div>
                   <div className="button-group">
-                    <button className="premium-cta" onClick={handleConsultationClick}>
-                      <span className="button-text">무료심사신청</span>
-                    </button>
-                    {/* 브랜드 페이지 공개: 자세히보기 버튼 활성화 */}
                     {examiner._id && (
                       <a href={`/certified-examiners/${examiner._id}`} className="detail-btn">
                         자세히보기
@@ -358,21 +347,12 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
             ))}
           </div>
 
-          {/* Show More / Show Less Button */}
-          <div className="show-more-container">
-            {!isExpanded && visibleCount < gridExaminers.length && (
-              <button className="show-more-btn" onClick={handleShowMore}>
-                <span>더보기</span>
-                <i className="fas fa-chevron-down"></i>
-              </button>
-            )}
-            {isExpanded && (
-              <button className="show-more-btn" onClick={handleShowLess}>
-                <span>접기</span>
-                <i className="fas fa-chevron-up"></i>
-              </button>
-            )}
-          </div>
+          {/* 무한스크롤 로딩 인디케이터 */}
+          {loadingMore && (
+            <div className="infinite-scroll-loader">
+              <div className="loader-spinner"></div>
+            </div>
+          )}
         </div>
       </section>
     </div>

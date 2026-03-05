@@ -154,60 +154,13 @@ const PolicyNewsDetail = () => {
 
   const plainTags = useMemo(() => (Array.isArray(post?.tags) ? post.tags : []), [post]);
 
-  /**
-   * 로그인 권한 체크
-   *
-   * @purpose 가입자만 정책소식 게시글 열람 가능
-   * @context 로그인하지 않은 사용자는 로그인 페이지로 리다이렉트
-   */
-  if (status === 'loading' || isLoading) {
+  // 로딩 상태 체크
+  if (isLoading) {
     return (
       <div className="policy-news-detail">
         <div className="loading-container">
           <div className="loading-spinner"></div>
           <p>콘텐츠를 불러오는 중...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!session || !session.user) {
-    return (
-      <div className="policy-news-detail">
-        <div className="auth-required-container">
-          <div className="auth-card">
-            <div className="auth-icon-wrapper">
-              👋
-            </div>
-            <h2 className="auth-title">안녕하세요 대표님!</h2>
-            <p className="auth-message">
-              기업에 꼭 필요한 자금문제를<br />
-              지금 나라똔에서 해결하세요.
-            </p>
-            <div className="auth-divider"></div>
-            <p className="auth-description">
-              본 서비스는 나라똔 회원만<br />
-              이용할 수 있습니다.<br />
-              <br />
-              가입 후 이용하시면 바로 확인 가능합니다.
-            </p>
-            <div className="auth-buttons">
-              <button
-                className="auth-button primary"
-                onClick={() => router.push('/auth/login?callbackUrl=' + encodeURIComponent(window.location.pathname))}
-              >
-                <i className="fas fa-user-plus"></i>
-                <span>회원가입 / 로그인</span>
-              </button>
-              <button
-                className="auth-button secondary"
-                onClick={() => router.push('/policy-news')}
-              >
-                <i className="fas fa-arrow-left"></i>
-                <span>목록으로 돌아가기</span>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     );
@@ -241,35 +194,33 @@ const PolicyNewsDetail = () => {
         <div className="progress" style={{ width: `${scrollProgress}%` }} />
       </div>
 
+      {/* 브레드크럼 */}
+      <nav className="policy-news-detail-breadcrumb" aria-label="브레드크럼">
+        <ol>
+          <li>
+            <button type="button" onClick={() => router.push('/')}>
+              <i className="fas fa-home"></i>
+            </button>
+          </li>
+          <li className="separator">
+            <i className="fas fa-chevron-right"></i>
+          </li>
+          <li>
+            <button type="button" onClick={() => router.push('/policy-news')}>
+              정책 알리미
+            </button>
+          </li>
+          <li className="separator">
+            <i className="fas fa-chevron-right"></i>
+          </li>
+          <li className="current">상세보기</li>
+        </ol>
+      </nav>
+
       {/* 헤더 영역 */}
       <div className="detail-header">
-        {/* 정책분석 보기 링크 */}
-        <div className="policy-analysis-link">
-          <Link href="/policy-analysis">
-            <i className="fas fa-chart-line"></i>
-            정책분석 보기
-          </Link>
-        </div>
-
         {/* 제목 */}
         <h1 className="post-title">{post.title}</h1>
-
-        {/* 메타 정보 */}
-        <div className="post-meta">
-          <span className="meta-item">
-            <i className="far fa-calendar"></i>
-            {createdDate}
-          </span>
-          <span className="meta-divider"></span>
-          <span className="meta-item">
-            <i className="far fa-eye"></i>
-            조회 {views}
-          </span>
-          <span className="meta-divider"></span>
-          <span className="meta-item category-tag">
-            {post.category || '기타'}
-          </span>
-        </div>
 
         {/* 관리자 액션 */}
         {isAdmin && (
@@ -412,7 +363,7 @@ const PolicyNewsDetail = () => {
       {/* 관련 게시글 */}
       {relatedNews.length > 0 && (
         <div className="related-news">
-          <h2>관련 정책소식</h2>
+          <h2>관련 정책 알리미</h2>
           <div className="related-grid">
             {relatedNews.map((news) => {
               const newsId = news._id || news.id;
@@ -422,49 +373,15 @@ const PolicyNewsDetail = () => {
                   href={`/policy-news/${newsId}`}
                   className="related-item"
                 >
-                  <div className="related-category">{news.category || '정책소식'}</div>
+                  <div className="related-category">{news.category || '정책 알리미'}</div>
                   <h3 className="related-title">{news.title}</h3>
-                  <div className="related-date">{formatDate(news.createdAt)}</div>
+                  {/* 날짜 숨김 - 2026-01-26 */}
                 </Link>
               );
             })}
           </div>
         </div>
       )}
-
-      {/* 정책분석 바로가기 */}
-      <div style={{
-        marginTop: '40px',
-        padding: '30px',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        borderRadius: '12px',
-        textAlign: 'center'
-      }}>
-        <h3 style={{ color: 'white', marginBottom: '12px', fontSize: '20px' }}>
-          더 깊이 있는 정책 인사이트를 원하시나요?
-        </h3>
-        <p style={{ color: 'rgba(255,255,255,0.9)', marginBottom: '20px', fontSize: '15px' }}>
-          전문가의 심층 분석과 함께 정책을 이해해보세요
-        </p>
-        <Link
-          href="/policy-analysis"
-          style={{
-            display: 'inline-block',
-            padding: '12px 30px',
-            background: 'white',
-            color: '#667eea',
-            borderRadius: '8px',
-            fontWeight: '600',
-            textDecoration: 'none',
-            transition: 'transform 0.2s',
-          }}
-          onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
-          onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
-        >
-          <i className="fas fa-chart-line" style={{ marginRight: '8px' }}></i>
-          정책분석 페이지 보기
-        </Link>
-      </div>
 
       {/* 스크롤 탑 버튼 */}
       <button

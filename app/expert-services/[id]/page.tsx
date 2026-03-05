@@ -386,13 +386,6 @@ export default function ExpertDetailPage() {
                   </div>
                 )}
               </div>
-
-              <div className="consult-cta-section">
-                <button className="btn-consult-large" onClick={handleConsultRequest}>
-                  <i className="fas fa-comments" />
-                  지금 바로 상담 신청하기
-                </button>
-              </div>
             </div>
           </div>
         </div>

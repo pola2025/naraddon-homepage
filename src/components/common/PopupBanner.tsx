@@ -31,10 +31,7 @@ interface PopupBannerProps {
  *   - 닫기 버튼
  *   - 반응형 디자인 (모바일: 세로 스크롤, 데스크톱: 가로 나란히)
  */
-export default function PopupBanner({
-  items,
-  popupId,
-}: PopupBannerProps) {
+export default function PopupBanner({ items, popupId }: PopupBannerProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -78,20 +75,27 @@ export default function PopupBanner({
 
   return (
     <div className="popup-banner-overlay" onClick={handleClose}>
-      <div className="popup-banner-card" onClick={(e) => e.stopPropagation()}>
-        {/* 이미지 영역 */}
-        <div className={`popup-banner-images ${isMultiple ? 'popup-banner-images--multiple' : ''}`}>
+      <div
+        className={`popup-banner-wrapper ${isMultiple ? 'popup-banner-wrapper--multiple' : ''}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* 이미지 영역 (다중일 때 가로 나란히) */}
+        <div className="popup-banner-images">
           {items.map((item, index) => (
-            <Link key={index} href={item.href} className="popup-banner-link" onClick={handleClose}>
-              <img
-                src={item.imageSrc}
-                alt={item.alt || '프로모션 배너'}
-                className="popup-banner-image"
-              />
-            </Link>
+            <div key={index} className="popup-banner-container">
+              {/* 배너 이미지 (클릭 시 이동) */}
+              <Link href={item.href} className="popup-banner-link" onClick={handleClose}>
+                <img
+                  src={item.imageSrc}
+                  alt={item.alt || '프로모션 배너'}
+                  className="popup-banner-image"
+                />
+              </Link>
+            </div>
           ))}
         </div>
-        {/* 버튼 영역 (공통) */}
+
+        {/* 하단 버튼 영역 (공통) */}
         <div className="popup-banner-footer">
           <button className="popup-banner-hide-today" onClick={handleHideToday}>
             오늘 하루 보지 않기

@@ -153,7 +153,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
           {/* 섹션별 현황 */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h4 className="text-sm font-semibold text-gray-700 mb-3">나라똔튜브</h4>
+              <h4 className="text-sm font-semibold text-gray-700 mb-3">나라똔 인터뷰</h4>
               <p className="text-2xl font-bold text-gray-900">42</p>
               <p className="text-xs text-gray-500 mt-1">등록된 영상</p>
             </div>

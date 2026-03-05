@@ -85,7 +85,7 @@ const NaraddonTubeSimple: React.FC<NaraddonTubeSimpleProps> = ({ initialData }) 
 
   if (loading) {
     return (
-      <section className="tube-simple-section">
+      <section id="naraddon-tube" className="tube-simple-section">
         <div className="tube-simple-container">
           <p className="tube-simple-loading">로딩 중...</p>
         </div>
@@ -99,12 +99,12 @@ const NaraddonTubeSimple: React.FC<NaraddonTubeSimpleProps> = ({ initialData }) 
 
   return (
     <>
-      <section className="tube-simple-section">
+      <section id="naraddon-tube" className="tube-simple-section">
         <div className="tube-simple-container">
           <div className="tube-simple-header">
             <div className="tube-simple-heading">
               <span className="tube-simple-eyebrow">나라똔에서 전해드리는</span>
-              <h2 className="tube-simple-title">나라똔 튜브</h2>
+              <h2 className="tube-simple-title">나라똔 인터뷰</h2>
             </div>
             <p className="tube-simple-subtitle">
               영상으로 만나는 나라똔 정책자금 활용 케이스
@@ -162,7 +162,7 @@ const NaraddonTubeSimple: React.FC<NaraddonTubeSimpleProps> = ({ initialData }) 
                   </>
                 ) : (
                   <>
-                    <span>나라똔 튜브 전체보기 ({allVideos.length}개)</span>
+                    <span>나라똔 인터뷰 전체보기 ({allVideos.length}개)</span>
                     <svg className="tube-simple-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <polyline points="6 9 12 15 18 9" />
                     </svg>
@@ -195,11 +195,6 @@ const NaraddonTubeSimple: React.FC<NaraddonTubeSimpleProps> = ({ initialData }) 
                   loading="lazy"
                 />
               </div>
-              {currentVideo && (
-                <div className="video-modal-info">
-                  <h3>{currentVideo.title}</h3>
-                </div>
-              )}
             </div>
           </div>
         );

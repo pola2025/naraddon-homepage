@@ -6,7 +6,6 @@ import {
   VoiceFilter,
   VoiceList,
   VoiceTestimonial,
-  VoiceCTA,
 } from '@/components/VoiceSection';
 
 export default function VoicePage() {
@@ -26,9 +25,6 @@ export default function VoicePage() {
 
       {/* 리뷰 리스트 */}
       <VoiceList category={selectedCategory} sortBy={sortBy} />
-
-      {/* CTA 섹션 */}
-      <VoiceCTA />
     </main>
   );
 }

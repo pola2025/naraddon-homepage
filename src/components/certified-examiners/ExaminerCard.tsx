@@ -111,17 +111,17 @@ export default function ExaminerCard({ examiner, variant = 'grid' }: ExaminerCar
         )}
 
         <div className={styles.buttonGroup}>
-          {enableBrandPage && examiner._id && (
-            <Link href={`/certified-examiners/${examiner._id}`} className={styles.detailBtn}>
-              자세히보기
-            </Link>
-          )}
           <button
             className={styles.premiumCta}
             onClick={() => window.location.href = '/consultation-request#form-section'}
           >
             무료심사신청
           </button>
+          {enableBrandPage && examiner._id && (
+            <Link href={`/certified-examiners/${examiner._id}`} className={styles.detailBtn}>
+              자세히보기
+            </Link>
+          )}
         </div>
       </div>
     </div>

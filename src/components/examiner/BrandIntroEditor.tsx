@@ -38,9 +38,7 @@ export default function BrandIntroEditor({
   // 구조화된 입력을 위한 상태
   const [companyName, setCompanyName] = useState('');
   const [mainIntro, setMainIntro] = useState('');
-  const [specialties, setSpecialties] = useState<string[]>(['']);
-  const [goals, setGoals] = useState<string[]>(['']);
-  const [visionMessage, setVisionMessage] = useState('');
+  // visionMessage 삭제됨 (한줄 강조문구 기능 제거)
 
   /**
    * 기존 HTML 파싱하여 폼 필드 채우기
@@ -69,48 +67,8 @@ export default function BrandIntroEditor({
         setMainIntro(p.textContent?.trim() || '');
       }
 
-      // 전문 영역 추출 (첫 번째 .brand-about-section 또는 .about-section)
-      const sections = doc.querySelectorAll('.brand-about-section, .about-section');
-      let extractedSpecialties: string[] = [];
-      if (sections[0]) {
-        const lis = sections[0].querySelectorAll('li');
-        extractedSpecialties = Array.from(lis)
-          .map(li => li.textContent?.trim() || '')
-          .filter(text => text);
-        if (extractedSpecialties.length > 0) {
-          setSpecialties(extractedSpecialties);
-        }
-      }
-
-      // 지원 목표 추출 (두 번째 .brand-about-section 또는 .about-section)
-      let extractedGoals: string[] = [];
-      if (sections[1]) {
-        const lis = sections[1].querySelectorAll('li');
-        extractedGoals = Array.from(lis)
-          .map(li => {
-            // <strong> 태그 제거하고 텍스트만 추출
-            const text = li.textContent?.trim() || '';
-            return text;
-          })
-          .filter(text => text);
-        if (extractedGoals.length > 0) {
-          setGoals(extractedGoals);
-        }
-      }
-
-      // 비전 메시지 추출
-      const visionBox = doc.querySelector('.brand-vision-box strong, .vision-box strong');
-      let vision = '';
-      if (visionBox) {
-        vision = visionBox.textContent?.trim().replace(/^"|"$/g, '') || '';
-        setVisionMessage(vision);
-      }
-
       console.log('[BrandIntroEditor] Parsed existing content:', {
-        companyName: companyText,
-        specialties: extractedSpecialties?.length,
-        goals: extractedGoals?.length,
-        visionMessage: vision
+        companyName: companyText
       });
 
     } catch (error) {
@@ -198,39 +156,18 @@ export default function BrandIntroEditor({
   /**
    * 구조화된 입력으로 HTML 생성 및 저장
    *
-   * @purpose 전문영역, 지원목표 등을 개별 입력받아 HTML 구조 생성하고 즉시 저장
+   * @purpose 회사소개 정보를 개별 입력받아 HTML 구조 생성하고 즉시 저장
    * @context 사용자 요청: "회사소개 적용 버튼으로 바로 저장" - 상단 저장 버튼과 동일하게 작동
-   * @note data-styled 속성으로 CSS 모듈 스타일 적용 표시
+   * @note 전문 영역, 지원 목표 섹션 제거 (2026-01-08)
    * @decision
    *   - HTML 생성 후 onApply로 즉시 저장 (부모 상태 동기화 이슈 해결)
    *   - fallback: onApply가 없으면 onChange + onSave 사용
    */
   const generateStructuredHTML = async () => {
-    const specialtiesList = specialties.filter((s) => s.trim()).map((s) => `<li>${s}</li>`).join('\n');
-    const goalsList = goals.filter((g) => g.trim()).map((g) => `<li><strong>${g}</strong></li>`).join('\n');
-
     const html = `
 <div data-custom-brand-content="true">
   <h3>${companyName || '회사명'} 소개</h3>
   <p>${mainIntro || '회사 소개 내용을 입력하세요.'}</p>
-
-  <div class="brand-about-section">
-    <h4><i class="fas fa-star"></i> 전문 영역</h4>
-    <ul>
-${specialtiesList || '<li>전문 영역을 입력하세요</li>'}
-    </ul>
-  </div>
-
-  <div class="brand-about-section">
-    <h4><i class="fas fa-bullseye"></i> 지원 목표</h4>
-    <ul>
-${goalsList || '<li>지원 목표를 입력하세요</li>'}
-    </ul>
-  </div>
-
-  <div class="brand-vision-box">
-    <strong>"${visionMessage || '비전 메시지를 입력하세요'}"</strong>
-  </div>
 </div>
     `.trim();
 
@@ -250,32 +187,6 @@ ${goalsList || '<li>지원 목표를 입력하세요</li>'}
         await onSave();
       }, 0);
     }
-  };
-
-  /**
-   * 전문영역 항목 추가/삭제
-   */
-  const addSpecialty = () => setSpecialties([...specialties, '']);
-  const removeSpecialty = (index: number) => {
-    setSpecialties(specialties.filter((_, i) => i !== index));
-  };
-  const updateSpecialty = (index: number, value: string) => {
-    const updated = [...specialties];
-    updated[index] = value;
-    setSpecialties(updated);
-  };
-
-  /**
-   * 지원목표 항목 추가/삭제
-   */
-  const addGoal = () => setGoals([...goals, '']);
-  const removeGoal = (index: number) => {
-    setGoals(goals.filter((_, i) => i !== index));
-  };
-  const updateGoal = (index: number, value: string) => {
-    const updated = [...goals];
-    updated[index] = value;
-    setGoals(updated);
   };
 
   return (
@@ -419,110 +330,6 @@ ${goalsList || '<li>지원 목표를 입력하세요</li>'}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="예: 정부 지원사업 심사 대비를 돕는 경영컨설턴트입니다."
               />
-            </div>
-
-            {/* 전문 영역 */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                전문 영역
-              </label>
-              {specialties.map((specialty, index) => (
-                <div key={index} className="flex items-center space-x-2 mb-2">
-                  <input
-                    type="text"
-                    value={specialty}
-                    onChange={(e) => updateSpecialty(index, e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={`전문 영역 ${index + 1}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeSpecialty(index)}
-                    className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg"
-                  >
-                    <i className="fas fa-trash"></i>
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={addSpecialty}
-                className="mt-2 px-4 py-2 text-sm text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50"
-              >
-                <i className="fas fa-plus mr-2"></i>
-                전문 영역 추가
-              </button>
-            </div>
-
-            {/* 지원 목표 */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                지원 목표
-              </label>
-              {goals.map((goal, index) => (
-                <div key={index} className="flex items-center space-x-2 mb-2">
-                  <input
-                    type="text"
-                    value={goal}
-                    onChange={(e) => updateGoal(index, e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={`지원 목표 ${index + 1}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeGoal(index)}
-                    className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg"
-                  >
-                    <i className="fas fa-trash"></i>
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={addGoal}
-                className="mt-2 px-4 py-2 text-sm text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50"
-              >
-                <i className="fas fa-plus mr-2"></i>
-                지원 목표 추가
-              </button>
-            </div>
-
-            {/* 비전 메시지 */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                비전 메시지 (선택사항)
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={visionMessage}
-                  onChange={(e) => setVisionMessage(e.target.value)}
-                  maxLength={35}
-                  className={`w-full px-3 py-2 pr-16 border rounded-lg focus:ring-2 focus:border-transparent ${
-                    visionMessage.length > 35
-                      ? 'border-red-500 focus:ring-red-500'
-                      : visionMessage.length >= 30
-                      ? 'border-yellow-500 focus:ring-yellow-500'
-                      : 'border-gray-300 focus:ring-blue-500'
-                  }`}
-                  placeholder='예: "나라똔 인증 기업심사관과 함께 성공적인 사업 기회를 만드세요"'
-                />
-                <span
-                  className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium ${
-                    visionMessage.length > 35
-                      ? 'text-red-600'
-                      : visionMessage.length >= 30
-                      ? 'text-yellow-600'
-                      : 'text-gray-500'
-                  }`}
-                >
-                  {visionMessage.length}/35
-                </span>
-              </div>
-              <p className="mt-2 text-xs text-gray-600">
-                <i className="fas fa-info-circle mr-1"></i>
-                기본 멘트와 같은 길이(공백 포함 35자)를 권장합니다. 너무 길면 디자인이 깨질 수 있습니다.
-              </p>
             </div>
 
             {/* HTML 생성 버튼 */}

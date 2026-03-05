@@ -321,14 +321,14 @@
   width: 100%;
 }
 
-/* Detail Button */
+/* Detail Button - 컴팩트한 스타일 */
 .detailBtn {
-  padding: 14px 40px;
+  padding: 10px 24px;
   background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(184, 134, 11, 0.2) 100%);
   color: #D4AF37;
   border: 1px solid rgba(212, 175, 55, 0.4);
-  border-radius: 30px;
-  font-size: 15px;
+  border-radius: 10px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 1px;
   cursor: pointer;

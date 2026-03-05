@@ -12,11 +12,7 @@ import {
   CogIcon,
   ArrowRightOnRectangleIcon,
   BriefcaseIcon,
-  ShieldCheckIcon,
-  DocumentTextIcon,
-  ExclamationTriangleIcon,
-  AcademicCapIcon,
-  ClipboardDocumentListIcon
+  PresentationChartLineIcon
 } from '@heroicons/react/24/outline';
 
 interface AdminSidebarProps {
@@ -33,12 +29,17 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
       icon: HomeIcon,
     },
     {
+      name: '종합 분석',
+      href: '/admin/analytics',
+      icon: PresentationChartLineIcon,
+    },
+    {
       name: '콘텐츠 관리',
       type: 'group',
       items: [
         {
-          name: '나라똔튜브',
-          href: '/admin/naraddon-tube',
+          name: '나라똔 인터뷰',
+          href: '/naraddon-tube/admin',
           icon: VideoCameraIcon,
         },
         {
@@ -49,7 +50,7 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
         {
           name: '정책분석',
           href: '/admin/policy-analysis',
-          icon: DocumentTextIcon,
+          icon: NewspaperIcon,
         },
         {
           name: '사업자 목소리 - 똔톡, 묻고 답하기',
@@ -58,15 +59,10 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
         },
         {
           name: '전문가서비스',
-          href: '/admin/expert-services',
+          href: '/expert-services/admin',
           icon: BriefcaseIcon,
         },
       ],
-    },
-    {
-      name: '상담관리',
-      href: '/admin/consultations',
-      icon: ClipboardDocumentListIcon,
     },
     {
       name: '사용자 관리',
@@ -74,39 +70,13 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
       icon: UserGroupIcon,
     },
     {
-      name: '심사관 관리',
-      type: 'group',
-      items: [
-        {
-          name: '심사관 목록',
-          href: '/admin/examiners',
-          icon: ShieldCheckIcon,
-        },
-        {
-          name: '블랙리스트',
-          href: '/admin/examiners/blacklist',
-          icon: ExclamationTriangleIcon,
-        },
-      ],
-    },
-    {
-      name: '전문가 관리',
-      href: '/admin/experts',
-      icon: AcademicCapIcon,
-    },
-    {
-      name: '심사관 상담관리',
-      href: '/admin/examiner-dashboards',
+      name: '상담 관리',
+      href: '/admin/consultations',
       icon: ChartBarIcon,
     },
     {
-      name: '통계',
-      href: '/admin/analytics',
-      icon: ChartBarIcon,
-    },
-    {
-      name: '설정',
-      href: '/admin/settings',
+      name: '활동 로그',
+      href: '/admin/logs',
       icon: CogIcon,
     },
   ];
@@ -114,9 +84,6 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
   const isActive = (href: string) => {
     if (href === '/admin/dashboard') {
       return pathname === '/admin/dashboard';
-    }
-    if (href === '/admin') {
-      return pathname === '/admin';
     }
     return pathname.startsWith(href);
   };
@@ -174,7 +141,7 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
         })}
       </nav>
 
-      <div className="p-4 pb-6 border-t">
+      <div className="p-4 border-t">
         <button
           onClick={onLogout}
           className="flex items-center w-full px-3 py-2 text-sm font-medium text-red-600 rounded-md hover:bg-red-50"

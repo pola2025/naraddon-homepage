@@ -46,8 +46,19 @@ const PolicyThumbnails = ({ initialData }) => {
   const renderGrid = () => {
     if (isLoading && thumbnails.length === 0) {
       return (
-        <div className="thumbnails-status">
-          <p>정책 소식을 불러오는 중입니다...</p>
+        <div className="thumbnails-grid desktop-grid">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="thumbnail-item skeleton-item">
+              <div className="thumbnail-image-wrapper skeleton-image">
+                <div className="skeleton-shimmer" />
+              </div>
+              <div className="thumbnail-info">
+                <div className="skeleton-tag" />
+                <div className="skeleton-title" />
+                <div className="skeleton-meta" />
+              </div>
+            </div>
+          ))}
         </div>
       );
     }
@@ -106,14 +117,7 @@ const PolicyThumbnails = ({ initialData }) => {
 
                 <h3 className="thumbnail-title">{item.title}</h3>
 
-                <div className="thumbnail-meta">
-                  <span className="thumbnail-date">
-                    <i className="far fa-calendar" /> {item.dateText || item.createdAt}
-                  </span>
-                  <span className="thumbnail-views">
-                    <i className="far fa-eye" /> {item.views?.toLocaleString?.() ?? item.views ?? 0}
-                  </span>
-                </div>
+                {/* 메타 정보(날짜, 조회수) 숨김 - 2026-01-26 */}
               </div>
             </Link>
           ))}
@@ -155,11 +159,7 @@ const PolicyThumbnails = ({ initialData }) => {
                     <span className="category-name">{categoryLabelMap[item.category] || item.category}</span>
                   </div>
                   <h3 className="mobile-thumbnail-title">{item.title}</h3>
-                  <div className="mobile-thumbnail-meta">
-                    <span className="mobile-thumbnail-date">
-                      <i className="far fa-calendar" /> {item.dateText || item.createdAt}
-                    </span>
-                  </div>
+                  {/* 메타 정보(날짜) 숨김 - 2026-01-26 */}
                 </div>
               </Link>
             ))}
@@ -187,12 +187,7 @@ const PolicyThumbnails = ({ initialData }) => {
         <div className="thumbnails-header">
           <div className="thumbnails-heading">
             <span className="thumbnails-eyebrow">나라똔에서 전해드리는</span>
-            <h3 className="thumbnails-title">정책소식</h3>
-            <p className="thumbnails-subtitle">
-              최신 정책과 지원사업 소식을
-              <br />
-              인증 심사관 시선으로 빠르게 전해드립니다.
-            </p>
+            <h3 className="thumbnails-title">정책 알리미</h3>
           </div>
           <Link href="/policy-analysis" className="thumbnails-action">
             <span>전체보기</span>

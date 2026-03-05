@@ -51,25 +51,7 @@ export default function ContactSection({ examiner }: ContactSectionProps) {
         <h2 className={styles.title}>연락처 정보</h2>
 
         <div className={styles.contactInfoGrid}>
-          {/* 웹사이트 */}
-          {contactInfo.website && (
-            <div className={`${styles.contactItem} ${styles.websiteItem}`}>
-              <i className="fas fa-globe"></i>
-              <span className={styles.label}>웹사이트</span>
-              <div className={styles.websiteCopyWrapper}>
-                <div className={styles.websiteUrl} id="websiteUrl">
-                  {contactInfo.website}
-                </div>
-                <button
-                  className={styles.copyBtn}
-                  onClick={handleCopyWebsite}
-                  aria-label="웹사이트 주소 복사"
-                >
-                  <i className={copied ? "fas fa-check" : "fas fa-copy"}></i>
-                </button>
-              </div>
-            </div>
-          )}
+          {/* 웹사이트 - 숨김 처리 */}
 
           {/* 상담 가능 시간 */}
           {contactInfo.consultationHours && (
@@ -104,22 +86,7 @@ export default function ContactSection({ examiner }: ContactSectionProps) {
           )}
         </div>
 
-        {/* 최종 CTA */}
-        <div className={styles.finalCta}>
-          <h3>
-            상담을 원하시면<br className={styles.mobileBr} />
-            아래 버튼을 클릭해주세요
-          </h3>
-          <p>여러분의 창업 성공을 함께 만들어가겠습니다</p>
-          <button
-            className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSpotlight}`}
-            onClick={handleConsultation}
-            onMouseMove={handleMouseMove}
-          >
-            <i className="fas fa-headset"></i>
-            <span>심사 신청하기</span>
-          </button>
-        </div>
+        {/* 최종 CTA - 심사 신청하기 숨김 처리 */}
       </div>
     </section>
   );

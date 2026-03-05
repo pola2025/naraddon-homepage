@@ -61,7 +61,6 @@ function TrustSection() {
             <div className="shield-title-group">
               <div className={`shield-icon-large ${shieldAnimation ? 'animate' : ''}`}>
                 <i className="fas fa-shield-alt"></i>
-                <div className="shield-pulse"></div>
                 <div className="guarantee-badge-large">100%</div>
               </div>
               <div className="title-group">
@@ -84,26 +83,8 @@ function TrustSection() {
             </div>
           </div>
 
-          {/* 중앙: 3개 특징 */}
-          <div className="home-trust-center">
-            <div className="guarantee-features-horizontal">
-              <div className="feature-item-horizontal">
-                <i className="fas fa-users"></i>
-                <span>혼자가 아닙니다, 함께합니다</span>
-              </div>
-              <div className="feature-item-horizontal">
-                <i className="fas fa-hand-holding-usd"></i>
-                <span>안 되면 돈 안 받습니다</span>
-              </div>
-              <div className="feature-item-horizontal">
-                <i className="fas fa-redo"></i>
-                <span>될 때까지 도와드립니다</span>
-              </div>
-            </div>
-          </div>
-
-          {/* 오른쪽: 4개 배지 */}
-          <div className="home-trust-right">
+          {/* 오른쪽: 4개 배지 (확대) */}
+          <div className="home-trust-right expanded">
             <div className="guarantee-items-horizontal">
               {guaranteeItems.map((item, index) => (
                 <div key={index} className="guarantee-item-horizontal">
@@ -115,7 +96,6 @@ function TrustSection() {
                 </div>
               ))}
             </div>
-            <span className="guarantee-note-horizontal">*나라똔 표준계약서에 근거한 보증제도</span>
           </div>
         </div>
       </div>

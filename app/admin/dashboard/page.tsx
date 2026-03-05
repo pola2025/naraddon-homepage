@@ -540,11 +540,11 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* 나라똔튜브 관리 */}
+              {/* 나라똔 인터뷰 관리 */}
               <div className="bg-white rounded-lg shadow mb-8">
                 <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-900">나라똔튜브 관리</h2>
+                    <h2 className="text-lg font-semibold text-gray-900">나라똔 인터뷰 관리</h2>
                     <p className="text-sm text-gray-500 mt-1">영상 공개 상태 및 노출 순서를 관리합니다</p>
                   </div>
                   <Link
@@ -724,7 +724,7 @@ export default function AdminDashboard() {
                             d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
                           />
                         </svg>
-                        <span className="text-sm font-medium text-gray-900">나라똔튜브</span>
+                        <span className="text-sm font-medium text-gray-900">나라똔 인터뷰</span>
                       </Link>
 
                       <Link
