@@ -31,7 +31,7 @@
   }
 }
 
-/* 팝업 래퍼 - 다중 팝업 컨테이너 */
+/* 팝업 래퍼 - 항상 세로 구조 (이미지 영역 + 버튼 영역) */
 .popup-banner-wrapper {
   display: flex;
   flex-direction: column;
@@ -42,12 +42,22 @@
   animation: popupSlideIn 0.3s ease-out;
 }
 
-/* 다중 팝업일 때 - 가로 배치 */
+/* 다중 팝업일 때 - 래퍼만 넓힘 */
 .popup-banner-wrapper--multiple {
-  flex-direction: row;
-  align-items: flex-end;
-  gap: 16px;
   max-width: min(880px, 95vw);
+}
+
+/* 이미지 영역 - 단일일 때 세로, 다중일 때 가로 */
+.popup-banner-images {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 0;
+}
+
+.popup-banner-wrapper--multiple .popup-banner-images {
+  flex-direction: row;
+  gap: 16px;
 }
 
 @keyframes popupSlideIn {
@@ -70,7 +80,7 @@
   flex-direction: column;
   align-items: center;
   background: transparent;
-  border-radius: 16px;
+  border-radius: 16px 16px 0 0;
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
@@ -78,6 +88,7 @@
 /* 다중일 때 컨테이너 크기 조정 */
 .popup-banner-wrapper--multiple .popup-banner-container {
   flex: 1;
+  min-width: 0;
   max-width: 420px;
 }
 
@@ -152,10 +163,13 @@
 /* 반응형: 태블릿 이하 - 다중 팝업 세로 스크롤 */
 @media (max-width: 768px) {
   .popup-banner-wrapper--multiple {
+    max-width: min(420px, calc(100vh - 140px));
+  }
+
+  .popup-banner-wrapper--multiple .popup-banner-images {
     flex-direction: column;
     gap: 12px;
-    max-width: min(420px, calc(100vh - 140px));
-    max-height: calc(100vh - 80px);
+    max-height: calc(100vh - 120px);
     overflow-y: auto;
   }
 
