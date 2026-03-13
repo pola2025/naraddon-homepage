@@ -12,7 +12,7 @@ import {
   CogIcon,
   ArrowRightOnRectangleIcon,
   BriefcaseIcon,
-  PresentationChartLineIcon
+  PresentationChartLineIcon,
 } from '@heroicons/react/24/outline';
 
 interface AdminSidebarProps {
@@ -53,6 +53,11 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
           icon: NewspaperIcon,
         },
         {
+          name: '쇼츠 관리',
+          href: '/admin/shorts',
+          icon: VideoCameraIcon,
+        },
+        {
           name: '사업자 목소리 - 똔톡, 묻고 답하기',
           href: '/admin/business-voice',
           icon: MicrophoneIcon,
@@ -61,6 +66,11 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
           name: '전문가서비스',
           href: '/expert-services/admin',
           icon: BriefcaseIcon,
+        },
+        {
+          name: '심사관 관리',
+          href: '/admin/examiners',
+          icon: UserGroupIcon,
         },
       ],
     },
@@ -108,9 +118,10 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
                     href={subItem.href}
                     className={`
                       flex items-center px-3 py-2 text-sm font-medium rounded-md mb-1
-                      ${isActive(subItem.href)
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-gray-700 hover:bg-gray-50'
+                      ${
+                        isActive(subItem.href)
+                          ? 'bg-blue-50 text-blue-700'
+                          : 'text-gray-700 hover:bg-gray-50'
                       }
                     `}
                   >
@@ -128,9 +139,10 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
               href={item.href!}
               className={`
                 flex items-center px-3 py-2 text-sm font-medium rounded-md
-                ${isActive(item.href!)
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-50'
+                ${
+                  isActive(item.href!)
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-700 hover:bg-gray-50'
                 }
               `}
             >
