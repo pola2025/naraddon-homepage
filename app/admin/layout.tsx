@@ -181,7 +181,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="flex h-screen bg-gray-50">
       <AdminSidebar onLogout={handleLogout} />
       <div className="flex-1 flex flex-col overflow-hidden">
-        {pathname !== '/admin/dashboard' && <AdminHeader />}
+        <AdminHeader />
         <main className="flex-1 p-6 pb-16 overflow-auto">
           <div style={{ maxWidth: '1200px', margin: '0 auto' }}>{children}</div>
         </main>

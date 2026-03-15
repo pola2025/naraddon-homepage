@@ -1,41 +1,55 @@
 'use client';
 
 import Link from 'next/link';
-import { BellIcon, UserCircleIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
+import { usePathname } from 'next/navigation';
+import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
+
+/* 경로별 페이지 이름 매핑 */
+const pageNames: Record<string, string> = {
+  '/admin/dashboard': '대시보드',
+  '/admin/analytics': '종합 분석',
+  '/admin/naraddon-tube': '인터뷰 영상',
+  '/admin/policy-news': '정책소식',
+  '/admin/policy-analysis': '정책분석',
+  '/admin/shorts': '쇼츠',
+  '/admin/expert-services': '전문가 관리',
+  '/admin/examiners': '심사관 관리',
+  '/admin/consultations': '상담 관리',
+  '/admin/users': '사용자 관리',
+  '/admin/logs': '활동 로그',
+  '/admin/settings': '설정',
+};
+
+function getPageName(pathname: string): string {
+  /* 정확한 매칭 먼저 시도 */
+  if (pageNames[pathname]) return pageNames[pathname];
+
+  /* 하위 경로 매칭 (예: /admin/consultations/123) */
+  const basePath = Object.keys(pageNames).find((key) => pathname.startsWith(key));
+  return basePath ? pageNames[basePath] : '관리자';
+}
 
 export default function AdminHeader() {
-  const currentDate = new Date().toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    weekday: 'long'
-  });
+  const pathname = usePathname();
+  const pageName = getPageName(pathname);
 
   return (
-    <header className="bg-white shadow-sm border-b">
-      <div className="px-6 py-4 flex items-center justify-between">
+    <header className="bg-white border-b border-gray-200">
+      <div className="px-8 py-4 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">관리자 대시보드</h1>
-          <p className="mt-1 text-sm text-gray-500">{currentDate}</p>
+          <p className="text-xs text-gray-400 mb-0.5">관리자 &gt; {pageName}</p>
+          <h1 className="text-lg font-bold text-gray-900">{pageName}</h1>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <Link
-            href="/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
-          >
-            <ArrowTopRightOnSquareIcon className="w-5 h-5 mr-2" />
-            나라똔 페이지 바로가기
-          </Link>
-          <button className="p-2 text-gray-400 hover:text-gray-500">
-            <BellIcon className="w-6 h-6" />
-          </button>
-          <button className="p-2 text-gray-400 hover:text-gray-500">
-            <UserCircleIcon className="w-6 h-6" />
-          </button>
-        </div>
+        <Link
+          href="/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md transition-colors"
+        >
+          <ArrowTopRightOnSquareIcon className="w-4 h-4 mr-1.5" />
+          사이트 보기
+        </Link>
       </div>
     </header>
   );
