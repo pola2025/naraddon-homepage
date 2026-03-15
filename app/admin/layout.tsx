@@ -6,11 +6,7 @@ import { useSession } from 'next-auth/react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -83,7 +79,7 @@ export default function AdminLayout({
         const res = await fetch('/api/admin/check-session', {
           method: 'GET',
           credentials: 'include',
-          cache: 'no-store'
+          cache: 'no-store',
         });
 
         if (res.ok) {
@@ -100,7 +96,13 @@ export default function AdminLayout({
             currentPathRef.current = pathname;
             retryCountRef.current = 0; // 성공 시 카운터 리셋
           } else {
-            console.log('[AdminLayout] Not authorized (role:', userRole, 'isAdmin:', userIsAdmin, '), redirecting to login');
+            console.log(
+              '[AdminLayout] Not authorized (role:',
+              userRole,
+              'isAdmin:',
+              userIsAdmin,
+              '), redirecting to login'
+            );
             router.push('/admin/login');
             setIsLoading(false);
             authCheckedRef.current = true; // 리다이렉트 후 재시도 방지
@@ -142,7 +144,7 @@ export default function AdminLayout({
       // Admin 세션 로그아웃
       await fetch('/api/admin/logout', {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
       });
 
       router.push('/');
@@ -181,7 +183,7 @@ export default function AdminLayout({
       <div className="flex-1 flex flex-col overflow-hidden">
         {pathname !== '/admin/dashboard' && <AdminHeader />}
         <main className="flex-1 p-6 pb-16 overflow-auto">
-          {children}
+          <div className="max-w-7xl mx-auto">{children}</div>
         </main>
       </div>
     </div>
