@@ -1,0 +1,176 @@
+.shorts-section {
+  padding: 60px 0 40px;
+  background: #ffffff;
+}
+
+.shorts-section-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* 헤더 */
+.shorts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.shorts-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.shorts-icon {
+  width: 32px;
+  height: 32px;
+  background: #ff0000;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shorts-title-text {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.shorts-subtitle {
+  font-size: 14px;
+  color: #888;
+  margin: 2px 0 0;
+}
+
+.shorts-view-all {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #4caf50;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.shorts-view-all:hover {
+  color: #388e3c;
+}
+
+/* 카드 스크롤 컨테이너 */
+.shorts-scroll {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 8px;
+}
+
+.shorts-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.shorts-scroll::-webkit-scrollbar-track {
+  background: #e5e7eb;
+  border-radius: 2px;
+}
+
+.shorts-scroll::-webkit-scrollbar-thumb {
+  background: #9ca3af;
+  border-radius: 2px;
+}
+
+/* 카드 */
+.shorts-card {
+  flex: 0 0 180px;
+  scroll-snap-align: start;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+}
+
+.shorts-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* 9:16 썸네일 */
+.shorts-thumb {
+  aspect-ratio: 9/16;
+  position: relative;
+  overflow: hidden;
+  background: #e5e7eb;
+}
+
+.shorts-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Shorts 뱃지 */
+.shorts-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: #ff0000;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 6px 4px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
+/* 재생 오버레이 */
+.shorts-play-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.shorts-card:hover .shorts-play-overlay {
+  opacity: 1;
+}
+
+/* 모바일 */
+@media (max-width: 768px) {
+  .shorts-section {
+    padding: 40px 0 24px;
+  }
+
+  .shorts-title-text {
+    font-size: 18px;
+  }
+
+  .shorts-subtitle {
+    font-size: 12px;
+  }
+
+  .shorts-card {
+    flex: 0 0 150px;
+  }
+
+  .shorts-scroll {
+    gap: 12px;
+  }
+}
