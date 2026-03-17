@@ -89,6 +89,7 @@
 .shorts-card {
   flex: 0 0 180px;
   scroll-snap-align: start;
+  border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
   text-decoration: none;
