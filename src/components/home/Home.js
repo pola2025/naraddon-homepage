@@ -10,6 +10,7 @@ import PopupBanner from '../common/PopupBanner';
 
 // 동적 임포트로 초기 로딩 속도 개선
 const TrustSection = lazy(() => import('../TrustSection'));
+const ShortsSection = lazy(() => import('../ShortsSection'));
 const PolicyThumbnails = lazy(() => import('../PolicyThumbnails'));
 const NaraddonTube = lazy(() => import('../NaraddonTube/NaraddonTubeSimple'));
 
@@ -17,13 +18,15 @@ const CAPTION_FADE_DURATION = 850;
 
 // 로딩 컴포넌트
 const SectionLoader = () => (
-  <div style={{
-    minHeight: '200px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#999'
-  }}>
+  <div
+    style={{
+      minHeight: '200px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: '#999',
+    }}
+  >
     <div>로딩 중...</div>
   </div>
 );
@@ -181,15 +184,17 @@ function Home({ initialPolicyNews = [], initialTubeVideos = [] }) {
           <PopupBanner
             items={[
               {
-                imageSrc: "https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/popup/popup-banner-fee-3percent.webp",
-                href: "/consultation-request",
-                alt: "정책자금 컨설팅 업계 최저 수수료 3%"
+                imageSrc:
+                  'https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/popup/popup-banner-fee-3percent.webp',
+                href: '/consultation-request',
+                alt: '정책자금 컨설팅 업계 최저 수수료 3%',
               },
               {
-                imageSrc: "https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/popup/popup-broker-warning.webp",
-                href: "/consultation-request",
-                alt: "정책자금 불법 브로커 주의"
-              }
+                imageSrc:
+                  'https://pub-9f184323b8f24eb28c63d1a1410dd26a.r2.dev/popup/popup-broker-warning.webp',
+                href: '/consultation-request',
+                alt: '정책자금 불법 브로커 주의',
+              },
             ]}
             popupId="promo-202601"
           />
@@ -228,6 +233,9 @@ function Home({ initialPolicyNews = [], initialTubeVideos = [] }) {
 
           <Suspense fallback={<SectionLoader />}>
             <TrustSection />
+          </Suspense>
+          <Suspense fallback={null}>
+            <ShortsSection />
           </Suspense>
           <Suspense fallback={<SectionLoader />}>
             <PolicyThumbnails initialData={initialPolicyNews} />
