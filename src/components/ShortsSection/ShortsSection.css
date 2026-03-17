@@ -159,9 +159,9 @@
 
 .shorts-modal-content {
   position: relative;
-  /* PC: 9:16 비율로 가운데 크게 */
-  width: 360px;
-  height: 640px;
+  /* PC: 9:16 비율로 가운데 크게 (2배 사이즈) */
+  width: 450px;
+  height: 800px;
   max-height: 90vh;
   max-width: 90vw;
   aspect-ratio: 9/16;
