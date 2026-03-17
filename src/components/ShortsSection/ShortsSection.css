@@ -159,8 +159,8 @@
 
 .shorts-modal-content {
   position: relative;
-  /* PC: 화면 높이 95%까지 사용, 9:16 비율 유지 */
-  height: min(900px, 95vh);
+  /* PC: 화면 높이 전체 사용, 9:16 비율 자동 계산 */
+  height: 100vh;
   aspect-ratio: 9/16;
 }
 
