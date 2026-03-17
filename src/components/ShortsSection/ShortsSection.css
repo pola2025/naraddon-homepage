@@ -159,10 +159,9 @@
 
 .shorts-modal-content {
   position: relative;
-  /* PC: 9:16 비율, 화면 높이 기준으로 맞춤 (잘림 방지) */
-  height: 85vh;
-  aspect-ratio: 9/16;
-  max-width: 90vw;
+  /* PC: 506x900 고정, 9:16 비율 */
+  width: 506px;
+  height: 900px;
 }
 
 .shorts-modal-iframe {
@@ -212,12 +211,11 @@
     gap: 12px;
   }
 
-  /* 모바일: 모달 화면 꽉 차게 */
+  /* 모바일: 9:16 비율로 높이 꽉 차게 */
   .shorts-modal-content {
-    width: 100vw;
+    width: auto;
     height: 100vh;
-    max-width: 100vw;
-    max-height: 100vh;
+    aspect-ratio: 9/16;
   }
 
   .shorts-modal-close {
