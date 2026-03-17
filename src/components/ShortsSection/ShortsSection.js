@@ -114,7 +114,7 @@ function ShortsSection() {
               <p className="shorts-subtitle">1분 안에 핵심만 쏙쏙</p>
             </div>
           </div>
-          <a href="/policy-news" className="shorts-view-all">
+          <a href="/shorts" className="shorts-view-all">
             전체보기
             <svg
               width="16"
