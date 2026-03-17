@@ -25,7 +25,8 @@ const ShortSchema: Schema = new Schema(
     },
     thumbnailUrl: {
       type: String,
-      required: true,
+      required: false,
+      default: '',
       trim: true,
     },
     sortOrder: {

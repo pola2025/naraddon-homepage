@@ -76,11 +76,7 @@ export default function AdminShorts() {
         thumbnailUrl = uploadResult.url;
       }
 
-      if (!thumbnailUrl) {
-        alert('썸네일을 선택해주세요.');
-        setSaving(false);
-        return;
-      }
+      // 썸네일 없으면 서버에서 YouTube 기본 썸네일 자동 생성
 
       const url = editingId ? `/api/shorts/${editingId}` : '/api/shorts';
       const method = editingId ? 'PUT' : 'POST';
@@ -229,7 +225,8 @@ export default function AdminShorts() {
                     )}
                   </div>
                   <p className="text-xs text-gray-400 mt-1">
-                    등록 시 자동으로 WebP 변환·압축됩니다 (취소하면 업로드 안 됨)
+                    미선택 시 YouTube 기본 썸네일이 자동 적용됩니다. 직접 업로드하면 WebP
+                    변환·압축됩니다.
                   </p>
                 </div>
                 <div>

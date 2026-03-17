@@ -27,8 +27,19 @@ export async function POST(req: NextRequest) {
 
     const { title, youtubeUrl, thumbnailUrl, sortOrder } = await req.json();
 
-    if (!youtubeUrl || !thumbnailUrl) {
-      return NextResponse.json({ error: '유튜브 URL과 썸네일은 필수입니다.' }, { status: 400 });
+    if (!youtubeUrl) {
+      return NextResponse.json({ error: '유튜브 URL은 필수입니다.' }, { status: 400 });
+    }
+
+    // 썸네일이 없으면 YouTube 기본 썸네일 자동 생성
+    let finalThumbnail = thumbnailUrl || '';
+    if (!finalThumbnail) {
+      const idMatch = youtubeUrl.match(
+        /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+      );
+      if (idMatch) {
+        finalThumbnail = `https://img.youtube.com/vi/${idMatch[1]}/maxresdefault.jpg`;
+      }
     }
 
     // 제목이 없으면 URL에서 자동 생성
@@ -37,7 +48,7 @@ export async function POST(req: NextRequest) {
     const short = await Short.create({
       title: autoTitle,
       youtubeUrl,
-      thumbnailUrl,
+      thumbnailUrl: finalThumbnail,
       sortOrder: sortOrder ?? 0,
     });
 
