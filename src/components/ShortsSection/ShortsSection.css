@@ -159,9 +159,9 @@
 
 .shorts-modal-content {
   position: relative;
-  /* PC: 506x900 고정, 9:16 비율 */
-  width: 506px;
-  height: 900px;
+  /* PC: 화면 높이 기준 9:16 비율, 최대 506x900 */
+  height: min(900px, 90vh);
+  aspect-ratio: 9/16;
 }
 
 .shorts-modal-iframe {
