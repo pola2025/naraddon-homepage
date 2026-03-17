@@ -159,12 +159,10 @@
 
 .shorts-modal-content {
   position: relative;
-  /* PC: 9:16 비율로 가운데 크게 (2배 사이즈) */
-  width: 450px;
-  height: 800px;
-  max-height: 90vh;
-  max-width: 90vw;
+  /* PC: 9:16 비율, 화면 높이 기준으로 맞춤 (잘림 방지) */
+  height: 85vh;
   aspect-ratio: 9/16;
+  max-width: 90vw;
 }
 
 .shorts-modal-iframe {
