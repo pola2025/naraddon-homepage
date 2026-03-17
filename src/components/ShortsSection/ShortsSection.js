@@ -1,11 +1,24 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './ShortsSection.css';
+
+/**
+ * YouTube URL에서 video ID를 추출하는 유틸
+ * shorts, watch, youtu.be 등 다양한 형식 지원
+ */
+function extractVideoId(url) {
+  if (!url) return null;
+  const match = url.match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+  );
+  return match ? match[1] : null;
+}
 
 function ShortsSection() {
   const [shorts, setShorts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeVideo, setActiveVideo] = useState(null);
 
   useEffect(() => {
     fetch('/api/shorts')
@@ -16,6 +29,33 @@ function ShortsSection() {
       })
       .catch(() => setLoading(false));
   }, []);
+
+  /** 모달 열기 */
+  const openModal = useCallback((item) => {
+    const videoId = extractVideoId(item.youtubeUrl);
+    if (!videoId) {
+      window.open(item.youtubeUrl, '_blank');
+      return;
+    }
+    setActiveVideo({ ...item, videoId });
+    document.body.style.overflow = 'hidden';
+  }, []);
+
+  /** 모달 닫기 */
+  const closeModal = useCallback(() => {
+    setActiveVideo(null);
+    document.body.style.overflow = '';
+  }, []);
+
+  /** ESC 키로 닫기 */
+  useEffect(() => {
+    if (!activeVideo) return;
+    const handleKey = (e) => {
+      if (e.key === 'Escape') closeModal();
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [activeVideo, closeModal]);
 
   if (loading || shorts.length === 0) return null;
 
@@ -55,12 +95,11 @@ function ShortsSection() {
         {/* 카드 스크롤 */}
         <div className="shorts-scroll">
           {shorts.map((item) => (
-            <a
+            <button
               key={item._id}
-              href={item.youtubeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+              type="button"
               className="shorts-card"
+              onClick={() => openModal(item)}
             >
               <div className="shorts-thumb">
                 <img
@@ -69,17 +108,47 @@ function ShortsSection() {
                   className="shorts-thumb-img"
                   loading="lazy"
                 />
-                {/* 빨간 뱃지 제거 */}
                 <div className="shorts-play-overlay">
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="white">
                     <path d="M8 5v14l11-7z" />
                   </svg>
                 </div>
               </div>
-            </a>
+            </button>
           ))}
         </div>
       </div>
+
+      {/* 영상 재생 모달 */}
+      {activeVideo && (
+        <div className="shorts-modal-backdrop" onClick={closeModal}>
+          <div className="shorts-modal-content" onClick={(e) => e.stopPropagation()}>
+            {/* 닫기 버튼 */}
+            <button type="button" className="shorts-modal-close" onClick={closeModal}>
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+            {/* YouTube Shorts embed (세로 비율) */}
+            <iframe
+              src={`https://www.youtube.com/embed/${activeVideo.videoId}?autoplay=1&rel=0`}
+              title={activeVideo.title}
+              className="shorts-modal-iframe"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
     </section>
   );
 }
