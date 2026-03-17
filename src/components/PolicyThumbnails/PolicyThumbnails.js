@@ -24,10 +24,10 @@ const categoryLabelMap = {
   startup: '창업지원',
   rnd: 'R&D',
   policy: '정책해설',
-  '정부지원': '정부지원',
-  '지역정책': '지역정책',
-  '중소기업': '중소기업',
-  '기타': '기타',
+  정부지원: '정부지원',
+  지역정책: '지역정책',
+  중소기업: '중소기업',
+  기타: '기타',
 };
 
 /**
@@ -39,7 +39,7 @@ const categoryLabelMap = {
 const PolicyThumbnails = ({ initialData }) => {
   const { items, isLoading, error, refetch } = usePolicyNews({
     limit: 8,
-    initialData // 서버 데이터 전달
+    initialData, // 서버 데이터 전달
   });
   const thumbnails = useMemo(() => items.slice(0, 8), [items]);
 
@@ -90,7 +90,7 @@ const PolicyThumbnails = ({ initialData }) => {
         {/* 데스크톱 그리드 뷰 */}
         <div className="thumbnails-grid desktop-grid">
           {thumbnails.slice(0, 4).map((item) => (
-            <Link key={item.id} href={`/policy-analysis?id=${item.id}`} className="thumbnail-item">
+            <Link key={item.id} href={`/policy-news/${item.id}`} className="thumbnail-item">
               <div className="thumbnail-image-wrapper">
                 <img src={item.thumbnail} alt={item.title} className="thumbnail-image" />
                 {item.isPinned ? (
@@ -99,7 +99,9 @@ const PolicyThumbnails = ({ initialData }) => {
                   </div>
                 ) : null}
                 {item.badge ? (
-                  <div className={`thumbnail-badge badge-${badgeClassMap[item.badge] || 'default'}`}>
+                  <div
+                    className={`thumbnail-badge badge-${badgeClassMap[item.badge] || 'default'}`}
+                  >
                     {item.badge}
                   </div>
                 ) : null}
@@ -112,7 +114,9 @@ const PolicyThumbnails = ({ initialData }) => {
               <div className="thumbnail-info">
                 <div className="category-tag" data-category={item.category}>
                   <span className="category-icon">{categoryIconMap[item.category] || '📌'}</span>
-                  <span className="category-name">{categoryLabelMap[item.category] || item.category}</span>
+                  <span className="category-name">
+                    {categoryLabelMap[item.category] || item.category}
+                  </span>
                 </div>
 
                 <h3 className="thumbnail-title">{item.title}</h3>
@@ -139,7 +143,11 @@ const PolicyThumbnails = ({ initialData }) => {
           </button>
           <div className="mobile-thumbnails-slider">
             {thumbnails.map((item) => (
-              <Link key={item.id} href={`/policy-analysis?id=${item.id}`} className="mobile-thumbnail-item">
+              <Link
+                key={item.id}
+                href={`/policy-news/${item.id}`}
+                className="mobile-thumbnail-item"
+              >
                 <div className="mobile-thumbnail-image-wrapper">
                   <img src={item.thumbnail} alt={item.title} className="mobile-thumbnail-image" />
                   {item.isPinned ? (
@@ -148,7 +156,9 @@ const PolicyThumbnails = ({ initialData }) => {
                     </div>
                   ) : null}
                   {item.badge ? (
-                    <div className={`thumbnail-badge badge-${badgeClassMap[item.badge] || 'default'}`}>
+                    <div
+                      className={`thumbnail-badge badge-${badgeClassMap[item.badge] || 'default'}`}
+                    >
                       {item.badge}
                     </div>
                   ) : null}
@@ -156,7 +166,9 @@ const PolicyThumbnails = ({ initialData }) => {
                 <div className="mobile-thumbnail-info">
                   <div className="mobile-category-tag" data-category={item.category}>
                     <span className="category-icon">{categoryIconMap[item.category] || '📌'}</span>
-                    <span className="category-name">{categoryLabelMap[item.category] || item.category}</span>
+                    <span className="category-name">
+                      {categoryLabelMap[item.category] || item.category}
+                    </span>
                   </div>
                   <h3 className="mobile-thumbnail-title">{item.title}</h3>
                   {/* 메타 정보(날짜) 숨김 - 2026-01-26 */}
@@ -189,7 +201,7 @@ const PolicyThumbnails = ({ initialData }) => {
             <span className="thumbnails-eyebrow">나라똔에서 전해드리는</span>
             <h3 className="thumbnails-title">정책 알리미</h3>
           </div>
-          <Link href="/policy-analysis" className="thumbnails-action">
+          <Link href="/policy-news" className="thumbnails-action">
             <span>전체보기</span>
             <i className="fas fa-arrow-right" aria-hidden="true" />
           </Link>
