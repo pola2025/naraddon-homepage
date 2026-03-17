@@ -10,8 +10,8 @@ function extractYoutubeId(input: string): string | null {
 
   // YouTube URL patterns
   const patterns = [
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
-    /^([a-zA-Z0-9_-]{11})$/
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+    /^([a-zA-Z0-9_-]{11})$/,
   ];
 
   for (const pattern of patterns) {
@@ -36,51 +36,38 @@ export async function PUT(request: NextRequest) {
       customThumbnail,
       oldCustomThumbnail,
       sortOrder,
-      isPublished
+      isPublished,
     } = body;
 
     // 비밀번호 확인 (있으면 환경변수와 비교, 없으면 통과)
     const adminPassword = process.env.NARADDON_TUBE_PASSWORD;
     if (password && adminPassword && password !== adminPassword) {
-      return NextResponse.json(
-        { message: '비밀번호가 올바르지 않습니다.' },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: '비밀번호가 올바르지 않습니다.' }, { status: 401 });
     }
 
     if (!entryId) {
-      return NextResponse.json(
-        { message: '수정할 항목 ID가 필요합니다.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: '수정할 항목 ID가 필요합니다.' }, { status: 400 });
     }
 
     if (!title?.trim()) {
-      return NextResponse.json(
-        { message: '영상 제목을 입력해 주세요.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: '영상 제목을 입력해 주세요.' }, { status: 400 });
     }
 
     if (!youtubeUrl?.trim()) {
-      return NextResponse.json(
-        { message: 'YouTube URL을 입력해 주세요.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: 'YouTube URL을 입력해 주세요.' }, { status: 400 });
     }
 
     const youtubeId = extractYoutubeId(youtubeUrl);
     if (!youtubeId) {
-      return NextResponse.json(
-        { message: '올바른 YouTube URL이 아닙니다.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: '올바른 YouTube URL이 아닙니다.' }, { status: 400 });
     }
 
     // 커스텀 썸네일이 변경된 경우 이전 썸네일 삭제
-    if (oldCustomThumbnail &&
-        oldCustomThumbnail !== customThumbnail &&
-        oldCustomThumbnail.includes('r2.cloudflarestorage.com')) {
+    if (
+      oldCustomThumbnail &&
+      oldCustomThumbnail !== customThumbnail &&
+      oldCustomThumbnail.includes('r2.cloudflarestorage.com')
+    ) {
       try {
         const url = new URL(oldCustomThumbnail);
         const pathParts = url.pathname.split('/');
@@ -102,35 +89,29 @@ export async function PUT(request: NextRequest) {
           description: description?.trim() || undefined,
           youtubeId,
           url: `https://www.youtube.com/watch?v=${youtubeId}`,
-          customThumbnail: customThumbnail?.trim() || undefined
-        }
+          customThumbnail: customThumbnail?.trim() || undefined,
+        },
       ],
       sortOrder: Number.isFinite(sortOrder) ? sortOrder : 0,
       isPublished: Boolean(isPublished),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
 
-    const result = await collection.updateOne(
-      { _id: new ObjectId(entryId) },
-      { $set: updateData }
-    );
+    const result = await collection.updateOne({ _id: new ObjectId(entryId) }, { $set: updateData });
 
     if (result.matchedCount === 0) {
-      return NextResponse.json(
-        { message: '해당 항목을 찾을 수 없습니다.' },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: '해당 항목을 찾을 수 없습니다.' }, { status: 404 });
     }
 
     return NextResponse.json({
       success: true,
-      message: '항목이 성공적으로 수정되었습니다.'
+      message: '항목이 성공적으로 수정되었습니다.',
     });
   } catch (error) {
     console.error('[naraddon-tube][update]', error);
     return NextResponse.json(
       {
-        message: error instanceof Error ? error.message : '항목 수정 중 오류가 발생했습니다.'
+        message: error instanceof Error ? error.message : '항목 수정 중 오류가 발생했습니다.',
       },
       { status: 500 }
     );

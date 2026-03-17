@@ -17,15 +17,16 @@ export async function GET() {
   try {
     await connectDB();
 
-    const videos = await BusinessVoiceInterviewVideo
-      .find({ isPublished: true })
+    const videos = await BusinessVoiceInterviewVideo.find({ isPublished: true })
       .sort({ sortOrder: 1, createdAt: -1 })
       .lean();
 
     // YouTube ID 추출 및 썸네일 URL 생성
-    const videosWithThumbnails = videos.map(video => {
+    const videosWithThumbnails = videos.map((video) => {
       const youtubeId = extractYouTubeId(video.youtubeUrl);
-      const youtubeThumbnail = youtubeId ? `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg` : null;
+      const youtubeThumbnail = youtubeId
+        ? `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`
+        : null;
 
       return {
         ...video,
@@ -37,7 +38,7 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      videos: videosWithThumbnails
+      videos: videosWithThumbnails,
     });
   } catch (error) {
     console.error('[interview-videos] GET error:', error);
@@ -52,7 +53,8 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { password, youtubeUrl, thumbnailUrl, title, description, author, company, amount } = body;
+    const { password, youtubeUrl, thumbnailUrl, title, description, author, company, amount } =
+      body;
 
     // 비밀번호 확인
     if (!password || password !== ADMIN_PASSWORD) {
@@ -89,8 +91,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 현재 최대 sortOrder 구하기
-    const maxSortOrder = await BusinessVoiceInterviewVideo
-      .findOne()
+    const maxSortOrder = await BusinessVoiceInterviewVideo.findOne()
       .sort({ sortOrder: -1 })
       .select('sortOrder');
 
@@ -123,7 +124,8 @@ export async function POST(request: NextRequest) {
 
 // YouTube ID 추출 헬퍼 함수
 function extractYouTubeId(url: string): string | null {
-  const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+  const regExp =
+    /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(shorts\/)|(watch\?))\??v?=?([^#&?]*).*/;
   const match = url.match(regExp);
-  return (match && match[7].length === 11) ? match[7] : null;
+  return match && match[8].length === 11 ? match[8] : null;
 }

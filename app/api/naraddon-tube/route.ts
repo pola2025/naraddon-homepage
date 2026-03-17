@@ -55,7 +55,7 @@ const extractYoutubeId = (value: string) => {
       }
 
       const segments = url.pathname.split('/').filter(Boolean);
-      if (segments[0] === 'embed' && segments[1]) {
+      if ((segments[0] === 'embed' || segments[0] === 'shorts') && segments[1]) {
         const candidate = segments[1].trim();
         return /^[a-zA-Z0-9_-]{11}$/.test(candidate) ? candidate : null;
       }
@@ -95,7 +95,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as NaraddonTubePayload;
-    const { password, title, description, youtubeUrl, customThumbnail, isPublished, sortOrder } = body;
+    const { password, title, description, youtubeUrl, customThumbnail, isPublished, sortOrder } =
+      body;
 
     // 비밀번호 확인 (있으면 환경변수와 비교, 없으면 통과)
     const adminPassword = process.env.NARADDON_TUBE_PASSWORD;
