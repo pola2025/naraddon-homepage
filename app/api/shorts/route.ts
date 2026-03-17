@@ -31,14 +31,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '유튜브 URL은 필수입니다.' }, { status: 400 });
     }
 
-    // 썸네일이 없으면 YouTube 기본 썸네일 자동 생성
+    // 썸네일이 없으면 YouTube 세로 썸네일 자동 생성 (frame0 = 9:16 원본 비율)
     let finalThumbnail = thumbnailUrl || '';
     if (!finalThumbnail) {
       const idMatch = youtubeUrl.match(
         /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
       );
       if (idMatch) {
-        finalThumbnail = `https://img.youtube.com/vi/${idMatch[1]}/maxresdefault.jpg`;
+        finalThumbnail = `https://i.ytimg.com/vi/${idMatch[1]}/frame0.jpg`;
       }
     }
 
