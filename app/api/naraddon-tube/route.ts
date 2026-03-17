@@ -112,6 +112,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'YouTube URL을 입력해주세요.' }, { status: 400 });
     }
 
+    // 쇼츠 URL은 나라똔 인터뷰에 등록 불가 (쇼츠 관리 페이지에서 등록해야 함)
+    if (youtubeUrl.includes('/shorts/')) {
+      return NextResponse.json(
+        { message: '쇼츠 영상은 쇼츠 관리 페이지(/admin/shorts)에서 등록해주세요.' },
+        { status: 400 }
+      );
+    }
+
     const youtubeId = extractYoutubeId(youtubeUrl);
     if (!youtubeId) {
       return NextResponse.json({ message: '올바른 YouTube URL이 아닙니다.' }, { status: 400 });
