@@ -212,15 +212,23 @@
     gap: 12px;
   }
 
-  /* 모바일: 9:16 비율로 높이 꽉 차게 */
+  /* 모바일: 전체 화면 검정, 영상은 원본 비율 유지 (위아래 검정) */
+  .shorts-modal-backdrop {
+    background: #000;
+  }
+
   .shorts-modal-content {
-    width: auto;
+    width: 100vw;
     height: 100vh;
-    aspect-ratio: 9/16;
+    aspect-ratio: auto;
+  }
+
+  .shorts-modal-iframe {
+    object-fit: contain;
   }
 
   .shorts-modal-close {
-    top: 8px;
-    right: 8px;
+    top: 12px;
+    right: 12px;
   }
 }

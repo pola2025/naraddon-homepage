@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import './ShortsSection.css';
 
 /**
@@ -13,6 +14,56 @@ function extractVideoId(url) {
     /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
   );
   return match ? match[1] : null;
+}
+
+/**
+ * 쇼츠 영상 모달 (createPortal로 document.body에 렌더링)
+ * PC: 화면 전체 높이 사용, 9:16 비율
+ * 모바일: 검정 배경 꽉 차게, 영상은 원본 비율 유지 (위아래 검정)
+ */
+function ShortsModal({ video, onClose }) {
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', handleKey);
+      document.body.style.overflow = '';
+    };
+  }, [onClose]);
+
+  return createPortal(
+    <div className="shorts-modal-backdrop" onClick={onClose}>
+      <div className="shorts-modal-content" onClick={(e) => e.stopPropagation()}>
+        {/* 닫기 버튼 */}
+        <button type="button" className="shorts-modal-close" onClick={onClose}>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+        {/* YouTube Shorts embed */}
+        <iframe
+          src={`https://www.youtube.com/embed/${video.videoId}?autoplay=1&rel=0`}
+          title={video.title}
+          className="shorts-modal-iframe"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
+    </div>,
+    document.body
+  );
 }
 
 function ShortsSection() {
@@ -38,24 +89,12 @@ function ShortsSection() {
       return;
     }
     setActiveVideo({ ...item, videoId });
-    document.body.style.overflow = 'hidden';
   }, []);
 
   /** 모달 닫기 */
   const closeModal = useCallback(() => {
     setActiveVideo(null);
-    document.body.style.overflow = '';
   }, []);
-
-  /** ESC 키로 닫기 */
-  useEffect(() => {
-    if (!activeVideo) return;
-    const handleKey = (e) => {
-      if (e.key === 'Escape') closeModal();
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [activeVideo, closeModal]);
 
   if (loading || shorts.length === 0) return null;
 
@@ -119,36 +158,8 @@ function ShortsSection() {
         </div>
       </div>
 
-      {/* 영상 재생 모달 */}
-      {activeVideo && (
-        <div className="shorts-modal-backdrop" onClick={closeModal}>
-          <div className="shorts-modal-content" onClick={(e) => e.stopPropagation()}>
-            {/* 닫기 버튼 */}
-            <button type="button" className="shorts-modal-close" onClick={closeModal}>
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M18 6L6 18M6 6l12 12" />
-              </svg>
-            </button>
-            {/* YouTube Shorts embed (세로 비율) */}
-            <iframe
-              src={`https://www.youtube.com/embed/${activeVideo.videoId}?autoplay=1&rel=0`}
-              title={activeVideo.title}
-              className="shorts-modal-iframe"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        </div>
-      )}
+      {/* 모달은 createPortal로 document.body에 렌더링 */}
+      {activeVideo && <ShortsModal video={activeVideo} onClose={closeModal} />}
     </section>
   );
 }
