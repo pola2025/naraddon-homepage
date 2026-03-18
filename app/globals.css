@@ -5,11 +5,11 @@
 @layer utilities {
   /* 스크롤바 숨김 유틸리티 */
   .scrollbar-hide {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
   }
   .scrollbar-hide::-webkit-scrollbar {
-    display: none;  /* Chrome, Safari and Opera */
+    display: none; /* Chrome, Safari and Opera */
   }
 }
 
@@ -36,14 +36,6 @@ body:not(.no-fouc) {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
-
-/* 다크 모드 비활성화 - FOUC 방지 및 일관된 라이트 테마 유지 */
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-} */
 
 body {
   background: #ffffff; /* FOUC 방지를 위해 직접 흰색 지정 */
@@ -198,7 +190,10 @@ body {
     font-weight: 600;
     box-shadow: var(--hero-cta-shadow);
     text-decoration: none;
-    transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease,
+      background-color 0.25s ease;
     flex-shrink: 0;
   }
 
@@ -236,10 +231,3 @@ body {
     }
   }
 }
-
-
-
-
-
-
-
