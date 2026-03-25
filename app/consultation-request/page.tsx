@@ -15,7 +15,7 @@ import {
   type ReactNode,
 } from 'react';
 
-const Turnstile = dynamic(() => import('@/src/components/Turnstile/Turnstile'), { ssr: false });
+const Turnstile = dynamic(() => import('@/components/Turnstile/Turnstile'), { ssr: false });
 import {
   ANNUAL_REVENUE_OPTIONS,
   CONSULTATION_FAQ,
