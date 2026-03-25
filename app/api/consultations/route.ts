@@ -507,12 +507,247 @@ export async function GET(request: NextRequest) {
 }
 
 // ================================================
+// IP 기반 반복접수 차단 설정
+// ================================================
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10분
+const RATE_LIMIT_MAX_REQUESTS = 3; // 10분 내 최대 3회
+
+// TTL 인덱스 생성 (1회만 실행, 1시간 후 자동 삭제)
+let rateLimitIndexCreated = false;
+async function ensureRateLimitIndex(
+  db: ReturnType<Awaited<ReturnType<typeof clientPromise>>['db']>
+) {
+  if (rateLimitIndexCreated) return;
+  try {
+    await db.collection('consultation-rate-limits').createIndex(
+      { createdAt: 1 },
+      { expireAfterSeconds: 3600 } // 1시간 후 자동 삭제
+    );
+    rateLimitIndexCreated = true;
+  } catch {
+    // 이미 존재하면 무시
+    rateLimitIndexCreated = true;
+  }
+}
+
+/**
+ * IP 주소 추출
+ *
+ * @purpose 반복접수 차단을 위한 클라이언트 IP 식별
+ * @note Vercel: x-forwarded-for 헤더 사용, 로컬: x-real-ip 또는 기본값
+ */
+function getClientIp(request: NextRequest): string {
+  const forwarded = request.headers.get('x-forwarded-for');
+  const realIp = request.headers.get('x-real-ip');
+  return forwarded?.split(',')[0].trim() || realIp || 'unknown';
+}
+
+/**
+ * URL/IP 패턴 감지 - SSRF 및 스팸 방지
+ *
+ * @purpose 입력값에 URL이나 IP 주소가 포함되면 차단
+ */
+const URL_IP_PATTERN = /https?:\/\/|www\.|ftp:\/\/|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/i;
+
+function containsUrlOrIp(value: string): boolean {
+  return URL_IP_PATTERN.test(value);
+}
+
+function validateNoUrlsInFields(data: Record<string, unknown>): string | null {
+  const fieldsToCheck = [
+    'userName',
+    'userPhone',
+    'userEmail',
+    'companyName',
+    'message',
+    'businessNumber',
+    'region',
+  ];
+  for (const field of fieldsToCheck) {
+    const val = data[field];
+    if (typeof val === 'string' && field !== 'userEmail' && containsUrlOrIp(val)) {
+      return `입력값에 URL이나 IP 주소를 포함할 수 없습니다. (${field})`;
+    }
+  }
+  return null;
+}
+
+// ================================================
 // POST /api/consultations - 상담 신청
 // ================================================
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     const data = await request.json();
+    const clientIp = getClientIp(request);
+
+    // ========================================
+    // IP 미식별 요청 차단
+    // ========================================
+    if (clientIp === 'unknown') {
+      console.warn(`[Security] IP 미식별 접수 차단`);
+      return NextResponse.json(
+        { error: '요청을 처리할 수 없습니다. 잠시 후 다시 시도해주세요.', code: 'BLOCKED' },
+        { status: 403 }
+      );
+    }
+
+    // ========================================
+    // 허니팟 필드 검증 (봇 자동입력 탐지)
+    // ========================================
+    if (data._hp_website) {
+      console.warn(`[Security] 허니팟 탐지: ${clientIp}`);
+      waitUntil(
+        sendTelegram(
+          ADMIN_TELEGRAM_CHAT_ID,
+          `🍯 <b>허니팟 봇 차단</b>\nIP: <code>${clientIp}</code>\n허니팟값: ${String(data._hp_website).slice(0, 100)}`
+        )
+      );
+      // 봇에게는 성공처럼 보이게 응답
+      return NextResponse.json({ success: true, consultationId: 'ok' });
+    }
+
+    // ========================================
+    // 제출 시간 검증 (3초 미만이면 봇)
+    // ========================================
+    if (data._formLoadedAt) {
+      const elapsed = Date.now() - Number(data._formLoadedAt);
+      if (elapsed < 3000) {
+        console.warn(`[Security] 제출시간 봇 탐지: ${clientIp} - ${elapsed}ms`);
+        waitUntil(
+          sendTelegram(
+            ADMIN_TELEGRAM_CHAT_ID,
+            `⏱️ <b>제출시간 봇 차단</b>\nIP: <code>${clientIp}</code>\n제출소요: ${elapsed}ms (3초 미만)`
+          )
+        );
+        return NextResponse.json({ success: true, consultationId: 'ok' });
+      }
+    }
+
+    // ========================================
+    // Turnstile 토큰 검증 (설정된 경우만)
+    // 인앱 브라우저(Instagram, Facebook 등)에서는 Turnstile이 작동하지 않으므로 스킵
+    // 허니팟 + 제출시간 검증은 인앱 브라우저에서도 그대로 적용됨
+    // ========================================
+    const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
+    const userAgent = request.headers.get('user-agent') || '';
+    const isInAppBrowser = /Instagram|FBAN|FBAV|KAKAOTALK|Line\/|NAVER|Daum/i.test(userAgent);
+
+    if (isInAppBrowser) {
+      // 인앱 브라우저: Turnstile 스킵 (허니팟 + 제출시간으로 봇 방지)
+      console.log(
+        `[Security] 인앱 브라우저 감지 - Turnstile 스킵: ${clientIp} (UA: ${userAgent.slice(0, 80)})`
+      );
+    } else if (turnstileSecret && data._turnstileToken) {
+      const tsRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          secret: turnstileSecret,
+          response: data._turnstileToken,
+          remoteip: clientIp,
+        }),
+      });
+      const tsData = await tsRes.json();
+      if (!tsData.success) {
+        console.warn(`[Security] Turnstile 실패: ${clientIp} - ${JSON.stringify(tsData)}`);
+        return NextResponse.json(
+          {
+            error: '보안 검증에 실패했습니다. 페이지를 새로고침 후 다시 시도해주세요.',
+            code: 'TURNSTILE_FAILED',
+          },
+          { status: 403 }
+        );
+      }
+    } else if (turnstileSecret && !data._turnstileToken) {
+      // Turnstile이 설정되어 있는데 토큰이 없으면 차단
+      console.warn(`[Security] Turnstile 토큰 없음: ${clientIp}`);
+      return NextResponse.json(
+        {
+          error: '보안 검증이 필요합니다. 페이지를 새로고침 후 다시 시도해주세요.',
+          code: 'TURNSTILE_MISSING',
+        },
+        { status: 403 }
+      );
+    }
+
+    // ========================================
+    // 입력값 URL/IP 주소 차단 (SSRF 방지)
+    // ========================================
+    const urlCheckError = validateNoUrlsInFields(data);
+    if (urlCheckError) {
+      console.warn(`[Security] URL/IP 입력 차단: ${clientIp} - ${urlCheckError}`);
+      waitUntil(
+        sendTelegram(
+          ADMIN_TELEGRAM_CHAT_ID,
+          `🛡️ <b>URL/IP 입력 차단</b>\nIP: <code>${clientIp}</code>\n사유: ${urlCheckError}\n데이터: ${JSON.stringify(data).slice(0, 300)}`
+        )
+      );
+      return NextResponse.json(
+        { error: '입력값에 URL이나 IP 주소를 포함할 수 없습니다.', code: 'INVALID_INPUT' },
+        { status: 400 }
+      );
+    }
+
+    // ========================================
+    // IP 블랙리스트 체크 (DB)
+    // ========================================
+    const client = await clientPromise;
+    const db = client.db('naraddon');
+
+    const blacklisted = await db.collection('ip-blacklist').findOne({ ip: clientIp });
+    if (blacklisted) {
+      console.warn(`[Blacklist] 차단된 IP 접수 시도: ${clientIp} - ${blacklisted.reason}`);
+      waitUntil(
+        sendTelegram(
+          ADMIN_TELEGRAM_CHAT_ID,
+          `🚫 <b>블랙리스트 IP 접수 시도</b>\nIP: <code>${clientIp}</code>\n사유: ${blacklisted.reason}\nUA: ${request.headers.get('user-agent') || 'unknown'}`
+        )
+      );
+      return NextResponse.json(
+        { error: '접수가 제한된 상태입니다. 고객센터에 문의해주세요.', code: 'BLOCKED' },
+        { status: 403 }
+      );
+    }
+
+    // ========================================
+    // IP 기반 반복접수 차단
+    // ========================================
+    await ensureRateLimitIndex(db);
+    const rateLimitCollection = db.collection('consultation-rate-limits');
+
+    const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_MS);
+    const recentCount = await rateLimitCollection.countDocuments({
+      ip: clientIp,
+      createdAt: { $gte: windowStart },
+    });
+
+    if (recentCount >= RATE_LIMIT_MAX_REQUESTS) {
+      console.warn(`[RateLimit] IP ${clientIp} 차단 - ${recentCount}회 접수 시도 (10분 내)`);
+
+      // 텔레그램으로 스팸 알림
+      waitUntil(
+        sendTelegram(
+          ADMIN_TELEGRAM_CHAT_ID,
+          `🚫 <b>반복접수 차단</b>\nIP: <code>${clientIp}</code>\n10분 내 ${recentCount}회 시도\nUA: ${request.headers.get('user-agent') || 'unknown'}`
+        )
+      );
+
+      return NextResponse.json(
+        {
+          error: '짧은 시간 내 너무 많은 요청이 감지되었습니다. 잠시 후 다시 시도해주세요.',
+          code: 'RATE_LIMITED',
+        },
+        { status: 429 }
+      );
+    }
+
+    // IP 접수 기록 저장
+    await rateLimitCollection.insertOne({
+      ip: clientIp,
+      createdAt: new Date(),
+      userAgent: request.headers.get('user-agent') || '',
+    });
 
     const consultation: Partial<ConsultationRequest> = {
       source: ConsultationSource.WEB_FORM,
@@ -539,6 +774,7 @@ export async function POST(request: NextRequest) {
       currentPhase: ConsultationPhase.PHONE,
       createdAt: new Date(),
       updatedAt: new Date(),
+      clientIp, // 접수 IP 기록
     };
 
     // 필수 필드 검증
@@ -549,8 +785,6 @@ export async function POST(request: NextRequest) {
     // ========================================
     // STEP 1: MongoDB 저장 (필수 - 실패 시 에러 반환)
     // ========================================
-    const client = await clientPromise;
-    const db = client.db('naraddon');
     const result = await db.collection('consultations').insertOne(consultation);
 
     // ========================================

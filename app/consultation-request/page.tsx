@@ -1,9 +1,21 @@
-
 'use client';
 
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 
-import { useCallback, useEffect, useReducer, useRef, useState, type ChangeEvent, type FormEvent, type JSX, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+  type JSX,
+  type ReactNode,
+} from 'react';
+
+const Turnstile = dynamic(() => import('@/src/components/Turnstile/Turnstile'), { ssr: false });
 import {
   ANNUAL_REVENUE_OPTIONS,
   CONSULTATION_FAQ,
@@ -71,50 +83,133 @@ const formatBusinessNumber = (value: string) => {
   return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5, 10)}`;
 };
 
-const classNames = (...classes: (string | false | undefined)[]) => classes.filter(Boolean).join(' ');
+const classNames = (...classes: (string | false | undefined)[]) =>
+  classes.filter(Boolean).join(' ');
 
 const CONSULTATION_TYPE_ICONS: Record<string, JSX.Element> = {
   'policy-fund': (
     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="12 2 2 7 12 12 22 7 12 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <polygon
+        points="12 2 2 7 12 12 22 7 12 2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M2 12L12 17L22 12"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M2 17L12 22L22 17"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   ),
   grant: (
     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M4 12V22H20V12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M22 7H2V12H22V7Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M12 22V7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M12 7C12 7 12 2 7.5 2C7.5 4.5 7.5 7 7.5 7H12Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M12 7H16.5C16.5 5.5 15.5 2 12 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M4 12V22H20V12"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M22 7H2V12H22V7Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 22V7"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 7C12 7 12 2 7.5 2C7.5 4.5 7.5 7 7.5 7H12Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 7H16.5C16.5 5.5 15.5 2 12 2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   ),
   certification: (
     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   ),
   startup: (
     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20 16V11.5C20 10 19 8.5 17.5 8C16.5 7.5 15 7 13.5 6.5C10.5 5.5 8 2 8 2C8 2 5.5 5.5 2.5 6.5C1 7 0 8.5 0 10V16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" transform="translate(2, 3)" />
+      <path
+        d="M20 16V11.5C20 10 19 8.5 17.5 8C16.5 7.5 15 7 13.5 6.5C10.5 5.5 8 2 8 2C8 2 5.5 5.5 2.5 6.5C1 7 0 8.5 0 10V16"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        transform="translate(2, 3)"
+      />
       <circle cx="12" cy="16" r="3" stroke="currentColor" strokeWidth="1.5" />
     </svg>
   ),
   other: (
     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="11.5" cy="11.5" r="9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M22 22L20 20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M16 8H18V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M14 10H16V8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <circle
+        cx="11.5"
+        cy="11.5"
+        r="9.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M22 22L20 20"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M16 8H18V10"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M14 10H16V8"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   ),
 };
-
-
-
-
-
 
 const MOBILE_BAR_BREAKPOINT = 768;
 const MOBILE_SCROLL_THRESHOLD_MULTIPLIER = 2.5;
@@ -153,12 +248,6 @@ function ConsultationHero() {
   );
 }
 
-
-
-
-
-
-
 function FaqAnswer({ answer }: { answer: string }) {
   return (
     <div className="consultation-request__faq-answer">
@@ -176,7 +265,10 @@ function FaqCard({ category, isExpanded }: { category: FaqCategory; isExpanded: 
   return (
     <article className="consultation-request__faq-card">
       <header className="consultation-request__faq-card-header">
-        <div className="consultation-request__faq-card-icon" style={{ backgroundColor: `${category.color}1a`, color: category.color }}>
+        <div
+          className="consultation-request__faq-card-icon"
+          style={{ backgroundColor: `${category.color}1a`, color: category.color }}
+        >
           {category.icon}
         </div>
         <div>
@@ -227,7 +319,11 @@ function FaqSection() {
           aria-controls="faq-content"
         >
           <span className="consultation-request__faq-badge">정책자금 100문 100답</span>
-          <h2 className="consultation-request__faq-title">사업하면서 반드시 알아야 하는<br />100가지 필독!</h2>
+          <h2 className="consultation-request__faq-title">
+            사업하면서 반드시 알아야 하는
+            <br />
+            100가지 필독!
+          </h2>
           <p className="consultation-request__faq-description">
             정책자금 제도, 자격 조건,
             <br />
@@ -237,9 +333,24 @@ function FaqSection() {
             <br />
             항목별로 정리했습니다.
           </p>
-          <span className={`consultation-request__faq-toggle-icon ${isSectionOpen ? 'consultation-request__faq-toggle-icon--open' : ''}`} aria-hidden="true">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <span
+            className={`consultation-request__faq-toggle-icon ${isSectionOpen ? 'consultation-request__faq-toggle-icon--open' : ''}`}
+            aria-hidden="true"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6 9L12 15L18 9"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </span>
         </button>
@@ -300,7 +411,11 @@ type QuickConsultState = {
 };
 
 type QuickConsultAction =
-  | { type: 'SET_FIELD'; field: keyof ConsultationFormState; value: ConsultationFormState[keyof ConsultationFormState] }
+  | {
+      type: 'SET_FIELD';
+      field: keyof ConsultationFormState;
+      value: ConsultationFormState[keyof ConsultationFormState];
+    }
   | { type: 'SET_ERRORS'; errors: ConsultationFormErrors }
   | { type: 'NEXT_STEP' }
   | { type: 'PREV_STEP' }
@@ -319,7 +434,10 @@ const INITIAL_REDUCER_STATE: QuickConsultState = {
   showPrivacyDetail: false,
 };
 
-function quickConsultReducer(state: QuickConsultState, action: QuickConsultAction): QuickConsultState {
+function quickConsultReducer(
+  state: QuickConsultState,
+  action: QuickConsultAction
+): QuickConsultState {
   switch (action.type) {
     case 'SET_FIELD': {
       const nextErrors = { ...state.errors };
@@ -448,10 +566,13 @@ function validateStep(step: FormStep, form: ConsultationFormState): Consultation
 }
 
 function validateAll(form: ConsultationFormState): ConsultationFormErrors {
-  return FORM_STEPS.reduce<ConsultationFormErrors>((acc, step) => ({
-    ...acc,
-    ...validateStep(step.id, form),
-  }), {});
+  return FORM_STEPS.reduce<ConsultationFormErrors>(
+    (acc, step) => ({
+      ...acc,
+      ...validateStep(step.id, form),
+    }),
+    {}
+  );
 }
 
 function focusFirstError() {
@@ -481,7 +602,10 @@ function StepProgress({ currentStep, onSelectStep, currentIndex }: StepProgressP
         </span>
       </div>
       <div className={styles.progressBar} aria-hidden="true">
-        <span className={styles.progressIndicator} style={{ width: `${Math.max(0, Math.min(1, progressRatio)) * 100}%` }} />
+        <span
+          className={styles.progressIndicator}
+          style={{ width: `${Math.max(0, Math.min(1, progressRatio)) * 100}%` }}
+        />
       </div>
       <ul className={styles.stepPills}>
         {FORM_STEPS.map((step, index) => {
@@ -495,7 +619,7 @@ function StepProgress({ currentStep, onSelectStep, currentIndex }: StepProgressP
                 className={classNames(
                   styles.stepPill,
                   isActive && styles.stepPillActive,
-                  isCompleted && styles.stepPillCompleted,
+                  isCompleted && styles.stepPillCompleted
                 )}
                 onClick={() => (isSelectable ? onSelectStep(step.id) : undefined)}
                 disabled={!isSelectable}
@@ -549,7 +673,7 @@ function StepPanel({
         styles.stepPanel,
         !isActive && styles.stepPanelInactive,
         isCompleted && styles.stepPanelCompleted,
-        hasError && styles.stepPanelError,
+        hasError && styles.stepPanelError
       )}
       aria-labelledby={`quick-step-${step.id}`}
     >
@@ -608,9 +732,19 @@ type StepActionsProps = {
   variant: 'desktop' | 'mobile';
 };
 
-function StepActions({ canGoBack, isLastStep, isSubmitting, onPrev, onNext, variant }: StepActionsProps) {
+function StepActions({
+  canGoBack,
+  isLastStep,
+  isSubmitting,
+  onPrev,
+  onNext,
+  variant,
+}: StepActionsProps) {
   return (
-    <div className={variant === 'desktop' ? styles.stepFooter : styles.mobileActions} data-variant={variant}>
+    <div
+      className={variant === 'desktop' ? styles.stepFooter : styles.mobileActions}
+      data-variant={variant}
+    >
       {canGoBack && (
         <button type="button" className={styles.secondaryButton} onClick={onPrev}>
           이전 단계
@@ -641,9 +775,21 @@ function FormSummary({ form }: SummaryCardProps) {
     { label: '심사 희망 시간', value: form.desiredTime || '미입력' },
     { label: '이메일', value: form.email || '미입력' },
     { label: '심사 유형', value: getConsultTypeLabel(form.consultType) },
-    { label: '연 매출', value: ANNUAL_REVENUE_OPTIONS.find((item) => item.value === form.annualRevenue)?.label || '미선택' },
-    { label: '직원 수', value: EMPLOYEE_COUNT_OPTIONS.find((item) => item.value === form.employeeCount)?.label || '미선택' },
-    { label: '심사 희망 시간 (선택)', value: PREFERRED_TIME_OPTIONS.find((item) => item.value === form.preferredTime)?.label || '미선택' },
+    {
+      label: '연 매출',
+      value:
+        ANNUAL_REVENUE_OPTIONS.find((item) => item.value === form.annualRevenue)?.label || '미선택',
+    },
+    {
+      label: '직원 수',
+      value:
+        EMPLOYEE_COUNT_OPTIONS.find((item) => item.value === form.employeeCount)?.label || '미선택',
+    },
+    {
+      label: '심사 희망 시간 (선택)',
+      value:
+        PREFERRED_TIME_OPTIONS.find((item) => item.value === form.preferredTime)?.label || '미선택',
+    },
   ];
 
   return (
@@ -696,24 +842,39 @@ function QuickConsultForm() {
   const currentIndex = FORM_STEPS.findIndex((step) => step.id === currentStep);
   const isLastStep = currentIndex === FORM_STEPS.length - 1;
 
-  const handleFieldChange = <T extends keyof ConsultationFormState>(field: T) => (value: ConsultationFormState[T]) => {
-    let nextValue = value;
-    if (field === 'phone' && typeof value === 'string') {
-      nextValue = formatPhoneNumber(value) as ConsultationFormState[T];
-    }
-    if (field === 'businessNumber' && typeof value === 'string') {
-      nextValue = formatBusinessNumber(value) as ConsultationFormState[T];
-    }
-    dispatch({ type: 'SET_FIELD', field, value: nextValue });
-  };
+  // 봇 방지: 폼 로드 시간 기록 + Turnstile 토큰 + 허니팟
+  const [formLoadedAt] = useState(() => Date.now());
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [hpValue, setHpValue] = useState('');
 
-  const handleInputChange = <T extends keyof ConsultationFormState>(field: T) =>
+  // 인앱 브라우저 감지 (Instagram, Facebook, KakaoTalk 등)
+  const [isInAppBrowser] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const ua = navigator.userAgent;
+    return /Instagram|FBAN|FBAV|KAKAOTALK|Line\/|NAVER|Daum/i.test(ua);
+  });
+
+  const handleFieldChange =
+    <T extends keyof ConsultationFormState>(field: T) =>
+    (value: ConsultationFormState[T]) => {
+      let nextValue = value;
+      if (field === 'phone' && typeof value === 'string') {
+        nextValue = formatPhoneNumber(value) as ConsultationFormState[T];
+      }
+      if (field === 'businessNumber' && typeof value === 'string') {
+        nextValue = formatBusinessNumber(value) as ConsultationFormState[T];
+      }
+      dispatch({ type: 'SET_FIELD', field, value: nextValue });
+    };
+
+  const handleInputChange =
+    <T extends keyof ConsultationFormState>(field: T) =>
     (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
       handleFieldChange(field)(event.target.value as ConsultationFormState[T]);
     };
 
-  const handleCheckboxChange = (field: keyof ConsultationFormState) =>
-    (event: ChangeEvent<HTMLInputElement>) => {
+  const handleCheckboxChange =
+    (field: keyof ConsultationFormState) => (event: ChangeEvent<HTMLInputElement>) => {
       handleFieldChange(field)(event.target.checked as ConsultationFormState[typeof field]);
     };
 
@@ -772,7 +933,9 @@ function QuickConsultForm() {
     const allErrors = validateAll(form);
     if (Object.keys(allErrors).length > 0) {
       dispatch({ type: 'SET_ERRORS', errors: allErrors });
-      const firstErrorStep = FORM_STEPS.find((step) => STEP_ALL_FIELDS[step.id].some((field) => allErrors[field]));
+      const firstErrorStep = FORM_STEPS.find((step) =>
+        STEP_ALL_FIELDS[step.id].some((field) => allErrors[field])
+      );
       if (firstErrorStep) {
         dispatch({ type: 'GO_TO_STEP', step: firstErrorStep.id });
       }
@@ -788,7 +951,7 @@ function QuickConsultForm() {
         userName: form.name,
         userPhone: form.phone,
         userEmail: form.email || '',
-        companyName: form.companyName, // 회사명 별도 필드 사용
+        companyName: form.companyName,
         businessNumber: form.businessNumber || '',
         consultationType: form.consultType || '기업심사관 상담',
         message: form.message || '',
@@ -796,10 +959,15 @@ function QuickConsultForm() {
         annualRevenue: form.annualRevenue,
         employeeCount: form.employeeCount,
         desiredTime: form.desiredTime,
-        region: form.region, // 지역 정보 추가
+        region: form.region,
         privacyConsent: form.privacyConsent,
         marketingConsent: form.marketingConsent,
-        isExaminerConsultation: true // 기업심사관 상담 표시
+        isExaminerConsultation: true,
+        // 봇 방지 필드
+        _hp_website: hpValue,
+        _formLoadedAt: formLoadedAt,
+        _turnstileToken: turnstileToken,
+        _isInAppBrowser: isInAppBrowser,
       };
 
       const response = await fetch('/api/consultations', {
@@ -808,8 +976,17 @@ function QuickConsultForm() {
         body: JSON.stringify(consultationData),
       });
 
+      const result = await response.json();
+
       if (!response.ok) {
-        throw new Error('Request failed');
+        // 반복접수 차단 (429) 시 서버 메시지 표시
+        if (response.status === 429 || result.code === 'RATE_LIMITED') {
+          window.alert(
+            '⚠️ 연속접수 10분 내 3회 이상 접수하면 반복자동접수는 시스템 차단됩니다.\n\n잠시 후 다시 시도해주세요.'
+          );
+          return;
+        }
+        throw new Error(result.error || 'Request failed');
       }
 
       // GA4 폼 제출 이벤트 전송
@@ -1138,7 +1315,12 @@ function QuickConsultForm() {
         </div>
       </div>
       <div className={styles.consentSection}>
-        <label className={classNames(styles.checkboxRowConsent, errors.privacyConsent && styles.checkboxRowError)}>
+        <label
+          className={classNames(
+            styles.checkboxRowConsent,
+            errors.privacyConsent && styles.checkboxRowError
+          )}
+        >
           <input
             type="checkbox"
             checked={form.privacyConsent}
@@ -1174,7 +1356,11 @@ function QuickConsultForm() {
         )}
       </div>
       <label className={styles.checkboxRowMarketing}>
-        <input type="checkbox" checked={form.marketingConsent} onChange={handleCheckboxChange('marketingConsent')} />
+        <input
+          type="checkbox"
+          checked={form.marketingConsent}
+          onChange={handleCheckboxChange('marketingConsent')}
+        />
         <span>정책 정보와 맞춤 알림을 받아볼게요 (선택)</span>
       </label>
     </div>
@@ -1186,13 +1372,28 @@ function QuickConsultForm() {
         <div className={styles.successContainer}>
           <div className={styles.successCard} role="status">
             <div className={styles.successIcon}>
-              <svg width="72" height="72" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg
+                width="72"
+                height="72"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
                 <circle cx="12" cy="12" r="10" stroke="#10B981" strokeWidth="2" />
-                <path d="M8 12L11 15L16 9" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path
+                  d="M8 12L11 15L16 9"
+                  stroke="#10B981"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </div>
             <h3 className={styles.successTitle}>무료심사 신청이 접수되었습니다!</h3>
-            <p className={styles.successDescription}>평일 기준 24시간 이내에 담당 심사관이 연락드립니다. 1차 무료심사 후 2차 대면상담으로 진행됩니다.</p>
+            <p className={styles.successDescription}>
+              평일 기준 24시간 이내에 담당 심사관이 연락드립니다. 1차 무료심사 후 2차 대면상담으로
+              진행됩니다.
+            </p>
             <div className={styles.successActions}>
               <a href="tel:0269145567" className={styles.successButton}>
                 <i className="fas fa-phone" aria-hidden="true" /> 바로 전화 연결
@@ -1211,7 +1412,35 @@ function QuickConsultForm() {
     <section id="form-section" className={styles.section}>
       <div className={styles.layout}>
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
-          <StepProgress currentStep={currentStep} currentIndex={currentIndex} onSelectStep={handleSelectStep} />
+          {/* 허니팟 필드 - 봇만 채움, 사용자에게 보이지 않음 */}
+          <div
+            style={{
+              position: 'absolute',
+              left: '-9999px',
+              opacity: 0,
+              height: 0,
+              overflow: 'hidden',
+            }}
+            aria-hidden="true"
+          >
+            <label htmlFor="hp-website">Website</label>
+            <input
+              id="hp-website"
+              name="website"
+              type="text"
+              tabIndex={-1}
+              autoComplete="off"
+              value={hpValue}
+              onChange={(e) => setHpValue(e.target.value)}
+            />
+          </div>
+          {/* Turnstile 봇 방지 위젯 - 인앱 브라우저에서는 스킵 */}
+          {!isInAppBrowser && <Turnstile onToken={setTurnstileToken} />}
+          <StepProgress
+            currentStep={currentStep}
+            currentIndex={currentIndex}
+            onSelectStep={handleSelectStep}
+          />
           {FORM_STEPS.map((step, index) => {
             const isActive = step.id === currentStep;
             const isCompleted = index < currentIndex;
@@ -1255,10 +1484,12 @@ function QuickConsultForm() {
   );
 }
 
-
 function CtaSection() {
   return (
-    <section className="consultation-request__cta-section" aria-labelledby="consultation-request-cta-title">
+    <section
+      className="consultation-request__cta-section"
+      aria-labelledby="consultation-request-cta-title"
+    >
       <div className="consultation-request__cta-container">
         <div className="consultation-request__cta">
           <div className="consultation-request__cta-banner">
@@ -1275,7 +1506,10 @@ function CtaSection() {
                 지원하며, 최적의 성공 전략 설계
               </p>
             </div>
-            <Link href="/consultation-request#form-section" className="consultation-request__cta-button">
+            <Link
+              href="/consultation-request#form-section"
+              className="consultation-request__cta-button"
+            >
               무료 심사 시작하기
             </Link>
           </div>
@@ -1285,17 +1519,14 @@ function CtaSection() {
   );
 }
 
-
-
-
-
-
-
 function MobileConsultationBar({ visible, onClick }: { visible: boolean; onClick: () => void }) {
   return (
     <button
       type="button"
-      className={classNames('consultation-request__mobile-bar', visible && 'consultation-request__mobile-bar--visible')}
+      className={classNames(
+        'consultation-request__mobile-bar',
+        visible && 'consultation-request__mobile-bar--visible'
+      )}
       onClick={onClick}
       aria-label="무료심사 신청 폼으로 이동"
     >
@@ -1310,7 +1541,10 @@ function ConsultationArrivalToast({ visible }: { visible: boolean }) {
     <div
       role="status"
       aria-live="polite"
-      className={classNames('consultation-request__arrival-toast', visible && 'consultation-request__arrival-toast--visible')}
+      className={classNames(
+        'consultation-request__arrival-toast',
+        visible && 'consultation-request__arrival-toast--visible'
+      )}
     >
       무료심사 신청 접수 중
     </div>
@@ -1468,6 +1702,3 @@ export default function ConsultationRequestPage() {
     </div>
   );
 }
-
-
-
