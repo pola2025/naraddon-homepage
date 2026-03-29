@@ -1,46 +1,46 @@
-"use client";
+'use client';
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
-import clsx from "clsx";
+import { useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { signOut } from 'next-auth/react';
+import clsx from 'clsx';
 
-import { useAuth } from "@/contexts/AuthContext";
-import CanAccess from "./CanAccess";
-import styles from "./Header.module.css";
+import { useAuth } from '@/contexts/AuthContext';
+import CanAccess from './CanAccess';
+import styles from './Header.module.css';
 
-const LOGO_URL = "/images/logo-naraddon.png";
-const LOGO_FALLBACK_URL = "/images/logo-naraddon.png";
-const BRAND_NAME = "Naraddon";
-const TAGLINE = "No.1 정책자금 플랫폼";
-const LOGIN_LABEL = "로그인";
-const MORE_LABEL = "더보기";
+const LOGO_URL = '/images/logo-naraddon.png';
+const LOGO_FALLBACK_URL = '/images/logo-naraddon.png';
+const BRAND_NAME = 'Naraddon';
+const TAGLINE = 'No.1 정책자금 플랫폼';
+const LOGIN_LABEL = '로그인';
+const MORE_LABEL = '더보기';
 
 type NavItem = {
   href: string;
   label: string;
 };
 
-type Viewport = "desktop" | "tablet" | "mobile";
+type Viewport = 'desktop' | 'tablet' | 'mobile';
 
 const PRIMARY_NAV: NavItem[] = [
-  { href: "/", label: "나라똔" }, // 메인 페이지는 인트로 없이 바로 접근
-  { href: "/policy-analysis", label: "정책 알리미" },
+  { href: '/', label: '나라똔' }, // 메인 페이지는 인트로 없이 바로 접근
+  { href: '/policy-news', label: '정책 알리미' },
   // { href: "/business-voice", label: "사업자 목소리" }, // 임시 숨김 처리
-  { href: "/certified-examiners", label: "인증 기업심사관" },
+  { href: '/certified-examiners', label: '인증 기업심사관' },
 ];
 
 const SECONDARY_NAV: NavItem[] = [
-  { href: "/expert-services", label: "전문가 서비스" },
-  { href: "/consultation-request", label: "무료심사신청" },
+  { href: '/expert-services', label: '전문가 서비스' },
+  { href: '/consultation-request', label: '무료심사신청' },
 ];
 
 const ALL_NAV_ITEMS = [...PRIMARY_NAV, ...SECONDARY_NAV];
 
-const ADMIN_NAV: NavItem = { href: "/admin", label: "관리자" };
-const EXAMINER_NAV: NavItem = { href: "/examiner/dashboard", label: "심사관" };
-const EXPERT_NAV: NavItem = { href: "/expert-dashboard", label: "전문가" };
+const ADMIN_NAV: NavItem = { href: '/admin', label: '관리자' };
+const EXAMINER_NAV: NavItem = { href: '/examiner/dashboard', label: '심사관' };
+const EXPERT_NAV: NavItem = { href: '/expert-dashboard', label: '전문가' };
 
 export default function Header() {
   const pathname = usePathname();
@@ -51,7 +51,7 @@ export default function Header() {
   const [isSecondaryOpen, setIsSecondaryOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [viewport, setViewport] = useState<Viewport>("desktop");
+  const [viewport, setViewport] = useState<Viewport>('desktop');
 
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const profileRef = useRef<HTMLDivElement | null>(null);
@@ -62,25 +62,25 @@ export default function Header() {
     };
 
     updateScroll();
-    window.addEventListener("scroll", updateScroll);
-    return () => window.removeEventListener("scroll", updateScroll);
+    window.addEventListener('scroll', updateScroll);
+    return () => window.removeEventListener('scroll', updateScroll);
   }, []);
 
   useEffect(() => {
     const calculateViewport = () => {
       const width = window.innerWidth;
       if (width <= 768) {
-        setViewport("mobile");
+        setViewport('mobile');
       } else if (width <= 1024) {
-        setViewport("tablet");
+        setViewport('tablet');
       } else {
-        setViewport("desktop");
+        setViewport('desktop');
       }
     };
 
     calculateViewport();
-    window.addEventListener("resize", calculateViewport);
-    return () => window.removeEventListener("resize", calculateViewport);
+    window.addEventListener('resize', calculateViewport);
+    return () => window.removeEventListener('resize', calculateViewport);
   }, []);
 
   useEffect(() => {
@@ -97,19 +97,19 @@ export default function Header() {
     };
 
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      if (event.key === 'Escape') {
         setIsSecondaryOpen(false);
         setIsProfileOpen(false);
         setIsMobileMenuOpen(false);
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleEscape);
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
     };
   }, []);
 
@@ -119,19 +119,19 @@ export default function Header() {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
-  if (pathname === "/hero-preview") {
+  if (pathname === '/hero-preview') {
     return null;
   }
 
   const visiblePrimary = useMemo(() => {
-    if (viewport === "tablet") {
+    if (viewport === 'tablet') {
       return PRIMARY_NAV.slice(0, 3);
     }
     return PRIMARY_NAV;
   }, [viewport]);
 
   const dropdownItems = useMemo(() => {
-    if (viewport === "tablet") {
+    if (viewport === 'tablet') {
       const extra = PRIMARY_NAV[3];
       return extra ? [...SECONDARY_NAV, extra] : SECONDARY_NAV;
     }
@@ -139,24 +139,24 @@ export default function Header() {
   }, [viewport]);
 
   const isActivePath = (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href);
+    href === '/' ? pathname === '/' : pathname.startsWith(href);
 
-  const initials = user?.name?.[0] || user?.email?.[0] || "U";
+  const initials = user?.name?.[0] || user?.email?.[0] || 'U';
   const roleLabel =
-    user?.role === "admin"
-      ? "관리자"
-      : user?.role === "examiner"
-        ? "심사관"
-        : user?.role === "expert"
-          ? "전문가"
-          : "일반 회원";
+    user?.role === 'admin'
+      ? '관리자'
+      : user?.role === 'examiner'
+        ? '심사관'
+        : user?.role === 'expert'
+          ? '전문가'
+          : '일반 회원';
 
   const handleLogout = async () => {
     // 먼저 서버에 로그아웃 요청을 보내 세션 정리
     try {
       await fetch('/api/auth/logout', {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
       });
     } catch (error) {
       console.error('Logout cleanup error:', error);
@@ -164,8 +164,8 @@ export default function Header() {
 
     // NextAuth signOut 실행
     await signOut({
-      callbackUrl: "/",
-      redirect: true
+      callbackUrl: '/',
+      redirect: true,
     });
 
     // 로컬 스토리지 정리
@@ -281,7 +281,12 @@ export default function Header() {
                     <li>{renderNavLink(EXAMINER_NAV, styles.dropdownItem)}</li>
                   </CanAccess>
                   <CanAccess role="expert" key="expert-dropdown">
-                    <li>{renderNavLink({ href: "/admin/expert-dashboards", label: "전문가" }, styles.dropdownItem)}</li>
+                    <li>
+                      {renderNavLink(
+                        { href: '/admin/expert-dashboards', label: '전문가' },
+                        styles.dropdownItem
+                      )}
+                    </li>
                   </CanAccess>
                 </ul>
               </div>
@@ -301,7 +306,7 @@ export default function Header() {
                 >
                   <span className={styles.profileInitial}>{initials}</span>
                   <span className={styles.profileName}>
-                    {user?.name || user?.email?.split("@")[0] || "회원"}
+                    {user?.name || user?.email?.split('@')[0] || '회원'}
                   </span>
                   <svg className={styles.caretIcon} viewBox="0 0 24 24" aria-hidden="true">
                     <path
@@ -320,9 +325,7 @@ export default function Header() {
                   role="menu"
                 >
                   <div className={styles.profileHeader}>
-                    <div className={styles.profileHeaderName}>
-                      {user?.name || "회원"}
-                    </div>
+                    <div className={styles.profileHeaderName}>{user?.name || '회원'}</div>
                     <div className={styles.profileHeaderEmail}>{user?.email}</div>
                     {user?.role && <span className={styles.profileRole}>{roleLabel}</span>}
                   </div>
@@ -343,7 +346,12 @@ export default function Header() {
                       </Link>
                     </CanAccess>
                     <CanAccess role="expert" key="expert-mobile">
-                      <Link href={user?.role === 'expert' ? "/expert-dashboard" : "/admin/expert-dashboards"} className={styles.profileLink}>
+                      <Link
+                        href={
+                          user?.role === 'expert' ? '/expert-dashboard' : '/admin/expert-dashboards'
+                        }
+                        className={styles.profileLink}
+                      >
                         전문가 대시보드
                       </Link>
                     </CanAccess>
@@ -392,7 +400,7 @@ export default function Header() {
           <div className={styles.mobileProfileSummary}>
             <span className={styles.profileInitial}>{initials}</span>
             <div className={styles.mobileProfileInfo}>
-              <span className={styles.mobileProfileName}>{user?.name || "회원"}</span>
+              <span className={styles.mobileProfileName}>{user?.name || '회원'}</span>
               <span className={styles.mobileProfileEmail}>{user?.email}</span>
               {user?.role && <span className={styles.profileRole}>{roleLabel}</span>}
             </div>
@@ -414,7 +422,10 @@ export default function Header() {
               <li className={styles.mobileNavItem}>
                 {renderNavLink(
                   ADMIN_NAV,
-                  clsx(styles.mobileNavLink, isActivePath(ADMIN_NAV.href) && styles.mobileNavLinkActive),
+                  clsx(
+                    styles.mobileNavLink,
+                    isActivePath(ADMIN_NAV.href) && styles.mobileNavLinkActive
+                  ),
                   closeMobileMenu
                 )}
               </li>
@@ -423,7 +434,10 @@ export default function Header() {
               <li className={styles.mobileNavItem}>
                 {renderNavLink(
                   EXAMINER_NAV,
-                  clsx(styles.mobileNavLink, isActivePath(EXAMINER_NAV.href) && styles.mobileNavLinkActive),
+                  clsx(
+                    styles.mobileNavLink,
+                    isActivePath(EXAMINER_NAV.href) && styles.mobileNavLinkActive
+                  ),
                   closeMobileMenu
                 )}
               </li>
@@ -432,7 +446,10 @@ export default function Header() {
               <li className={styles.mobileNavItem}>
                 {renderNavLink(
                   EXPERT_NAV,
-                  clsx(styles.mobileNavLink, isActivePath(EXPERT_NAV.href) && styles.mobileNavLinkActive),
+                  clsx(
+                    styles.mobileNavLink,
+                    isActivePath(EXPERT_NAV.href) && styles.mobileNavLinkActive
+                  ),
                   closeMobileMenu
                 )}
               </li>
@@ -447,7 +464,11 @@ export default function Header() {
               {/* <Link href="/mypage" className={styles.mobileFooterLink} onClick={closeMobileMenu}>
                 프로필 관리
               </Link> */}
-              <Link href="/my-consultations" className={styles.mobileFooterLink} onClick={closeMobileMenu}>
+              <Link
+                href="/my-consultations"
+                className={styles.mobileFooterLink}
+                onClick={closeMobileMenu}
+              >
                 내 심사 내역
               </Link>
               <button type="button" className={styles.mobileLogoutButton} onClick={handleLogout}>

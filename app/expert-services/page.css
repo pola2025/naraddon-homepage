@@ -17,21 +17,21 @@ main:has(.expert-services-page) {
   --expert-layout-horizontal-padding: clamp(20px, 5vw, 60px);
 
   /* Naraddon Green Concept Colors */
-  --primary-green: #4CAF50;
-  --green-light: #81C784;
-  --green-dark: #388E3C;
-  --green-darker: #2E7D32;
-  --accent-green: #66BB6A;
+  --primary-green: #4caf50;
+  --green-light: #81c784;
+  --green-dark: #388e3c;
+  --green-darker: #2e7d32;
+  --accent-green: #66bb6a;
 
   /* Background */
-  --bg-light: #F1F8E9;
-  --bg-cream: #FAFAF8;
-  --bg-white: #FFFFFF;
+  --bg-light: #f1f8e9;
+  --bg-cream: #fafaf8;
+  --bg-white: #ffffff;
 
   /* Text Colors */
-  --text-dark: #1B5E20;
-  --text-medium: #2E7D32;
-  --text-light: #558B2F;
+  --text-dark: #1b5e20;
+  --text-medium: #2e7d32;
+  --text-light: #558b2f;
   --text-gray: #757575;
   --text-black: #212121;
 
@@ -204,7 +204,11 @@ main:has(.expert-services-page) {
   font-weight: 600;
   font-size: 1rem;
   text-decoration: none;
-  transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .expert-services__cta-button--primary {
@@ -310,25 +314,25 @@ main:has(.expert-services-page) {
 /* 모바일에서 제목이 한 줄로 나오도록 폰트 크기 조정 */
 @media (max-width: 768px) {
   .expert-services__experts-title {
-    font-size: 1.5rem !important;  /* 24px */
+    font-size: 1.5rem !important; /* 24px */
   }
 }
 
 @media (max-width: 480px) {
   .expert-services__experts-title {
-    font-size: 1.25rem !important;  /* 20px */
+    font-size: 1.25rem !important; /* 20px */
   }
 }
 
 @media (max-width: 400px) {
   .expert-services__experts-title {
-    font-size: 1.125rem !important;  /* 18px */
+    font-size: 1.125rem !important; /* 18px */
   }
 }
 
 @media (max-width: 360px) {
   .expert-services__experts-title {
-    font-size: 1rem !important;  /* 16px */
+    font-size: 1rem !important; /* 16px */
   }
 }
 
@@ -616,7 +620,6 @@ main:has(.expert-services-page) {
   display: block;
 }
 
-
 /* 전문가 상담신청서 - 기본 정보 2열 그리드 */
 .expert-services-page form .grid.grid-cols-2 {
   display: grid;
@@ -649,6 +652,34 @@ main:has(.expert-services-page) {
     font-size: 0.875rem;
     padding: 0.75rem 0.5rem;
   }
+}
+
+/* 카드 이미지 모드 - cardImageUrl이 있는 전문가 */
+.expert-card-horizontal.card-image-mode {
+  padding: 0;
+  overflow: hidden;
+}
+
+.card-image-full {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 16px 16px 0 0;
+}
+
+.card-image-full img {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.3s;
+}
+
+.expert-card-horizontal.card-image-mode:hover .card-image-full img {
+  transform: scale(1.02);
+}
+
+.expert-card-horizontal.card-image-mode .consult-cta {
+  border-radius: 0 0 16px 16px;
+  margin: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

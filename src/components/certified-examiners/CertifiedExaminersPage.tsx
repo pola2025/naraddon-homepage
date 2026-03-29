@@ -1,11 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay } from 'swiper/modules';
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
 import './certified-examiners.css';
 
 // 심사관 인터페이스
@@ -34,14 +29,14 @@ const shuffleArray = (array: any[]) => {
   return shuffled;
 };
 
-export default function CertifiedExaminersPage({ initialExaminers = [] }: CertifiedExaminersPageProps) {
+export default function CertifiedExaminersPage({
+  initialExaminers = [],
+}: CertifiedExaminersPageProps) {
   const [visibleCount, setVisibleCount] = useState(6);
   const [mounted, setMounted] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
   // Hydration 오류 방지: 서버에서는 원본 데이터 사용, 클라이언트에서만 랜덤 정렬
-  const [allExaminers] = useState<Examiner[]>(initialExaminers);
-  const [featuredExaminers, setFeaturedExaminers] = useState<Examiner[]>(initialExaminers);
   const [gridExaminers, setGridExaminers] = useState<Examiner[]>(initialExaminers);
 
   // 좋아요 상태 관리: 심사관 ID별로 추적
@@ -51,12 +46,11 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
   // 마운트 후 클라이언트에서만 랜덤 정렬
   useEffect(() => {
     setMounted(true);
-    setFeaturedExaminers(shuffleArray(initialExaminers));
     setGridExaminers(shuffleArray(initialExaminers));
 
     // 초기 likes 카운트 설정
     const initialLikes: Record<string, number> = {};
-    initialExaminers.forEach(examiner => {
+    initialExaminers.forEach((examiner) => {
       if (examiner._id) {
         initialLikes[examiner._id] = examiner.likes || 0;
       }
@@ -82,15 +76,15 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
       const data = await response.json();
 
       if (response.ok) {
-        setLikesCount(prev => ({
+        setLikesCount((prev) => ({
           ...prev,
-          [examinerId]: data.likes
+          [examinerId]: data.likes,
         }));
-        setLikedExaminers(prev => new Set(prev).add(examinerId));
+        setLikedExaminers((prev) => new Set(prev).add(examinerId));
       } else if (response.status === 429) {
         // 24시간 제한 에러 처리
         alert(data.message || '24시간에 한 번만 좋아요를 누를 수 있습니다.');
-        setLikedExaminers(prev => new Set(prev).add(examinerId)); // UI에서도 비활성화
+        setLikedExaminers((prev) => new Set(prev).add(examinerId)); // UI에서도 비활성화
       } else {
         console.error('좋아요 처리 실패:', data.error);
         alert('좋아요 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
@@ -115,7 +109,7 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
         if (visibleCount < gridExaminers.length) {
           setLoadingMore(true);
           setTimeout(() => {
-            setVisibleCount(prev => Math.min(prev + 4, gridExaminers.length));
+            setVisibleCount((prev) => Math.min(prev + 4, gridExaminers.length));
             setLoadingMore(false);
           }, 300);
         }
@@ -170,7 +164,7 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
 
     // 마우스 추적 glow 효과
     const buttons = document.querySelectorAll('.premium-cta');
-    buttons.forEach(button => {
+    buttons.forEach((button) => {
       const handleMouseMove = (e: any) => {
         const target = e.currentTarget as HTMLElement;
         const rect = target.getBoundingClientRect();
@@ -232,78 +226,26 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
           </div>
           <h1 className="fade-in fade-in-delay-1">
             <span className="desktop-title">인증 기업심사관과 함께하는</span>
-            <span className="mobile-title">인증 기업심사관과<br/>함께하는</span><br/>
+            <span className="mobile-title">
+              인증 기업심사관과
+              <br />
+              함께하는
+            </span>
+            <br />
             <span className="gold-text">
               <span className="desktop-title">프리미엄 비즈니스 컨설팅</span>
-              <span className="mobile-title">프리미엄<br/>비즈니스 컨설팅</span>
+              <span className="mobile-title">
+                프리미엄
+                <br />
+                비즈니스 컨설팅
+              </span>
             </span>
           </h1>
           <p className="fade-in fade-in-delay-2">
-            나라똔이 엄선한 최고의 전문가들이<br/>
+            나라똔이 엄선한 최고의 전문가들이
+            <br />
             귀사의 성공을 위한 맞춤 솔루션을 제공합니다
           </p>
-        </div>
-      </section>
-
-      {/* Main Carousel - 제목 없이 카드만 표시 */}
-      <section className="main-carousel-section">
-        <div className="container">
-          <Swiper
-            modules={[Navigation, Pagination, Autoplay]}
-            spaceBetween={30}
-            slidesPerView={1}
-            navigation
-            pagination={{ clickable: true }}
-            speed={800}
-            autoplay={{
-              delay: 5000,
-              disableOnInteraction: false,
-              pauseOnMouseEnter: true,
-            }}
-            loop={featuredExaminers.length >= 2}
-            effect="slide"
-            grabCursor={false}
-            allowTouchMove={false}
-            className="main-swiper"
-          >
-            {featuredExaminers.map((examiner, index) => (
-              <SwiperSlide key={index}>
-                <div className="main-card hover-lift">
-                  <div className="main-card-image">
-                    <img
-                      src={examiner.imageUrl || '/images/default-examiner.png'}
-                      alt={`${examiner.name}_${examiner.companyName}`}
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className="info-block">
-                    <div className="name-company-row">
-                      <div className="name-company-group">
-                        <div className="name-block">{examiner.name}</div>
-                        <div className="company-block">{examiner.companyName}</div>
-                      </div>
-                      {mounted && examiner._id && (
-                        <button
-                          className={likedExaminers.has(examiner._id) ? 'like-btn main-card-like liked' : 'like-btn main-card-like'}
-                          onClick={() => handleLike(examiner._id!)}
-                          aria-label="좋아요"
-                        >
-                          <i className={likedExaminers.has(examiner._id) ? 'fas fa-heart' : 'far fa-heart'}></i>
-                        </button>
-                      )}
-                    </div>
-                    <div className="button-group">
-                      {examiner._id && (
-                        <a href={`/certified-examiners/${examiner._id}`} className="detail-btn">
-                          자세히보기
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </SwiperSlide>
-            ))}
-          </Swiper>
         </div>
       </section>
 
@@ -331,7 +273,11 @@ export default function CertifiedExaminersPage({ initialExaminers = [] }: Certif
                         onClick={() => handleLike(examiner._id!)}
                         aria-label="좋아요"
                       >
-                        <i className={likedExaminers.has(examiner._id) ? 'fas fa-heart' : 'far fa-heart'}></i>
+                        <i
+                          className={
+                            likedExaminers.has(examiner._id) ? 'fas fa-heart' : 'far fa-heart'
+                          }
+                        ></i>
                       </button>
                     )}
                   </div>

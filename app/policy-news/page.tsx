@@ -112,10 +112,7 @@ export default function PolicyNewsListPage() {
 
     setTimeout(() => {
       const currentLength = displayedPosts.length;
-      const nextPosts = filteredPosts.slice(
-        currentLength,
-        currentLength + ITEMS_PER_PAGE
-      );
+      const nextPosts = filteredPosts.slice(currentLength, currentLength + ITEMS_PER_PAGE);
 
       if (nextPosts.length > 0) {
         setDisplayedPosts((prev) => [...prev, ...nextPosts]);
@@ -204,9 +201,7 @@ export default function PolicyNewsListPage() {
               <i className="fas fa-chevron-right"></i>
             </li>
             <li>
-              <button onClick={() => router.push('/policy-analysis')}>
-                정책분석
-              </button>
+              <button onClick={() => router.push('/policy-news')}>정책소식</button>
             </li>
             <li className="separator">
               <i className="fas fa-chevron-right"></i>
@@ -257,14 +252,10 @@ export default function PolicyNewsListPage() {
                 >
                   <div className="card-thumbnail">
                     <img
-                      src={
-                        sanitizeImageUrl(post.thumbnail) ||
-                        '/images/placeholder.png'
-                      }
+                      src={sanitizeImageUrl(post.thumbnail) || '/images/placeholder.png'}
                       alt={post.title}
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          '/images/placeholder.png';
+                        (e.target as HTMLImageElement).src = '/images/placeholder.png';
                       }}
                     />
                     {post.isPinned && (
@@ -272,9 +263,7 @@ export default function PolicyNewsListPage() {
                         <i className="fas fa-thumbtack"></i>
                       </span>
                     )}
-                    {post.badge && (
-                      <span className="card-badge info">{post.badge}</span>
-                    )}
+                    {post.badge && <span className="card-badge info">{post.badge}</span>}
                   </div>
                   <div className="card-content">
                     <div className="card-category">{post.category || '정책정보'}</div>
@@ -304,9 +293,7 @@ export default function PolicyNewsListPage() {
                 </div>
               )}
               {!hasMore && displayedPosts.length > 0 && (
-                <div className="no-more-posts">
-                  모든 정책소식을 확인했습니다.
-                </div>
+                <div className="no-more-posts">모든 정책소식을 확인했습니다.</div>
               )}
             </div>
           </>

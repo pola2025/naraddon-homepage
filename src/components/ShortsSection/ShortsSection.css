@@ -23,27 +23,25 @@
   gap: 12px;
 }
 
-.shorts-icon {
-  width: 32px;
-  height: 32px;
-  background: #ff0000;
-  border-radius: 8px;
+.shorts-heading {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.shorts-eyebrow {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #047857;
 }
 
 .shorts-title-text {
-  font-size: 22px;
+  font-size: 2rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #0f172a;
   margin: 0;
-}
-
-.shorts-subtitle {
-  font-size: 14px;
-  color: #888;
-  margin: 2px 0 0;
 }
 
 .shorts-view-all {

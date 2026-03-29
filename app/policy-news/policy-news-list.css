@@ -363,34 +363,60 @@
   }
 
   .policy-news-filter-tabs {
-    gap: 8px;
-    margin-bottom: 20px;
+    gap: 6px;
+    margin-bottom: 16px;
   }
 
   .filter-tab {
-    padding: 8px 16px;
-    font-size: 13px;
+    padding: 6px 12px;
+    font-size: 11px;
+    border-width: 1.5px;
   }
 
   .policy-news-card-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
-  /* 모바일에서도 정사각형 비율 유지 */
   .card-thumbnail {
     aspect-ratio: 1/1;
   }
 
+  .policy-news-card {
+    border-radius: 10px;
+  }
+
+  .card-thumbnail {
+    border-radius: 10px 10px 0 0;
+  }
+
   .card-content {
-    padding: 16px;
+    padding: 8px 10px 10px;
+  }
+
+  .card-category {
+    padding: 2px 6px;
+    font-size: 9px;
+    margin-bottom: 4px;
   }
 
   .card-title {
-    font-size: 15px;
+    font-size: 9.5px;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: block;
   }
 
   .card-excerpt {
-    font-size: 12px;
+    font-size: 10px;
+    -webkit-line-clamp: 2;
+    margin-bottom: 0;
+    line-height: 1.4;
+  }
+
+  .card-tags {
+    display: none;
   }
 }
