@@ -2,7 +2,10 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { StandardBottomCta } from '@/components/ui/StandardBottomCta';
+
+const Turnstile = dynamic(() => import('@/src/components/Turnstile/Turnstile'), { ssr: false });
 import {
   consultFields,
   expertServiceCta,
@@ -29,6 +32,7 @@ interface Expert {
   companyName: string;
   imageUrl: string;
   imageAlt?: string;
+  cardImageUrl?: string;
   legacyKey?: string;
   specialties?: string[];
   introduction?: string;
@@ -41,6 +45,11 @@ export default function ExpertServicesPage() {
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [isPrivacyOpen, setPrivacyOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+
+  // 봇 방지
+  const [formLoadedAt] = useState(() => Date.now());
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [hpValue, setHpValue] = useState('');
 
   // Expert state
   const [experts, setExperts] = useState<Expert[]>([]);
@@ -68,11 +77,12 @@ export default function ExpertServicesPage() {
             const elementHeight = targetElement.offsetHeight;
 
             // 요소가 화면 중앙에 오도록 계산
-            const offsetPosition = elementPosition + window.pageYOffset - (windowHeight / 2) + (elementHeight / 2);
+            const offsetPosition =
+              elementPosition + window.pageYOffset - windowHeight / 2 + elementHeight / 2;
 
             window.scrollTo({
               top: offsetPosition,
-              behavior: 'smooth'
+              behavior: 'smooth',
             });
           }
         }, 500); // 500ms 지연 (전문가 카드 렌더링 대기)
@@ -99,17 +109,17 @@ export default function ExpertServicesPage() {
       cache: 'no-store',
       headers: {
         'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
-      }
+        Pragma: 'no-cache',
+      },
     })
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.success && Array.isArray(data.experts)) {
           setExperts(data.experts);
         }
         setIsLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         if (err.name !== 'AbortError') {
           console.error('Failed to load experts:', err);
         }
@@ -175,10 +185,18 @@ export default function ExpertServicesPage() {
           consultationField: selectedField,
           message: form.content,
           preferredTime: selectedTiming,
+          _hp_website: hpValue,
+          _formLoadedAt: formLoadedAt,
+          _turnstileToken: turnstileToken,
         }),
       });
 
       const result = await response.json();
+
+      if (response.status === 429 || result.code === 'RATE_LIMITED') {
+        window.alert('⚠️ 짧은 시간 내 너무 많은 접수가 감지되었습니다. 잠시 후 다시 시도해주세요.');
+        return;
+      }
 
       if (response.ok && result.success) {
         // GA4 폼 제출 이벤트 전송
@@ -211,92 +229,139 @@ export default function ExpertServicesPage() {
   }
 
   return (
-    <div className="expert-services-page" style={{background: 'var(--bg-cream)'}}>
+    <div className="expert-services-page" style={{ background: 'var(--bg-cream)' }}>
       {/* Hero 섹션 삭제됨 (2025-01-08) */}
 
-      <section className="expert-services__experts layout-section" id="expert-cards" style={{background: 'var(--bg-cream)', paddingTop: '60px'}}>
+      <section
+        className="expert-services__experts layout-section"
+        id="expert-cards"
+        style={{ background: 'var(--bg-cream)', paddingTop: '60px' }}
+      >
         <div className="layout-container">
-          <div className="expert-services__experts-header" style={{textAlign: 'center'}}>
-            <span style={{display: 'inline-block', padding: '6px 12px', background: 'var(--bg-light)', color: 'var(--green-dark)', borderRadius: '20px', fontSize: '12px', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '16px'}}>
+          <div className="expert-services__experts-header" style={{ textAlign: 'center' }}>
+            <span
+              style={{
+                display: 'inline-block',
+                padding: '6px 12px',
+                background: 'var(--bg-light)',
+                color: 'var(--green-dark)',
+                borderRadius: '20px',
+                fontSize: '12px',
+                fontWeight: 600,
+                letterSpacing: '0.5px',
+                textTransform: 'uppercase',
+                marginBottom: '16px',
+              }}
+            >
               Expert Network
             </span>
-            <h2 className="expert-services__experts-title">
-              검증된 전문가를 만나보세요
-            </h2>
+            <h2 className="expert-services__experts-title">검증된 전문가를 만나보세요</h2>
             <p className="expert-services__experts-description">
-              각 분야 최고의 전문성을 갖춘<br />나라똔 인증 전문가들입니다
+              각 분야 최고의 전문성을 갖춘
+              <br />
+              나라똔 인증 전문가들입니다
             </p>
           </div>
 
           <div className="expert-carousel-horizontal">
             {isLoading ? (
-              <div className="expert-carousel__empty">
-                전문가 정보를 불러오는 중입니다.
-              </div>
+              <div className="expert-carousel__empty">전문가 정보를 불러오는 중입니다.</div>
             ) : experts.length === 0 ? (
-              <div className="expert-carousel__empty">
-                등록된 전문가가 없습니다.
-              </div>
+              <div className="expert-carousel__empty">등록된 전문가가 없습니다.</div>
             ) : (
               <>
                 <div className="expert-carousel__track">
                   {experts.map((expert) => (
                     <article
                       key={expert._id}
-                      className="expert-card-horizontal"
+                      className={`expert-card-horizontal ${expert.cardImageUrl ? 'card-image-mode' : ''}`}
                     >
-                      <div className="card-inner">
-                        <div className="card-image-section">
-                          <img
-                            src={expert.imageUrl}
-                            alt={expert.imageAlt || `${expert.name} 프로필`}
-                            loading="lazy"
-                            onError={(e) => {
-                              const img = e.currentTarget;
-                              img.style.display = 'none';
-                              const placeholder = img.parentElement?.querySelector('.image-placeholder-new');
-                              if (placeholder) {
-                                (placeholder as HTMLElement).style.display = 'flex';
-                              }
-                            }}
-                          />
-                          <div className="image-placeholder-new hidden" style={{display: 'none', alignItems: 'center', justifyContent: 'center', height: '120px', background: 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)', borderRadius: '20px'}}>
-                            <i className="fas fa-user-tie" style={{fontSize: '48px', color: 'white', opacity: 0.5}} />
+                      {expert.cardImageUrl ? (
+                        <>
+                          {/* 카드 이미지 모드: 카드 이미지 + 자세히보기 버튼 */}
+                          <div className="card-image-full">
+                            <img
+                              src={expert.cardImageUrl}
+                              alt={`${expert.name} 전문가 카드`}
+                              loading="lazy"
+                            />
                           </div>
-                          <span className="expert-badge">인증 전문가</span>
-                        </div>
+                          <Link href={`/expert-services/${expert._id}`} className="consult-cta">
+                            자세히 보기
+                            <i className="fas fa-arrow-right" aria-hidden="true" />
+                          </Link>
+                        </>
+                      ) : (
+                        <>
+                          {/* 기존 프로필+설명 모드 */}
+                          <div className="card-inner">
+                            <div className="card-image-section">
+                              <img
+                                src={expert.imageUrl}
+                                alt={expert.imageAlt || `${expert.name} 프로필`}
+                                loading="lazy"
+                                onError={(e) => {
+                                  const img = e.currentTarget;
+                                  img.style.display = 'none';
+                                  const placeholder =
+                                    img.parentElement?.querySelector('.image-placeholder-new');
+                                  if (placeholder) {
+                                    (placeholder as HTMLElement).style.display = 'flex';
+                                  }
+                                }}
+                              />
+                              <div
+                                className="image-placeholder-new hidden"
+                                style={{
+                                  display: 'none',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  height: '120px',
+                                  background: 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)',
+                                  borderRadius: '20px',
+                                }}
+                              >
+                                <i
+                                  className="fas fa-user-tie"
+                                  style={{ fontSize: '48px', color: 'white', opacity: 0.5 }}
+                                />
+                              </div>
+                              <span className="expert-badge">인증 전문가</span>
+                            </div>
 
-                        <div className="card-content-section">
-                          <div className="expert-header">
-                            <h3 className="expert-name">
-                              {expert.name} {expert.position && <span className="expert-position">{expert.position}</span>}
-                            </h3>
-                            <p className="expert-company">{expert.companyName}</p>
+                            <div className="card-content-section">
+                              <div className="expert-header">
+                                <h3 className="expert-name">
+                                  {expert.name}{' '}
+                                  {expert.position && (
+                                    <span className="expert-position">{expert.position}</span>
+                                  )}
+                                </h3>
+                                <p className="expert-company">{expert.companyName}</p>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
 
-                      {expert.introduction && (
-                        <p className="expert-intro">
-                          {expert.introduction}
-                        </p>
+                          {expert.introduction && (
+                            <p className="expert-intro">{expert.introduction}</p>
+                          )}
+
+                          {expert.specialties && expert.specialties.length > 0 && (
+                            <div className="expert-specialties">
+                              {expert.specialties.slice(0, 4).map((specialty, idx) => (
+                                <span key={idx} className="specialty-tag">
+                                  {specialty.split(',')[0]}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          <Link href={`/expert-services/${expert._id}`} className="consult-cta">
+                            자세히 보기
+                            <i className="fas fa-arrow-right" aria-hidden="true" />
+                          </Link>
+                        </>
                       )}
-
-                      {expert.specialties && expert.specialties.length > 0 && (
-                        <div className="expert-specialties">
-                          {expert.specialties.slice(0, 4).map((specialty, idx) => (
-                            <span key={idx} className="specialty-tag">{specialty.split(',')[0]}</span>
-                          ))}
-                        </div>
-                      )}
-
-                      <Link
-                        href={`/expert-services/${expert._id}`}
-                        className="consult-cta"
-                      >
-                        자세히 보기
-                        <i className="fas fa-arrow-right" aria-hidden="true" />
-                      </Link>
                     </article>
                   ))}
                 </div>
@@ -322,6 +387,26 @@ export default function ExpertServicesPage() {
             className="mt-12 space-y-10 rounded-3xl bg-white p-8 shadow ring-1 ring-slate-100"
             onSubmit={handleSubmit}
           >
+            {/* 허니팟 필드 */}
+            <div
+              style={{
+                position: 'absolute',
+                left: '-9999px',
+                opacity: 0,
+                height: 0,
+                overflow: 'hidden',
+              }}
+              aria-hidden="true"
+            >
+              <input
+                name="website"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                value={hpValue}
+                onChange={(e) => setHpValue(e.target.value)}
+              />
+            </div>
             <div className="space-y-3">
               <h3 className="flex items-center text-lg font-semibold text-slate-900">
                 <span className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-600">
@@ -334,7 +419,7 @@ export default function ExpertServicesPage() {
                   type="text"
                   placeholder="이름 *"
                   value={form.name}
-                  onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
                   className="rounded-xl border border-slate-200 px-4 py-3 text-sm shadow-sm focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-200"
                   required
                 />
@@ -342,7 +427,7 @@ export default function ExpertServicesPage() {
                   type="tel"
                   placeholder="연락처 *"
                   value={form.phone}
-                  onChange={(e) => setForm(prev => ({ ...prev, phone: e.target.value }))}
+                  onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
                   className="rounded-xl border border-slate-200 px-4 py-3 text-sm shadow-sm focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-200"
                   required
                 />
@@ -350,7 +435,7 @@ export default function ExpertServicesPage() {
                   type="email"
                   placeholder="이메일 *"
                   value={form.email}
-                  onChange={(e) => setForm(prev => ({ ...prev, email: e.target.value }))}
+                  onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
                   className="rounded-xl border border-slate-200 px-4 py-3 text-sm shadow-sm focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-200"
                   required
                 />
@@ -358,7 +443,7 @@ export default function ExpertServicesPage() {
                   type="text"
                   placeholder="회사명 *"
                   value={form.companyName}
-                  onChange={(e) => setForm(prev => ({ ...prev, companyName: e.target.value }))}
+                  onChange={(e) => setForm((prev) => ({ ...prev, companyName: e.target.value }))}
                   className="rounded-xl border border-slate-200 px-4 py-3 text-sm shadow-sm focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-200"
                   required
                 />
@@ -470,6 +555,7 @@ export default function ExpertServicesPage() {
                 </span>
               </label>
 
+              <Turnstile onToken={setTurnstileToken} />
               <div className="flex flex-col items-center gap-3">
                 <button
                   type="submit"

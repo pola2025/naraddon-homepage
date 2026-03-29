@@ -982,7 +982,7 @@ function QuickConsultForm() {
         // 반복접수 차단 (429) 시 서버 메시지 표시
         if (response.status === 429 || result.code === 'RATE_LIMITED') {
           window.alert(
-            '⚠️ 연속접수 10분 내 3회 이상 접수하면 반복자동접수는 시스템 차단됩니다.\n\n잠시 후 다시 시도해주세요.'
+            '⚠️ 짧은 시간 내 너무 많은 접수가 감지되었습니다. 잠시 후 다시 시도해주세요.'
           );
           return;
         }

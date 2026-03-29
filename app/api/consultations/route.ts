@@ -509,8 +509,8 @@ export async function GET(request: NextRequest) {
 // ================================================
 // IP 기반 반복접수 차단 설정
 // ================================================
-const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10분
-const RATE_LIMIT_MAX_REQUESTS = 3; // 10분 내 최대 3회
+const RATE_LIMIT_WINDOW_MS = 30 * 60 * 1000; // 30분
+const RATE_LIMIT_MAX_REQUESTS = 5; // 30분 내 최대 5회
 
 // TTL 인덱스 생성 (1회만 실행, 1시간 후 자동 삭제)
 let rateLimitIndexCreated = false;
@@ -723,15 +723,17 @@ export async function POST(request: NextRequest) {
     });
 
     if (recentCount >= RATE_LIMIT_MAX_REQUESTS) {
-      console.warn(`[RateLimit] IP ${clientIp} 차단 - ${recentCount}회 접수 시도 (10분 내)`);
+      console.warn(`[RateLimit] IP ${clientIp} 차단 - ${recentCount}회 접수 (30분 내)`);
 
-      // 텔레그램으로 스팸 알림
-      waitUntil(
-        sendTelegram(
-          ADMIN_TELEGRAM_CHAT_ID,
-          `🚫 <b>반복접수 차단</b>\nIP: <code>${clientIp}</code>\n10분 내 ${recentCount}회 시도\nUA: ${request.headers.get('user-agent') || 'unknown'}`
-        )
-      );
+      // 과도한 시도(7회+)에만 텔레그램 알림 (정상 사용자 오탐 방지)
+      if (recentCount >= 7) {
+        waitUntil(
+          sendTelegram(
+            ADMIN_TELEGRAM_CHAT_ID,
+            `🚫 <b>반복접수 차단</b>\nIP: <code>${clientIp}</code>\n30분 내 ${recentCount}회 접수\nUA: ${request.headers.get('user-agent') || 'unknown'}`
+          )
+        );
+      }
 
       return NextResponse.json(
         {
@@ -742,12 +744,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // IP 접수 기록 저장
-    await rateLimitCollection.insertOne({
-      ip: clientIp,
-      createdAt: new Date(),
-      userAgent: request.headers.get('user-agent') || '',
-    });
+    // 참고: IP 접수 기록은 실제 DB 저장 성공 후에 기록 (아래 insertOne 이후)
 
     const consultation: Partial<ConsultationRequest> = {
       source: ConsultationSource.WEB_FORM,
@@ -786,6 +783,13 @@ export async function POST(request: NextRequest) {
     // STEP 1: MongoDB 저장 (필수 - 실패 시 에러 반환)
     // ========================================
     const result = await db.collection('consultations').insertOne(consultation);
+
+    // 실제 접수 성공 후에만 rate limit 카운트 기록
+    await rateLimitCollection.insertOne({
+      ip: clientIp,
+      createdAt: new Date(),
+      userAgent: request.headers.get('user-agent') || '',
+    });
 
     // ========================================
     // STEP 2: 즉시 응답 반환 (사용자 대기 없음)
