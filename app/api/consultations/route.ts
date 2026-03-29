@@ -507,10 +507,12 @@ export async function GET(request: NextRequest) {
 }
 
 // ================================================
-// IP 기반 반복접수 차단 설정
+// 반복접수 차단 설정
+// IP+전화번호 조합으로 동일인 판별 (같은 IP의 다른 고객은 허용)
 // ================================================
 const RATE_LIMIT_WINDOW_MS = 30 * 60 * 1000; // 30분
-const RATE_LIMIT_MAX_REQUESTS = 5; // 30분 내 최대 5회
+const RATE_LIMIT_MAX_REQUESTS = 3; // 동일인 30분 내 최대 3회
+const IP_ONLY_RATE_LIMIT_MAX = 10; // 같은 IP 전체 30분 내 최대 10회 (봇 방지)
 
 // TTL 인덱스 생성 (1회만 실행, 1시간 후 자동 삭제)
 let rateLimitIndexCreated = false;
@@ -711,30 +713,47 @@ export async function POST(request: NextRequest) {
     }
 
     // ========================================
-    // IP 기반 반복접수 차단
+    // 반복접수 차단 (IP+전화번호 동일인 판별)
     // ========================================
     await ensureRateLimitIndex(db);
     const rateLimitCollection = db.collection('consultation-rate-limits');
-
     const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_MS);
-    const recentCount = await rateLimitCollection.countDocuments({
+    const userPhone = data.userPhone || data.contactPhone || '';
+
+    // 1차: 동일인 체크 (IP + 전화번호 조합)
+    const samePersonCount = await rateLimitCollection.countDocuments({
+      ip: clientIp,
+      phone: userPhone,
+      createdAt: { $gte: windowStart },
+    });
+
+    if (samePersonCount >= RATE_LIMIT_MAX_REQUESTS) {
+      console.warn(
+        `[RateLimit] 동일인 차단: IP ${clientIp}, 전화 ${userPhone} - ${samePersonCount}회 (30분 내)`
+      );
+      return NextResponse.json(
+        {
+          error: '이미 접수가 완료되었습니다. 동일한 건으로 중복 접수는 제한됩니다.',
+          code: 'RATE_LIMITED',
+        },
+        { status: 429 }
+      );
+    }
+
+    // 2차: 같은 IP 전체 봇 방지 (IP만, 10회 이상이면 봇 의심)
+    const ipTotalCount = await rateLimitCollection.countDocuments({
       ip: clientIp,
       createdAt: { $gte: windowStart },
     });
 
-    if (recentCount >= RATE_LIMIT_MAX_REQUESTS) {
-      console.warn(`[RateLimit] IP ${clientIp} 차단 - ${recentCount}회 접수 (30분 내)`);
-
-      // 과도한 시도(7회+)에만 텔레그램 알림 (정상 사용자 오탐 방지)
-      if (recentCount >= 7) {
-        waitUntil(
-          sendTelegram(
-            ADMIN_TELEGRAM_CHAT_ID,
-            `🚫 <b>반복접수 차단</b>\nIP: <code>${clientIp}</code>\n30분 내 ${recentCount}회 접수\nUA: ${request.headers.get('user-agent') || 'unknown'}`
-          )
-        );
-      }
-
+    if (ipTotalCount >= IP_ONLY_RATE_LIMIT_MAX) {
+      console.warn(`[RateLimit] IP 전체 차단: ${clientIp} - ${ipTotalCount}회 (30분 내)`);
+      waitUntil(
+        sendTelegram(
+          ADMIN_TELEGRAM_CHAT_ID,
+          `🚫 <b>IP 대량접수 차단</b>\nIP: <code>${clientIp}</code>\n30분 내 ${ipTotalCount}회 접수\nUA: ${request.headers.get('user-agent') || 'unknown'}`
+        )
+      );
       return NextResponse.json(
         {
           error: '짧은 시간 내 너무 많은 요청이 감지되었습니다. 잠시 후 다시 시도해주세요.',
@@ -744,7 +763,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 참고: IP 접수 기록은 실제 DB 저장 성공 후에 기록 (아래 insertOne 이후)
+    // 참고: 접수 기록은 실제 DB 저장 성공 후에 기록 (아래 insertOne 이후)
 
     const consultation: Partial<ConsultationRequest> = {
       source: ConsultationSource.WEB_FORM,
@@ -784,9 +803,10 @@ export async function POST(request: NextRequest) {
     // ========================================
     const result = await db.collection('consultations').insertOne(consultation);
 
-    // 실제 접수 성공 후에만 rate limit 카운트 기록
+    // 실제 접수 성공 후에만 rate limit 카운트 기록 (IP+전화번호로 동일인 판별)
     await rateLimitCollection.insertOne({
       ip: clientIp,
+      phone: userPhone,
       createdAt: new Date(),
       userAgent: request.headers.get('user-agent') || '',
     });
