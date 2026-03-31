@@ -1,11 +1,28 @@
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
+import clientPromise from '@/lib/mongodb-client';
 
-// 메모리 내 세션 저장소 (프로덕션에서는 Redis 등으로 교체 권장)
-const sessions = new Map<string, { createdAt: Date; expiresAt: Date }>();
+/**
+ * 관리자 인증 모듈
+ *
+ * @purpose 관리자 비밀번호 검증 + 세션 관리
+ * @context 2026-03-31 in-memory Map → MongoDB로 이전 (serverless 호환)
+ * @note auth-options.ts(NextAuth/네이버 로그인)와 완전 분리된 별도 시스템
+ */
 
 // 세션 만료 시간 (24시간)
 const SESSION_DURATION = 24 * 60 * 60 * 1000;
+const SESSION_COLLECTION = 'admin-sessions';
+
+/** MongoDB admin-sessions 컬렉션 접근 */
+async function getSessionCollection() {
+  const client = await clientPromise;
+  const db = client.db('naraddon');
+  const col = db.collection(SESSION_COLLECTION);
+  // TTL 인덱스 (24시간 후 자동 삭제)
+  await col.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }).catch(() => {});
+  return col;
+}
 
 // 관리자 비밀번호 검증 (타이밍 안전 비교)
 export const verifyAdminPassword = (password: string): boolean => {
@@ -20,17 +37,24 @@ export const verifyAdminPassword = (password: string): boolean => {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 };
 
-// 세션 생성
+// 세션 생성 (MongoDB 저장)
 export const createAdminSession = async (): Promise<string> => {
   const sessionToken = crypto.randomBytes(32).toString('hex');
   const now = new Date();
   const expiresAt = new Date(now.getTime() + SESSION_DURATION);
 
-  // 세션 저장
-  sessions.set(sessionToken, {
-    createdAt: now,
-    expiresAt: expiresAt,
-  });
+  // MongoDB에 세션 저장
+  try {
+    const col = await getSessionCollection();
+    await col.insertOne({
+      token: sessionToken,
+      createdAt: now,
+      expiresAt,
+    });
+  } catch (error) {
+    console.error('[나라똔:관리자세션] MongoDB 세션 저장 실패:', error);
+    // 저장 실패해도 쿠키는 설정 (다음 검증에서 실패할 뿐)
+  }
 
   // 쿠키 설정
   const cookieStore = cookies();
@@ -38,17 +62,14 @@ export const createAdminSession = async (): Promise<string> => {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: SESSION_DURATION / 1000, // 초 단위
+    maxAge: SESSION_DURATION / 1000,
     path: '/',
   });
-
-  // 만료된 세션 정리
-  cleanupExpiredSessions();
 
   return sessionToken;
 };
 
-// 세션 검증
+// 세션 검증 (MongoDB 조회)
 export const validateAdminSession = async (): Promise<boolean> => {
   const cookieStore = cookies();
   const sessionToken = cookieStore.get('admin-session')?.value;
@@ -57,18 +78,18 @@ export const validateAdminSession = async (): Promise<boolean> => {
     return false;
   }
 
-  const session = sessions.get(sessionToken);
-  if (!session) {
+  try {
+    const col = await getSessionCollection();
+    const session = await col.findOne({
+      token: sessionToken,
+      expiresAt: { $gt: new Date() },
+    });
+
+    return !!session;
+  } catch (error) {
+    console.error('[나라똔:관리자세션] MongoDB 세션 검증 실패:', error);
     return false;
   }
-
-  // 세션 만료 확인
-  if (session.expiresAt < new Date()) {
-    sessions.delete(sessionToken);
-    return false;
-  }
-
-  return true;
 };
 
 // 세션 삭제 (로그아웃)
@@ -77,7 +98,12 @@ export const deleteAdminSession = async (): Promise<void> => {
   const sessionToken = cookieStore.get('admin-session')?.value;
 
   if (sessionToken) {
-    sessions.delete(sessionToken);
+    try {
+      const col = await getSessionCollection();
+      await col.deleteOne({ token: sessionToken });
+    } catch (error) {
+      console.error('[나라똔:관리자세션] MongoDB 세션 삭제 실패:', error);
+    }
   }
 
   // 쿠키 삭제
@@ -90,16 +116,6 @@ export const deleteAdminSession = async (): Promise<void> => {
   });
 };
 
-// 만료된 세션 정리
-const cleanupExpiredSessions = (): void => {
-  const now = new Date();
-  for (const [token, session] of sessions.entries()) {
-    if (session.expiresAt < now) {
-      sessions.delete(token);
-    }
-  }
-};
-
 // 세션 연장 (활동 시)
 export const extendAdminSession = async (): Promise<void> => {
   const cookieStore = cookies();
@@ -109,9 +125,11 @@ export const extendAdminSession = async (): Promise<void> => {
     return;
   }
 
-  const session = sessions.get(sessionToken);
-  if (session) {
-    const now = new Date();
-    session.expiresAt = new Date(now.getTime() + SESSION_DURATION);
+  try {
+    const col = await getSessionCollection();
+    const newExpiry = new Date(Date.now() + SESSION_DURATION);
+    await col.updateOne({ token: sessionToken }, { $set: { expiresAt: newExpiry } });
+  } catch (error) {
+    console.error('[나라똔:관리자세션] MongoDB 세션 연장 실패:', error);
   }
 };
