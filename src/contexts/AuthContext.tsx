@@ -1,6 +1,14 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useSession } from 'next-auth/react';
 import {
   isAdmin as checkIsAdmin,
@@ -25,11 +33,9 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAuthenticated: boolean;
-  // 기존 함수 (하위 호환성)
   hasPermission: (permission: string) => boolean;
   hasRole: (role: string) => boolean;
   checkAccess: (resource: string, action: string) => boolean;
-  // 새로운 역할 체크 함수 (role-check.ts 기반)
   isAdmin: boolean;
   isExaminer: boolean;
   isExpert: boolean;
@@ -43,72 +49,79 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
+  const prevSessionRef = useRef<string>('');
 
   useEffect(() => {
     if (session?.user) {
+      // 세션 데이터가 실제로 변경된 경우만 setUser 호출
+      const sessionKey = `${(session.user as any).id}|${session.user.email}|${(session.user as any).role}`;
+      if (sessionKey === prevSessionRef.current) return;
+      prevSessionRef.current = sessionKey;
+
       setUser({
         id: (session.user as any).id || '',
         email: session.user.email!,
         name: session.user.name || undefined,
         role: (session.user as any).role || 'user',
-        isAdmin: (session.user as any).isAdmin || false,  // isAdmin 플래그 추가
+        isAdmin: (session.user as any).isAdmin || false,
         permissions: (session.user as any).permissions || [],
       });
     } else {
+      if (prevSessionRef.current === '') return;
+      prevSessionRef.current = '';
       setUser(null);
     }
   }, [session]);
 
-  // 기존 함수 (하위 호환성 유지)
-  const hasPermission = (permission: string): boolean => {
-    if (!user) return false;
-    if (checkIsAdmin(user)) return true;
-    return user.permissions?.includes(permission) || false;
-  };
-
-  const hasRole = (role: string): boolean => {
-    if (!user) return false;
-    if (role === 'admin') return checkIsAdmin(user);
-    if (role === 'examiner') return checkIsExaminer(user);
-    if (role === 'expert') return checkIsExpert(user);
-    return user.role === role;
-  };
-
-  const checkAccess = (resource: string, action: string): boolean => {
-    if (!user) return false;
-    if (checkIsAdmin(user)) return true;
-    const permission = `${resource}:${action}`;
-    return hasPermission(permission);
-  };
-
-  // 새로운 역할 체크 (role-check.ts 기반)
-  const isAdminFlag = checkIsAdmin(user);
-  const isExaminerFlag = checkIsExaminer(user);
-  const isExpertFlag = checkIsExpert(user);
-  const canWriteContentFlag = canWriteContent(user);
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading: status === 'loading',
-        isAuthenticated: !!user,
-        // 기존 함수
-        hasPermission,
-        hasRole,
-        checkAccess,
-        // 새로운 역할 체크
-        isAdmin: isAdminFlag,
-        isExaminer: isExaminerFlag,
-        isExpert: isExpertFlag,
-        canWriteContent: canWriteContentFlag,
-        roleLabel: getRoleLabel(user),
-        roleBadgeColor: getRoleBadgeColor(user),
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const hasPermission = useCallback(
+    (permission: string): boolean => {
+      if (!user) return false;
+      if (checkIsAdmin(user)) return true;
+      return user.permissions?.includes(permission) || false;
+    },
+    [user]
   );
+
+  const hasRole = useCallback(
+    (role: string): boolean => {
+      if (!user) return false;
+      if (role === 'admin') return checkIsAdmin(user);
+      if (role === 'examiner') return checkIsExaminer(user);
+      if (role === 'expert') return checkIsExpert(user);
+      return user.role === role;
+    },
+    [user]
+  );
+
+  const checkAccessFn = useCallback(
+    (resource: string, action: string): boolean => {
+      if (!user) return false;
+      if (checkIsAdmin(user)) return true;
+      return hasPermission(`${resource}:${action}`);
+    },
+    [user, hasPermission]
+  );
+
+  // context value를 useMemo로 안정화 — user/status 변경 시에만 새 객체 생성
+  const value = useMemo<AuthContextType>(
+    () => ({
+      user,
+      loading: status === 'loading',
+      isAuthenticated: !!user,
+      hasPermission,
+      hasRole,
+      checkAccess: checkAccessFn,
+      isAdmin: checkIsAdmin(user),
+      isExaminer: checkIsExaminer(user),
+      isExpert: checkIsExpert(user),
+      canWriteContent: canWriteContent(user),
+      roleLabel: getRoleLabel(user),
+      roleBadgeColor: getRoleBadgeColor(user),
+    }),
+    [user, status, hasPermission, hasRole, checkAccessFn]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => {

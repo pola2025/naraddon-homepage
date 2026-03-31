@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface CanAccessProps {
@@ -11,7 +12,11 @@ interface CanAccessProps {
   action?: string;
 }
 
-export default function CanAccess({
+/**
+ * 역할/권한 기반 접근 제어 게이트
+ * React.memo로 감싸서 auth 상태 변경 시에만 리렌더
+ */
+const CanAccess = React.memo(function CanAccess({
   children,
   fallback = null,
   role,
@@ -36,4 +41,6 @@ export default function CanAccess({
   }
 
   return hasAccess ? <>{children}</> : <>{fallback}</>;
-}
+});
+
+export default CanAccess;

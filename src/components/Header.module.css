@@ -2,12 +2,16 @@
   position: sticky;
   top: 0;
   width: 100%;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border-bottom: 1px solid rgba(76, 175, 80, 0.06);
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease;
   z-index: var(--z-fixed, 300);
+  contain: layout style;
+  will-change: background-color, box-shadow;
 }
 
 .scrolled {
@@ -33,7 +37,9 @@
   border-radius: 8px;
   color: var(--text-secondary, #4b4b4b);
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .mobileMenuButton:hover,
@@ -136,7 +142,9 @@
   font-weight: 500;
   color: var(--text-secondary, #4b4b4b);
   text-decoration: none;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .navLink:hover,
@@ -167,7 +175,9 @@
   font-weight: 500;
   color: var(--text-secondary, #4b4b4b);
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .dropdownButton:hover,
@@ -191,7 +201,9 @@
   opacity: 0;
   pointer-events: none;
   transform: translateY(-8px);
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
   z-index: 10;
 }
 
@@ -213,7 +225,9 @@
   font-size: 14px;
   color: var(--text-secondary, #4b4b4b);
   text-decoration: none;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .dropdownItem:hover,
@@ -254,7 +268,10 @@
   font-size: 14px;
   text-decoration: none;
   white-space: nowrap;
-  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .loginButton:hover,
@@ -280,7 +297,10 @@
   cursor: pointer;
   font-size: 14px;
   color: var(--text-secondary, #4b4b4b);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .profileButton:hover,
@@ -323,7 +343,9 @@
   opacity: 0;
   pointer-events: none;
   transform: translateY(-8px);
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
   z-index: 12;
 }
 
@@ -374,7 +396,9 @@
   font-size: 14px;
   color: var(--text-secondary, #4b4b4b);
   text-decoration: none;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .profileLink:hover,
@@ -393,7 +417,9 @@
   font-size: 14px;
   color: var(--text-secondary, #4b4b4b);
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .profileLogout:hover,
@@ -449,7 +475,9 @@
   border-radius: 8px;
   color: var(--text-secondary, #4b4b4b);
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .mobileCloseButton:hover,
@@ -509,7 +537,9 @@
   font-weight: 500;
   color: var(--text-secondary, #4b4b4b);
   text-decoration: none;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .mobileNavLink:hover,
@@ -537,7 +567,9 @@
   font-size: 15px;
   color: var(--text-secondary, #4b4b4b);
   text-decoration: none;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .mobileFooterLink:hover,
@@ -556,7 +588,9 @@
   font-size: 15px;
   color: var(--text-secondary, #4b4b4b);
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .mobileLogoutButton:hover,
