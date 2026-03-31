@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb-client';
-import { checkRateLimit, recordRateLimitHit } from '@/lib/rate-limit-middleware';
 import { sanitizeMongoInput } from '@/lib/nosql-sanitize';
 
 /**
@@ -8,7 +7,8 @@ import { sanitizeMongoInput } from '@/lib/nosql-sanitize';
  *
  * @purpose 사용자의 페이지 방문 기록을 MongoDB에 저장
  * @context 관리자 대시보드의 방문 통계를 위해 사용
- * @security rate limiting (30/분/IP), 필드 allowlist, NoSQL 새니타이즈
+ * @security 필드 allowlist + NoSQL 새니타이즈 (rate limit은 middleware에서 처리)
+ * @perf DB 1회 호출만 유지 — 매 페이지 이동마다 호출되므로 성능 최우선
  */
 
 /* 허용 필드만 추출 */
@@ -28,25 +28,11 @@ function pickVisitFields(body: Record<string, unknown>) {
 
 export async function POST(request: NextRequest) {
   try {
-    // IP 추출
     const ip =
       request.ip ||
       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       request.headers.get('x-real-ip') ||
       'unknown';
-
-    // Rate limiting (30 요청/분/IP)
-    const rlKey = `visit:${ip}`;
-    const rl = await checkRateLimit({
-      key: rlKey,
-      maxRequests: 30,
-      windowSeconds: 60,
-      collection: 'rate-limits-visit',
-    });
-    if (!rl.allowed) {
-      return NextResponse.json({ success: false }, { status: 429 });
-    }
-    await recordRateLimitHit(rlKey, 'rate-limits-visit');
 
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
@@ -65,14 +51,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'pathname is required' }, { status: 400 });
     }
 
-    // MongoDB에 방문 기록 저장
+    // MongoDB에 방문 기록 저장 (DB 1회 호출)
     const client = await clientPromise;
     const db = client.db('naraddon');
-    const visitsCollection = db.collection('page-visits');
 
     const utmParams = data.utmParams as Record<string, unknown>;
 
-    const result = await visitsCollection.insertOne({
+    const result = await db.collection('page-visits').insertOne({
       pathname: data.pathname,
       ip,
       userAgent,

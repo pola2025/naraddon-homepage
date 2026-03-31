@@ -20,12 +20,26 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST: 새 쇼츠 등록
+// POST: 새 쇼츠 등록 (관리자 전용)
 export async function POST(req: NextRequest) {
+  // 인증 체크
+  const { getServerSession } = await import('next-auth');
+  const { authOptions } = await import('@/app/auth-options');
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return NextResponse.json({ error: '로그인이 필요합니다.' }, { status: 401 });
+  }
+
   try {
     await connectDB();
 
-    const { title, youtubeUrl, thumbnailUrl, sortOrder } = await req.json();
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: '잘못된 요청 형식입니다.' }, { status: 400 });
+    }
+    const { title, youtubeUrl, thumbnailUrl, sortOrder } = body;
 
     if (!youtubeUrl) {
       return NextResponse.json({ error: '유튜브 URL은 필수입니다.' }, { status: 400 });

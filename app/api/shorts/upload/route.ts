@@ -8,6 +8,14 @@ const BUCKET_NAME = process.env.CLOUDFLARE_R2_BUCKET;
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 export async function POST(request: NextRequest) {
+  // 인증 체크
+  const { getServerSession } = await import('next-auth');
+  const { authOptions } = await import('@/app/auth-options');
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return NextResponse.json({ error: '로그인이 필요합니다.' }, { status: 401 });
+  }
+
   if (!isR2Configured() || !BUCKET_NAME) {
     return NextResponse.json({ error: 'R2 설정 누락' }, { status: 503 });
   }

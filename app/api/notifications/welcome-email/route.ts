@@ -14,8 +14,24 @@ interface WelcomeEmailRequest {
 }
 
 export async function POST(request: NextRequest) {
+  // 내부 API 키 검증
+  const apiKey = request.headers.get('x-api-key');
+  const internalKey = process.env.INTERNAL_API_KEY;
+  if (!internalKey || apiKey !== internalKey) {
+    console.warn('[나라똔:환영이메일] 인증 실패 — 유효하지 않은 API 키');
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
-    const body: WelcomeEmailRequest = await request.json();
+    let body: WelcomeEmailRequest;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: '잘못된 요청 형식입니다.' },
+        { status: 400 }
+      );
+    }
     const { name, email, provider } = body;
 
     console.log('📧 Welcome email request:', { name, email, provider });
@@ -28,7 +44,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: false,
         error: 'Welcome email webhook not configured',
-        skipped: true
+        skipped: true,
       });
     }
 
@@ -37,14 +53,14 @@ export async function POST(request: NextRequest) {
       type: 'welcome_email',
       recipient: {
         name: name || '회원',
-        email: email
+        email: email,
       },
       data: {
         provider: provider,
         registeredAt: new Date().toISOString(),
         websiteUrl: process.env.NEXTAUTH_URL || 'https://naraddon.com',
         loginUrl: `${process.env.NEXTAUTH_URL || 'https://naraddon.com'}/auth/signin`,
-        myPageUrl: `${process.env.NEXTAUTH_URL || 'https://naraddon.com'}/mypage`
+        myPageUrl: `${process.env.NEXTAUTH_URL || 'https://naraddon.com'}/mypage`,
       },
       emailContent: {
         subject: '[나라똔] 회원가입을 환영합니다! 🎉',
@@ -53,9 +69,9 @@ export async function POST(request: NextRequest) {
         variables: {
           userName: name || '회원',
           provider: getProviderName(provider),
-          year: new Date().getFullYear()
-        }
-      }
+          year: new Date().getFullYear(),
+        },
+      },
     };
 
     // Google Apps Script 웹훅 호출
@@ -64,17 +80,20 @@ export async function POST(request: NextRequest) {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(webhookPayload)
+      body: JSON.stringify(webhookPayload),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error('❌ Welcome email webhook failed:', errorText);
-      return NextResponse.json({
-        success: false,
-        error: 'Failed to send welcome email',
-        details: errorText
-      }, { status: 500 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Failed to send welcome email',
+          details: errorText,
+        },
+        { status: 500 }
+      );
     }
 
     const result = await response.json();
@@ -84,9 +103,8 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Welcome email sent',
       recipient: email,
-      result
+      result,
     });
-
   } catch (error: any) {
     console.error('❌ Welcome email error:', error);
 
@@ -103,9 +121,9 @@ export async function POST(request: NextRequest) {
 // Provider 이름 한글 변환
 function getProviderName(provider: string): string {
   const providerNames: Record<string, string> = {
-    'naver': '네이버',
-    'kakao': '카카오',
-    'google': '구글'
+    naver: '네이버',
+    kakao: '카카오',
+    google: '구글',
   };
   return providerNames[provider] || provider;
 }
@@ -117,6 +135,6 @@ export async function GET() {
   return NextResponse.json({
     configured,
     webhookUrl: configured ? '설정됨' : '미설정 - 환영 이메일이 발송되지 않습니다',
-    status: configured ? 'ready' : 'not_configured'
+    status: configured ? 'ready' : 'not_configured',
   });
 }

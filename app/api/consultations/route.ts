@@ -580,8 +580,24 @@ function validateNoUrlsInFields(data: Record<string, unknown>): string | null {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    const data = await request.json();
     const clientIp = getClientIp(request);
+
+    // JSON 파싱 방어 — 공격자가 비정상 body 전송 시 즉시 400 반환
+    let data: any;
+    try {
+      data = await request.json();
+    } catch {
+      console.warn(`[나라똔:상담접수] JSON 파싱 실패 IP=${clientIp}`);
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    }
+
+    // NoSQL injection 방어
+    const { detectNoSQLInjection, sanitizeMongoInput } = await import('@/lib/nosql-sanitize');
+    if (detectNoSQLInjection(data)) {
+      console.warn(`[나라똔:상담접수] NoSQL injection 차단 IP=${clientIp}`);
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    }
+    data = sanitizeMongoInput(data);
 
     // ========================================
     // IP 미식별 요청 차단
@@ -951,7 +967,7 @@ export async function POST(request: NextRequest) {
         );
         const r = await sendTelegram(
           ADMIN_TELEGRAM_CHAT_ID,
-          `🔥 <b>백그라운드 파이프라인 오류</b>\n\n${String(err)}`
+          `[나라똔:상담파이프라인] 🔥 <b>백그라운드 파이프라인 오류</b>\n\n${String(err)}`
         ).catch(() => ({ ok: false }));
       })
     );
@@ -963,7 +979,7 @@ export async function POST(request: NextRequest) {
     // 치명적 오류도 관리자에게 알림
     await sendTelegram(
       ADMIN_TELEGRAM_CHAT_ID,
-      `🔥 <b>상담 접수 치명적 오류</b>\n\n${String(error)}`
+      `[나라똔:상담접수] 🔥 <b>상담 접수 치명적 오류</b>\n\n${String(error)}`
     ).catch(() => {});
 
     return NextResponse.json({ error: '상담 신청 중 오류가 발생했습니다.' }, { status: 500 });
