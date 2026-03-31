@@ -618,7 +618,7 @@ export async function POST(request: NextRequest) {
       waitUntil(
         sendTelegram(
           ADMIN_TELEGRAM_CHAT_ID,
-          `🍯 <b>허니팟 봇 차단</b>\nIP: <code>${clientIp}</code>\n허니팟값: ${String(data._hp_website).slice(0, 100)}`
+          `[나라똔:상담접수] 🍯 <b>허니팟 봇 차단</b>\nIP: <code>${clientIp}</code>\n허니팟값: ${String(data._hp_website).slice(0, 100)}`
         )
       );
       // 봇에게는 성공처럼 보이게 응답
@@ -635,7 +635,7 @@ export async function POST(request: NextRequest) {
         waitUntil(
           sendTelegram(
             ADMIN_TELEGRAM_CHAT_ID,
-            `⏱️ <b>제출시간 봇 차단</b>\nIP: <code>${clientIp}</code>\n제출소요: ${elapsed}ms (3초 미만)`
+            `[나라똔:상담접수] ⏱️ <b>제출시간 봇 차단</b>\nIP: <code>${clientIp}</code>\n제출소요: ${elapsed}ms (3초 미만)`
           )
         );
         return NextResponse.json({ success: true, consultationId: 'ok' });
@@ -698,7 +698,7 @@ export async function POST(request: NextRequest) {
       waitUntil(
         sendTelegram(
           ADMIN_TELEGRAM_CHAT_ID,
-          `🛡️ <b>URL/IP 입력 차단</b>\nIP: <code>${clientIp}</code>\n사유: ${urlCheckError}\n데이터: ${JSON.stringify(data).slice(0, 300)}`
+          `[나라똔:상담접수] 🛡️ <b>URL/IP 입력 차단</b>\nIP: <code>${clientIp}</code>\n사유: ${urlCheckError}\n데이터: ${JSON.stringify(data).slice(0, 300)}`
         )
       );
       return NextResponse.json(
@@ -719,7 +719,7 @@ export async function POST(request: NextRequest) {
       waitUntil(
         sendTelegram(
           ADMIN_TELEGRAM_CHAT_ID,
-          `🚫 <b>블랙리스트 IP 접수 시도</b>\nIP: <code>${clientIp}</code>\n사유: ${blacklisted.reason}\nUA: ${request.headers.get('user-agent') || 'unknown'}`
+          `[나라똔:상담접수] 🚫 <b>블랙리스트 IP 접수 시도</b>\nIP: <code>${clientIp}</code>\n사유: ${blacklisted.reason}\nUA: ${request.headers.get('user-agent') || 'unknown'}`
         )
       );
       return NextResponse.json(
@@ -767,7 +767,7 @@ export async function POST(request: NextRequest) {
       waitUntil(
         sendTelegram(
           ADMIN_TELEGRAM_CHAT_ID,
-          `🚫 <b>IP 대량접수 차단</b>\nIP: <code>${clientIp}</code>\n30분 내 ${ipTotalCount}회 접수\nUA: ${request.headers.get('user-agent') || 'unknown'}`
+          `[나라똔:상담접수] 🚫 <b>IP 대량접수 차단</b>\nIP: <code>${clientIp}</code>\n30분 내 ${ipTotalCount}회 접수\nUA: ${request.headers.get('user-agent') || 'unknown'}`
         )
       );
       return NextResponse.json(
