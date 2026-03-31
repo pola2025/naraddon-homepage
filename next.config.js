@@ -75,6 +75,17 @@ const nextConfig = {
   // 스마트 캐시 전략
   async headers() {
     return [
+      // 0. 보안 헤더 (모든 경로)
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
+        ],
+      },
       // 1. API는 항상 캐시 안함
       {
         source: '/api/:path*',

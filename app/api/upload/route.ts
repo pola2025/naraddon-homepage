@@ -11,10 +11,18 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'im
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 export async function POST(request: NextRequest) {
+  // 인증 체크 - 로그인 필수
+  const { getServerSession } = await import('next-auth');
+  const { authOptions } = await import('@/app/auth-options');
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return NextResponse.json({ error: '로그인이 필요합니다.' }, { status: 401 });
+  }
+
   if (!isR2Configured() || !BUCKET_NAME) {
     return NextResponse.json(
       { error: 'Cloudflare R2 버킷 설정이 누락되었습니다.' },
-      { status: 503 },
+      { status: 503 }
     );
   }
 
@@ -23,24 +31,18 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File | null;
 
     if (!file) {
-      return NextResponse.json(
-        { error: '파일이 존재하지 않습니다.' },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: '파일이 존재하지 않습니다.' }, { status: 400 });
     }
 
     if (!ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json(
         { error: '지원하지 않는 파일 형식입니다. JPG, PNG, WebP, GIF만 허용됩니다.' },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json(
-        { error: '파일 크기가 10MB를 초과합니다.' },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: '파일 크기가 10MB를 초과합니다.' }, { status: 400 });
     }
 
     const extension = file.name.split('.').pop() || 'jpg';
@@ -63,7 +65,7 @@ export async function POST(request: NextRequest) {
       Metadata: {
         'uploaded-at': new Date().toISOString(),
         'original-name-b64': originalNameBase64,
-        'purpose': 'ttontok-image'
+        purpose: 'ttontok-image',
       },
     });
 
@@ -81,9 +83,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('[upload][POST] 이미지 업로드 실패:', error);
-    return NextResponse.json(
-      { error: '이미지 업로드 중 오류가 발생했습니다.' },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: '이미지 업로드 중 오류가 발생했습니다.' }, { status: 500 });
   }
 }

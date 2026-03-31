@@ -23,7 +23,14 @@ export async function GET(request: NextRequest) {
     // 관리자 권한 확인
     let userRole = (session.user as any)?.role;
     let userIsAdmin = (session.user as any)?.isAdmin;
-    console.log('[Admin Users API] Session role:', userRole, 'isAdmin:', userIsAdmin, 'Email:', session.user.email);
+    console.log(
+      '[Admin Users API] Session role:',
+      userRole,
+      'isAdmin:',
+      userIsAdmin,
+      'Email:',
+      session.user.email
+    );
 
     // 🔥 HOTFIX: role이 undefined인 경우 DB에서 직접 조회
     if (!userRole || userIsAdmin === undefined) {
@@ -31,10 +38,9 @@ export async function GET(request: NextRequest) {
       try {
         const client = await clientPromise;
         const db = client.db('naraddon');
-        const dbUser = await db.collection('users').findOne(
-          { email: session.user.email },
-          { projection: { role: 1, isAdmin: 1 } }
-        );
+        const dbUser = await db
+          .collection('users')
+          .findOne({ email: session.user.email }, { projection: { role: 1, isAdmin: 1 } });
 
         if (dbUser) {
           userRole = dbUser.role || userRole;
@@ -49,14 +55,23 @@ export async function GET(request: NextRequest) {
     }
 
     // admin, super_admin 역할이거나 isAdmin이 true인 경우 허용
-    const hasAdminAccess = userRole === 'admin' || userRole === 'super_admin' || userIsAdmin === true;
+    const hasAdminAccess =
+      userRole === 'admin' || userRole === 'super_admin' || userIsAdmin === true;
     if (!hasAdminAccess) {
-      console.log('[Admin Users API] Forbidden - insufficient permissions. Role:', userRole, 'isAdmin:', userIsAdmin);
-      return NextResponse.json({
-        error: 'Forbidden',
-        message: '관리자 권한이 필요합니다.',
-        userRole
-      }, { status: 403 });
+      console.log(
+        '[Admin Users API] Forbidden - insufficient permissions. Role:',
+        userRole,
+        'isAdmin:',
+        userIsAdmin
+      );
+      return NextResponse.json(
+        {
+          error: 'Forbidden',
+          message: '관리자 권한이 필요합니다.',
+          userRole,
+        },
+        { status: 403 }
+      );
     }
 
     // 쿼리 파라미터 처리
@@ -75,28 +90,30 @@ export async function GET(request: NextRequest) {
 
     // 역할 필터
     if (roleParam) {
-      const roles = roleParam.split(',').map(r => r.trim());
+      const roles = roleParam.split(',').map((r) => r.trim());
       filter.role = { $in: roles };
     }
 
-    // 검색 필터
+    // 검색 필터 (ReDoS 방지를 위해 regex 이스케이프 적용)
     if (searchQuery) {
+      const safeSearch = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       filter.$or = [
-        { email: { $regex: searchQuery, $options: 'i' } },
-        { name: { $regex: searchQuery, $options: 'i' } }
+        { email: { $regex: safeSearch, $options: 'i' } },
+        { name: { $regex: safeSearch, $options: 'i' } },
       ];
     }
 
     // 사용자 목록 조회
     console.log('[Admin Users API] Fetching users with filter:', filter);
-    const users = await db.collection('users')
+    const users = await db
+      .collection('users')
       .find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .project({
         password: 0, // 비밀번호 제외
-        authToken: 0 // 인증 토큰 제외
+        authToken: 0, // 인증 토큰 제외
       })
       .toArray();
 
@@ -110,7 +127,8 @@ export async function GET(request: NextRequest) {
     // 각 사용자의 상담 배정 개수 추가
     const usersWithStats = await Promise.all(
       users.map(async (user) => {
-        const assignedConsultations = await db.collection('consultations')
+        const assignedConsultations = await db
+          .collection('consultations')
           .countDocuments({ assignedStaffId: user.email });
 
         return {
@@ -128,7 +146,7 @@ export async function GET(request: NextRequest) {
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
           lastLoginAt: user.lastLoginAt,
-          assignedConsultations
+          assignedConsultations,
         };
       })
     );
@@ -137,14 +155,10 @@ export async function GET(request: NextRequest) {
       users: usersWithStats,
       total,
       limit,
-      skip
+      skip,
     });
-
   } catch (error) {
     console.error('Failed to fetch users:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch users' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
   }
 }

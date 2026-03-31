@@ -7,14 +7,17 @@ const sessions = new Map<string, { createdAt: Date; expiresAt: Date }>();
 // 세션 만료 시간 (24시간)
 const SESSION_DURATION = 24 * 60 * 60 * 1000;
 
-// 관리자 비밀번호 검증
+// 관리자 비밀번호 검증 (타이밍 안전 비교)
 export const verifyAdminPassword = (password: string): boolean => {
   const adminPassword = process.env.ADMIN_PASSWORD;
   if (!adminPassword) {
-    console.error('ADMIN_PASSWORD 환경변수가 설정되지 않았습니다.');
+    console.error('[나라똔:관리자로그인] ADMIN_PASSWORD 환경변수가 설정되지 않았습니다.');
     return false;
   }
-  return password === adminPassword;
+  // 길이가 달라도 일정한 시간 소요되도록 패딩 후 비교
+  const a = Buffer.from(password.padEnd(64, '\0'));
+  const b = Buffer.from(adminPassword.padEnd(64, '\0'));
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
 };
 
 // 세션 생성
@@ -26,7 +29,7 @@ export const createAdminSession = async (): Promise<string> => {
   // 세션 저장
   sessions.set(sessionToken, {
     createdAt: now,
-    expiresAt: expiresAt
+    expiresAt: expiresAt,
   });
 
   // 쿠키 설정
@@ -36,7 +39,7 @@ export const createAdminSession = async (): Promise<string> => {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: SESSION_DURATION / 1000, // 초 단위
-    path: '/'
+    path: '/',
   });
 
   // 만료된 세션 정리
@@ -83,7 +86,7 @@ export const deleteAdminSession = async (): Promise<void> => {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: 0,
-    path: '/'
+    path: '/',
   });
 };
 

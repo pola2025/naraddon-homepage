@@ -1,20 +1,83 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/auth-options';
+import { isAdmin } from '@/lib/auth/role-check';
 import dbConnect from '@/lib/mongodb';
 import Expert from '@/models/Expert';
 
+/**
+ * 전문가 관리 API
+ *
+ * @purpose 전문가 목록 조회(공개) / 등록·수정·삭제(관리자 전용)
+ * @security POST/PUT/DELETE는 NextAuth 세션 + 관리자 권한 필수
+ */
+
+/* 허용 필드 allowlist — MongoDB에 직접 전달되므로 명시적으로 제한 */
+const ALLOWED_EXPERT_FIELDS = [
+  'name',
+  'title',
+  'imageKey',
+  'imageUrl',
+  'specialty',
+  'bio',
+  'order',
+  'isActive',
+  'contact',
+  'career',
+  'education',
+  'certificates',
+  'description',
+] as const;
+
+/** body에서 허용 필드만 추출 */
+function pickAllowed(body: Record<string, unknown>): Record<string, unknown> {
+  const safe: Record<string, unknown> = {};
+  for (const key of ALLOWED_EXPERT_FIELDS) {
+    if (key in body) {
+      safe[key] = body[key];
+    }
+  }
+  return safe;
+}
+
+/** 관리자 세션 검증 — 실패 시 NextResponse 반환 */
+async function requireAdminSession(): Promise<
+  { ok: true } | { ok: false; response: NextResponse }
+> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { success: false, error: '로그인이 필요합니다.' },
+        { status: 401 }
+      ),
+    };
+  }
+  if (!isAdmin(session.user)) {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { success: false, error: '관리자 권한이 필요합니다.' },
+        { status: 403 }
+      ),
+    };
+  }
+  return { ok: true };
+}
+
+/* ───── GET: 전문가 목록 (공개) ───── */
 export async function GET(request: NextRequest) {
   try {
     await dbConnect();
 
-    // 관리자 권한이 있으면 모든 전문가, 없으면 활성화된 전문가만
-    const adminAuth = request.headers.get('x-admin-auth');
-    const query = adminAuth === 'true' ? {} : { isActive: true };
+    /* 관리자 세션이 있으면 전체, 없으면 활성 전문가만 */
+    const session = await getServerSession(authOptions);
+    const isAdminUser = session?.user ? isAdmin(session.user) : false;
+    const query = isAdminUser ? {} : { isActive: true };
 
-    const experts = await Expert.find(query)
-      .sort({ order: 1, createdAt: -1 })
-      .select('-__v');
+    const experts = await Expert.find(query).sort({ order: 1, createdAt: -1 }).select('-__v');
 
-    // Transform to include imageUrl
     const transformedExperts = experts.map((expert) => {
       const expertObj = expert.toObject();
       return {
@@ -26,31 +89,31 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ success: true, experts: transformedExperts });
   } catch (error) {
-    console.error('Error fetching experts:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch experts' },
-      { status: 500 }
-    );
+    console.error('[나라똔:전문가관리] 목록 조회 실패:', error);
+    return NextResponse.json({ success: false, error: 'Failed to fetch experts' }, { status: 500 });
   }
 }
 
+/* ───── POST: 전문가 등록 (관리자 전용) ───── */
 export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { password, ...expertData } = body;
+  const auth = await requireAdminSession();
+  if (!auth.ok) return auth.response;
 
-    // Check admin auth header or password
-    const adminAuth = request.headers.get('x-admin-auth');
-    if (adminAuth !== 'true' && password !== process.env.EXPERT_SERVICES_PASSWORD) {
+  try {
+    let body: Record<string, unknown>;
+    try {
+      body = (await request.json()) as Record<string, unknown>;
+    } catch {
       return NextResponse.json(
-        { success: false, error: 'Invalid password' },
-        { status: 401 }
+        { success: false, error: '잘못된 요청 형식입니다.' },
+        { status: 400 }
       );
     }
 
+    const expertData = pickAllowed(body);
+
     await dbConnect();
 
-    // Get the highest order number
     const lastExpert = await Expert.findOne({}).sort({ order: -1 });
     const newOrder = lastExpert ? lastExpert.order + 1 : 0;
 
@@ -62,80 +125,63 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, expert });
   } catch (error) {
-    console.error('Error creating expert:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to create expert' },
-      { status: 500 }
-    );
+    console.error('[나라똔:전문가관리] 등록 실패:', error);
+    return NextResponse.json({ success: false, error: 'Failed to create expert' }, { status: 500 });
   }
 }
 
+/* ───── PUT: 전문가 수정 (관리자 전용) ───── */
 export async function PUT(request: NextRequest) {
+  const auth = await requireAdminSession();
+  if (!auth.ok) return auth.response;
+
   try {
-    const body = await request.json();
-    const { password, id, ...updateData } = body;
-
-    // Check admin auth header or password
-    const adminAuth = request.headers.get('x-admin-auth');
-    if (adminAuth !== 'true' && password !== process.env.EXPERT_SERVICES_PASSWORD) {
+    let body: Record<string, unknown>;
+    try {
+      body = (await request.json()) as Record<string, unknown>;
+    } catch {
       return NextResponse.json(
-        { success: false, error: 'Invalid password' },
-        { status: 401 }
-      );
-    }
-
-    if (!id) {
-      return NextResponse.json(
-        { success: false, error: 'Expert ID is required' },
+        { success: false, error: '잘못된 요청 형식입니다.' },
         { status: 400 }
       );
     }
 
+    const { id } = body;
+    if (!id || typeof id !== 'string') {
+      return NextResponse.json({ success: false, error: 'Expert ID is required' }, { status: 400 });
+    }
+
+    const updateData = pickAllowed(body);
+
     await dbConnect();
 
-    const expert = await Expert.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true, runValidators: true }
-    );
+    const expert = await Expert.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!expert) {
-      return NextResponse.json(
-        { success: false, error: 'Expert not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: 'Expert not found' }, { status: 404 });
     }
 
     return NextResponse.json({ success: true, expert });
   } catch (error) {
-    console.error('Error updating expert:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to update expert' },
-      { status: 500 }
-    );
+    console.error('[나라똔:전문가관리] 수정 실패:', error);
+    return NextResponse.json({ success: false, error: 'Failed to update expert' }, { status: 500 });
   }
 }
 
+/* ───── DELETE: 전문가 삭제 (관리자 전용) ───── */
 export async function DELETE(request: NextRequest) {
+  const auth = await requireAdminSession();
+  if (!auth.ok) return auth.response;
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    const password = searchParams.get('password');
-
-    // Check admin auth header or password
-    const adminAuth = request.headers.get('x-admin-auth');
-    if (adminAuth !== 'true' && password !== process.env.EXPERT_SERVICES_PASSWORD) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid password' },
-        { status: 401 }
-      );
-    }
 
     if (!id) {
-      return NextResponse.json(
-        { success: false, error: 'Expert ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'Expert ID is required' }, { status: 400 });
     }
 
     await dbConnect();
@@ -143,18 +189,12 @@ export async function DELETE(request: NextRequest) {
     const expert = await Expert.findByIdAndDelete(id);
 
     if (!expert) {
-      return NextResponse.json(
-        { success: false, error: 'Expert not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: 'Expert not found' }, { status: 404 });
     }
 
     return NextResponse.json({ success: true, message: 'Expert deleted successfully' });
   } catch (error) {
-    console.error('Error deleting expert:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to delete expert' },
-      { status: 500 }
-    );
+    console.error('[나라똔:전문가관리] 삭제 실패:', error);
+    return NextResponse.json({ success: false, error: 'Failed to delete expert' }, { status: 500 });
   }
 }

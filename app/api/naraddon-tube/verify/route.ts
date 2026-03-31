@@ -49,25 +49,40 @@ const seedExaminersIfNeeded = async () => {
 // 인증 확인 API
 export async function POST(request: Request) {
   try {
-    console.log('[naraddon-tube/verify] POST request received');
+    // Rate limiting (5회/15분/IP)
+    const { checkRateLimit, recordRateLimitHit } = await import('@/lib/rate-limit-middleware');
+    const { getClientIP } = await import('@/lib/security');
+    const ip = getClientIP(request as NextRequest);
+    const rlKey = `tube-verify:${ip}`;
+    const rl = await checkRateLimit({ key: rlKey, maxRequests: 5, windowSeconds: 900 });
+    if (!rl.allowed) {
+      console.warn(`[나라똔:튜브인증] rate limit 초과 IP=${ip}`);
+      return NextResponse.json({ message: '요청이 너무 많습니다.' }, { status: 429 });
+    }
+    await recordRateLimitHit(rlKey);
 
-    const body = await request.json();
+    let body: { password?: string };
+    try {
+      body = await (request as any).json();
+    } catch {
+      return NextResponse.json({ message: '잘못된 요청 형식입니다.' }, { status: 400 });
+    }
     const { password } = body ?? {};
 
-    console.log('[naraddon-tube/verify] Checking password...');
-
     if (!ADMIN_PASSWORD) {
-      console.error('[naraddon-tube/verify] NARADDON_TUBE_PASSWORD not set in environment');
-      return NextResponse.json({
-        message: '서버 설정 오류: 비밀번호가 설정되지 않았습니다.'
-      }, { status: 500 });
+      console.error('[나라똔:튜브인증] NARADDON_TUBE_PASSWORD not set');
+      return NextResponse.json({ message: '서버 설정 오류입니다.' }, { status: 500 });
     }
 
-    if (!password || password !== ADMIN_PASSWORD) {
-      console.log('[naraddon-tube/verify] Invalid password');
-      return NextResponse.json({
-        message: '비밀번호가 올바르지 않습니다.'
-      }, { status: 401 });
+    // 타이밍 안전 비밀번호 비교
+    const crypto = await import('crypto');
+    const a = Buffer.from(String(password || '').padEnd(64, '\0'));
+    const b = Buffer.from(ADMIN_PASSWORD.padEnd(64, '\0'));
+    const isValid = a.length === b.length && crypto.timingSafeEqual(a, b);
+
+    if (!password || !isValid) {
+      console.warn(`[나라똔:튜브인증] 비밀번호 불일치 IP=${ip}`);
+      return NextResponse.json({ message: '비밀번호가 올바르지 않습니다.' }, { status: 401 });
     }
 
     // 비밀번호가 맞으면 DB 연결 및 시드 데이터 초기화
@@ -77,13 +92,16 @@ export async function POST(request: Request) {
     console.log('[naraddon-tube/verify] Authentication successful');
     return NextResponse.json({
       success: true,
-      message: '인증되었습니다.'
+      message: '인증되었습니다.',
     });
   } catch (error) {
     console.error('[naraddon-tube/verify] Error:', error);
-    return NextResponse.json({
-      message: '비밀번호 확인에 실패했습니다.'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        message: '비밀번호 확인에 실패했습니다.',
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -97,22 +115,27 @@ export async function GET(request: NextRequest) {
 
     if (!ADMIN_PASSWORD) {
       console.error('[naraddon-tube/verify] NARADDON_TUBE_PASSWORD not set');
-      return NextResponse.json({
-        message: '서버 설정 오류'
-      }, { status: 500 });
+      return NextResponse.json(
+        {
+          message: '서버 설정 오류',
+        },
+        { status: 500 }
+      );
     }
 
     if (!password || password !== ADMIN_PASSWORD) {
-      return NextResponse.json({
-        message: '인증이 필요합니다.'
-      }, { status: 401 });
+      return NextResponse.json(
+        {
+          message: '인증이 필요합니다.',
+        },
+        { status: 401 }
+      );
     }
 
     await connectDB();
     await seedExaminersIfNeeded();
 
-    const examiners = await ExaminerProfile
-      .find({ isPublished: true })
+    const examiners = await ExaminerProfile.find({ isPublished: true })
       .sort({ sortOrder: 1, createdAt: -1 })
       .lean();
 
@@ -121,12 +144,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       examiners,
-      total: examiners.length
+      total: examiners.length,
     });
   } catch (error) {
     console.error('[naraddon-tube/verify] GET Error:', error);
-    return NextResponse.json({
-      message: '심사관 목록 조회에 실패했습니다.'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        message: '심사관 목록 조회에 실패했습니다.',
+      },
+      { status: 500 }
+    );
   }
 }

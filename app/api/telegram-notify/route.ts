@@ -17,7 +17,23 @@ interface TelegramNotifyRequest {
 
 export async function POST(request: NextRequest) {
   try {
-    const body: TelegramNotifyRequest = await request.json();
+    // 내부 API 키 검증
+    const apiKey = request.headers.get('x-api-key');
+    const internalKey = process.env.INTERNAL_API_KEY;
+    if (!internalKey || apiKey !== internalKey) {
+      console.warn('[나라똔:텔레그램알림] 인증 실패 — 유효하지 않은 API 키');
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    let body: TelegramNotifyRequest;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: '잘못된 요청 형식입니다.' },
+        { status: 400 }
+      );
+    }
     const { message, type = 'info', details } = body;
 
     // 환경변수 확인
@@ -29,7 +45,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: false,
         error: 'TELEGRAM_BOT_TOKEN 또는 TELEGRAM_CHAT_ID 미설정',
-        skipped: true
+        skipped: true,
       });
     }
 
@@ -38,7 +54,7 @@ export async function POST(request: NextRequest) {
       info: 'ℹ️',
       warning: '⚠️',
       success: '✅',
-      error: '❌'
+      error: '❌',
     };
 
     const icon = icons[type];
@@ -78,30 +94,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       messageId: result.result.message_id,
-      sentAt: new Date().toISOString()
+      sentAt: new Date().toISOString(),
     });
-
   } catch (error: any) {
-    console.error('❌ Telegram 알림 실패:', error);
+    console.error('[나라똔:텔레그램알림] 전송 실패:', error);
 
     return NextResponse.json(
-      {
-        success: false,
-        error: error.message,
-      },
+      { success: false, error: '알림 전송에 실패했습니다.' },
       { status: 500 }
     );
   }
 }
 
-// GET 요청: 상태 확인용
-export async function GET() {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
-
-  return NextResponse.json({
-    configured: !!(botToken && chatId),
-    botToken: botToken ? '설정됨 (****' + botToken.slice(-4) + ')' : '미설정',
-    chatId: chatId ? '설정됨 (****' + chatId.slice(-4) + ')' : '미설정',
-  });
-}
+// GET 제거 — 봇 토큰/채팅ID 부분 노출 방지

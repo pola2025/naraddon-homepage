@@ -52,7 +52,7 @@ class UmamiClient {
       {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${this.token}`,
+          Authorization: `Bearer ${this.token}`,
           'Content-Type': 'application/json',
         },
       }
@@ -119,28 +119,23 @@ export async function GET(request: NextRequest) {
   try {
     // 세션 확인
     const session = await getServerSession(authOptions);
-    console.log('[Admin Stats API] Session:', session ? { email: session.user?.email } : 'NO SESSION');
+    console.log(
+      '[Admin Stats API] Session:',
+      session ? { email: session.user?.email } : 'NO SESSION'
+    );
 
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 관리자 권한 확인 - 개발 중에는 일단 통과
+    // 관리자 권한 확인
     const userRole = (session.user as any)?.role;
-    console.log('[Admin Stats API] User role:', userRole);
-    console.log('[Admin Stats API] Full session.user:', session.user);
-
-    // 임시로 권한 체크 완화 - 로그인한 사용자라면 대시보드 확인 가능
-    // if (userRole !== 'admin' && userRole !== 'super_admin') {
-    //   return NextResponse.json({
-    //     error: 'Forbidden - Admin access required',
-    //     debug: {
-    //       userEmail: session.user?.email,
-    //       userRole: userRole,
-    //       requiredRoles: ['admin', 'super_admin']
-    //     }
-    //   }, { status: 403 });
-    // }
+    if (userRole !== 'admin' && userRole !== 'super_admin') {
+      console.warn(
+        `[나라똔:관리자통계] 권한 없는 접근 email=${session.user?.email} role=${userRole}`
+      );
+      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
+    }
 
     // 날짜 파라미터 파싱 (쿼리스트링에서)
     const { searchParams } = new URL(request.url);
@@ -180,7 +175,7 @@ export async function GET(request: NextRequest) {
       yesterdayVisits,
       monthlyVisits,
       totalVisits,
-      allVisits
+      allVisits,
     ] = await Promise.all([
       // 전체 사용자 수
       db.collection('users').countDocuments(),
@@ -198,13 +193,14 @@ export async function GET(request: NextRequest) {
       db.collection('policy-news').countDocuments(),
 
       // 나라돈 튜브 영상 수 (전체 entries의 videos 배열 합산)
-      db.collection('naraddon-tube').aggregate([
-        { $unwind: '$videos' },
-        { $count: 'total' }
-      ]).toArray(),
+      db
+        .collection('naraddon-tube')
+        .aggregate([{ $unwind: '$videos' }, { $count: 'total' }])
+        .toArray(),
 
       // 최근 가입 사용자 (5명)
-      db.collection('users')
+      db
+        .collection('users')
         .find({})
         .sort({ createdAt: -1 })
         .limit(5)
@@ -212,7 +208,8 @@ export async function GET(request: NextRequest) {
         .toArray(),
 
       // 최근 상담 신청 (5건)
-      db.collection('consultations')
+      db
+        .collection('consultations')
         .find({})
         .sort({ createdAt: -1 })
         .limit(5)
@@ -220,30 +217,28 @@ export async function GET(request: NextRequest) {
         .toArray(),
 
       // 오늘 방문자 수
-      db.collection('page-visits')
-        .countDocuments({ timestamp: { $gte: today } }),
+      db.collection('page-visits').countDocuments({ timestamp: { $gte: today } }),
 
       // 어제 방문자 수
-      db.collection('page-visits')
-        .countDocuments({ timestamp: { $gte: yesterday, $lt: today } }),
+      db.collection('page-visits').countDocuments({ timestamp: { $gte: yesterday, $lt: today } }),
 
       // 이번 달 방문자 수
-      db.collection('page-visits')
-        .countDocuments({ timestamp: { $gte: thisMonth } }),
+      db.collection('page-visits').countDocuments({ timestamp: { $gte: thisMonth } }),
 
       // 전체 방문자 수
       db.collection('page-visits').countDocuments(),
 
       // 방문 기록 상세 (디바이스 및 유입경로 분석용) - 날짜 필터 적용
-      db.collection('page-visits')
+      db
+        .collection('page-visits')
         .find({
           timestamp: {
             $gte: filterStartDate,
-            $lte: filterEndDate
-          }
+            $lte: filterEndDate,
+          },
         })
         .project({ userAgent: 1, referer: 1, pathname: 1, timestamp: 1 })
-        .toArray()
+        .toArray(),
     ]);
 
     /**
@@ -256,7 +251,7 @@ export async function GET(request: NextRequest) {
       mobile: 0,
       desktop: 0,
       tablet: 0,
-      unknown: 0
+      unknown: 0,
     };
 
     /**
@@ -267,16 +262,24 @@ export async function GET(request: NextRequest) {
      */
     const referrerStats: { [key: string]: number } = {};
     const trafficSourceStats: { [key: string]: number } = {
-      direct: 0,      // 직접 유입 (Vercel 포함)
-      search: 0,      // 검색 엔진
-      social: 0,      // SNS
-      other: 0        // 기타
+      direct: 0, // 직접 유입 (Vercel 포함)
+      search: 0, // 검색 엔진
+      social: 0, // SNS
+      other: 0, // 기타
     };
 
     // 검색 엔진 도메인
     const searchEngines = ['google.', 'naver.', 'daum.', 'bing.', 'yahoo.', 'duckduckgo.'];
     // SNS 도메인
-    const socialMedia = ['instagram.', 'facebook.', 'twitter.', 'linkedin.', 'youtube.', 'kakao.', 't.co'];
+    const socialMedia = [
+      'instagram.',
+      'facebook.',
+      'twitter.',
+      'linkedin.',
+      'youtube.',
+      'kakao.',
+      't.co',
+    ];
     // Vercel 도메인
     const vercelDomains = ['vercel.app', 'vercel.com'];
 
@@ -316,14 +319,14 @@ export async function GET(request: NextRequest) {
           }
 
           // Vercel 확인 (직접 유입으로 분류)
-          if (vercelDomains.some(domain => refererDomain.includes(domain))) {
+          if (vercelDomains.some((domain) => refererDomain.includes(domain))) {
             trafficSourceStats.direct++;
             // Vercel은 유입경로 차트에 포함하지 않음
             return;
           }
 
           // 검색 엔진 확인
-          if (searchEngines.some(engine => refererDomain.includes(engine))) {
+          if (searchEngines.some((engine) => refererDomain.includes(engine))) {
             trafficSourceStats.search++;
             if (referrerStats[refererDomain]) {
               referrerStats[refererDomain]++;
@@ -334,7 +337,7 @@ export async function GET(request: NextRequest) {
           }
 
           // SNS 확인
-          if (socialMedia.some(social => refererDomain.includes(social))) {
+          if (socialMedia.some((social) => refererDomain.includes(social))) {
             trafficSourceStats.social++;
             if (referrerStats[refererDomain]) {
               referrerStats[refererDomain]++;
@@ -391,20 +394,20 @@ export async function GET(request: NextRequest) {
 
     // 최근 활동 통합 및 정렬
     const recentActivities = [
-      ...recentUsers.map(user => ({
+      ...recentUsers.map((user) => ({
         id: user._id.toString(),
         type: 'user',
         description: '새로운 사용자 가입',
         timestamp: new Date(user.createdAt).toLocaleString('ko-KR'),
-        user: user.email || user.name || '알 수 없음'
+        user: user.email || user.name || '알 수 없음',
       })),
-      ...recentConsultations.map(consultation => ({
+      ...recentConsultations.map((consultation) => ({
         id: consultation._id.toString(),
         type: 'consultation',
         description: `새로운 ${consultation.consultationType || '일반'} 상담 신청`,
         timestamp: new Date(consultation.createdAt).toLocaleString('ko-KR'),
-        user: consultation.userEmail || '알 수 없음'
-      }))
+        user: consultation.userEmail || '알 수 없음',
+      })),
     ]
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
       .slice(0, 10); // 최근 10개만
@@ -423,10 +426,7 @@ export async function GET(request: NextRequest) {
       const startDate = new Date();
       startDate.setDate(endDate.getDate() - 7);
 
-      const umamiStats = await umamiClient.getStats(
-        startDate.getTime(),
-        endDate.getTime()
-      );
+      const umamiStats = await umamiClient.getStats(startDate.getTime(), endDate.getTime());
 
       umamiData = {
         pageviews: umamiStats.pageviews?.value || 0,
@@ -445,7 +445,13 @@ export async function GET(request: NextRequest) {
      * @purpose 검색 유입 키워드 및 성능 통계
      * @context 날짜 범위는 사용자 선택한 범위를 사용 (filterStartDate ~ filterEndDate)
      */
-    let googleSearchData = { totalClicks: 0, totalImpressions: 0, avgCTR: '0', avgPosition: '0', topQueries: [] };
+    let googleSearchData = {
+      totalClicks: 0,
+      totalImpressions: 0,
+      avgCTR: '0',
+      avgPosition: '0',
+      topQueries: [],
+    };
     try {
       const gscClient = new GoogleSearchConsoleClient();
 
@@ -461,28 +467,43 @@ export async function GET(request: NextRequest) {
         formatGscDate(filterEndDate)
       );
 
-      console.log('[Google Search Console] 조회 기간:', formatGscDate(filterStartDate), '~', formatGscDate(filterEndDate));
+      console.log(
+        '[Google Search Console] 조회 기간:',
+        formatGscDate(filterStartDate),
+        '~',
+        formatGscDate(filterEndDate)
+      );
       console.log('[Google Search Console] 응답 데이터:', gscData);
 
       googleSearchData = {
-        totalClicks: gscData.rows?.reduce((sum: number, row: any) => sum + (row.clicks || 0), 0) || 0,
-        totalImpressions: gscData.rows?.reduce((sum: number, row: any) => sum + (row.impressions || 0), 0) || 0,
+        totalClicks:
+          gscData.rows?.reduce((sum: number, row: any) => sum + (row.clicks || 0), 0) || 0,
+        totalImpressions:
+          gscData.rows?.reduce((sum: number, row: any) => sum + (row.impressions || 0), 0) || 0,
         avgCTR: gscData.rows?.length
-          ? (gscData.rows.reduce((sum: number, row: any) => sum + (row.ctr || 0), 0) / gscData.rows.length * 100).toFixed(2)
+          ? (
+              (gscData.rows.reduce((sum: number, row: any) => sum + (row.ctr || 0), 0) /
+                gscData.rows.length) *
+              100
+            ).toFixed(2)
           : '0',
         avgPosition: gscData.rows?.length
-          ? (gscData.rows.reduce((sum: number, row: any) => sum + (row.position || 0), 0) / gscData.rows.length).toFixed(1)
+          ? (
+              gscData.rows.reduce((sum: number, row: any) => sum + (row.position || 0), 0) /
+              gscData.rows.length
+            ).toFixed(1)
           : '0',
-        topQueries: gscData.rows
-          ?.sort((a: any, b: any) => (b.clicks || 0) - (a.clicks || 0))
-          .slice(0, 10)
-          .map((row: any) => ({
-            query: row.keys?.[0] || '',
-            clicks: row.clicks || 0,
-            impressions: row.impressions || 0,
-            ctr: ((row.ctr || 0) * 100).toFixed(2) + '%',
-            position: (row.position || 0).toFixed(1),
-          })) || [],
+        topQueries:
+          gscData.rows
+            ?.sort((a: any, b: any) => (b.clicks || 0) - (a.clicks || 0))
+            .slice(0, 10)
+            .map((row: any) => ({
+              query: row.keys?.[0] || '',
+              clicks: row.clicks || 0,
+              impressions: row.impressions || 0,
+              ctr: ((row.ctr || 0) * 100).toFixed(2) + '%',
+              position: (row.position || 0).toFixed(1),
+            })) || [],
       };
     } catch (error) {
       console.error('Google Search Console 오류:', error);
@@ -495,7 +516,8 @@ export async function GET(request: NextRequest) {
      * @context sessionId 기반으로 방문자 행동 분석
      */
     // 세션별로 데이터 그룹화
-    const sessionData = await db.collection('page-visits')
+    const sessionData = await db
+      .collection('page-visits')
       .find({ sessionId: { $exists: true, $ne: '' } })
       .project({ sessionId: 1, pageViewCount: 1, timeSpent: 1 })
       .toArray();
@@ -513,27 +535,27 @@ export async function GET(request: NextRequest) {
         sessionMap[sid].maxPageView = visit.pageViewCount;
       }
       // 세션 내 모든 페이지의 체류시간 합산
-      sessionMap[sid].totalTimeSpent += (visit.timeSpent || 0);
+      sessionMap[sid].totalTimeSpent += visit.timeSpent || 0;
     });
 
     const sessions = Object.values(sessionMap);
     const totalSessions = sessions.length;
 
     // 평균 페이지뷰 계산
-    const avgPageViews = totalSessions > 0
-      ? sessions.reduce((sum, session) => sum + session.maxPageView, 0) / totalSessions
-      : 0;
+    const avgPageViews =
+      totalSessions > 0
+        ? sessions.reduce((sum, session) => sum + session.maxPageView, 0) / totalSessions
+        : 0;
 
     // 평균 체류시간 계산 (초 단위)
-    const avgTimeSpent = totalSessions > 0
-      ? sessions.reduce((sum, session) => sum + session.totalTimeSpent, 0) / totalSessions
-      : 0;
+    const avgTimeSpent =
+      totalSessions > 0
+        ? sessions.reduce((sum, session) => sum + session.totalTimeSpent, 0) / totalSessions
+        : 0;
 
     // 바운스율 계산 (1페이지만 보고 나간 세션 비율)
-    const bouncedSessions = sessions.filter(session => session.maxPageView === 1).length;
-    const bounceRate = totalSessions > 0
-      ? (bouncedSessions / totalSessions) * 100
-      : 0;
+    const bouncedSessions = sessions.filter((session) => session.maxPageView === 1).length;
+    const bounceRate = totalSessions > 0 ? (bouncedSessions / totalSessions) * 100 : 0;
 
     // 날짜 포맷 함수
     const formatDate = (date: Date) => {
@@ -555,7 +577,7 @@ export async function GET(request: NextRequest) {
         today: todayVisits,
         yesterday: yesterdayVisits,
         thisMonth: monthlyVisits,
-        total: totalVisits
+        total: totalVisits,
       },
       deviceStats,
       trafficSourceStats,
@@ -594,19 +616,19 @@ export async function GET(request: NextRequest) {
         today: 0,
         yesterday: 0,
         thisMonth: 0,
-        total: 0
+        total: 0,
       },
       deviceStats: {
         mobile: 0,
         desktop: 0,
         tablet: 0,
-        unknown: 0
+        unknown: 0,
       },
       trafficSourceStats: {
         direct: 0,
         search: 0,
         social: 0,
-        other: 0
+        other: 0,
       },
       topReferrers: [],
       topPages: [],
@@ -630,7 +652,7 @@ export async function GET(request: NextRequest) {
         avgPosition: '0',
         topQueries: [],
       },
-      notice: 'MongoDB 연결 대기 중입니다. 잠시 후 새로고침해주세요.'
+      notice: 'MongoDB 연결 대기 중입니다. 잠시 후 새로고침해주세요.',
     });
   }
 }

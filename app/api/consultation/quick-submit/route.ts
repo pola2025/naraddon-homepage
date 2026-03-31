@@ -6,6 +6,7 @@ import {
   type ConsultationSubmissionInput,
   validateConsultationSubmission,
 } from '@/lib/validation/consultationSubmission';
+import { sanitizeMongoInput, detectNoSQLInjection } from '@/lib/nosql-sanitize';
 
 const GOOGLE_APPS_SCRIPT_WEBHOOK_URL = process.env.GOOGLE_APPS_SCRIPT_WEBHOOK_URL;
 const CONSULTATION_NOTIFICATION_EMAILS = process.env.CONSULTATION_NOTIFICATION_EMAILS ?? '';
@@ -28,9 +29,16 @@ function parseEmailList(raw: string): string[] {
 export async function POST(request: NextRequest) {
   let payload: ConsultationSubmissionInput;
   try {
-    payload = (await request.json()) as ConsultationSubmissionInput;
+    const raw = await request.json();
+    // NoSQL injection 감지 및 새니타이즈
+    if (detectNoSQLInjection(raw)) {
+      const ip = request.ip || request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
+      console.warn(`[나라똔:간편상담] NoSQL injection 시도 차단 IP=${ip}`);
+      return NextResponse.json({ message: '잘못된 요청입니다.' }, { status: 400 });
+    }
+    payload = sanitizeMongoInput(raw) as ConsultationSubmissionInput;
   } catch (error) {
-    console.error('[consultation] invalid JSON payload', error);
+    console.error('[나라똔:간편상담] invalid JSON payload', error);
     return NextResponse.json({ message: '잘못된 요청 형식입니다.' }, { status: 400 });
   }
 
@@ -124,7 +132,9 @@ export async function POST(request: NextRequest) {
       }
     } catch (error) {
       notificationError =
-        error instanceof Error ? error.message : 'Apps Script 전송 중 알 수 없는 오류가 발생했습니다.';
+        error instanceof Error
+          ? error.message
+          : 'Apps Script 전송 중 알 수 없는 오류가 발생했습니다.';
     }
   } else {
     notificationError = 'GOOGLE_APPS_SCRIPT_WEBHOOK_URL 환경변수가 설정되지 않았습니다.';
