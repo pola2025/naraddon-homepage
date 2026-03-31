@@ -1,3 +1,7 @@
+/**
+ * @deprecated MotionLoader를 사용하세요 — import { MotionLoader } from '@/components/loading'
+ * variant: scan | logo | ring | typing | wave | orbit | blocks
+ */
 import React from 'react';
 
 interface LoadingSpinnerProps {
@@ -22,7 +26,7 @@ export default function LoadingSpinner({
       <div className={`relative ${sizeClasses[size]}`}>
         <div className="absolute inset-0 rounded-full border-4 border-gray-200"></div>
         <div
-          className={`absolute inset-0 rounded-full border-4 border-blue-600 border-t-transparent animate-spin`}
+          className={`absolute inset-0 rounded-full border-4 border-emerald-600 border-t-transparent animate-spin`}
         ></div>
       </div>
       {message && <p className="mt-4 text-gray-600 text-sm">{message}</p>}

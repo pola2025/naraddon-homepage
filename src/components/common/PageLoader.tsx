@@ -1,5 +1,6 @@
 /**
- * 페이지 로딩 컴포넌트
+ * @deprecated CSS-only 로더. Framer Motion 기반 MotionLoader로 대체됨.
+ * 새 코드: import { MotionLoader } from '@/components/loading'
  *
  * @purpose 페이지별로 다른 로딩 애니메이션을 쉽게 적용할 수 있는 재사용 컴포넌트
  * @usage 각 페이지의 loading.tsx에서 import하여 사용
@@ -15,16 +16,16 @@
 import React from 'react';
 
 type LoaderVariant =
-  | 'spinner'      // 1. 클래식 스피너
-  | 'dual-ring'    // 2. 듀얼 링
-  | 'pulse-dots'   // 3. 펄스 도트
-  | 'ripple'       // 4. 리플 이펙트
-  | 'gradient'     // 5. 그라데이션 로테이션
-  | 'wave-bars'    // 6. 웨이브 바
-  | 'bounce-dots'  // 7. 바운스 도트
-  | 'glow-pulse'   // 12. 글로우 펄스
-  | 'loading-bar'  // 17. 로딩 바
-  | 'logo-pulse';  // 20. 로고 펄스
+  | 'spinner' // 1. 클래식 스피너
+  | 'dual-ring' // 2. 듀얼 링
+  | 'pulse-dots' // 3. 펄스 도트
+  | 'ripple' // 4. 리플 이펙트
+  | 'gradient' // 5. 그라데이션 로테이션
+  | 'wave-bars' // 6. 웨이브 바
+  | 'bounce-dots' // 7. 바운스 도트
+  | 'glow-pulse' // 12. 글로우 펄스
+  | 'loading-bar' // 17. 로딩 바
+  | 'logo-pulse'; // 20. 로고 펄스
 
 interface PageLoaderProps {
   /** 로딩 애니메이션 스타일 */
@@ -145,7 +146,9 @@ function SpinnerLoader() {
           animation: spin 1s linear infinite;
         }
         @keyframes spin {
-          to { transform: rotate(360deg); }
+          to {
+            transform: rotate(360deg);
+          }
         }
       `}</style>
     </>
@@ -187,7 +190,9 @@ function DualRingLoader() {
           animation: spin 0.8s linear infinite reverse;
         }
         @keyframes spin {
-          to { transform: rotate(360deg); }
+          to {
+            transform: rotate(360deg);
+          }
         }
       `}</style>
     </>
@@ -199,7 +204,9 @@ function PulseDotsLoader() {
   return (
     <>
       <div className="pulse-dots">
-        <span /><span /><span />
+        <span />
+        <span />
+        <span />
       </div>
       <style jsx>{`
         .pulse-dots {
@@ -213,11 +220,23 @@ function PulseDotsLoader() {
           border-radius: 50%;
           animation: pulse-dot 1.4s ease-in-out infinite;
         }
-        .pulse-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .pulse-dots span:nth-child(3) { animation-delay: 0.4s; }
+        .pulse-dots span:nth-child(2) {
+          animation-delay: 0.2s;
+        }
+        .pulse-dots span:nth-child(3) {
+          animation-delay: 0.4s;
+        }
         @keyframes pulse-dot {
-          0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
-          40% { transform: scale(1); opacity: 1; }
+          0%,
+          80%,
+          100% {
+            transform: scale(0.6);
+            opacity: 0.5;
+          }
+          40% {
+            transform: scale(1);
+            opacity: 1;
+          }
         }
       `}</style>
     </>
@@ -229,7 +248,8 @@ function RippleLoader() {
   return (
     <>
       <div className="ripple">
-        <span /><span />
+        <span />
+        <span />
       </div>
       <style jsx>{`
         .ripple {
@@ -245,10 +265,18 @@ function RippleLoader() {
           border-radius: 50%;
           animation: ripple-effect 1.5s ease-out infinite;
         }
-        .ripple span:nth-child(2) { animation-delay: 0.5s; }
+        .ripple span:nth-child(2) {
+          animation-delay: 0.5s;
+        }
         @keyframes ripple-effect {
-          0% { transform: scale(0.3); opacity: 1; }
-          100% { transform: scale(1); opacity: 0; }
+          0% {
+            transform: scale(0.3);
+            opacity: 1;
+          }
+          100% {
+            transform: scale(1);
+            opacity: 0;
+          }
         }
       `}</style>
     </>
@@ -267,11 +295,21 @@ function GradientLoader() {
           border-radius: 50%;
           background: conic-gradient(from 0deg, transparent 0%, #059669 100%);
           animation: spin 1s linear infinite;
-          -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), black calc(100% - 5px));
-          mask: radial-gradient(farthest-side, transparent calc(100% - 5px), black calc(100% - 5px));
+          -webkit-mask: radial-gradient(
+            farthest-side,
+            transparent calc(100% - 5px),
+            black calc(100% - 5px)
+          );
+          mask: radial-gradient(
+            farthest-side,
+            transparent calc(100% - 5px),
+            black calc(100% - 5px)
+          );
         }
         @keyframes spin {
-          to { transform: rotate(360deg); }
+          to {
+            transform: rotate(360deg);
+          }
         }
       `}</style>
     </>
@@ -283,7 +321,11 @@ function WaveBarsLoader() {
   return (
     <>
       <div className="wave-bars">
-        <span /><span /><span /><span /><span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
       </div>
       <style jsx>{`
         .wave-bars {
@@ -299,13 +341,26 @@ function WaveBarsLoader() {
           border-radius: 3px;
           animation: wave 1s ease-in-out infinite;
         }
-        .wave-bars span:nth-child(2) { animation-delay: 0.1s; }
-        .wave-bars span:nth-child(3) { animation-delay: 0.2s; }
-        .wave-bars span:nth-child(4) { animation-delay: 0.3s; }
-        .wave-bars span:nth-child(5) { animation-delay: 0.4s; }
+        .wave-bars span:nth-child(2) {
+          animation-delay: 0.1s;
+        }
+        .wave-bars span:nth-child(3) {
+          animation-delay: 0.2s;
+        }
+        .wave-bars span:nth-child(4) {
+          animation-delay: 0.3s;
+        }
+        .wave-bars span:nth-child(5) {
+          animation-delay: 0.4s;
+        }
         @keyframes wave {
-          0%, 100% { height: 20px; }
-          50% { height: 40px; }
+          0%,
+          100% {
+            height: 20px;
+          }
+          50% {
+            height: 40px;
+          }
         }
       `}</style>
     </>
@@ -317,7 +372,9 @@ function BounceDotsLoader() {
   return (
     <>
       <div className="bounce-dots">
-        <span /><span /><span />
+        <span />
+        <span />
+        <span />
       </div>
       <style jsx>{`
         .bounce-dots {
@@ -331,11 +388,19 @@ function BounceDotsLoader() {
           border-radius: 50%;
           animation: bounce 0.6s ease-in-out infinite alternate;
         }
-        .bounce-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .bounce-dots span:nth-child(3) { animation-delay: 0.4s; }
+        .bounce-dots span:nth-child(2) {
+          animation-delay: 0.2s;
+        }
+        .bounce-dots span:nth-child(3) {
+          animation-delay: 0.4s;
+        }
         @keyframes bounce {
-          from { transform: translateY(0); }
-          to { transform: translateY(-20px); }
+          from {
+            transform: translateY(0);
+          }
+          to {
+            transform: translateY(-20px);
+          }
         }
       `}</style>
     </>
@@ -356,7 +421,8 @@ function GlowPulseLoader() {
           animation: glow 1.5s ease-in-out infinite;
         }
         @keyframes glow {
-          0%, 100% {
+          0%,
+          100% {
             box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.4);
             transform: scale(1);
           }
@@ -393,8 +459,12 @@ function LoadingBarLoader() {
           animation: loading-bar 1.5s ease-in-out infinite;
         }
         @keyframes loading-bar {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(350%); }
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(350%);
+          }
         }
       `}</style>
     </>
@@ -444,7 +514,8 @@ function LogoPulseLoader() {
           opacity: 0.5;
         }
         @keyframes logo-pulse {
-          0%, 100% {
+          0%,
+          100% {
             transform: scale(1);
             box-shadow: 0 8px 32px rgba(5, 150, 105, 0.3);
           }
@@ -454,8 +525,14 @@ function LogoPulseLoader() {
           }
         }
         @keyframes logo-ring {
-          0% { transform: scale(1); opacity: 0.5; }
-          100% { transform: scale(1.3); opacity: 0; }
+          0% {
+            transform: scale(1);
+            opacity: 0.5;
+          }
+          100% {
+            transform: scale(1.3);
+            opacity: 0;
+          }
         }
       `}</style>
     </>

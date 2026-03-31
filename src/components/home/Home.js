@@ -7,7 +7,7 @@ import IntroVideo from './components/IntroVideo';
 import { captions } from './constants/captions';
 import { prefetchPolicyNews } from '../../utils/prefetch';
 import PopupBanner from '../common/PopupBanner';
-import { MotionLoader } from '@/components/loading';
+import { MotionLoader, ScrollReveal } from '@/components/loading';
 
 // 동적 임포트로 초기 로딩 속도 개선
 const TrustSection = lazy(() => import('../TrustSection'));
@@ -225,16 +225,24 @@ function Home({ initialPolicyNews = [], initialTubeVideos = [] }) {
           </div>
 
           <Suspense fallback={<SectionLoaderDefault />}>
-            <TrustSection />
+            <ScrollReveal>
+              <TrustSection />
+            </ScrollReveal>
           </Suspense>
           <Suspense fallback={null}>
-            <ShortsSection />
+            <ScrollReveal delay={0.1}>
+              <ShortsSection />
+            </ScrollReveal>
           </Suspense>
           <Suspense fallback={<SectionLoaderPolicy />}>
-            <PolicyThumbnails initialData={initialPolicyNews} />
+            <ScrollReveal>
+              <PolicyThumbnails initialData={initialPolicyNews} />
+            </ScrollReveal>
           </Suspense>
           <Suspense fallback={<SectionLoaderTube />}>
-            <NaraddonTube initialData={initialTubeVideos} />
+            <ScrollReveal>
+              <NaraddonTube initialData={initialTubeVideos} />
+            </ScrollReveal>
           </Suspense>
         </div>
       )}
