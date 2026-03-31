@@ -9,14 +9,18 @@ import clientPromise from '@/lib/mongodb-client';
  */
 
 /* ───── MongoDB 기반 Rate Limiting ───── */
+let loginIndexCreated = false;
 async function checkLoginRateLimit(ip: string): Promise<{ allowed: boolean; retryAfter?: number }> {
   try {
     const client = await clientPromise;
     const db = client.db('naraddon');
     const col = db.collection('login-rate-limits');
 
-    // TTL 인덱스 보장 (최초 1회)
-    await col.createIndex({ createdAt: 1 }, { expireAfterSeconds: 900 }).catch(() => {});
+    // TTL 인덱스 보장 (프로세스당 최초 1회)
+    if (!loginIndexCreated) {
+      await col.createIndex({ createdAt: 1 }, { expireAfterSeconds: 900 }).catch(() => {});
+      loginIndexCreated = true;
+    }
 
     const windowStart = new Date(Date.now() - 15 * 60 * 1000); // 15분
     const count = await col.countDocuments({ ip, createdAt: { $gte: windowStart } });

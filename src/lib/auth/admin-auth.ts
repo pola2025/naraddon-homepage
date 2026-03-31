@@ -14,13 +14,19 @@ import clientPromise from '@/lib/mongodb-client';
 const SESSION_DURATION = 24 * 60 * 60 * 1000;
 const SESSION_COLLECTION = 'admin-sessions';
 
+// 인덱스 생성 여부 캐시
+let sessionIndexCreated = false;
+
 /** MongoDB admin-sessions 컬렉션 접근 */
 async function getSessionCollection() {
   const client = await clientPromise;
   const db = client.db('naraddon');
   const col = db.collection(SESSION_COLLECTION);
-  // TTL 인덱스 (24시간 후 자동 삭제)
-  await col.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }).catch(() => {});
+  // TTL 인덱스 (프로세스당 최초 1회만)
+  if (!sessionIndexCreated) {
+    await col.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }).catch(() => {});
+    sessionIndexCreated = true;
+  }
   return col;
 }
 

@@ -31,6 +31,9 @@ export interface RateLimitResult {
  *
  * TTL 인덱스로 자동 정리됨 — 별도 cleanup 불필요
  */
+// 인덱스 생성 여부 캐시 (프로세스 수명 동안 유지)
+const indexCreated = new Set<string>();
+
 export async function checkRateLimit(options: RateLimitOptions): Promise<RateLimitResult> {
   const { key, maxRequests, windowSeconds, collection = 'rate-limits' } = options;
 
@@ -39,8 +42,13 @@ export async function checkRateLimit(options: RateLimitOptions): Promise<RateLim
     const db = client.db('naraddon');
     const col = db.collection(collection);
 
-    // TTL 인덱스 보장 (최초 1회, 이후 noop)
-    await col.createIndex({ createdAt: 1 }, { expireAfterSeconds: windowSeconds }).catch(() => {});
+    // TTL 인덱스 보장 (프로세스당 최초 1회만 실행)
+    if (!indexCreated.has(collection)) {
+      await col
+        .createIndex({ createdAt: 1 }, { expireAfterSeconds: windowSeconds })
+        .catch(() => {});
+      indexCreated.add(collection);
+    }
 
     const windowStart = new Date(Date.now() - windowSeconds * 1000);
     const count = await col.countDocuments({ key, createdAt: { $gte: windowStart } });
