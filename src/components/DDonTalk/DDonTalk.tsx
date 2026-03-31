@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { MotionLoader } from '@/components/loading';
 import './DDonTalk.css';
 
 interface Comment {
@@ -34,11 +35,11 @@ export default function DDonTalk() {
     title: '',
     content: '',
     author: '',
-    company: ''
+    company: '',
   });
   const [commentForm, setCommentForm] = useState({
     author: '',
-    content: ''
+    content: '',
   });
 
   const { user } = useAuth();
@@ -82,7 +83,7 @@ export default function DDonTalk() {
       const response = await fetch('/api/ddontalk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
 
       const data = await response.json();
@@ -110,7 +111,7 @@ export default function DDonTalk() {
       const response = await fetch(`/api/ddontalk/${postId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(commentForm)
+        body: JSON.stringify(commentForm),
       });
 
       const data = await response.json();
@@ -133,7 +134,7 @@ export default function DDonTalk() {
   const handleLike = async (postId: string) => {
     try {
       const response = await fetch(`/api/ddontalk/${postId}/likes`, {
-        method: 'POST'
+        method: 'POST',
       });
 
       const data = await response.json();
@@ -157,14 +158,16 @@ export default function DDonTalk() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    }).replace(/\. /g, '.');
+    return date
+      .toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      })
+      .replace(/\. /g, '.');
   };
 
-  if (loading) return <div className="ddontalk-loading">로딩 중...</div>;
+  if (loading) return <MotionLoader variant="typing" message="똔톡 불러오는 중" />;
 
   return (
     <div className="ddontalk-section">
@@ -174,131 +177,124 @@ export default function DDonTalk() {
           <p>사업자들의 생생한 후기와 경험을 공유합니다</p>
         </div>
 
-      <div className="ddontalk-toolbar">
-        <button
-          className="ddontalk-write-btn"
-          onClick={handleWriteClick}
-        >
-          <span className="write-icon">✍️</span> 작성하기
-        </button>
-      </div>
-
-      {showWriteForm && (
-        <div className="ddontalk-write-modal">
-          <div className="ddontalk-write-content">
-            <h3>똔톡 작성하기</h3>
-            <form onSubmit={handleSubmit}>
-              <input
-                type="text"
-                placeholder="제목을 입력하세요"
-                value={formData.title}
-                onChange={(e) => setFormData({...formData, title: e.target.value})}
-                required
-              />
-              <textarea
-                placeholder="내용을 입력하세요 (200자 이내)"
-                value={formData.content}
-                onChange={(e) => setFormData({...formData, content: e.target.value})}
-                maxLength={200}
-                required
-              />
-              <div className="char-count">{formData.content.length}/200</div>
-              <input
-                type="text"
-                placeholder="작성자"
-                value={formData.author}
-                onChange={(e) => setFormData({...formData, author: e.target.value})}
-                required
-              />
-              <input
-                type="text"
-                placeholder="회사명"
-                value={formData.company}
-                onChange={(e) => setFormData({...formData, company: e.target.value})}
-                required
-              />
-              <div className="form-buttons">
-                <button type="button" onClick={() => setShowWriteForm(false)}>취소</button>
-                <button type="submit">등록</button>
-              </div>
-            </form>
-          </div>
+        <div className="ddontalk-toolbar">
+          <button className="ddontalk-write-btn" onClick={handleWriteClick}>
+            <span className="write-icon">✍️</span> 작성하기
+          </button>
         </div>
-      )}
 
-      <div className="ddontalk-list">
-        {posts.map(post => (
-          <div key={post._id} className="ddontalk-item">
-            <div
-              className="ddontalk-main"
-              onClick={() => setSelectedPost(post)}
-            >
-              <h3>
-                {post.title}
-                <span className="comment-count">({post.commentCount})</span>
-              </h3>
-              <p className="ddontalk-content">{post.content}</p>
-              <div className="ddontalk-meta">
-                <span className="author">{post.author} · {post.company}</span>
-                <span className="date">{formatDate(post.createdAt)}</span>
-                <button
-                  className="like-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleLike(post._id);
-                  }}
-                >
-                  ❤️ {post.likes}
-                </button>
-              </div>
-            </div>
-
-            {selectedPost?._id === post._id && (
-              <div className="ddontalk-detail">
-                <div className="comments-section">
-                  <h4>댓글 ({post.commentCount})</h4>
-
-                  <div className="comments-list">
-                    {post.comments.map((comment, idx) => (
-                      <div key={comment._id || idx} className="comment-item">
-                        <strong>{comment.author}</strong>
-                        <p>{comment.content}</p>
-                        <span className="comment-date">
-                          {formatDate(comment.createdAt)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="comment-form">
-                    <input
-                      type="text"
-                      placeholder="이름"
-                      value={commentForm.author}
-                      onChange={(e) => setCommentForm({...commentForm, author: e.target.value})}
-                    />
-                    <textarea
-                      placeholder="댓글을 입력하세요"
-                      value={commentForm.content}
-                      onChange={(e) => setCommentForm({...commentForm, content: e.target.value})}
-                    />
-                    <button onClick={() => handleCommentSubmit(post._id)}>
-                      댓글 작성
-                    </button>
-                  </div>
+        {showWriteForm && (
+          <div className="ddontalk-write-modal">
+            <div className="ddontalk-write-content">
+              <h3>똔톡 작성하기</h3>
+              <form onSubmit={handleSubmit}>
+                <input
+                  type="text"
+                  placeholder="제목을 입력하세요"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  required
+                />
+                <textarea
+                  placeholder="내용을 입력하세요 (200자 이내)"
+                  value={formData.content}
+                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                  maxLength={200}
+                  required
+                />
+                <div className="char-count">{formData.content.length}/200</div>
+                <input
+                  type="text"
+                  placeholder="작성자"
+                  value={formData.author}
+                  onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="회사명"
+                  value={formData.company}
+                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                  required
+                />
+                <div className="form-buttons">
+                  <button type="button" onClick={() => setShowWriteForm(false)}>
+                    취소
+                  </button>
+                  <button type="submit">등록</button>
                 </div>
-
-                <button
-                  className="close-detail"
-                  onClick={() => setSelectedPost(null)}
-                >
-                  닫기
-                </button>
-              </div>
-            )}
+              </form>
+            </div>
           </div>
-        ))}
-      </div>
+        )}
+
+        <div className="ddontalk-list">
+          {posts.map((post) => (
+            <div key={post._id} className="ddontalk-item">
+              <div className="ddontalk-main" onClick={() => setSelectedPost(post)}>
+                <h3>
+                  {post.title}
+                  <span className="comment-count">({post.commentCount})</span>
+                </h3>
+                <p className="ddontalk-content">{post.content}</p>
+                <div className="ddontalk-meta">
+                  <span className="author">
+                    {post.author} · {post.company}
+                  </span>
+                  <span className="date">{formatDate(post.createdAt)}</span>
+                  <button
+                    className="like-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleLike(post._id);
+                    }}
+                  >
+                    ❤️ {post.likes}
+                  </button>
+                </div>
+              </div>
+
+              {selectedPost?._id === post._id && (
+                <div className="ddontalk-detail">
+                  <div className="comments-section">
+                    <h4>댓글 ({post.commentCount})</h4>
+
+                    <div className="comments-list">
+                      {post.comments.map((comment, idx) => (
+                        <div key={comment._id || idx} className="comment-item">
+                          <strong>{comment.author}</strong>
+                          <p>{comment.content}</p>
+                          <span className="comment-date">{formatDate(comment.createdAt)}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="comment-form">
+                      <input
+                        type="text"
+                        placeholder="이름"
+                        value={commentForm.author}
+                        onChange={(e) => setCommentForm({ ...commentForm, author: e.target.value })}
+                      />
+                      <textarea
+                        placeholder="댓글을 입력하세요"
+                        value={commentForm.content}
+                        onChange={(e) =>
+                          setCommentForm({ ...commentForm, content: e.target.value })
+                        }
+                      />
+                      <button onClick={() => handleCommentSubmit(post._id)}>댓글 작성</button>
+                    </div>
+                  </div>
+
+                  <button className="close-detail" onClick={() => setSelectedPost(null)}>
+                    닫기
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

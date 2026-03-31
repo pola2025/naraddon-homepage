@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { MotionLoader } from '@/components/loading';
 import './NaraddonTubeSimple.css';
 
 interface Video {
@@ -37,10 +38,10 @@ const NaraddonTubeSimple: React.FC<NaraddonTubeSimpleProps> = ({ initialData }) 
 
   // 모든 비디오를 평탄화하여 배열로 만들기 (각 entry는 1개의 video만 포함)
   const allVideos = entries
-    .filter(entry => entry.videos && entry.videos.length > 0)
-    .map(entry => ({
+    .filter((entry) => entry.videos && entry.videos.length > 0)
+    .map((entry) => ({
       ...entry.videos[0], // 첫 번째 (유일한) 영상 사용
-      entryId: entry._id
+      entryId: entry._id,
     }));
 
   // 표시할 비디오 결정
@@ -59,7 +60,9 @@ const NaraddonTubeSimple: React.FC<NaraddonTubeSimpleProps> = ({ initialData }) 
         const data = await response.json();
 
         if (Array.isArray(data?.entries)) {
-          setEntries(data.entries.filter((entry: TubeEntry) => entry.videos && entry.videos.length > 0));
+          setEntries(
+            data.entries.filter((entry: TubeEntry) => entry.videos && entry.videos.length > 0)
+          );
         }
       } catch (error) {
         console.error('[NaraddonTubeSimple] fetch error:', error);
@@ -87,7 +90,7 @@ const NaraddonTubeSimple: React.FC<NaraddonTubeSimpleProps> = ({ initialData }) 
     return (
       <section id="naraddon-tube" className="tube-simple-section">
         <div className="tube-simple-container">
-          <p className="tube-simple-loading">로딩 중...</p>
+          <MotionLoader variant="wave" message="인터뷰 영상 준비중" size="sm" />
         </div>
       </section>
     );
@@ -117,8 +120,9 @@ const NaraddonTubeSimple: React.FC<NaraddonTubeSimpleProps> = ({ initialData }) 
           <div className={`tube-simple-grid ${isExpanded ? 'expanded' : 'collapsed'}`}>
             {displayVideos.map((video, index) => {
               // 커스텀 썸네일이 있으면 사용, 없으면 YouTube 썸네일
-              const thumbnailUrl = video.customThumbnail ||
-                                  `https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`;
+              const thumbnailUrl =
+                video.customThumbnail ||
+                `https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`;
 
               return (
                 <div
@@ -127,13 +131,13 @@ const NaraddonTubeSimple: React.FC<NaraddonTubeSimpleProps> = ({ initialData }) 
                   onClick={() => handleVideoClick(video.youtubeId)}
                 >
                   <div className="tube-simple-thumbnail">
-                    <img
-                      src={thumbnailUrl}
-                      alt={video.title}
-                      loading="lazy"
-                    />
+                    <img src={thumbnailUrl} alt={video.title} loading="lazy" />
                     <div className="tube-simple-overlay">
-                      <svg className="tube-simple-play-icon" viewBox="0 0 24 24" fill="currentColor">
+                      <svg
+                        className="tube-simple-play-icon"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
                         <path d="M8 5v14l11-7z" />
                       </svg>
                     </div>
@@ -149,21 +153,30 @@ const NaraddonTubeSimple: React.FC<NaraddonTubeSimpleProps> = ({ initialData }) 
           {/* 더보기/접기 버튼 */}
           {allVideos.length > INITIAL_VIDEO_COUNT && (
             <div className="tube-simple-toggle">
-              <button
-                className="tube-simple-toggle-button"
-                onClick={toggleExpand}
-              >
+              <button className="tube-simple-toggle-button" onClick={toggleExpand}>
                 {isExpanded ? (
                   <>
                     <span>접기</span>
-                    <svg className="tube-simple-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg
+                      className="tube-simple-toggle-icon"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
                       <polyline points="18 15 12 9 6 15" />
                     </svg>
                   </>
                 ) : (
                   <>
                     <span>나라똔 인터뷰 전체보기 ({allVideos.length}개)</span>
-                    <svg className="tube-simple-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg
+                      className="tube-simple-toggle-icon"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
                       <polyline points="6 9 12 15 18 9" />
                     </svg>
                   </>
@@ -175,30 +188,31 @@ const NaraddonTubeSimple: React.FC<NaraddonTubeSimpleProps> = ({ initialData }) 
       </section>
 
       {/* YouTube 영상 재생 모달 - Business Voice 스타일 */}
-      {playingVideo && (() => {
-        const currentVideo = allVideos.find(v => v.youtubeId === playingVideo);
-        return (
-          <div className="video-modal-overlay" onClick={handleCloseVideo}>
-            <div className="video-modal-content" onClick={(e) => e.stopPropagation()}>
-              <button className="video-modal-close" onClick={handleCloseVideo}>
-                ✕
-              </button>
-              <div className="video-modal-player">
-                <iframe
-                  width="100%"
-                  height="100%"
-                  src={`https://www.youtube.com/embed/${playingVideo}?autoplay=1`}
-                  title={currentVideo?.title || "YouTube video player"}
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  loading="lazy"
-                />
+      {playingVideo &&
+        (() => {
+          const currentVideo = allVideos.find((v) => v.youtubeId === playingVideo);
+          return (
+            <div className="video-modal-overlay" onClick={handleCloseVideo}>
+              <div className="video-modal-content" onClick={(e) => e.stopPropagation()}>
+                <button className="video-modal-close" onClick={handleCloseVideo}>
+                  ✕
+                </button>
+                <div className="video-modal-player">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src={`https://www.youtube.com/embed/${playingVideo}?autoplay=1`}
+                    title={currentVideo?.title || 'YouTube video player'}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    loading="lazy"
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
     </>
   );
 };

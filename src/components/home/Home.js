@@ -7,6 +7,7 @@ import IntroVideo from './components/IntroVideo';
 import { captions } from './constants/captions';
 import { prefetchPolicyNews } from '../../utils/prefetch';
 import PopupBanner from '../common/PopupBanner';
+import { MotionLoader } from '@/components/loading';
 
 // 동적 임포트로 초기 로딩 속도 개선
 const TrustSection = lazy(() => import('../TrustSection'));
@@ -16,20 +17,12 @@ const NaraddonTube = lazy(() => import('../NaraddonTube/NaraddonTubeSimple'));
 
 const CAPTION_FADE_DURATION = 850;
 
-// 로딩 컴포넌트
-const SectionLoader = () => (
-  <div
-    style={{
-      minHeight: '200px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      color: '#999',
-    }}
-  >
-    <div>로딩 중...</div>
-  </div>
+// 섹션별 모션 로더
+const SectionLoaderDefault = () => <MotionLoader variant="ring" size="sm" />;
+const SectionLoaderPolicy = () => (
+  <MotionLoader variant="scan" message="정책소식 준비중" size="sm" />
 );
+const SectionLoaderTube = () => <MotionLoader variant="wave" message="인터뷰 준비중" size="sm" />;
 
 /**
  * Home 컴포넌트
@@ -231,16 +224,16 @@ function Home({ initialPolicyNews = [], initialTubeVideos = [] }) {
             <HeroSection />
           </div>
 
-          <Suspense fallback={<SectionLoader />}>
+          <Suspense fallback={<SectionLoaderDefault />}>
             <TrustSection />
           </Suspense>
           <Suspense fallback={null}>
             <ShortsSection />
           </Suspense>
-          <Suspense fallback={<SectionLoader />}>
+          <Suspense fallback={<SectionLoaderPolicy />}>
             <PolicyThumbnails initialData={initialPolicyNews} />
           </Suspense>
-          <Suspense fallback={<SectionLoader />}>
+          <Suspense fallback={<SectionLoaderTube />}>
             <NaraddonTube initialData={initialTubeVideos} />
           </Suspense>
         </div>

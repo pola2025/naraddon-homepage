@@ -6,11 +6,12 @@ import styles from './ExaminerBrandPage.module.css';
 import Breadcrumb from './Breadcrumb';
 import HeroSection from './HeroSection';
 import TabSection from './TabSection';
+import { MotionLoader } from '@/components/loading';
 // import ContactSection from './ContactSection'; // 삭제됨 - 2025-01-26
 
 /**
  * 심사관 브랜드 페이지 메인 컴포넌트
- * 
+ *
  * @purpose 개별 심사관의 브랜드 페이지 표시
  * @context brand-page-dark-gold.html 디자인 기반 (다크골드 테마)
  */
@@ -96,7 +97,7 @@ export default function ExaminerBrandPage({ examinerId }: ExaminerBrandPageProps
             await fetch(`/api/admin/examiners/${examinerId}/activities`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ activityType: 'pageVisit', increment: 1 })
+              body: JSON.stringify({ activityType: 'pageVisit', increment: 1 }),
             });
             console.log('[ExaminerBrandPage] Page visit recorded');
           } catch (activityError) {
@@ -118,12 +119,7 @@ export default function ExaminerBrandPage({ examinerId }: ExaminerBrandPageProps
   }, [examinerId]);
 
   if (loading) {
-    return (
-      <div className={styles.loader}>
-        <div className={styles.loaderRing}></div>
-        <p>로딩 중...</p>
-      </div>
-    );
+    return <MotionLoader variant="orbit" message="심사관 정보 불러오는 중" />;
   }
 
   if (error || !examiner) {
@@ -142,7 +138,7 @@ export default function ExaminerBrandPage({ examinerId }: ExaminerBrandPageProps
   const breadcrumbItems = [
     { label: '홈', href: '/' },
     { label: '인증 기업심사관', href: '/certified-examiners' },
-    { label: examiner.name }
+    { label: examiner.name },
   ];
 
   return (

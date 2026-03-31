@@ -4,9 +4,14 @@ import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { MotionLoader } from '@/components/loading';
 import './PolicyNewsDetail.css';
 
-const stripHtml = (value = '') => value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+const stripHtml = (value = '') =>
+  value
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 const formatDate = (value) => {
   if (!value) {
@@ -76,7 +81,9 @@ const PolicyNewsDetail = () => {
         }
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.');
+          setErrorMessage(
+            error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.'
+          );
         }
       } finally {
         if (!cancelled) {
@@ -94,7 +101,8 @@ const PolicyNewsDetail = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPercent = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+      const scrollPercent =
+        (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
       setScrollProgress(scrollPercent);
       setShowScrollTop(window.scrollY > 500);
     };
@@ -113,7 +121,7 @@ const PolicyNewsDetail = () => {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
       });
 
       if (!response.ok) {
@@ -137,7 +145,6 @@ const PolicyNewsDetail = () => {
     }
   };
 
-
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -145,10 +152,10 @@ const PolicyNewsDetail = () => {
   const generateTOC = () => {
     if (!contentRef.current) return [];
     const headings = contentRef.current.querySelectorAll('h2, h3');
-    return Array.from(headings).map(h => ({
+    return Array.from(headings).map((h) => ({
       text: h.textContent,
       level: h.tagName,
-      id: h.id || h.textContent.replace(/\s+/g, '-').toLowerCase()
+      id: h.id || h.textContent.replace(/\s+/g, '-').toLowerCase(),
     }));
   };
 
@@ -158,10 +165,7 @@ const PolicyNewsDetail = () => {
   if (isLoading) {
     return (
       <div className="policy-news-detail">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>콘텐츠를 불러오는 중...</p>
-        </div>
+        <MotionLoader variant="scan" message="최적의 정책정보 분석중" />
       </div>
     );
   }
@@ -231,10 +235,7 @@ const PolicyNewsDetail = () => {
             >
               <i className="fas fa-edit"></i> 수정
             </button>
-            <button
-              className="admin-button delete"
-              onClick={handleDelete}
-            >
+            <button className="admin-button delete" onClick={handleDelete}>
               <i className="fas fa-trash"></i> 삭제
             </button>
           </div>
@@ -280,9 +281,7 @@ const PolicyNewsDetail = () => {
                       alt={imageMatch[1] || '이미지'}
                       className="content-image"
                     />
-                    {imageMatch[1] && (
-                      <p className="image-caption">{imageMatch[1]}</p>
-                    )}
+                    {imageMatch[1] && <p className="image-caption">{imageMatch[1]}</p>}
                   </div>
                 );
               }
@@ -330,10 +329,7 @@ const PolicyNewsDetail = () => {
             <div className="toc-box">
               <div className="toc-header">
                 <h3>목차</h3>
-                <button
-                  className="toc-toggle"
-                  onClick={() => setShowTOC(!showTOC)}
-                >
+                <button className="toc-toggle" onClick={() => setShowTOC(!showTOC)}>
                   <i className={`fas fa-chevron-${showTOC ? 'up' : 'down'}`}></i>
                 </button>
               </div>
@@ -368,11 +364,7 @@ const PolicyNewsDetail = () => {
             {relatedNews.map((news) => {
               const newsId = news._id || news.id;
               return (
-                <Link
-                  key={newsId}
-                  href={`/policy-news/${newsId}`}
-                  className="related-item"
-                >
+                <Link key={newsId} href={`/policy-news/${newsId}`} className="related-item">
                   <div className="related-category">{news.category || '정책 알리미'}</div>
                   <h3 className="related-title">{news.title}</h3>
                   {/* 날짜 숨김 - 2026-01-26 */}

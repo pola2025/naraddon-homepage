@@ -1,8 +1,9 @@
-"use client";
+'use client';
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 
+import { MotionLoader } from '@/components/loading';
 import './ttontok-board.css';
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -113,7 +114,9 @@ const TtontokBoard = () => {
     try {
       setLoadingDetail(true);
       setDetailError(null);
-      const response = await fetch(`/api/business-voice/ttontok/${id}?includeReplies=true&replyLimit=20`);
+      const response = await fetch(
+        `/api/business-voice/ttontok/${id}?includeReplies=true&replyLimit=20`
+      );
       if (!response.ok) {
         throw new Error('게시글 상세를 불러오지 못했습니다.');
       }
@@ -141,7 +144,10 @@ const TtontokBoard = () => {
   const bestPosts = useMemo(() => posts.filter((post) => post.replyCount > 0).slice(0, 2), [posts]);
   const latestPosts = useMemo(() => posts.slice(0, 6), [posts]);
 
-  const handleFormChange = (field: 'category' | 'title' | 'nickname' | 'content', value: string) => {
+  const handleFormChange = (
+    field: 'category' | 'title' | 'nickname' | 'content',
+    value: string
+  ) => {
     setFormState((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -236,7 +242,7 @@ const TtontokBoard = () => {
             <h3>상세 보기</h3>
           </div>
           {loadingDetail ? (
-            <div className="ttontok-detail-skeleton">로딩 중...</div>
+            <MotionLoader variant="typing" message="게시글 불러오는 중" size="sm" />
           ) : detailError ? (
             <p className="ttontok-error">{detailError}</p>
           ) : selectedPost ? (
@@ -270,7 +276,9 @@ const TtontokBoard = () => {
                               {reply.role === 'certified_examiner' ? '인증 기업심사관' : '전문가'}
                             </span>
                           ) : null}
-                          {reply.isAccepted ? <span className="ttontok-reply-badge badge-accepted">채택</span> : null}
+                          {reply.isAccepted ? (
+                            <span className="ttontok-reply-badge badge-accepted">채택</span>
+                          ) : null}
                         </div>
                         <p className="ttontok-reply-content">{reply.content}</p>
                         <div className="ttontok-reply-footer">
@@ -358,7 +366,11 @@ const TtontokBoard = () => {
           </div>
           <div className="ttontok-best-grid">
             {bestPosts.map((post) => (
-              <article key={post.id} className="ttontok-best-card" onClick={() => setSelectedPostId(post.id)}>
+              <article
+                key={post.id}
+                className="ttontok-best-card"
+                onClick={() => setSelectedPostId(post.id)}
+              >
                 <div className="ttontok-best-header">
                   <span className={`ttontok-category-badge category-${post.category}`}>
                     {CATEGORY_LABELS[post.category] ?? post.category}

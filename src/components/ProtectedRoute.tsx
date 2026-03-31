@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import LoadingSpinner from './ui/LoadingSpinner';
+import { MotionLoader } from '@/components/loading';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -51,7 +51,7 @@ export default function ProtectedRoute({
   ]);
 
   if (loading) {
-    return <LoadingSpinner fullScreen />;
+    return <MotionLoader variant="logo" message="인증 확인중" fullScreen />;
   }
 
   if (!user) {

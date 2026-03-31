@@ -6,8 +6,9 @@ import {
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
+import { MotionLoader } from '@/components/loading';
 
 export interface Column<T> {
   key: keyof T | string;
@@ -42,7 +43,7 @@ export default function DataTable<T extends { id: string | number }>({
   pageSize = 10,
   actions,
   emptyMessage = '데이터가 없습니다.',
-  loading = false
+  loading = false,
 }: DataTableProps<T>) {
   const [sortKey, setSortKey] = useState<string>('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -51,10 +52,10 @@ export default function DataTable<T extends { id: string | number }>({
   const [selectedRows, setSelectedRows] = useState<Set<string | number>>(new Set());
 
   // 검색 필터링
-  const filteredData = data.filter(item => {
+  const filteredData = data.filter((item) => {
     if (!searchTerm) return true;
-    return Object.values(item).some(value =>
-      value != null && String(value).toLowerCase().includes(searchTerm.toLowerCase())
+    return Object.values(item).some(
+      (value) => value != null && String(value).toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 
@@ -93,7 +94,7 @@ export default function DataTable<T extends { id: string | number }>({
     if (selectedRows.size === paginatedData.length) {
       setSelectedRows(new Set());
     } else {
-      setSelectedRows(new Set(paginatedData.map(item => item.id)));
+      setSelectedRows(new Set(paginatedData.map((item) => item.id)));
     }
   };
 
@@ -118,8 +119,8 @@ export default function DataTable<T extends { id: string | number }>({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64 bg-white rounded-lg shadow">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="bg-white rounded-lg shadow">
+        <MotionLoader variant="blocks" message="데이터 불러오는 중" />
       </div>
     );
   }
@@ -169,11 +170,13 @@ export default function DataTable<T extends { id: string | number }>({
                 >
                   <div className="flex items-center">
                     {column.label}
-                    {column.sortable && sortKey === column.key && (
-                      sortOrder === 'asc' ?
-                        <ChevronUpIcon className="w-4 h-4 ml-1" /> :
+                    {column.sortable &&
+                      sortKey === column.key &&
+                      (sortOrder === 'asc' ? (
+                        <ChevronUpIcon className="w-4 h-4 ml-1" />
+                      ) : (
                         <ChevronDownIcon className="w-4 h-4 ml-1" />
-                    )}
+                      ))}
                   </div>
                 </th>
               ))}
@@ -201,13 +204,21 @@ export default function DataTable<T extends { id: string | number }>({
                     />
                   </td>
                   {columns.map((column) => (
-                    <td key={String(column.key)} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td
+                      key={String(column.key)}
+                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                    >
                       {column.render ? column.render(item) : getValue(item, String(column.key))}
                     </td>
                   ))}
                   {(actions || onEdit || onDelete) && (
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
-                      {actions ? actions(item) : (
+                    <td
+                      className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {actions ? (
+                        actions(item)
+                      ) : (
                         <div className="flex items-center justify-end space-x-2">
                           {onEdit && (
                             <button
