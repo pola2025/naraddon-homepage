@@ -57,7 +57,7 @@ export default function ExpertServicesAdminPage() {
 
   const fetchExperts = async () => {
     try {
-      const response = await fetch('/api/experts');
+      const response = await fetch('/api/experts?showAll=true');
       const data = await response.json();
       if (data.success) {
         setExperts(data.experts);
@@ -82,7 +82,10 @@ export default function ExpertServicesAdminPage() {
     e.preventDefault();
     setLoading(true);
 
-    const specialtiesArray = formData.specialties.split(',').map(s => s.trim()).filter(s => s);
+    const specialtiesArray = formData.specialties
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => s);
 
     const requestData = {
       ...formData,
@@ -91,9 +94,7 @@ export default function ExpertServicesAdminPage() {
     };
 
     try {
-      const url = editingExpert
-        ? '/api/experts'
-        : '/api/experts';
+      const url = editingExpert ? '/api/experts' : '/api/experts';
 
       const method = editingExpert ? 'PUT' : 'POST';
 
@@ -191,9 +192,7 @@ export default function ExpertServicesAdminPage() {
               disabled={isLoggingIn}
             />
             {authError && (
-              <div style={{ color: 'red', fontSize: '14px', marginTop: '8px' }}>
-                {authError}
-              </div>
+              <div style={{ color: 'red', fontSize: '14px', marginTop: '8px' }}>{authError}</div>
             )}
             <button type="submit" className={styles.loginButton} disabled={isLoggingIn}>
               {isLoggingIn ? '로그인 중...' : '로그인'}
@@ -302,11 +301,11 @@ export default function ExpertServicesAdminPage() {
           {experts.map((expert) => (
             <div key={expert._id} className={styles.expertCard}>
               <div className={styles.expertInfo}>
-                <h3>{expert.name} {expert.position}</h3>
+                <h3>
+                  {expert.name} {expert.position}
+                </h3>
                 <p>{expert.companyName}</p>
-                <p className={styles.specialties}>
-                  {expert.specialties.join(', ')}
-                </p>
+                <p className={styles.specialties}>{expert.specialties.join(', ')}</p>
                 <p className={styles.meta}>
                   정렬: {expert.order} | {expert.isActive ? '활성' : '비활성'}
                 </p>

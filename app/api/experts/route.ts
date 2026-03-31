@@ -71,10 +71,19 @@ export async function GET(request: NextRequest) {
   try {
     await dbConnect();
 
-    /* 관리자 세션이 있으면 전체, 없으면 활성 전문가만 */
-    const session = await getServerSession(authOptions);
-    const isAdminUser = session?.user ? isAdmin(session.user) : false;
-    const query = isAdminUser ? {} : { isActive: true };
+    /* 공개 페이지에서는 항상 활성 전문가만 노출 */
+    /* 관리자용 전체 목록은 별도 관리자 API에서 처리 */
+    const { searchParams } = new URL(request.url);
+    const showAll = searchParams.get('showAll') === 'true';
+    let query: Record<string, unknown> = { isActive: true };
+
+    if (showAll) {
+      const session = await getServerSession(authOptions);
+      const isAdminUser = session?.user ? isAdmin(session.user) : false;
+      if (isAdminUser) {
+        query = {};
+      }
+    }
 
     const experts = await Expert.find(query).sort({ order: 1, createdAt: -1 }).select('-__v');
 

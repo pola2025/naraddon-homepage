@@ -66,9 +66,7 @@ export default function AdminExpertServicesPage() {
 
   const fetchExperts = async () => {
     try {
-      const response = await fetch('/api/experts', {
-        headers: { 'x-admin-auth': 'true' },
-      });
+      const response = await fetch('/api/experts?showAll=true');
       const data = await response.json();
       if (data.success) {
         setExperts(data.experts);
