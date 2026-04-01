@@ -161,6 +161,14 @@ export async function GET(request: NextRequest) {
       : new Date(filterEndDate.getTime() - 7 * 24 * 60 * 60 * 1000); // 기본 7일
     filterStartDate.setHours(0, 0, 0, 0); // 시작일의 첫 시각
 
+    // 고유 방문자 수 집계 헬퍼 (IP 기준 distinct count)
+    const countUniqueVisitors = (match: Record<string, unknown>) =>
+      db
+        .collection('page-visits')
+        .aggregate([{ $match: match }, { $group: { _id: '$ip' } }, { $count: 'total' }])
+        .toArray()
+        .then((r) => r[0]?.total ?? 0);
+
     // 병렬로 통계 데이터 수집
     const [
       totalUsers,
@@ -171,10 +179,14 @@ export async function GET(request: NextRequest) {
       totalTubeVideos,
       recentUsers,
       recentConsultations,
-      todayVisits,
-      yesterdayVisits,
-      monthlyVisits,
-      totalVisits,
+      todayPageviews,
+      yesterdayPageviews,
+      monthlyPageviews,
+      totalPageviews,
+      todayVisitors,
+      yesterdayVisitors,
+      monthlyVisitors,
+      totalVisitors,
       allVisits,
     ] = await Promise.all([
       // 전체 사용자 수
@@ -216,17 +228,29 @@ export async function GET(request: NextRequest) {
         .project({ userEmail: 1, consultationType: 1, status: 1, createdAt: 1 })
         .toArray(),
 
-      // 오늘 방문자 수
+      // 오늘 페이지뷰 수
       db.collection('page-visits').countDocuments({ timestamp: { $gte: today } }),
 
-      // 어제 방문자 수
+      // 어제 페이지뷰 수
       db.collection('page-visits').countDocuments({ timestamp: { $gte: yesterday, $lt: today } }),
 
-      // 이번 달 방문자 수
+      // 이번 달 페이지뷰 수
       db.collection('page-visits').countDocuments({ timestamp: { $gte: thisMonth } }),
 
-      // 전체 방문자 수
+      // 전체 페이지뷰 수
       db.collection('page-visits').countDocuments(),
+
+      // 오늘 고유 방문자 수 (IP 기준)
+      countUniqueVisitors({ timestamp: { $gte: today } }),
+
+      // 어제 고유 방문자 수
+      countUniqueVisitors({ timestamp: { $gte: yesterday, $lt: today } }),
+
+      // 이번 달 고유 방문자 수
+      countUniqueVisitors({ timestamp: { $gte: thisMonth } }),
+
+      // 전체 고유 방문자 수
+      countUniqueVisitors({}),
 
       // 방문 기록 상세 (디바이스 및 유입경로 분석용) - 날짜 필터 적용
       db
@@ -573,11 +597,24 @@ export async function GET(request: NextRequest) {
       totalPolicyNews,
       totalTubeVideos: videoCount,
       recentActivities,
+      pageviews: {
+        today: todayPageviews,
+        yesterday: yesterdayPageviews,
+        thisMonth: monthlyPageviews,
+        total: totalPageviews,
+      },
+      visitors: {
+        today: todayVisitors,
+        yesterday: yesterdayVisitors,
+        thisMonth: monthlyVisitors,
+        total: totalVisitors,
+      },
+      // 하위호환: 기존 visits 필드 유지
       visits: {
-        today: todayVisits,
-        yesterday: yesterdayVisits,
-        thisMonth: monthlyVisits,
-        total: totalVisits,
+        today: todayPageviews,
+        yesterday: yesterdayPageviews,
+        thisMonth: monthlyPageviews,
+        total: totalPageviews,
       },
       deviceStats,
       trafficSourceStats,
@@ -612,6 +649,18 @@ export async function GET(request: NextRequest) {
       totalPolicyNews: 0,
       totalTubeVideos: 0,
       recentActivities: [],
+      pageviews: {
+        today: 0,
+        yesterday: 0,
+        thisMonth: 0,
+        total: 0,
+      },
+      visitors: {
+        today: 0,
+        yesterday: 0,
+        thisMonth: 0,
+        total: 0,
+      },
       visits: {
         today: 0,
         yesterday: 0,
