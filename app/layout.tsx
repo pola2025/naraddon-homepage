@@ -99,6 +99,14 @@ export default function RootLayout({
               }
               html, body {
                 background-color: #ffffff !important;
+                color-scheme: light only !important;
+              }
+              /* 브라우저 강제 다크모드 / Dark Reader 대응 — 핵심 영역 흰색 강제 */
+              @media (prefers-color-scheme: dark) {
+                html, body, main, .home-page, .home-main-content {
+                  background-color: #ffffff !important;
+                  color: #171717 !important;
+                }
               }
               /* 정책소식 섹션 Critical CSS - 레이아웃 깨짐 방지 */
               .policy-thumbnails-section {

@@ -17,6 +17,19 @@
 html {
   background-color: #ffffff;
   overflow-x: hidden; /* 모바일 가로 스크롤 방지 */
+  color-scheme: light only; /* 브라우저 강제 다크모드 차단 */
+}
+
+/* 브라우저 강제 다크모드 / Dark Reader 확장 대응 */
+@media (prefers-color-scheme: dark) {
+  html,
+  body,
+  main,
+  .home-page,
+  .home-main-content {
+    background-color: #ffffff !important;
+    color: #171717 !important;
+  }
 }
 
 /* FOUC 방지 - CSS 로드 완료 확인용 (layout.tsx의 no-fouc 클래스와 연동) */
