@@ -1477,7 +1477,11 @@ function QuickConsultForm() {
           <FormSummary form={form} />
           <InfoCard />
           {/* Turnstile 봇 방지 위젯 - 인앱 브라우저에서는 스킵 */}
-          {!isInAppBrowser && <Turnstile onToken={setTurnstileToken} />}
+          {!isInAppBrowser && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Turnstile onToken={setTurnstileToken} />
+            </div>
+          )}
         </div>
       </div>
     </section>
