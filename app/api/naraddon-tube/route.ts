@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import connectDB from '@/lib/mongodb';
 import NaraddonTubeEntry from '@/models/NaraddonTubeEntry';
 
@@ -140,6 +141,10 @@ export async function POST(request: NextRequest) {
       isPublished: typeof isPublished === 'boolean' ? isPublished : true,
       sortOrder: typeof sortOrder === 'number' && Number.isFinite(sortOrder) ? sortOrder : 0,
     });
+
+    // ISR 캐시 즉시 무효화 (홈페이지 + Business Voice)
+    revalidatePath('/');
+    revalidatePath('/business-voice');
 
     return NextResponse.json({ entry }, { status: 201 });
   } catch (error: unknown) {

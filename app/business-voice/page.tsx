@@ -6,6 +6,9 @@ import InterviewSection from '@/components/business-voice/InterviewSection';
 // import QnASection from '@/components/business-voice/QnASection';
 import './page.css';
 
+// ISR: 5분마다 재생성 (관리자 영상 등록 시 on-demand revalidation도 트리거됨)
+export const revalidate = 300;
+
 /**
  * Business Voice 페이지 (서버 컴포넌트)
  *

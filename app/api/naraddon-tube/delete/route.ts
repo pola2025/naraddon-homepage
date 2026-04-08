@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import clientPromise from '@/lib/mongodb-client';
 import { deleteR2Object } from '@/lib/r2';
 import { ObjectId } from 'mongodb';
@@ -13,17 +14,11 @@ export async function DELETE(request: NextRequest) {
     // 비밀번호 확인 (있으면 환경변수와 비교, 없으면 통과)
     const adminPassword = process.env.NARADDON_TUBE_PASSWORD;
     if (password && adminPassword && password !== adminPassword) {
-      return NextResponse.json(
-        { message: '비밀번호가 올바르지 않습니다.' },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: '비밀번호가 올바르지 않습니다.' }, { status: 401 });
     }
 
     if (!entryId) {
-      return NextResponse.json(
-        { message: '삭제할 항목 ID가 필요합니다.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: '삭제할 항목 ID가 필요합니다.' }, { status: 400 });
     }
 
     const client = await clientPromise;
@@ -45,11 +40,11 @@ export async function DELETE(request: NextRequest) {
     if (!entry) {
       // 디버깅: 모든 문서의 ID 확인
       const allDocs = await collection.find({}).limit(5).toArray();
-      console.log('[delete] Sample IDs in collection:', allDocs.map(d => ({ _id: d._id, type: typeof d._id })));
-      return NextResponse.json(
-        { message: '해당 항목을 찾을 수 없습니다.' },
-        { status: 404 }
+      console.log(
+        '[delete] Sample IDs in collection:',
+        allDocs.map((d) => ({ _id: d._id, type: typeof d._id }))
       );
+      return NextResponse.json({ message: '해당 항목을 찾을 수 없습니다.' }, { status: 404 });
     }
 
     // R2에서 커스텀 썸네일 삭제 (videos 배열 내 customThumbnail이 R2 URL인 경우만)
@@ -71,25 +66,24 @@ export async function DELETE(request: NextRequest) {
     }
 
     // MongoDB에서 엔트리 삭제 (같은 방식으로)
-    const deleteQuery = typeof entry._id === 'string' ? { _id: entryId } : { _id: new ObjectId(entryId) };
+    const deleteQuery =
+      typeof entry._id === 'string' ? { _id: entryId } : { _id: new ObjectId(entryId) };
     const result = await collection.deleteOne(deleteQuery);
 
     if (result.deletedCount === 0) {
-      return NextResponse.json(
-        { message: '항목을 삭제하지 못했습니다.' },
-        { status: 500 }
-      );
+      return NextResponse.json({ message: '항목을 삭제하지 못했습니다.' }, { status: 500 });
     }
+
+    // ISR 캐시 즉시 무효화 (홈페이지 + Business Voice)
+    revalidatePath('/');
+    revalidatePath('/business-voice');
 
     return NextResponse.json({
       success: true,
-      message: '항목이 성공적으로 삭제되었습니다.'
+      message: '항목이 성공적으로 삭제되었습니다.',
     });
   } catch (error) {
     console.error('[naraddon-tube][delete]', error);
-    return NextResponse.json(
-      { message: '항목 삭제 중 오류가 발생했습니다.' },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: '항목 삭제 중 오류가 발생했습니다.' }, { status: 500 });
   }
 }

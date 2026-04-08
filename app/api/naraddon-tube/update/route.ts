@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import clientPromise from '@/lib/mongodb-client';
 import { deleteR2Object } from '@/lib/r2';
 import { ObjectId } from 'mongodb';
@@ -102,6 +103,10 @@ export async function PUT(request: NextRequest) {
     if (result.matchedCount === 0) {
       return NextResponse.json({ message: '해당 항목을 찾을 수 없습니다.' }, { status: 404 });
     }
+
+    // ISR 캐시 즉시 무효화 (홈페이지 + Business Voice)
+    revalidatePath('/');
+    revalidatePath('/business-voice');
 
     return NextResponse.json({
       success: true,
