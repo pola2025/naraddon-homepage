@@ -9,6 +9,7 @@ interface User {
   email: string;
   name?: string;
   role: 'admin' | 'examiner' | 'user';
+  isAdmin?: boolean;
   permissions?: string[];
 }
 
@@ -34,6 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: session.user.email!,
         name: session.user.name || undefined,
         role: (session.user as any).role || 'user',
+        isAdmin: (session.user as any).isAdmin === true,
         permissions: (session.user as any).permissions || [],
       });
     } else {
@@ -41,20 +43,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [session]);
 
+  /** isAdmin 플래그 또는 role이 admin/super_admin이면 관리자 */
+  const isUserAdmin = (u: User | null): boolean => {
+    if (!u) return false;
+    return u.isAdmin === true || u.role === 'admin';
+  };
+
   const hasPermission = (permission: string): boolean => {
     if (!user) return false;
-    if (user.role === 'admin') return true;
+    if (isUserAdmin(user)) return true;
     return user.permissions?.includes(permission) || false;
   };
 
   const hasRole = (role: string): boolean => {
     if (!user) return false;
-    return user.role === role || (user.role === 'admin' && role !== 'admin');
+    // isAdmin 플래그가 true면 admin 권한으로 간주
+    if (role === 'admin' && isUserAdmin(user)) return true;
+    return user.role === role || (isUserAdmin(user) && role !== 'admin');
   };
 
   const checkAccess = (resource: string, action: string): boolean => {
     if (!user) return false;
-    if (user.role === 'admin') return true;
+    if (isUserAdmin(user)) return true;
 
     const permission = `${resource}:${action}`;
     return hasPermission(permission);

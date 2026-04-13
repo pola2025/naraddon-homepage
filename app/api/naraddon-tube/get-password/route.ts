@@ -1,40 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/app/auth-options';
+import clientPromise from '@/lib/mongodb-client';
+import { isAdmin } from '@/lib/auth/role-check';
 
 /**
  * GET /api/naraddon-tube/get-password
  * 관리자 세션이 있을 때만 NARADDON_TUBE_PASSWORD 반환
- * 2중 인증 문제 해결용
+ *
+ * @fix 서버→서버 self-fetch 제거 → MongoDB 직접 조회로 변경
+ *      isAdmin 플래그도 체크하도록 수정
  */
 export async function GET(request: NextRequest) {
   try {
     // NextAuth 세션 확인
     const session = await getServerSession(authOptions);
 
-    if (!session || !session.user) {
+    if (!session || !session.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // MongoDB에서 사용자 role 확인 (간단하게 환경변수 체크로 대체 가능)
-    // 실제로는 check-session API와 같은 로직 사용
-    const userEmail = session.user.email;
+    // MongoDB에서 직접 사용자 role/isAdmin 조회 (self-fetch 제거)
+    const client = await clientPromise;
+    const db = client.db('naraddon');
+    const user = await db.collection('users').findOne({ email: session.user.email });
 
-    // 간단한 role 체크 (실제 구현에서는 DB 조회)
-    const res = await fetch(`${process.env.NEXTAUTH_URL}/api/admin/check-session`, {
-      headers: {
-        cookie: request.headers.get('cookie') || '',
-      },
-    });
-
-    if (!res.ok) {
+    if (!user) {
+      console.warn('[get-password] User not found in DB:', session.user.email);
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
 
-    const userData = await res.json();
-    const userRole = userData.user?.role;
+    // role-check.ts의 isAdmin 함수 사용 (role === admin/super_admin || isAdmin === true)
+    const userForCheck = { role: user.role, isAdmin: user.isAdmin === true };
 
-    if (userRole !== 'admin' && userRole !== 'super_admin') {
+    if (!isAdmin(userForCheck)) {
+      console.warn(
+        '[get-password] Not admin:',
+        session.user.email,
+        'role:',
+        user.role,
+        'isAdmin:',
+        user.isAdmin
+      );
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
 
@@ -42,18 +49,12 @@ export async function GET(request: NextRequest) {
     const password = process.env.NARADDON_TUBE_PASSWORD;
 
     if (!password) {
-      return NextResponse.json(
-        { error: 'Server configuration error' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
     return NextResponse.json({ password });
   } catch (error) {
     console.error('[get-password] error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
