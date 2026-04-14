@@ -84,7 +84,6 @@
   word-break: keep-all;
 }
 
-
 .video-caption.visible {
   opacity: 1;
 }
@@ -104,7 +103,6 @@
   margin-bottom: 20px;
   animation: captionFadeIn 0.5s ease-in-out;
 }
-
 
 .sub-caption {
   font-size: 26px;
@@ -241,31 +239,35 @@
   }
 }
 
-
-
-
-/* 영상 로드 실패 시 대체 콘텐츠 */
-.video-fallback {
+/* 영상 로딩 상태 - 영상 준비 전까지 표시 */
+.video-loading-state {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  color: white;
-  z-index: 2;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  z-index: 5;
 }
 
-.video-fallback h1 {
-  font-size: 72px;
-  font-weight: 700;
-  margin-bottom: 20px;
-  text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.8);
+.video-loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-top-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  animation: videoSpin 0.8s linear infinite;
 }
 
-.video-fallback p {
-  font-size: 24px;
-  font-weight: 400;
-  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.8);
+@keyframes videoSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 영상 배경 페이드인 */
+.video-background {
+  transition: opacity 0.5s ease-in-out;
 }
 
 /* 반응형 - 소형 모바일 */
@@ -304,13 +306,3 @@
     bottom: 220px;
   }
 }
-
-
-
-
-
-
-
-
-
-

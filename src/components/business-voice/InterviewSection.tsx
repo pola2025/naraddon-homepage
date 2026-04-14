@@ -64,7 +64,8 @@ const fetchVideos = cache(async (): Promise<InterviewVideo[]> => {
         title: video.title,
         description: video.description,
         thumbnailUrl: video.customThumbnail,
-        displayThumbnail: video.customThumbnail || `https://img.youtube.com/vi/${video.youtubeId}/sddefault.jpg`,
+        displayThumbnail:
+          video.customThumbnail || `https://img.youtube.com/vi/${video.youtubeId}/sddefault.jpg`,
       };
     });
 
@@ -87,12 +88,14 @@ export default async function InterviewSection() {
   return (
     <section id="interview-section" className="interview-section-new">
       <div className="section-header">
-        <h2><i className="fas fa-video"></i> 대표님 인터뷰</h2>
+        <h2>
+          <i className="fas fa-video"></i> 대표님 인터뷰
+        </h2>
         <p>나라똔과 함께한 대표님들의 생생한 후기입니다.</p>
       </div>
 
       <div className="interview-videos-container">
-        <InterviewVideoGrid videos={videos} />
+        <InterviewVideoGrid videos={videos} initialLimit={3} />
       </div>
     </section>
   );

@@ -69,7 +69,6 @@ function Home({ initialPolicyNews = [], initialTubeVideos = [] }) {
   }, []);
   const [showStartButton, setShowStartButton] = useState(true);
   const [showGreenOverlay, setShowGreenOverlay] = useState(false);
-  const [videoError, setVideoError] = useState(false);
   const [currentCaption, setCurrentCaption] = useState('');
   const [isCaptionVisible, setIsCaptionVisible] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -152,11 +151,6 @@ function Home({ initialPolicyNews = [], initialTubeVideos = [] }) {
     }, 400);
   }, []);
 
-  const handleVideoError = useCallback(() => {
-    console.error('Video playback error occurred');
-    setVideoError(true);
-  }, []);
-
   return (
     <>
       {showIntro ? (
@@ -164,8 +158,6 @@ function Home({ initialPolicyNews = [], initialTubeVideos = [] }) {
           showStartButton={showStartButton}
           showGreenOverlay={showGreenOverlay}
           onStart={handleStart}
-          onVideoError={handleVideoError}
-          videoError={videoError}
           currentCaption={currentCaption}
           isCaptionVisible={isCaptionVisible}
           isExpanded={isExpanded}

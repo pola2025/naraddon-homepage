@@ -106,7 +106,19 @@ const nextConfig = {
           },
         ],
       },
-      // 3. public 폴더 미디어 파일 장기 캐시
+      // 3. HTML 페이지: 5분 캐시 + 백그라운드 갱신
+      // 주의: 이 catch-all은 반드시 미디어 캐시 규칙보다 먼저 와야 함
+      // Next.js headers는 동일 헤더키가 여러 규칙에 매칭되면 마지막 것이 적용됨
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=300, stale-while-revalidate=86400',
+          },
+        ],
+      },
+      // 4. public 폴더 미디어 파일 장기 캐시 (catch-all 이후 → 덮어쓰기)
       {
         source: '/videos/:path*',
         headers: [
@@ -122,16 +134,6 @@ const nextConfig = {
           {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      // 4. HTML 페이지: 5분 캐시 + 백그라운드 갱신
-      {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=300, stale-while-revalidate=86400',
           },
         ],
       },

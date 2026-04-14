@@ -228,11 +228,15 @@ main:has(.business-voice-container) {
 }
 
 .shadow-lg {
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
 .transition {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-property:
+    color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow,
+    transform, filter, backdrop-filter;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
@@ -1229,7 +1233,8 @@ main:has(.business-voice-container) {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -1663,8 +1668,7 @@ main:has(.business-voice-container) {
   .ttontok-card {
     padding: 10px;
   }
-
-  }
+}
 
 @media (max-width: 768px) {
   .business-voice-container {
@@ -2031,7 +2035,9 @@ main:has(.business-voice-container) {
   border-radius: 1.75rem;
   background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
   color: #fff;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .business-voice__cta-content {
@@ -2072,7 +2078,9 @@ main:has(.business-voice-container) {
   font-size: 0.9375rem;
   font-weight: 700;
   text-decoration: none;
-  transition: transform 0.15s ease-out, background 0.15s ease-out;
+  transition:
+    transform 0.15s ease-out,
+    background 0.15s ease-out;
 }
 
 .business-voice__cta-button:hover,
@@ -2209,7 +2217,9 @@ main:has(.business-voice-container) {
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .video-card:hover {
@@ -2359,9 +2369,9 @@ main:has(.business-voice-container) {
   color: #1a1a1a;
 }
 
-.modal-content input[type="password"],
-.modal-content input[type="text"],
-.modal-content input[type="url"],
+.modal-content input[type='password'],
+.modal-content input[type='text'],
+.modal-content input[type='url'],
 .modal-content textarea {
   width: 100%;
   padding: 10px;
@@ -2408,13 +2418,13 @@ main:has(.business-voice-container) {
   background: #f5f5f5;
 }
 
-.modal-buttons button[type="submit"] {
+.modal-buttons button[type='submit'] {
   background: #00c896;
   color: white;
   border: none;
 }
 
-.modal-buttons button[type="submit"]:hover {
+.modal-buttons button[type='submit']:hover {
   background: #00a67e;
 }
 
@@ -2543,6 +2553,50 @@ main:has(.business-voice-container) {
    ========================================== */
 
 /* 캐러셀 래퍼 - 화살표 포함 */
+/* 인터뷰 그리드 - 3개 고정, 전체보기 시 확장 */
+.interview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.interview-grid-item {
+  cursor: pointer;
+}
+
+/* 전체보기 / 접기 버튼 */
+.interview-view-all {
+  display: flex;
+  justify-content: center;
+  margin-top: 28px;
+}
+
+.interview-view-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: transparent;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  color: #555;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.interview-view-all-btn:hover {
+  background: #f5f5f5;
+  border-color: #aaa;
+  color: #333;
+}
+
+.interview-view-all-btn i {
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+
 .interview-carousel-wrapper {
   position: relative;
   display: flex;
@@ -2722,12 +2776,7 @@ main:has(.business-voice-container) {
 .skeleton-shimmer {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.4),
-    transparent
-  );
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
   animation: shimmer 1.5s infinite;
 }
 
@@ -2804,6 +2853,21 @@ main:has(.business-voice-container) {
   gap: 12px;
   font-size: 13px;
   color: #888;
+}
+
+/* 인터뷰 그리드 반응형 - 태블릿 */
+@media (max-width: 1024px) {
+  .interview-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 인터뷰 그리드 반응형 - 모바일 */
+@media (max-width: 640px) {
+  .interview-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 }
 
 /* 캐러셀 반응형 - 태블릿 */
