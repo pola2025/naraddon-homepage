@@ -78,7 +78,7 @@ function VideoModal({ video, isOpen, onClose }: VideoModalProps) {
   );
 }
 
-export default function InterviewVideoGrid({ videos, initialLimit = 3 }: InterviewVideoGridProps) {
+export default function InterviewVideoGrid({ videos, initialLimit = 6 }: InterviewVideoGridProps) {
   const [selectedVideo, setSelectedVideo] = useState<InterviewVideo | null>(null);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());

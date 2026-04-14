@@ -95,7 +95,7 @@ export default async function InterviewSection() {
       </div>
 
       <div className="interview-videos-container">
-        <InterviewVideoGrid videos={videos} initialLimit={3} />
+        <InterviewVideoGrid videos={videos} initialLimit={6} />
       </div>
     </section>
   );

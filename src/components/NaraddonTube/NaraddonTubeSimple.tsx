@@ -18,7 +18,7 @@ interface TubeEntry {
   sortOrder?: number;
 }
 
-const INITIAL_VIDEO_COUNT = 3; // 초기에 보여줄 비디오 개수
+const INITIAL_VIDEO_COUNT = 6; // 초기에 보여줄 비디오 개수 (3열 x 2줄)
 
 /**
  * NaraddonTubeSimple 컴포넌트

@@ -88,9 +88,9 @@
   background: #45a049;
 }
 
-/* 확장 상태: 2-3열 그리드 */
+/* 확장 상태: 3열 그리드 유지 */
 .tube-simple-grid.expanded {
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   max-height: none;
 }
 
