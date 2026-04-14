@@ -18,7 +18,7 @@
 
 .tube-simple-eyebrow {
   font-size: 14px;
-  color: #4CAF50;
+  color: #4caf50;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -59,15 +59,15 @@
   margin-bottom: 32px;
 }
 
-/* 축소 상태: 1줄 가로 스크롤 */
+/* 축소 상태: 3열 그리드 */
 .tube-simple-grid.collapsed {
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  scrollbar-color: #4CAF50 #f0f0f0;
+  scrollbar-color: #4caf50 #f0f0f0;
 }
 
 .tube-simple-grid.collapsed::-webkit-scrollbar {
@@ -80,7 +80,7 @@
 }
 
 .tube-simple-grid.collapsed::-webkit-scrollbar-thumb {
-  background: #4CAF50;
+  background: #4caf50;
   border-radius: 4px;
 }
 
@@ -178,7 +178,7 @@
 
 .tube-simple-category {
   font-size: 13px;
-  color: #4CAF50;
+  color: #4caf50;
   font-weight: 500;
 }
 
@@ -190,8 +190,8 @@
 
 .tube-simple-toggle-button {
   background: white;
-  border: 2px solid #4CAF50;
-  color: #4CAF50;
+  border: 2px solid #4caf50;
+  color: #4caf50;
   padding: 14px 32px;
   border-radius: 50px;
   font-size: 16px;
@@ -204,7 +204,7 @@
 }
 
 .tube-simple-toggle-button:hover {
-  background: #4CAF50;
+  background: #4caf50;
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
