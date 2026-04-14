@@ -74,7 +74,7 @@ const IntroVideo = ({
       {/* 로딩 상태 - 영상 준비 전까지만 표시 (나라똔 브랜드 웨이브 애니메이션) */}
       {!isVideoReady && (
         <div className="video-loading-state">
-          <MotionLoader variant="wave" size="lg" />
+          <MotionLoader variant="wave" size="lg" message="최적의 정책자금을 분석하고 있습니다" />
         </div>
       )}
 

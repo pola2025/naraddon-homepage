@@ -250,6 +250,13 @@
   z-index: 5;
 }
 
+/* 로딩 메시지를 검정 배경에 맞게 흰색으로 */
+.video-loading-state p {
+  color: rgba(255, 255, 255, 0.6) !important;
+  font-size: 14px !important;
+  letter-spacing: 0.5px;
+}
+
 /* 영상 배경 페이드인 */
 .video-background {
   transition: opacity 0.5s ease-in-out;
