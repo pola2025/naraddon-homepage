@@ -250,11 +250,36 @@
   z-index: 5;
 }
 
-/* 로딩 메시지를 검정 배경에 맞게 흰색으로 */
+/* 로딩 멘트 — 초록 그라데이션 시머 */
 .video-loading-state p {
-  color: rgba(255, 255, 255, 0.6) !important;
   font-size: 14px !important;
+  font-weight: 500;
   letter-spacing: 0.5px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.35) 0%,
+    rgba(255, 255, 255, 0.35) 25%,
+    #6ee7b7 45%,
+    #059669 50%,
+    #6ee7b7 55%,
+    rgba(255, 255, 255, 0.35) 75%,
+    rgba(255, 255, 255, 0.35) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  color: transparent !important;
+  animation: textShimmer 3s linear infinite;
+}
+
+@keyframes textShimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: -100% 50%;
+  }
 }
 
 /* 영상 배경 페이드인 */
