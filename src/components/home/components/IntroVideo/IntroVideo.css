@@ -250,21 +250,6 @@
   z-index: 5;
 }
 
-.video-loading-spinner {
-  width: 48px;
-  height: 48px;
-  border: 3px solid rgba(255, 255, 255, 0.15);
-  border-top-color: rgba(255, 255, 255, 0.8);
-  border-radius: 50%;
-  animation: videoSpin 0.8s linear infinite;
-}
-
-@keyframes videoSpin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 /* 영상 배경 페이드인 */
 .video-background {
   transition: opacity 0.5s ease-in-out;

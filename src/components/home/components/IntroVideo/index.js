@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import MotionLoader from '@/components/loading/MotionLoader';
 import './IntroVideo.css';
 
 /**
@@ -70,10 +71,10 @@ const IntroVideo = ({
 
   return (
     <div className="intro-video-section">
-      {/* 로딩 상태 - 영상 준비 전까지만 표시 */}
+      {/* 로딩 상태 - 영상 준비 전까지만 표시 (나라똔 브랜드 웨이브 애니메이션) */}
       {!isVideoReady && (
         <div className="video-loading-state">
-          <div className="video-loading-spinner"></div>
+          <MotionLoader variant="wave" size="lg" />
         </div>
       )}
 
