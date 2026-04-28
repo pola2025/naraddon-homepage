@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import 'react-quill/dist/quill.snow.css';
 import './PolicyNewsEditor.css';
@@ -36,6 +36,11 @@ export default function PolicyNewsEditor({
   hasError = false,
 }: PolicyNewsEditorProps) {
   const quillRef = useRef<any>(null);
+  // Quill 사용자 모듈(resize 등) 등록 완료 여부
+  // @bug Quill 인스턴스 생성 시점에 'modules/resize' 가 아직 등록되지 않으면
+  //      "moduleClass is not a constructor" 가 발생 (특히 수정 페이지에서 재현)
+  // @fix 등록이 끝난 뒤에만 ReactQuill 을 마운트하여 레이스 제거
+  const [isReady, setIsReady] = useState(false);
 
   /**
    * Quill 모듈 정의 (도구바 + 이미지 업로드 + 리사이즈)
@@ -204,6 +209,8 @@ export default function PolicyNewsEditor({
       } catch (err) {
         console.warn('[PolicyNewsEditor] resize module register skipped:', err);
       }
+
+      if (mounted) setIsReady(true);
     })();
     return () => {
       mounted = false;
@@ -212,15 +219,19 @@ export default function PolicyNewsEditor({
 
   return (
     <div className={`policy-news-editor${hasError ? ' has-error' : ''}`}>
-      <ReactQuill
-        ref={quillRef}
-        theme="snow"
-        value={value}
-        onChange={onChange}
-        modules={modules}
-        formats={formats}
-        placeholder={placeholder}
-      />
+      {isReady ? (
+        <ReactQuill
+          ref={quillRef}
+          theme="snow"
+          value={value}
+          onChange={onChange}
+          modules={modules}
+          formats={formats}
+          placeholder={placeholder}
+        />
+      ) : (
+        <div className="policy-news-editor-loading">에디터를 불러오는 중...</div>
+      )}
     </div>
   );
 }
