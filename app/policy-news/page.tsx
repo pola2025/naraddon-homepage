@@ -268,17 +268,8 @@ export default function PolicyNewsListPage() {
                   <div className="card-content">
                     <div className="card-category">{post.category || '정책정보'}</div>
                     <h3 className="card-title">{post.title}</h3>
-                    <p className="card-excerpt">{post.excerpt}</p>
-                    {/* 메타 정보(날짜, 조회수, 좋아요) 숨김 - 2026-01-26 */}
-                    {post.tags && post.tags.length > 0 && (
-                      <div className="card-tags">
-                        {post.tags.slice(0, 3).map((tag: string, idx: number) => (
-                          <span key={idx} className="card-tag">
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    {/* 요약(card-excerpt) · 태그(card-tags) · 메타 정보 모두 제거 — 2026-04-28 사용자 요청
+                        목록 카드는 썸네일 + 카테고리 라벨 + 제목만 노출 */}
                   </div>
                 </article>
               ))}

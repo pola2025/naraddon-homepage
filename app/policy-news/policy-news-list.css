@@ -215,7 +215,7 @@
   font-size: 16px;
   font-weight: 700;
   color: #1e293b;
-  margin-bottom: 10px;
+  margin-bottom: 0; /* 하단 요약/태그 제거로 마진 축소 (2026-04-28) */
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
