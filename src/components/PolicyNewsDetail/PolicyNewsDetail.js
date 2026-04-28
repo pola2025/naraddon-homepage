@@ -325,14 +325,9 @@ const PolicyNewsDetail = ({ previewPost = null } = {}) => {
           <h1 className="post-title">{post.title}</h1>
 
           <div className="post-meta">
+            {/* 작성자 영역(아바타 N + '나라똔 편집부') 제거 — 2026-04-28 사용자 요청
+                날짜만 좌측에 표시 */}
             <div className="meta-author">
-              <span className="author-avatar" aria-hidden="true">
-                N
-              </span>
-              <span className="author-name">나라똔 편집부</span>
-              <span className="meta-dot" aria-hidden="true">
-                ·
-              </span>
               <span className="meta-date">{createdDate}</span>
             </div>
             <div className="meta-actions">

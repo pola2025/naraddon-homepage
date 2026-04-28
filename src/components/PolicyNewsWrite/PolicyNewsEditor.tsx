@@ -8,10 +8,11 @@ import './PolicyNewsEditor.css';
 /**
  * 정책소식 본문 에디터 (ReactQuill 래퍼)
  *
- * @purpose 와이어 ③ 사양 — 폰트 크기/정렬/이미지 업로드/인용/목록/색상 지원
+ * @purpose 와이어 ③ 사양 — 폰트 크기/정렬/이미지 업로드/인용/목록/색상/이미지 리사이즈
  * @context PolicyNewsWrite 의 textarea + 마크다운 입력을 대체
  * @decision react-quill v2 채택 (이미 dependency, SSR 비호환이라 dynamic import)
  * @note 이미지는 본문 커서 위치에 직접 삽입되며, 업로드는 /api/policy-news/upload-image 가 webp 변환
+ *       quill-resize-image 모듈로 마우스 드래그 핸들 + 정렬 메뉴 제공
  */
 
 const ReactQuill = dynamic(() => import('react-quill'), {
@@ -37,10 +38,7 @@ export default function PolicyNewsEditor({
   const quillRef = useRef<any>(null);
 
   /**
-   * Quill 모듈 정의 (도구바 + 이미지 업로드 핸들러)
-   *
-   * @purpose 와이어 도구바 14항목 매칭
-   * @decision useMemo 로 모듈 객체를 한 번만 생성 (Quill 인스턴스 재생성 방지)
+   * Quill 모듈 정의 (도구바 + 이미지 업로드 + 리사이즈)
    */
   const modules = useMemo(
     () => ({
@@ -59,9 +57,8 @@ export default function PolicyNewsEditor({
         handlers: {
           /**
            * 이미지 업로드 핸들러
-           *
-           * @purpose 파일 선택 → R2 업로드 (webp 변환) → 본문 커서 위치에 삽입
-           * @decision Quill 기본 image 핸들러는 base64 inline 삽입이라 DB 용량 폭증 → 항상 R2 업로드 경유
+           * @purpose 파일 선택 → R2 업로드(webp 변환) → 본문 커서 위치 삽입
+           *          삽입 직후 width:100% 인라인 style 적용 (기본 콘텐츠 풀 폭)
            */
           image: () => {
             const input = document.createElement('input');
@@ -93,7 +90,6 @@ export default function PolicyNewsEditor({
                   body: formData,
                 });
 
-                // 플레이스홀더 제거
                 quill.deleteText(range.index, placeholderText.length);
 
                 if (!response.ok) {
@@ -106,6 +102,19 @@ export default function PolicyNewsEditor({
 
                 quill.insertEmbed(range.index, 'image', data.url, 'user');
                 quill.setSelection(range.index + 1, 0);
+
+                /**
+                 * 삽입 직후 이미지 기본 크기 = 콘텐츠 폭 100% 강제
+                 * @decision 기본은 풀폭, 사용자가 원하면 quill-resize-image 핸들로 축소
+                 */
+                requestAnimationFrame(() => {
+                  const editorRoot = quill.root as HTMLElement;
+                  const imgs = editorRoot.querySelectorAll(`img[src="${data.url}"]`);
+                  imgs.forEach((img) => {
+                    const el = img as HTMLImageElement;
+                    if (!el.style.width) el.style.width = '100%';
+                  });
+                });
               } catch (error) {
                 console.error('[PolicyNewsEditor] image upload failed:', error);
                 alert(
@@ -115,6 +124,20 @@ export default function PolicyNewsEditor({
             };
             input.click();
           },
+        },
+      },
+      /**
+       * 이미지 리사이즈 — quill-resize-image
+       * @purpose 본문 이미지 클릭 시 모서리 핸들로 크기 조정 + 정렬 메뉴 (가운데/왼쪽/오른쪽)
+       */
+      resize: {
+        locale: {
+          center: '가운데',
+          left: '왼쪽',
+          right: '오른쪽',
+          floatLeft: '글자 감싸기 왼쪽',
+          floatRight: '글자 감싸기 오른쪽',
+          restore: '원래 크기',
         },
       },
       clipboard: {
@@ -141,6 +164,9 @@ export default function PolicyNewsEditor({
       'blockquote',
       'link',
       'image',
+      'width',
+      'height',
+      'style',
     ],
     []
   );
@@ -152,12 +178,15 @@ export default function PolicyNewsEditor({
    *   1) Size: px 단위 사용 (기본 small/normal/large/huge → px 직접 지정)
    *   2) Align: 인라인 style 방식 (기본 class .ql-align-* → style="text-align:...")
    *      → detail/미리보기 페이지의 CSS specificity 문제 회피, 어디서나 정렬 100% 적용 보장
-   * @note Direction/Indent 등 다른 정렬 관련 attributor는 사용 안 함
+   *   3) Resize 모듈: quill-resize-image (이미지 크기 조정 핸들)
    */
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const Quill = (await import('react-quill')).default.Quill;
+      const [{ default: Quill }, ResizeModule] = await Promise.all([
+        import('react-quill').then((m) => ({ default: m.default.Quill })),
+        import('quill-resize-image').then((m) => m.default || m),
+      ]);
       if (!mounted) return;
 
       // 폰트 크기 — style attributor + px whitelist
@@ -168,6 +197,13 @@ export default function PolicyNewsEditor({
       // 정렬 — style attributor (HTML 출력: style="text-align: center" 등)
       const Align = Quill.import('attributors/style/align');
       Quill.register(Align, true);
+
+      // 이미지 리사이즈 모듈 등록
+      try {
+        Quill.register('modules/resize', ResizeModule);
+      } catch (err) {
+        console.warn('[PolicyNewsEditor] resize module register skipped:', err);
+      }
     })();
     return () => {
       mounted = false;
