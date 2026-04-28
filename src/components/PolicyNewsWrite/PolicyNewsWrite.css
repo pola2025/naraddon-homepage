@@ -186,7 +186,8 @@
 
 .ql-editor {
   min-height: 350px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   line-height: 1.6;
 }
 
@@ -330,6 +331,7 @@
 
 .btn-draft,
 .btn-load,
+.btn-preview,
 .btn-cancel,
 .btn-submit {
   padding: 12px 24px;
@@ -342,6 +344,18 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* 라이브 미리보기 버튼 — 보조 액션 톤 (브랜드 emerald 아웃라인) */
+.btn-preview {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.btn-preview:hover {
+  background: #d1fae5;
+  border-color: #6ee7b7;
 }
 
 .btn-draft {
@@ -667,4 +681,3 @@
     font-size: 12px;
   }
 }
-

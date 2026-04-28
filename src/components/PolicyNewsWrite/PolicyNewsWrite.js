@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import PolicyNewsEditor from './PolicyNewsEditor';
+import PolicyNewsPreview from './PolicyNewsPreview';
 import './PolicyNewsWrite.css';
 
 const categories = [
@@ -40,6 +41,8 @@ const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isLoadingPost, setIsLoadingPost] = useState(false);
+  // 라이브 미리보기 모달 상태
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const fileInputRef = useRef(null);
 
   const isEditMode = mode === 'edit' && postId;
@@ -679,6 +682,10 @@ const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
           </div>
 
           <div className="right-actions">
+            {/* 라이브 미리보기 — 실제 detail 페이지와 동일한 레이아웃으로 모달에서 확인 */}
+            <button type="button" className="btn-preview" onClick={() => setIsPreviewOpen(true)}>
+              <i className="fas fa-eye"></i> 미리보기
+            </button>
             <button type="button" className="btn-cancel" onClick={handleCancel}>
               <i className="fas fa-times"></i> 취소
             </button>
@@ -688,6 +695,25 @@ const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
           </div>
         </div>
       </form>
+
+      {/*
+        라이브 미리보기 모달
+        @purpose 작성 중인 글이 detail 페이지(/policy-news/[id])에 어떻게 보일지 즉시 확인
+        @decision 모달이 열린 상태에서 form 변경 시 닫고 다시 열면 갱신 (props 기반)
+      */}
+      <PolicyNewsPreview
+        open={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        title={formData.title}
+        category={formData.category}
+        excerpt={formData.excerpt}
+        content={formData.content}
+        thumbnail={formData.thumbnail}
+        tags={formData.tags
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean)}
+      />
 
       {/* 관리자 게시글 목록 */}
       {isAuthorized && (
