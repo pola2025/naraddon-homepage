@@ -4,7 +4,7 @@
   내부(.detail-card)         = 760px 흰 카드 (보더 + 둥근 모서리)
 */
 .policy-news-detail {
-  background: #f7f8fa;
+  background: #e5e7eb;
   padding: 32px 16px 48px;
   min-height: 100vh;
   isolation: isolate;
@@ -20,6 +20,9 @@
   border: 1px solid #e2e8f0;
   border-radius: 16px;
   overflow: hidden;
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.06),
+    0 8px 20px rgba(15, 23, 42, 0.04);
 }
 
 /* 관련글이 카드 바닥에 붙도록 — 그렇지 않은 경우 post-navigation의 padding-bottom 40px가 마무리 */
