@@ -590,15 +590,17 @@
   display: flow-root;
 }
 
-/* ReactQuill 출력 호환 — 정렬 클래스 (ql-align-*) */
+/* ReactQuill 호환 — 정렬
+   @decision 신규 글은 inline style="text-align: ..." 로 출력 → 자동 적용
+             구버전 글의 class 방식(.ql-align-*) 도 호환 유지 + !important 로 specificity 우회 */
 .policy-news-detail .post-content .ql-align-center {
-  text-align: center;
+  text-align: center !important;
 }
 .policy-news-detail .post-content .ql-align-right {
-  text-align: right;
+  text-align: right !important;
 }
 .policy-news-detail .post-content .ql-align-justify {
-  text-align: justify;
+  text-align: justify !important;
 }
 
 /* ReactQuill 본문 내 이미지 — 본문 760px 풀 폭 */

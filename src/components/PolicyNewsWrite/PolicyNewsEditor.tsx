@@ -146,18 +146,28 @@ export default function PolicyNewsEditor({
   );
 
   /**
-   * Quill Size whitelist 등록 (px 단위 사용)
+   * Quill attributor 등록
    *
-   * @note Quill 기본은 small/normal/large/huge — px 단위 쓰려면 동적 등록 필요
+   * @purpose
+   *   1) Size: px 단위 사용 (기본 small/normal/large/huge → px 직접 지정)
+   *   2) Align: 인라인 style 방식 (기본 class .ql-align-* → style="text-align:...")
+   *      → detail/미리보기 페이지의 CSS specificity 문제 회피, 어디서나 정렬 100% 적용 보장
+   * @note Direction/Indent 등 다른 정렬 관련 attributor는 사용 안 함
    */
   useEffect(() => {
     let mounted = true;
     (async () => {
       const Quill = (await import('react-quill')).default.Quill;
       if (!mounted) return;
+
+      // 폰트 크기 — style attributor + px whitelist
       const Size = Quill.import('attributors/style/size');
       Size.whitelist = FONT_SIZES;
       Quill.register(Size, true);
+
+      // 정렬 — style attributor (HTML 출력: style="text-align: center" 등)
+      const Align = Quill.import('attributors/style/align');
+      Quill.register(Align, true);
     })();
     return () => {
       mounted = false;
