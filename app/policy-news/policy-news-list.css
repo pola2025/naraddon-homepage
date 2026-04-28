@@ -390,33 +390,17 @@
     border-radius: 10px 10px 0 0;
   }
 
-  .card-content {
-    padding: 8px 10px 10px;
-  }
-
-  .card-category {
-    padding: 2px 6px;
-    font-size: 9px;
-    margin-bottom: 4px;
-  }
-
-  .card-title {
-    font-size: 9.5px;
-    margin-bottom: 4px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    display: block;
-  }
-
-  .card-excerpt {
-    font-size: 10px;
-    -webkit-line-clamp: 2;
-    margin-bottom: 0;
-    line-height: 1.4;
-  }
-
+  /* 모바일에서는 카드 텍스트 영역 전체 숨김 — 썸네일만 표시 (2026-04-28 사용자 요청)
+     카테고리/제목/요약/태그 모두 노출 안 함, 카드 = 정사각 썸네일 */
+  .card-content,
+  .card-category,
+  .card-title,
+  .card-excerpt,
   .card-tags {
-    display: none;
+    display: none !important;
+  }
+
+  .card-thumbnail {
+    border-radius: 10px; /* 카드 전체가 썸네일이므로 모서리 4면 라운딩 */
   }
 }
