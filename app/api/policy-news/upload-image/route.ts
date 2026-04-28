@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requirePerm, handleAuthError } from '@/lib/auth/guards';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { compressImageOnServer } from '@/lib/image/serverImageCompressor';
 
 // 환경변수 검증 함수
-function validateEnvironmentVariables(): { isValid: boolean; missingVars: string[]; errorMessage?: string } {
+function validateEnvironmentVariables(): {
+  isValid: boolean;
+  missingVars: string[];
+  errorMessage?: string;
+} {
   const requiredEnvVars = [
     'CLOUDFLARE_R2_ENDPOINT',
     'CLOUDFLARE_R2_ACCESS_KEY_ID',
     'CLOUDFLARE_R2_SECRET_ACCESS_KEY',
     'CLOUDFLARE_R2_BUCKET',
-    'CLOUDFLARE_R2_PUBLIC_DOMAIN'
+    'CLOUDFLARE_R2_PUBLIC_DOMAIN',
   ];
 
   const missingVars: string[] = [];
@@ -25,7 +30,7 @@ function validateEnvironmentVariables(): { isValid: boolean; missingVars: string
     return {
       isValid: false,
       missingVars,
-      errorMessage: `필수 환경변수가 설정되지 않았습니다: ${missingVars.join(', ')}`
+      errorMessage: `필수 환경변수가 설정되지 않았습니다: ${missingVars.join(', ')}`,
     };
   }
 
@@ -50,7 +55,10 @@ function createS3Client(): { client: S3Client | null; error?: string } {
       },
     });
 
-    console.log('[S3Client] Successfully initialized with endpoint:', process.env.CLOUDFLARE_R2_ENDPOINT);
+    console.log(
+      '[S3Client] Successfully initialized with endpoint:',
+      process.env.CLOUDFLARE_R2_ENDPOINT
+    );
     return { client };
   } catch (error) {
     const errorMessage = `S3Client 초기화 실패: ${error instanceof Error ? error.message : String(error)}`;
@@ -85,7 +93,7 @@ export async function POST(request: NextRequest) {
         {
           message: '서버 설정 오류가 발생했습니다.',
           details: errorMessage,
-          type: 'S3_CLIENT_ERROR'
+          type: 'S3_CLIENT_ERROR',
         },
         { status: 500 }
       );
@@ -94,13 +102,16 @@ export async function POST(request: NextRequest) {
     // 환경변수 재검증 (런타임에서)
     const envValidation = validateEnvironmentVariables();
     if (!envValidation.isValid) {
-      console.error('[policy-news-upload] Environment validation failed:', envValidation.errorMessage);
+      console.error(
+        '[policy-news-upload] Environment validation failed:',
+        envValidation.errorMessage
+      );
       return NextResponse.json(
         {
           message: '서버 환경 설정 오류가 발생했습니다.',
           details: envValidation.errorMessage,
           missingVars: envValidation.missingVars,
-          type: 'ENV_VAR_ERROR'
+          type: 'ENV_VAR_ERROR',
         },
         { status: 500 }
       );
@@ -113,7 +124,7 @@ export async function POST(request: NextRequest) {
       hasFile: !!file,
       fileSize: file?.size || 0,
       fileName: file?.name || 'N/A',
-      fileType: file?.type || 'N/A'
+      fileType: file?.type || 'N/A',
     });
 
     if (!file) {
@@ -124,7 +135,10 @@ export async function POST(request: NextRequest) {
     // 파일 크기 제한 (3MB)
     if (file.size > 3 * 1024 * 1024) {
       console.log('[policy-news-upload] File too large:', file.size);
-      return NextResponse.json({ message: '파일 크기는 3MB를 초과할 수 없습니다.' }, { status: 400 });
+      return NextResponse.json(
+        { message: '파일 크기는 3MB를 초과할 수 없습니다.' },
+        { status: 400 }
+      );
     }
 
     // 파일 타입 확인
@@ -133,29 +147,53 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: '이미지 파일만 업로드 가능합니다.' }, { status: 400 });
     }
 
-    // 파일명 생성 (타임스탬프 + 원본 파일명)
-    const timestamp = Date.now();
-    const fileName = `policy-news/${timestamp}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
-    console.log('[policy-news-upload] Generated filename:', fileName);
-
     // ArrayBuffer로 변환
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     console.log('[policy-news-upload] File converted to buffer, size:', buffer.length);
 
+    /**
+     * 이미지 webp 변환 + 리사이즈 (긴변 1600px / quality 85)
+     *
+     * @purpose 본문 삽입 이미지 용량 최소화 (와이어 ④번 사양)
+     * @decision 정책소식은 이미지 위주 콘텐츠가 적어 1600px / q85 면 충분
+     * @note GIF는 sharp가 첫 프레임만 처리하므로 png 변환 (애니메이션 손실 OK)
+     */
+    const compressed = await compressImageOnServer(buffer, {
+      maxSizeMB: 3,
+      maxWidth: 1600,
+      maxHeight: 1600,
+      quality: 85,
+      format: 'webp',
+    });
+    console.log(
+      '[policy-news-upload] webp converted:',
+      `${(buffer.length / 1024).toFixed(0)}KB → ${(compressed.compressedSize / 1024).toFixed(0)}KB`,
+      `(${compressed.compressionRatio.toFixed(1)}% saved, ${compressed.width}x${compressed.height})`
+    );
+
+    // 파일명 생성 (타임스탬프 + 원본명 sanitize + .webp 확장자 강제)
+    const timestamp = Date.now();
+    const baseName = file.name
+      .replace(/\.[^.]+$/, '') // 원본 확장자 제거
+      .replace(/[^a-zA-Z0-9-]/g, ''); // 안전 문자만 유지
+    const safeBase = baseName.length > 0 ? baseName : 'image';
+    const fileName = `policy-news/${timestamp}-${safeBase}.webp`;
+    console.log('[policy-news-upload] Generated filename:', fileName);
+
     // R2에 업로드
     const uploadParams = {
       Bucket: process.env.CLOUDFLARE_R2_BUCKET!,
       Key: fileName,
-      Body: buffer,
-      ContentType: file.type,
+      Body: compressed.buffer,
+      ContentType: 'image/webp',
     };
 
     console.log('[policy-news-upload] Uploading to R2 with params:', {
       Bucket: uploadParams.Bucket,
       Key: uploadParams.Key,
       ContentType: uploadParams.ContentType,
-      BodySize: buffer.length
+      BodySize: buffer.length,
     });
 
     const uploadResult = await s3Client.send(new PutObjectCommand(uploadParams));
@@ -176,7 +214,7 @@ export async function POST(request: NextRequest) {
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
       name: error instanceof Error ? error.name : 'UnknownError',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     console.error('[policy-news-upload] Detailed error:', errorInfo);
@@ -192,7 +230,7 @@ export async function POST(request: NextRequest) {
           {
             message: 'Cloudflare R2 인증 정보 오류가 발생했습니다.',
             details: 'ACCESS_KEY_ID 또는 SECRET_ACCESS_KEY가 올바르지 않습니다.',
-            type: 'CREDENTIALS_ERROR'
+            type: 'CREDENTIALS_ERROR',
           },
           { status: 500 }
         );
@@ -203,7 +241,7 @@ export async function POST(request: NextRequest) {
           {
             message: 'Cloudflare R2 연결 오류가 발생했습니다.',
             details: 'ENDPOINT URL을 확인해주세요.',
-            type: 'NETWORK_ERROR'
+            type: 'NETWORK_ERROR',
           },
           { status: 500 }
         );
@@ -214,7 +252,7 @@ export async function POST(request: NextRequest) {
           {
             message: 'Cloudflare R2 버킷을 찾을 수 없습니다.',
             details: 'BUCKET 이름을 확인해주세요.',
-            type: 'BUCKET_ERROR'
+            type: 'BUCKET_ERROR',
           },
           { status: 500 }
         );
@@ -225,7 +263,7 @@ export async function POST(request: NextRequest) {
       {
         message: '이미지 업로드에 실패했습니다.',
         details: errorInfo.message,
-        type: 'UNKNOWN_ERROR'
+        type: 'UNKNOWN_ERROR',
       },
       { status: 500 }
     );

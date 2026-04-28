@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import PolicyNewsEditor from './PolicyNewsEditor';
 import './PolicyNewsWrite.css';
 
 const categories = [
@@ -42,7 +43,6 @@ const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
   const fileInputRef = useRef(null);
 
   const isEditMode = mode === 'edit' && postId;
-
 
   // 관리자 세션은 관리자 대시보드에서 이미 확인됨
   useEffect(() => {
@@ -138,7 +138,7 @@ const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         // 관리자 페이지에서 오는 요청은 비밀번호 불필요
-        body: JSON.stringify({})
+        body: JSON.stringify({}),
       });
 
       if (!response.ok) {
@@ -174,7 +174,6 @@ const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
       });
     }
   };
-
 
   const handleImageUrlChange = (event) => {
     const url = event.target.value;
@@ -216,7 +215,6 @@ const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
       }
       return;
     }
-
 
     setIsUploadingImage(true);
 
@@ -281,7 +279,6 @@ const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
-
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -369,8 +366,8 @@ const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
         content: formData.content || '',
         thumbnail: formData.thumbnail || '',
         tags: tagsArray,
-        isMain: false,  // 임시저장은 메인 노출 안됨
-        isDraft: true,  // 임시저장 플래그
+        isMain: false, // 임시저장은 메인 노출 안됨
+        isDraft: true, // 임시저장 플래그
       };
 
       // 수정 모드면 PUT, 작성 모드면 POST
@@ -417,7 +414,6 @@ const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
     }
   };
 
-
   // 로딩 중 표시
   if (isLoadingPost) {
     return (
@@ -461,21 +457,25 @@ const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
             />
           </div>
         )}
-        <div style={{
-          position: 'relative',
-          background: imagePreview ? 'rgba(0, 0, 0, 0.3)' : 'transparent',
-          padding: '3rem 2rem',
-          borderRadius: '8px',
-          minHeight: imagePreview ? '300px' : 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          zIndex: 1,
-        }}>
+        <div
+          style={{
+            position: 'relative',
+            background: imagePreview ? 'rgba(0, 0, 0, 0.3)' : 'transparent',
+            padding: '3rem 2rem',
+            borderRadius: '8px',
+            minHeight: imagePreview ? '300px' : 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            zIndex: 1,
+          }}
+        >
           <h1 style={{ color: imagePreview ? '#fff' : '#1e293b', marginBottom: '1rem' }}>
             {isEditMode ? '정책소식 수정' : '정책소식 작성'}
           </h1>
-          <p style={{ color: imagePreview ? '#fff' : '#64748b' }}>관리자 세션으로 인증되었습니다.</p>
+          <p style={{ color: imagePreview ? '#fff' : '#64748b' }}>
+            관리자 세션으로 인증되었습니다.
+          </p>
         </div>
       </div>
 
@@ -538,41 +538,25 @@ const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
           <label htmlFor="content">
             내용 <span className="required">*</span>
           </label>
-          <div style={{ minHeight: '400px' }}>
-            <textarea
-              value={formData.content}
-              onChange={(e) => {
-                setFormData(prev => ({ ...prev, content: e.target.value }));
-                if (errors.content) {
-                  setErrors(prev => {
-                    const nextErrors = { ...prev };
-                    delete nextErrors.content;
-                    return nextErrors;
-                  });
-                }
-              }}
-              placeholder="내용을 입력해주세요...
-
-# 제목
-## 소제목
-일반 텍스트
-![이미지설명](이미지URL)
---- (구분선)"
-              style={{
-                width: '100%',
-                height: '400px',
-                padding: '12px',
-                fontSize: '16px',
-                lineHeight: '1.8',
-                border: '1px solid #d0d7de',
-                borderRadius: '6px',
-                resize: 'vertical',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'keep-all'
-              }}
-            />
-          </div>
+          {/*
+            ReactQuill 기반 리치 에디터로 교체 (와이어 ③ 사양)
+            - 폰트 크기 / 정렬 / 색상 / 인용 / 목록 / 이미지 업로드(R2 webp) 지원
+            - HTML 출력 → 상세 페이지에서 dangerouslySetInnerHTML 로 렌더
+          */}
+          <PolicyNewsEditor
+            value={formData.content}
+            hasError={!!errors.content}
+            onChange={(html) => {
+              setFormData((prev) => ({ ...prev, content: html }));
+              if (errors.content) {
+                setErrors((prev) => {
+                  const nextErrors = { ...prev };
+                  delete nextErrors.content;
+                  return nextErrors;
+                });
+              }
+            }}
+          />
           {errors.content && <span className="error-message">{errors.content}</span>}
         </div>
 
@@ -581,7 +565,10 @@ const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
             표지 이미지 <span className="required">*</span>
           </label>
           <div className="image-upload-area">
-            <div className="upload-options" style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
+            <div
+              className="upload-options"
+              style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }}
+            >
               <input
                 type="url"
                 id="thumbnail"
@@ -592,7 +579,9 @@ const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
                 className={errors.thumbnail ? 'error' : ''}
                 style={{ flex: 1 }}
               />
-              <div className="upload-divider" style={{ padding: '0 10px', color: '#999' }}>또는</div>
+              <div className="upload-divider" style={{ padding: '0 10px', color: '#999' }}>
+                또는
+              </div>
               <input
                 type="file"
                 ref={fileInputRef}
@@ -605,12 +594,24 @@ const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
                 className="btn-upload"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploadingImage}
-                style={{ padding: '8px 16px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: isUploadingImage ? 'not-allowed' : 'pointer', opacity: isUploadingImage ? 0.6 : 1 }}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#28a745',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: isUploadingImage ? 'not-allowed' : 'pointer',
+                  opacity: isUploadingImage ? 0.6 : 1,
+                }}
               >
                 {isUploadingImage ? (
-                  <><i className="fas fa-spinner fa-spin"></i> 업로드 중...</>
+                  <>
+                    <i className="fas fa-spinner fa-spin"></i> 업로드 중...
+                  </>
                 ) : (
-                  <><i className="fas fa-upload"></i> 파일 선택</>
+                  <>
+                    <i className="fas fa-upload"></i> 파일 선택
+                  </>
                 )}
               </button>
             </div>
@@ -667,7 +668,6 @@ const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
           </div>
         </div>
 
-
         <div className="form-actions">
           <div className="left-actions">
             <button type="button" className="btn-draft" onClick={handleSaveDraft}>
@@ -721,7 +721,11 @@ const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
                     <tr key={post._id}>
                       <td>{posts.length - index}</td>
                       <td className="title-cell">
-                        <a href={`/policy-news/${post._id}`} target="_blank" rel="noopener noreferrer">
+                        <a
+                          href={`/policy-news/${post._id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
                           {post.title}
                           {post.isPinned && <span className="badge pinned">고정</span>}
                           {post.isMain && <span className="badge main">메인</span>}
@@ -759,4 +763,3 @@ const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
 };
 
 export default PolicyNewsWrite;
-

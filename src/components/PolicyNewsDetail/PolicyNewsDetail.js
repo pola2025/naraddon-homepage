@@ -13,6 +13,32 @@ const stripHtml = (value = '') =>
     .replace(/\s+/g, ' ')
     .trim();
 
+/**
+ * 본문이 HTML(에디터 v2 출력)인지 마크다운(에디터 v1)인지 판별
+ *
+ * @purpose 새 ReactQuill 에디터는 HTML 출력, 기존 게시글은 마크다운(`# 제목`, `![alt](url)`)
+ * @decision 단순 정규식으로 블록 태그 탐지 — 풀 파서 불필요
+ */
+const isHtmlContent = (value = '') =>
+  /<(p|div|h[1-6]|img|br|ul|ol|li|blockquote|strong|em|b|i|u|s|a|table|figure|span)\b[^>]*>/i.test(
+    value
+  );
+
+/**
+ * 관리자가 작성한 HTML 콘텐츠 최소 sanitize
+ *
+ * @purpose script/iframe/on*= 등 명백한 위험 요소 제거
+ * @note ReactQuill이 클라이언트에서 1차 정제하지만 DB 직저장 후 복원 시점에 한 번 더 방어
+ * @decision 풀 DOMPurify 미설치 — 화이트리스트 방식이 아닌 블랙리스트(관리자 작성 신뢰 전제)
+ */
+const sanitizeHtml = (value = '') =>
+  value
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+    .replace(/\son\w+\s*=\s*"[^"]*"/gi, '')
+    .replace(/\son\w+\s*=\s*'[^']*'/gi, '')
+    .replace(/javascript:/gi, '');
+
 const formatDate = (value) => {
   if (!value) {
     return '작성일 미정';
@@ -198,28 +224,7 @@ const PolicyNewsDetail = () => {
         <div className="progress" style={{ width: `${scrollProgress}%` }} />
       </div>
 
-      {/* 브레드크럼 */}
-      <nav className="policy-news-detail-breadcrumb" aria-label="브레드크럼">
-        <ol>
-          <li>
-            <button type="button" onClick={() => router.push('/')}>
-              <i className="fas fa-home"></i>
-            </button>
-          </li>
-          <li className="separator">
-            <i className="fas fa-chevron-right"></i>
-          </li>
-          <li>
-            <button type="button" onClick={() => router.push('/policy-news')}>
-              정책 알리미
-            </button>
-          </li>
-          <li className="separator">
-            <i className="fas fa-chevron-right"></i>
-          </li>
-          <li className="current">상세보기</li>
-        </ol>
-      </nav>
+      {/* 브레드크럼/조회수 제거 — 2026-04-28 리디자인 (와이어 ② 확정) */}
 
       {/* 헤더 영역 */}
       <div className="detail-header">
@@ -266,47 +271,58 @@ const PolicyNewsDetail = () => {
             </div>
           )}
 
-          {/* 본문 콘텐츠 */}
-          <div className="post-content" ref={contentRef}>
-            {post.content.split('\n').map((paragraph, index) => {
-              if (!paragraph.trim()) return <br key={index} />;
+          {/*
+            본문 콘텐츠 — HTML(신규) / 마크다운(기존) 자동 분기
+            @context 새 에디터(ReactQuill)는 HTML, 구버전은 textarea + 마크다운 형식
+          */}
+          {isHtmlContent(post.content) ? (
+            <div
+              className="post-content"
+              ref={contentRef}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
+            />
+          ) : (
+            <div className="post-content" ref={contentRef}>
+              {post.content.split('\n').map((paragraph, index) => {
+                if (!paragraph.trim()) return <br key={index} />;
 
-              // 이미지 처리
-              const imageMatch = paragraph.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
-              if (imageMatch) {
-                return (
-                  <div key={index} className="content-image-wrapper">
-                    <img
-                      src={imageMatch[2]}
-                      alt={imageMatch[1] || '이미지'}
-                      className="content-image"
-                    />
-                    {imageMatch[1] && <p className="image-caption">{imageMatch[1]}</p>}
-                  </div>
-                );
-              }
+                // 이미지 처리
+                const imageMatch = paragraph.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+                if (imageMatch) {
+                  return (
+                    <div key={index} className="content-image-wrapper">
+                      <img
+                        src={imageMatch[2]}
+                        alt={imageMatch[1] || '이미지'}
+                        className="content-image"
+                      />
+                      {imageMatch[1] && <p className="image-caption">{imageMatch[1]}</p>}
+                    </div>
+                  );
+                }
 
-              // 제목 처리
-              const headingMatch = paragraph.match(/^(#{1,6})\s+(.+)$/);
-              if (headingMatch) {
-                const level = headingMatch[1].length;
-                const HeadingTag = `h${Math.min(level, 6)}`;
-                return (
-                  <HeadingTag key={index} id={headingMatch[2].replace(/\s+/g, '-').toLowerCase()}>
-                    {headingMatch[2]}
-                  </HeadingTag>
-                );
-              }
+                // 제목 처리
+                const headingMatch = paragraph.match(/^(#{1,6})\s+(.+)$/);
+                if (headingMatch) {
+                  const level = headingMatch[1].length;
+                  const HeadingTag = `h${Math.min(level, 6)}`;
+                  return (
+                    <HeadingTag key={index} id={headingMatch[2].replace(/\s+/g, '-').toLowerCase()}>
+                      {headingMatch[2]}
+                    </HeadingTag>
+                  );
+                }
 
-              // 구분선
-              if (paragraph.match(/^(-{3,}|\*{3,})$/)) {
-                return <hr key={index} />;
-              }
+                // 구분선
+                if (paragraph.match(/^(-{3,}|\*{3,})$/)) {
+                  return <hr key={index} />;
+                }
 
-              // 일반 단락
-              return <p key={index}>{paragraph}</p>;
-            })}
-          </div>
+                // 일반 단락
+                return <p key={index}>{paragraph}</p>;
+              })}
+            </div>
+          )}
 
           {/* 태그 */}
           {plainTags.length > 0 && (

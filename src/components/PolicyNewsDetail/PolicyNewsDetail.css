@@ -1,10 +1,10 @@
-/* ====== 정책소식 상세 페이지 - 비즈인포 스타일 ====== */
+/* ====== 정책소식 상세 페이지 - gg24 스타일 리디자인 (2026-04-28) ====== */
+/* 좌우 자동 여백 + 본문 760px 고정으로 가독성 확보 */
 .policy-news-detail {
-  max-width: 1200px;
+  max-width: 760px;
   margin: 0 auto;
   padding: 40px 20px;
   background: #fff;
-  /* 스타일 격리 강화 */
   isolation: isolate;
   position: relative;
   z-index: 1;
@@ -98,7 +98,7 @@
   right: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -194,7 +194,9 @@
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
   transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
+  transition:
+    width 0.6s,
+    height 0.6s;
 }
 
 .auth-button:hover::before {
@@ -269,8 +271,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .error-message {
@@ -337,7 +343,9 @@
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .policy-news-detail .policy-analysis-link a:hover {
@@ -465,14 +473,15 @@
 }
 
 .policy-news-detail .post-thumbnail img {
-  max-width: 500px !important; /* 최대 너비 500px 제한 */
+  /* 본문 760px 폭 풀 너비 (와이어 사양) */
+  max-width: 100% !important;
   width: 100% !important;
   height: auto !important;
-  border-radius: 8px !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
-  display: inline-block !important;
+  border-radius: 10px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  display: block !important;
   float: none !important;
-  margin: 0 !important; /* 왼쪽 정렬을 위해 margin auto 제거 */
+  margin: 0 auto !important;
 }
 
 .policy-news-detail .post-excerpt p {
@@ -483,15 +492,35 @@
   margin: 0 !important;
 }
 
-/* 본문 콘텐츠 */
+/* 본문 콘텐츠 - 와이어 사양: 17px / 1.85 */
 .policy-news-detail .post-content {
-  font-size: 16px;
-  line-height: 1.25; /* 1.4에서 1.25로 더 줄임 - 매우 타이트한 줄간격 */
-  color: #495057;
+  font-size: 17px;
+  line-height: 1.85;
+  color: #1f2937;
   word-break: keep-all;
-  /* float 문제 해결 */
   overflow: hidden;
   display: flow-root;
+}
+
+/* ReactQuill 출력 호환 — 정렬 클래스 (ql-align-*) */
+.policy-news-detail .post-content .ql-align-center {
+  text-align: center;
+}
+.policy-news-detail .post-content .ql-align-right {
+  text-align: right;
+}
+.policy-news-detail .post-content .ql-align-justify {
+  text-align: justify;
+}
+
+/* ReactQuill 본문 내 이미지 — 본문 760px 풀 폭 */
+.policy-news-detail .post-content img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 24px auto;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 /* 모든 본문 요소에 float 해제 */
@@ -523,20 +552,20 @@
 }
 
 .policy-news-detail .post-content p {
-  margin-bottom: 8px; /* 12px에서 8px로 더 줄임 */
-  line-height: 1.25; /* 1.4에서 1.25로 줄임 - 타이트한 줄간격 */
+  margin: 0 0 16px;
+  line-height: 1.85;
 }
 
 .policy-news-detail .post-content ul,
 .policy-news-detail .post-content ol {
-  margin-bottom: 10px; /* 16px에서 10px로 줄임 */
-  padding-left: 20px; /* 24px에서 20px로 줄임 */
-  line-height: 1.25; /* 줄간격 추가 */
+  margin: 0 0 16px;
+  padding-left: 22px;
+  line-height: 1.85;
 }
 
 .policy-news-detail .post-content li {
-  margin-bottom: 4px; /* 8px에서 4px로 줄임 */
-  line-height: 1.25; /* 줄간격 명시 */
+  margin-bottom: 6px;
+  line-height: 1.85;
 }
 
 /* 본문 내 이미지 래퍼 - float 방지 */
@@ -547,12 +576,14 @@
 }
 
 .policy-news-detail .content-image {
-  max-width: 500px; /* 최대 500px 제한 */
+  /* 본문 760px 폭 풀 너비 (와이어 사양) */
+  max-width: 100%;
   width: 100%;
   height: auto;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  display: block; /* inline-block에서 block으로 변경하여 왼쪽 정렬 */
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: block;
+  margin: 24px auto;
 }
 
 .policy-news-detail .image-caption {
@@ -834,7 +865,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s;
   opacity: 0;
   visibility: hidden;
@@ -850,7 +881,7 @@
   color: white;
   border-color: #667eea;
   transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* 반응형 디자인 */

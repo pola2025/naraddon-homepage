@@ -1,0 +1,135 @@
+/* ====== 정책소식 본문 에디터 (ReactQuill 커스텀) ====== */
+
+.policy-news-editor {
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.policy-news-editor.has-error {
+  border-color: #dc3545;
+}
+
+.policy-news-editor-loading {
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 14px;
+  background: #f8fafc;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+}
+
+/* Quill 도구바 */
+.policy-news-editor .ql-toolbar.ql-snow {
+  border: none;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+  padding: 8px 10px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.policy-news-editor .ql-toolbar.ql-snow .ql-formats {
+  margin-right: 10px;
+}
+
+.policy-news-editor .ql-toolbar button {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+}
+
+.policy-news-editor .ql-toolbar button:hover,
+.policy-news-editor .ql-toolbar .ql-picker-label:hover {
+  background: #e2e8f0 !important;
+  color: #16a34a !important;
+}
+
+.policy-news-editor .ql-toolbar .ql-active {
+  background: #dcfce7 !important;
+  color: #15803d !important;
+}
+
+/* 에디터 영역 */
+.policy-news-editor .ql-container.ql-snow {
+  border: none;
+  font-family: 'Pretendard', 'Apple SD Gothic Neo', system-ui, sans-serif;
+  font-size: 17px;
+}
+
+.policy-news-editor .ql-editor {
+  min-height: 420px;
+  padding: 24px 28px;
+  font-size: 17px;
+  line-height: 1.85;
+  color: #1f2937;
+}
+
+.policy-news-editor .ql-editor.ql-blank::before {
+  font-style: normal;
+  color: #94a3b8;
+  font-size: 17px;
+  left: 28px;
+  right: 28px;
+}
+
+.policy-news-editor .ql-editor h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 24px 0 12px;
+  color: #0f172a;
+}
+
+.policy-news-editor .ql-editor h3 {
+  font-size: 19px;
+  font-weight: 700;
+  margin: 20px 0 10px;
+  color: #0f172a;
+}
+
+.policy-news-editor .ql-editor h4 {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 18px 0 8px;
+}
+
+.policy-news-editor .ql-editor p {
+  margin: 0 0 16px;
+}
+
+.policy-news-editor .ql-editor blockquote {
+  border-left: 4px solid #16a34a;
+  background: #f0fdf4;
+  color: #14532d;
+  padding: 12px 18px;
+  margin: 18px 0;
+  border-radius: 0 8px 8px 0;
+}
+
+.policy-news-editor .ql-editor img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 24px auto;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.policy-news-editor .ql-editor ul,
+.policy-news-editor .ql-editor ol {
+  padding-left: 22px;
+}
+
+/* Size picker label */
+.policy-news-editor .ql-snow .ql-picker.ql-size .ql-picker-label::before,
+.policy-news-editor .ql-snow .ql-picker.ql-size .ql-picker-item::before {
+  content: attr(data-value) !important;
+}
+.policy-news-editor .ql-snow .ql-picker.ql-size .ql-picker-label[data-value]::before {
+  content: attr(data-value) !important;
+}

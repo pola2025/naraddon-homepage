@@ -1,0 +1,1791 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>정책소식 리디자인 — 구조설계서 & 데모</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --ink: #0f172a;
+        --sub: #475569;
+        --muted: #94a3b8;
+        --line: #e5e7eb;
+        --bg: #f7f8fa;
+        --brand: #16a34a;
+        --brand-ink: #15803d;
+        --chip: #ecfdf5;
+        --content-w: 760px;
+      }
+      html,
+      body {
+        background: var(--bg);
+        color: var(--ink);
+        font-family: 'Pretendard', 'Apple SD Gothic Neo', system-ui, sans-serif;
+      }
+      /* ====== 와이어 공통 ====== */
+      .wire {
+        background: #fff;
+        border: 1px dashed #cbd5e1;
+        border-radius: 12px;
+      }
+      .ghost {
+        background: repeating-linear-gradient(45deg, #f1f5f9 0 8px, #fff 8px 16px);
+        color: #64748b;
+      }
+      .label {
+        font-size: 11px;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        text-transform: uppercase;
+      }
+      .pin {
+        position: absolute;
+        top: -10px;
+        left: 12px;
+        background: #0f172a;
+        color: #fff;
+        font-size: 10px;
+        padding: 2px 8px;
+        border-radius: 999px;
+      }
+      .spec td {
+        vertical-align: top;
+        padding: 8px 10px;
+        border-bottom: 1px solid #eef2f7;
+        font-size: 13px;
+      }
+      .spec th {
+        font-weight: 600;
+        color: #0f172a;
+        text-align: left;
+        font-size: 12px;
+        background: #f8fafc;
+        padding: 8px 10px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      /* ====== 상세 페이지 데모 본문 타이포 ====== */
+      .article-body {
+        font-size: 17px;
+        line-height: 1.85;
+        color: #1f2937;
+      }
+      .article-body h2 {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 36px 0 14px;
+        letter-spacing: -0.01em;
+        color: #0f172a;
+      }
+      .article-body h3 {
+        font-size: 19px;
+        font-weight: 700;
+        margin: 28px 0 10px;
+        color: #0f172a;
+      }
+      .article-body p {
+        margin: 0 0 16px;
+      }
+      .article-body img {
+        display: block;
+        margin: 24px auto;
+        max-width: 100%;
+        border-radius: 10px;
+      }
+      .article-body ul {
+        padding-left: 22px;
+        margin: 0 0 16px;
+        list-style: disc;
+      }
+      .article-body ol {
+        padding-left: 22px;
+        margin: 0 0 16px;
+        list-style: decimal;
+      }
+      .article-body blockquote {
+        border-left: 4px solid var(--brand);
+        background: #f0fdf4;
+        padding: 12px 18px;
+        color: #14532d;
+        margin: 18px 0;
+        border-radius: 0 8px 8px 0;
+      }
+      .article-body table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 18px 0;
+        font-size: 15px;
+      }
+      .article-body th,
+      .article-body td {
+        border: 1px solid #e5e7eb;
+        padding: 10px 12px;
+        text-align: left;
+      }
+      .article-body th {
+        background: #f8fafc;
+      }
+      /* ====== 에디터 ====== */
+      .editor-toolbar button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 34px;
+        min-width: 34px;
+        padding: 0 10px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        color: #334155;
+        font-size: 14px;
+      }
+      .editor-toolbar button:hover {
+        background: #f1f5f9;
+        border-color: #e2e8f0;
+      }
+      .editor-toolbar .sep {
+        width: 1px;
+        height: 22px;
+        background: #e5e7eb;
+        margin: 0 4px;
+      }
+      .editor-area {
+        min-height: 420px;
+        outline: none;
+        padding: 28px 32px;
+        font-size: 17px;
+        line-height: 1.85;
+        color: #1f2937;
+      }
+      .editor-area:empty:before {
+        content: attr(data-placeholder);
+        color: #94a3b8;
+      }
+      .editor-area img {
+        display: block;
+        margin: 18px auto;
+        max-width: 100%;
+        border-radius: 10px;
+        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+      }
+      .editor-area h2 {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 24px 0 12px;
+      }
+      .editor-area h3 {
+        font-size: 19px;
+        font-weight: 700;
+        margin: 20px 0 10px;
+      }
+      .editor-area blockquote {
+        border-left: 4px solid var(--brand);
+        background: #f0fdf4;
+        padding: 10px 16px;
+        color: #14532d;
+        margin: 14px 0;
+        border-radius: 0 8px 8px 0;
+      }
+      /* tabs */
+      .tab-btn[data-active='true'] {
+        background: #0f172a;
+        color: #fff;
+      }
+      .tab-btn {
+        transition: 0.15s;
+      }
+      /* uploaded image item */
+      .upload-row {
+        display: grid;
+        grid-template-columns: 80px 1fr auto;
+        gap: 12px;
+        align-items: center;
+        padding: 10px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        background: #fff;
+      }
+      .upload-row img {
+        width: 80px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 6px;
+      }
+      /* density helper for wireframe boxes */
+      .skel {
+        height: 14px;
+        background: #eef2f7;
+        border-radius: 6px;
+      }
+      .skel.w70 {
+        width: 70%;
+      }
+      .skel.w50 {
+        width: 50%;
+      }
+      .skel.w90 {
+        width: 90%;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen">
+    <!-- ============ HEADER / NAV ============ -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+      <div class="max-w-[1200px] mx-auto px-6 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div
+            class="w-8 h-8 rounded-lg bg-emerald-600 text-white grid place-items-center font-black"
+          >
+            N
+          </div>
+          <div>
+            <div class="text-[15px] font-bold leading-tight">정책소식 리디자인 · 구조설계서</div>
+            <div class="text-xs text-slate-500">Reference: gg24.kr · Naraddon /policy-news</div>
+          </div>
+        </div>
+        <nav class="flex gap-2">
+          <button
+            class="tab-btn px-4 h-9 rounded-lg text-sm font-semibold border border-slate-200 hover:bg-slate-50"
+            data-tab="spec"
+            data-active="true"
+          >
+            ① 구조설계서
+          </button>
+          <button
+            class="tab-btn px-4 h-9 rounded-lg text-sm font-semibold border border-slate-200 hover:bg-slate-50"
+            data-tab="detail"
+          >
+            ② 상세 페이지 데모
+          </button>
+          <button
+            class="tab-btn px-4 h-9 rounded-lg text-sm font-semibold border border-slate-200 hover:bg-slate-50"
+            data-tab="editor"
+          >
+            ③ 에디터 데모
+          </button>
+          <button
+            class="tab-btn px-4 h-9 rounded-lg text-sm font-semibold border border-slate-200 hover:bg-slate-50"
+            data-tab="upload"
+          >
+            ④ 이미지 업로드(webp) 데모
+          </button>
+          <button
+            class="tab-btn px-4 h-9 rounded-lg text-sm font-semibold border border-slate-200 hover:bg-slate-50"
+            data-tab="experts"
+          >
+            ⑤ 전문가 메뉴 통합
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- ============ TAB 1 : SPEC / WIREFRAME ============ -->
+    <section data-pane="spec" class="py-8">
+      <div class="max-w-[1200px] mx-auto px-6 space-y-8">
+        <div class="grid grid-cols-12 gap-6">
+          <!-- 좌측 요약 -->
+          <aside class="col-span-4 space-y-4">
+            <div class="bg-white rounded-xl border border-slate-200 p-5">
+              <div class="text-xs font-bold text-emerald-700 mb-1">설계 목표</div>
+              <h2 class="text-xl font-bold mb-3">읽기 쉽고, 쓰기 쉬운 정책소식</h2>
+              <ul class="text-sm text-slate-600 space-y-2 leading-relaxed">
+                <li>· 좌우 여백 + 좁은 콘텐츠 폭으로 가독성 ↑</li>
+                <li>· 본문 17px / line-height 1.85 (장문 대응)</li>
+                <li>· 이미지 본문 중간 자연 삽입 (URL 입력 불필요)</li>
+                <li>· R2 업로드 시 webp 자동 압축 (3MB→평균 350KB)</li>
+                <li>· 에디터: 폰트크기·정렬·인용·표·이미지</li>
+              </ul>
+            </div>
+
+            <div class="bg-white rounded-xl border border-slate-200 p-5">
+              <div class="text-xs font-bold text-emerald-700 mb-1">주요 변경</div>
+              <table class="w-full text-sm">
+                <tbody
+                  class="[&_td]:py-1.5 [&_td:first-child]:text-slate-500 [&_td:first-child]:w-20"
+                >
+                  <tr>
+                    <td>컨테이너</td>
+                    <td>1200px → <b>본문 760px</b></td>
+                  </tr>
+                  <tr>
+                    <td>좌우</td>
+                    <td>풀폭 이미지 → <b>여백 leftover</b></td>
+                  </tr>
+                  <tr>
+                    <td>폰트</td>
+                    <td>16/1.7 → <b>17/1.85</b></td>
+                  </tr>
+                  <tr>
+                    <td>이미지</td>
+                    <td>URL 입력 → <b>업로드 + webp</b></td>
+                  </tr>
+                  <tr>
+                    <td>도구바</td>
+                    <td>없음 → <b>14항목</b></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="bg-white rounded-xl border border-slate-200 p-5">
+              <div class="text-xs font-bold text-emerald-700 mb-1">파일/엔드포인트 매핑</div>
+              <table class="w-full text-xs leading-relaxed">
+                <tbody class="[&_td]:py-1 [&_td:first-child]:text-slate-500">
+                  <tr>
+                    <td>목록</td>
+                    <td><code>app/policy-news/page.tsx</code></td>
+                  </tr>
+                  <tr>
+                    <td>상세</td>
+                    <td><code>app/policy-news/[id]/page.tsx</code></td>
+                  </tr>
+                  <tr>
+                    <td>작성</td>
+                    <td><code>app/policy-news/write/page.tsx</code></td>
+                  </tr>
+                  <tr>
+                    <td>이미지</td>
+                    <td><code>POST /api/policy-news/upload-image</code></td>
+                  </tr>
+                  <tr>
+                    <td>버킷</td>
+                    <td><code>R2 / policy-news/{ts}-{name}.webp</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </aside>
+
+          <!-- 우측: 와이어프레임 (상세 레이아웃) -->
+          <div class="col-span-8">
+            <div class="bg-white rounded-xl border border-slate-200 p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <div class="label">Wireframe — Policy News Detail</div>
+                  <h3 class="text-lg font-bold">
+                    상세 페이지 레이아웃 (1200px 컨테이너 / 본문 760px)
+                  </h3>
+                </div>
+                <div class="text-xs text-slate-500">단위 px · 데스크톱 기준</div>
+              </div>
+
+              <!-- 1200 컨테이너 -->
+              <div class="relative wire p-4">
+                <span class="pin">container · 1200</span>
+
+                <div class="grid grid-cols-12 gap-3">
+                  <!-- 좌 빈 영역 -->
+                  <div
+                    class="col-span-2 ghost rounded-lg h-[520px] grid place-items-center text-xs"
+                  >
+                    left gutter<br />≈ 220
+                  </div>
+
+                  <!-- 본문 760 -->
+                  <div class="col-span-8 relative">
+                    <div class="wire p-5 space-y-4">
+                      <div>
+                        <div
+                          class="text-[11px] inline-flex px-2 py-1 rounded bg-emerald-50 text-emerald-700 font-bold"
+                        >
+                          정부지원
+                        </div>
+                        <div class="mt-2 h-7 bg-slate-100 rounded w-[88%]"></div>
+                        <div class="mt-2 h-7 bg-slate-100 rounded w-[64%]"></div>
+                        <div class="mt-3 flex gap-3 text-[11px] text-slate-500">
+                          <span>· 작성자</span><span>· 2026-04-28</span
+                          ><span class="ml-auto">공유 ↗</span>
+                        </div>
+                      </div>
+                      <div class="border-t border-slate-200"></div>
+                      <div class="space-y-3">
+                        <div class="skel w90"></div>
+                        <div class="skel w70"></div>
+                        <div class="skel"></div>
+                        <div class="skel w50"></div>
+                        <div class="ghost rounded-lg h-32 grid place-items-center text-xs">
+                          image (본문 중간 삽입) · 760 width
+                        </div>
+                        <div class="skel w90"></div>
+                        <div class="skel"></div>
+                        <div class="skel w70"></div>
+                        <div class="ghost rounded-lg h-20 grid place-items-center text-xs">
+                          blockquote
+                        </div>
+                        <div class="skel w90"></div>
+                        <div class="skel w50"></div>
+                      </div>
+                      <div class="border-t border-slate-200 pt-3 flex gap-2 flex-wrap">
+                        <span class="text-[11px] px-2 py-1 rounded bg-slate-100">#소상공인</span>
+                        <span class="text-[11px] px-2 py-1 rounded bg-slate-100">#정책자금</span>
+                      </div>
+                      <div
+                        class="border-t border-slate-200 pt-3 flex justify-between items-center text-xs text-slate-500"
+                      >
+                        <span>← 이전글</span><a class="text-emerald-700 font-semibold">목록으로</a
+                        ><span>다음글 →</span>
+                      </div>
+                    </div>
+                    <span class="pin" style="left: 50%; transform: translateX(-50%)"
+                      >content · 760</span
+                    >
+                  </div>
+
+                  <!-- 우 빈 영역 -->
+                  <div
+                    class="col-span-2 ghost rounded-lg h-[520px] grid place-items-center text-xs"
+                  >
+                    right gutter<br />≈ 220
+                  </div>
+                </div>
+              </div>
+
+              <!-- 토큰 표 -->
+              <div class="mt-6 grid grid-cols-2 gap-4">
+                <table class="spec w-full">
+                  <thead>
+                    <tr>
+                      <th colspan="2">레이아웃 토큰</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>컨테이너</td>
+                      <td>max-width <b>1200px</b></td>
+                    </tr>
+                    <tr>
+                      <td>본문 폭</td>
+                      <td><b>760px</b> (mobile: 100% - 32px)</td>
+                    </tr>
+                    <tr>
+                      <td>좌/우 여백</td>
+                      <td>각 <b>≈ 220px</b> (자동)</td>
+                    </tr>
+                    <tr>
+                      <td>섹션 패딩</td>
+                      <td>상하 <b>40px</b> · 좌우 <b>20px</b></td>
+                    </tr>
+                    <tr>
+                      <td>카드 라운드</td>
+                      <td><b>12px</b></td>
+                    </tr>
+                  </tbody>
+                </table>
+                <table class="spec w-full">
+                  <thead>
+                    <tr>
+                      <th colspan="2">타이포 / 컬러</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>본문</td>
+                      <td><b>17px / 1.85</b> · #1f2937</td>
+                    </tr>
+                    <tr>
+                      <td>H1 제목</td>
+                      <td><b>30px / 700</b> · letter -.01em</td>
+                    </tr>
+                    <tr>
+                      <td>H2</td>
+                      <td><b>24px / 700</b></td>
+                    </tr>
+                    <tr>
+                      <td>메타</td>
+                      <td>13px · #94a3b8</td>
+                    </tr>
+                    <tr>
+                      <td>브랜드</td>
+                      <td>#16a34a · 보조 #ecfdf5</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- 에디터 와이어 -->
+            <div class="bg-white rounded-xl border border-slate-200 p-6 mt-6">
+              <div class="label">Wireframe — Editor</div>
+              <h3 class="text-lg font-bold mb-4">에디터 도구바 구성 (14 items)</h3>
+              <div class="wire p-3">
+                <div class="flex flex-wrap items-center gap-1 px-2 py-2 border-b border-slate-200">
+                  <div class="px-3 h-8 rounded bg-slate-100 text-xs grid place-items-center">
+                    문단 ▾
+                  </div>
+                  <div class="px-3 h-8 rounded bg-slate-100 text-xs grid place-items-center">
+                    크기 17 ▾
+                  </div>
+                  <span class="w-px h-5 bg-slate-200 mx-1"></span>
+                  <span class="px-2 h-8 grid place-items-center font-bold text-sm">B</span>
+                  <span class="px-2 h-8 grid place-items-center italic text-sm">I</span>
+                  <span class="px-2 h-8 grid place-items-center underline text-sm">U</span>
+                  <span class="px-2 h-8 grid place-items-center line-through text-sm">S</span>
+                  <span class="w-px h-5 bg-slate-200 mx-1"></span>
+                  <span class="px-2 h-8 grid place-items-center text-xs">⟸</span>
+                  <span class="px-2 h-8 grid place-items-center text-xs">≡</span>
+                  <span class="px-2 h-8 grid place-items-center text-xs">⟹</span>
+                  <span class="px-2 h-8 grid place-items-center text-xs">⇔</span>
+                  <span class="w-px h-5 bg-slate-200 mx-1"></span>
+                  <span class="px-2 h-8 grid place-items-center text-xs">• 목록</span>
+                  <span class="px-2 h-8 grid place-items-center text-xs">1. 번호</span>
+                  <span class="px-2 h-8 grid place-items-center text-xs">" 인용</span>
+                  <span class="w-px h-5 bg-slate-200 mx-1"></span>
+                  <span
+                    class="px-3 h-8 grid place-items-center text-xs bg-emerald-600 text-white rounded"
+                    >🖼 이미지</span
+                  >
+                  <span class="px-3 h-8 grid place-items-center text-xs">↶</span>
+                  <span class="px-3 h-8 grid place-items-center text-xs">↷</span>
+                </div>
+                <div class="p-6 ghost h-48 grid place-items-center text-sm">
+                  contenteditable · placeholder "본문을 입력하세요…"
+                </div>
+              </div>
+              <div class="text-xs text-slate-500 mt-2">
+                ※ 이미지 삽입은 파일 선택 → R2 업로드 → 본문 커서 위치에 자동 삽입.
+              </div>
+            </div>
+
+            <!-- 업로드 플로우 -->
+            <div class="bg-white rounded-xl border border-slate-200 p-6 mt-6">
+              <div class="label">Flow — Image Upload (R2 + webp)</div>
+              <h3 class="text-lg font-bold mb-4">이미지 업로드 파이프라인</h3>
+              <div class="grid grid-cols-5 gap-3 text-xs text-center">
+                <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                  <div class="font-bold text-slate-700">1. 선택</div>
+                  <div class="text-slate-500 mt-1">input[file]<br />image/* · 다중</div>
+                </div>
+                <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                  <div class="font-bold text-slate-700">2. 변환</div>
+                  <div class="text-slate-500 mt-1">Canvas → toBlob<br />'image/webp', q=0.85</div>
+                </div>
+                <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                  <div class="font-bold text-slate-700">3. 리사이즈</div>
+                  <div class="text-slate-500 mt-1">긴변 max 1600px<br />비율 유지</div>
+                </div>
+                <div class="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+                  <div class="font-bold text-emerald-800">4. 업로드</div>
+                  <div class="text-emerald-700 mt-1">POST<br />/api/policy-news/upload-image</div>
+                </div>
+                <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                  <div class="font-bold text-slate-700">5. 삽입</div>
+                  <div class="text-slate-500 mt-1">에디터 커서에<br />&lt;img&gt; 삽입</div>
+                </div>
+              </div>
+              <div
+                class="mt-4 text-xs text-slate-600 leading-relaxed bg-slate-50 border border-slate-200 rounded-lg p-3"
+              >
+                <b>서버 응답 형식</b> (현행 유지) :
+                <code class="bg-white px-1.5 py-0.5 rounded"
+                  >{ success:true, url:"https://r2.naraddon.com/policy-news/...webp", fileName
+                  }</code
+                ><br />
+                <b>키 규칙</b> :
+                <code class="bg-white px-1.5 py-0.5 rounded"
+                  >policy-news/{timestamp}-{원본명}.webp</code
+                >
+                · 3MB 제한 · admin/super_admin/examiner 권한
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TAB 2 : DETAIL DEMO ============ -->
+    <section data-pane="detail" class="hidden py-10">
+      <div class="max-w-[1200px] mx-auto px-6">
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <!-- breadcrumb removed -->
+          <div class="hidden">
+            <a class="hover:text-emerald-700 cursor-pointer">홈</a><span>›</span>
+            <a class="hover:text-emerald-700 cursor-pointer">정책소식</a><span>›</span>
+            <span class="text-slate-700 font-semibold">상세</span>
+          </div>
+
+          <!-- header -->
+          <header class="max-w-[760px] mx-auto px-5 pt-4 pb-6 border-b border-slate-200">
+            <span
+              class="inline-block text-xs font-bold px-2.5 py-1 rounded bg-emerald-50 text-emerald-700"
+              >정부지원</span
+            >
+            <h1 class="mt-3 text-[30px] leading-tight font-bold tracking-tight">
+              2026년 소상공인 정책자금 신청 가이드 — 한도·금리·서류 정리
+            </h1>
+            <div class="mt-4 flex items-center justify-between text-[13px] text-slate-500">
+              <div class="flex items-center gap-3">
+                <span class="inline-flex items-center gap-1.5">
+                  <span
+                    class="w-6 h-6 rounded-full bg-emerald-600 text-white grid place-items-center text-[10px] font-bold"
+                    >N</span
+                  >
+                  나라똔 편집부
+                </span>
+                <span>·</span><span>2026.04.28</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <button class="px-2.5 h-8 rounded hover:bg-slate-100 text-xs">🔗 공유</button>
+                <button class="px-2.5 h-8 rounded hover:bg-slate-100 text-xs">🔖 저장</button>
+                <button class="px-2.5 h-8 rounded hover:bg-slate-100 text-xs">🖨 인쇄</button>
+              </div>
+            </div>
+          </header>
+
+          <!-- body -->
+          <article class="max-w-[760px] mx-auto px-5 py-8 article-body">
+            <p>
+              2026년 소상공인 정책자금이 전년 대비 12% 확대되어 총 <b>4조 8천억 원</b> 규모로
+              편성되었다. 신청 자격 완화와 함께 일반·특별·긴급 자금이 분리 운영되며, 업종별 한도가
+              상향됐다.
+            </p>
+
+            <h2>1. 한눈에 보는 변경 사항</h2>
+            <ul>
+              <li>일반자금 한도 <b>7천만 원 → 1억 원</b>으로 상향</li>
+              <li>청년 소상공인 금리 <b>2.5% 고정</b> 신설</li>
+              <li>온라인 신청 가능 (방문 접수 병행)</li>
+            </ul>
+
+            <img
+              src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 760 360'><rect width='760' height='360' fill='%23ecfdf5'/><text x='380' y='180' text-anchor='middle' fill='%2315803d' font-size='22' font-family='sans-serif' font-weight='700'>본문 중간 삽입 이미지 (760px)</text><text x='380' y='210' text-anchor='middle' fill='%2334d399' font-size='13' font-family='sans-serif'>R2 업로드 → webp 자동 변환 결과물</text></svg>"
+              alt="placeholder"
+            />
+
+            <h2>2. 신청 절차</h2>
+            <ol>
+              <li>소상공인시장진흥공단 홈페이지 회원가입</li>
+              <li>자가진단 → 적격 여부 확인</li>
+              <li>온라인 서류 제출 후 방문 상담 예약</li>
+            </ol>
+
+            <blockquote>
+              <b>Tip.</b> 사업자등록 1년 미만 청년 창업자는 ‘청년 트랙’으로 우선 심사 대상입니다.
+              신청 시 별도 체크박스를 잊지 마세요.
+            </blockquote>
+
+            <h2>3. 자금별 한도 비교</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>구분</th>
+                  <th>한도</th>
+                  <th>금리</th>
+                  <th>거치/상환</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>일반자금</td>
+                  <td>1억 원</td>
+                  <td>3.4%</td>
+                  <td>1년 / 4년</td>
+                </tr>
+                <tr>
+                  <td>특별자금</td>
+                  <td>2억 원</td>
+                  <td>2.9%</td>
+                  <td>2년 / 5년</td>
+                </tr>
+                <tr>
+                  <td>청년트랙</td>
+                  <td>7천만 원</td>
+                  <td>2.5%(고정)</td>
+                  <td>1년 / 4년</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <p>
+              본 가이드는 변경 가능성이 있으므로, 최신 공고는 공단 공식 홈페이지를 반드시 확인하시기
+              바랍니다.
+            </p>
+
+            <!-- tags -->
+            <div class="mt-8 pt-5 border-t border-slate-200 flex flex-wrap gap-2">
+              <span class="text-xs px-2.5 py-1 rounded bg-slate-100 text-slate-600">#소상공인</span>
+              <span class="text-xs px-2.5 py-1 rounded bg-slate-100 text-slate-600">#정책자금</span>
+              <span class="text-xs px-2.5 py-1 rounded bg-slate-100 text-slate-600">#2026년</span>
+            </div>
+          </article>
+
+          <!-- prev/next -->
+          <nav class="max-w-[760px] mx-auto px-5 pb-10 grid grid-cols-3 gap-2 text-sm">
+            <a
+              class="px-4 py-3 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer"
+            >
+              <div class="text-[11px] text-slate-500">← 이전글</div>
+              <div class="truncate font-semibold">중소기업 R&D 지원 신청 마감 임박</div>
+            </a>
+            <a
+              class="px-4 py-3 rounded-lg bg-emerald-600 text-white text-center font-bold hover:bg-emerald-700 cursor-pointer flex items-center justify-center"
+              >목록으로</a
+            >
+            <a
+              class="px-4 py-3 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer text-right"
+            >
+              <div class="text-[11px] text-slate-500">다음글 →</div>
+              <div class="truncate font-semibold">2026년 청년창업 지원 사업 공고</div>
+            </a>
+          </nav>
+
+          <!-- related -->
+          <div class="bg-slate-50 border-t border-slate-200 py-8">
+            <div class="max-w-[760px] mx-auto px-5">
+              <div class="text-sm font-bold text-slate-700 mb-3">관련 정책소식</div>
+              <div class="grid grid-cols-3 gap-3">
+                <a
+                  class="bg-white rounded-lg border border-slate-200 p-3 hover:shadow-sm cursor-pointer"
+                >
+                  <div class="h-20 bg-slate-100 rounded mb-2"></div>
+                  <div class="text-xs text-emerald-700 font-bold">중소기업</div>
+                  <div class="text-sm font-semibold leading-snug">
+                    중소기업 R&D 지원 신청 마감 임박
+                  </div>
+                </a>
+                <a
+                  class="bg-white rounded-lg border border-slate-200 p-3 hover:shadow-sm cursor-pointer"
+                >
+                  <div class="h-20 bg-slate-100 rounded mb-2"></div>
+                  <div class="text-xs text-emerald-700 font-bold">창업지원</div>
+                  <div class="text-sm font-semibold leading-snug">
+                    2026년 청년창업 지원 사업 공고
+                  </div>
+                </a>
+                <a
+                  class="bg-white rounded-lg border border-slate-200 p-3 hover:shadow-sm cursor-pointer"
+                >
+                  <div class="h-20 bg-slate-100 rounded mb-2"></div>
+                  <div class="text-xs text-emerald-700 font-bold">금융지원</div>
+                  <div class="text-sm font-semibold leading-snug">
+                    소상공인 저금리 대환 프로그램 안내
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TAB 3 : EDITOR DEMO ============ -->
+    <section data-pane="editor" class="hidden py-10">
+      <div class="max-w-[1200px] mx-auto px-6">
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <!-- meta inputs -->
+          <div class="max-w-[760px] mx-auto px-5 pt-7 pb-4 border-b border-slate-200 space-y-3">
+            <div class="flex gap-2">
+              <select class="h-10 rounded-lg border border-slate-200 px-3 text-sm w-40">
+                <option>카테고리 선택</option>
+                <option>정부지원</option>
+                <option>중소기업</option>
+                <option>창업지원</option>
+              </select>
+              <input
+                class="flex-1 h-10 rounded-lg border border-slate-200 px-3 text-sm"
+                placeholder="태그 (쉼표로 구분)"
+              />
+            </div>
+            <input
+              class="w-full h-12 px-3 text-2xl font-bold tracking-tight outline-none border-b border-transparent focus:border-emerald-500"
+              placeholder="제목을 입력하세요"
+            />
+          </div>
+
+          <!-- toolbar -->
+          <div
+            id="toolbar"
+            class="editor-toolbar max-w-[760px] mx-auto px-3 py-2 border-b border-slate-200 flex flex-wrap items-center gap-1 sticky top-[57px] bg-white z-20"
+          >
+            <select
+              class="h-8 rounded-md border border-slate-200 px-2 text-xs"
+              data-cmd="formatBlock"
+            >
+              <option value="P">문단</option>
+              <option value="H2">제목 H2</option>
+              <option value="H3">제목 H3</option>
+              <option value="BLOCKQUOTE">인용</option>
+            </select>
+            <select class="h-8 rounded-md border border-slate-200 px-2 text-xs" data-cmd="fontSize">
+              <option value="14">14</option>
+              <option value="16">16</option>
+              <option value="17" selected>17</option>
+              <option value="19">19</option>
+              <option value="22">22</option>
+              <option value="28">28</option>
+            </select>
+            <span class="sep"></span>
+            <button data-cmd="bold" title="굵게"><b>B</b></button>
+            <button data-cmd="italic" title="기울임"><i>I</i></button>
+            <button data-cmd="underline" title="밑줄"><u>U</u></button>
+            <button data-cmd="strikeThrough" title="취소선"><s>S</s></button>
+            <input
+              type="color"
+              data-cmd="foreColor"
+              class="w-8 h-8 rounded border border-slate-200 cursor-pointer"
+              title="글자색"
+              value="#0f172a"
+            />
+            <span class="sep"></span>
+            <button data-cmd="justifyLeft" title="좌측 정렬">⟸</button>
+            <button data-cmd="justifyCenter" title="가운데 정렬">≡</button>
+            <button data-cmd="justifyRight" title="우측 정렬">⟹</button>
+            <button data-cmd="justifyFull" title="양쪽 정렬">⇔</button>
+            <span class="sep"></span>
+            <button data-cmd="insertUnorderedList" title="목록">• 목록</button>
+            <button data-cmd="insertOrderedList" title="번호">1. 번호</button>
+            <span class="sep"></span>
+            <button
+              id="btnImage"
+              class="bg-emerald-600 text-white hover:bg-emerald-700"
+              title="이미지 업로드 (R2 + webp)"
+            >
+              🖼 이미지
+            </button>
+            <button id="btnLink" title="링크">🔗 링크</button>
+            <span class="sep"></span>
+            <button data-cmd="undo" title="실행 취소">↶</button>
+            <button data-cmd="redo" title="다시 실행">↷</button>
+            <input id="filePicker" type="file" accept="image/*" multiple class="hidden" />
+          </div>
+
+          <!-- editable area -->
+          <div
+            id="editor"
+            class="editor-area max-w-[760px] mx-auto"
+            contenteditable="true"
+            data-placeholder="본문을 입력하세요. 본문 중간에 이미지를 끼워 넣으려면 도구바의 ‘🖼 이미지’ 버튼을 누르세요."
+          >
+            <h2>예시 문단</h2>
+            <p>
+              여기에 본문을 작성합니다. 텍스트를 드래그한 뒤 도구바에서
+              <b>크기</b>·<b>정렬</b>·<b>색상</b>을 조정해 보세요.
+            </p>
+            <p>
+              이미지는 본문 커서 위치에 자동 삽입되며, 업로드 단계에서 <b>webp</b>로 변환됩니다.
+            </p>
+          </div>
+
+          <!-- footer -->
+          <div
+            class="max-w-[760px] mx-auto px-5 py-5 border-t border-slate-200 flex items-center justify-between"
+          >
+            <div class="text-xs text-slate-500"><span id="charCount">0</span>자 · 자동저장 됨</div>
+            <div class="flex gap-2">
+              <button class="h-10 px-4 rounded-lg border border-slate-200 text-sm">임시저장</button>
+              <button
+                class="h-10 px-5 rounded-lg bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700"
+              >
+                발행
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 업로드 큐 -->
+        <div class="mt-6 bg-white rounded-2xl border border-slate-200 p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-bold text-sm">업로드 큐 (현재 세션)</h3>
+            <span class="text-xs text-slate-500">webp 변환 결과 · 평균 70% 압축 기대</span>
+          </div>
+          <div id="uploadQueue" class="space-y-2 text-sm text-slate-500">
+            <div class="text-xs text-slate-400">아직 업로드된 이미지가 없습니다.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TAB 4 : UPLOAD STANDALONE DEMO ============ -->
+    <section data-pane="upload" class="hidden py-10">
+      <div class="max-w-[1200px] mx-auto px-6 grid grid-cols-12 gap-6">
+        <div class="col-span-5 bg-white rounded-2xl border border-slate-200 p-6">
+          <div class="label">Demo</div>
+          <h3 class="text-lg font-bold mb-4">이미지 업로드 → webp 변환</h3>
+          <label class="block">
+            <input id="standaloneFile" type="file" accept="image/*" multiple class="hidden" />
+            <span
+              class="block text-center px-4 py-10 border-2 border-dashed border-slate-300 rounded-xl text-sm text-slate-500 cursor-pointer hover:border-emerald-400 hover:bg-emerald-50"
+            >
+              클릭 또는 드래그로 이미지 선택<br />(여러 장 가능 · 3MB 이하)
+            </span>
+          </label>
+
+          <div class="mt-5 grid grid-cols-2 gap-3">
+            <label class="text-xs">
+              <span class="block text-slate-500 mb-1">품질 (q)</span>
+              <input
+                id="qIn"
+                type="range"
+                min="0.5"
+                max="1"
+                step="0.05"
+                value="0.85"
+                class="w-full"
+              />
+              <span id="qOut" class="block text-right font-mono text-slate-700">0.85</span>
+            </label>
+            <label class="text-xs">
+              <span class="block text-slate-500 mb-1">긴변 max (px)</span>
+              <input
+                id="mIn"
+                type="number"
+                value="1600"
+                min="800"
+                max="4000"
+                step="100"
+                class="w-full h-9 rounded border border-slate-200 px-2"
+              />
+            </label>
+          </div>
+        </div>
+
+        <div class="col-span-7 bg-white rounded-2xl border border-slate-200 p-6">
+          <h3 class="font-bold text-sm mb-3">변환 결과</h3>
+          <div id="standaloneList" class="space-y-2 text-sm text-slate-500">
+            <div class="text-xs text-slate-400">선택된 이미지가 없습니다.</div>
+          </div>
+          <div id="totalSummary" class="mt-4 text-xs text-slate-500"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TAB 5 : EXPERTS MENU UNIFICATION ============ -->
+    <section data-pane="experts" class="hidden py-10">
+      <div class="max-w-[1200px] mx-auto px-6 space-y-8">
+        <!-- 헤더 -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6">
+          <div class="label">Wireframe — Experts Menu Unification</div>
+          <h3 class="text-xl font-bold mt-1">전문가 메뉴 일원화 + 권한 완화</h3>
+          <p class="text-sm text-slate-600 mt-2">
+            현재 헤더 ‘더보기’ 드롭다운에서 <b>전문가</b> · <b>전문가 관리</b> 두 항목이 분리
+            노출되고, 관리자 폴더(<code>/admin/experts</code>, <code>/admin/expert-services</code>,
+            <code>/admin/expert-dashboards</code>)에 기능이 흩어져 있습니다. 단일 진입점 + 단일
+            페이지 + 일반 관리자 접근 허용으로 통합합니다.
+          </p>
+        </div>
+
+        <!-- AS-IS / TO-BE -->
+        <div class="grid grid-cols-2 gap-6">
+          <!-- AS-IS -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-6">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-[11px] font-bold px-2 py-1 rounded bg-rose-50 text-rose-700"
+                >AS-IS</span
+              >
+              <h4 class="text-base font-bold">현재 — 두 갈래로 분산</h4>
+            </div>
+            <!-- 더보기 드롭다운 -->
+            <div class="wire p-3 mb-4">
+              <div class="text-[11px] text-slate-500 mb-2">Header · 더보기 ▾</div>
+              <ul
+                class="text-sm bg-white border border-slate-200 rounded-lg divide-y divide-slate-100"
+              >
+                <li class="px-3 py-2 text-slate-500">전문가 서비스</li>
+                <li class="px-3 py-2 text-slate-500">무료심사신청</li>
+                <li class="px-3 py-2 bg-slate-50 text-slate-300">— divider —</li>
+                <li class="px-3 py-2 flex items-center justify-between bg-rose-50/40">
+                  <span class="font-semibold text-rose-700">전문가</span>
+                  <code class="text-[11px] text-slate-500">/admin/expert-dashboards</code>
+                </li>
+                <li class="px-3 py-2 flex items-center justify-between bg-rose-50/40">
+                  <span class="font-semibold text-rose-700">전문가 관리</span>
+                  <code class="text-[11px] text-slate-500">/admin/expert-services</code>
+                </li>
+              </ul>
+            </div>
+            <table class="spec w-full">
+              <thead>
+                <tr>
+                  <th>경로</th>
+                  <th>역할</th>
+                  <th>접근 권한</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>/admin/experts</code></td>
+                  <td>프로필 + 계정 연결</td>
+                  <td class="text-rose-700"><b>role==='admin'만</b> (super_admin 차단)</td>
+                </tr>
+                <tr>
+                  <td><code>/admin/expert-services</code></td>
+                  <td>서비스 카드</td>
+                  <td>AdminLayout (admin/super_admin)</td>
+                </tr>
+                <tr>
+                  <td><code>/admin/expert-dashboards</code></td>
+                  <td>목록 검색</td>
+                  <td>x-admin-auth 헤더만</td>
+                </tr>
+                <tr>
+                  <td><code>/expert-services/admin</code></td>
+                  <td>구버전 비밀번호 게이트</td>
+                  <td class="text-rose-700">중복 · 폐기 대상</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="mt-3 text-xs text-rose-700 leading-relaxed">
+              · 진입점 2개로 사용자 혼란<br />
+              · /admin/experts는 마스터 차단(<code>role !== 'admin'</code>) → 권한 정책 불일치<br />
+              · 동일 데이터(전문가)가 3페이지에 중복 표시
+            </div>
+          </div>
+
+          <!-- TO-BE -->
+          <div class="bg-white rounded-2xl border border-emerald-300 p-6 ring-1 ring-emerald-100">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-[11px] font-bold px-2 py-1 rounded bg-emerald-100 text-emerald-800"
+                >TO-BE</span
+              >
+              <h4 class="text-base font-bold">통합 — 단일 진입점</h4>
+            </div>
+            <!-- 더보기 드롭다운 -->
+            <div class="wire p-3 mb-4">
+              <div class="text-[11px] text-slate-500 mb-2">Header · 더보기 ▾</div>
+              <ul
+                class="text-sm bg-white border border-slate-200 rounded-lg divide-y divide-slate-100"
+              >
+                <li class="px-3 py-2 text-slate-500">전문가 서비스</li>
+                <li class="px-3 py-2 text-slate-500">무료심사신청</li>
+                <li class="px-3 py-2 bg-slate-50 text-slate-300">— divider —</li>
+                <li class="px-3 py-2 flex items-center justify-between bg-emerald-50">
+                  <span class="font-semibold text-emerald-800">전문가 관리</span>
+                  <code class="text-[11px] text-slate-600">/admin/experts</code>
+                </li>
+              </ul>
+            </div>
+            <table class="spec w-full">
+              <thead>
+                <tr>
+                  <th>경로</th>
+                  <th>역할</th>
+                  <th>접근 권한</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <code>/admin/experts</code><br /><span class="text-[11px] text-emerald-700"
+                      >단일 페이지 + 3 탭</span
+                    >
+                  </td>
+                  <td>서비스카드 / 프로필·계정 / 목록 검색</td>
+                  <td class="text-emerald-700"><b>admin · super_admin 모두 허용</b></td>
+                </tr>
+                <tr>
+                  <td><code>/admin/expert-services</code></td>
+                  <td>→ 통합</td>
+                  <td class="text-slate-400">redirect → /admin/experts</td>
+                </tr>
+                <tr>
+                  <td><code>/admin/expert-dashboards</code></td>
+                  <td>→ 통합</td>
+                  <td class="text-slate-400">redirect → /admin/experts?tab=list</td>
+                </tr>
+                <tr>
+                  <td><code>/expert-services/admin</code></td>
+                  <td>폐기</td>
+                  <td class="text-slate-400">410 / redirect</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="mt-3 text-xs text-emerald-800 leading-relaxed">
+              · 메뉴 1개 · 페이지 1개 · 데이터 1개<br />
+              · 모든 라우트가 AdminLayout 가드(admin · super_admin)로 통일<br />
+              · 기존 북마크/링크는 redirect로 호환 보존
+            </div>
+          </div>
+        </div>
+
+        <!-- 통합 페이지 와이어 -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6">
+          <div class="label">Unified page · /admin/experts</div>
+          <h4 class="text-lg font-bold mb-4">통합 후 화면 구조 (와이어)</h4>
+
+          <div class="wire p-4">
+            <!-- 탭 네비 -->
+            <div class="flex items-end gap-1 border-b border-slate-200">
+              <div
+                class="px-4 py-2.5 text-sm font-bold text-emerald-700 border-b-2 border-emerald-600 -mb-px"
+              >
+                서비스 카드
+              </div>
+              <div class="px-4 py-2.5 text-sm text-slate-500">프로필 · 계정 연결</div>
+              <div class="px-4 py-2.5 text-sm text-slate-500">목록 · 검색</div>
+              <div class="ml-auto flex items-center gap-2 pb-2">
+                <input
+                  class="h-8 px-2 text-xs border border-slate-200 rounded"
+                  placeholder="이름·회사 검색"
+                  disabled
+                />
+                <button class="h-8 px-3 text-xs rounded bg-emerald-600 text-white font-bold">
+                  + 새 전문가
+                </button>
+              </div>
+            </div>
+
+            <!-- 탭 콘텐츠: 서비스 카드 -->
+            <div class="grid grid-cols-3 gap-3 p-4">
+              <div class="border border-slate-200 rounded-lg p-3">
+                <div class="ghost h-24 rounded mb-2 grid place-items-center text-xs">
+                  card image
+                </div>
+                <div class="text-xs text-emerald-700 font-bold">정책자금</div>
+                <div class="text-sm font-bold mt-1">홍길동 · 대표</div>
+                <div class="text-[11px] text-slate-500">나라똔 컨설팅</div>
+                <div class="mt-2 flex gap-1 text-[11px]">
+                  <span class="px-1.5 py-0.5 bg-slate-100 rounded">활성</span>
+                  <button class="ml-auto px-2 py-0.5 bg-slate-100 rounded">수정</button>
+                </div>
+              </div>
+              <div class="border border-slate-200 rounded-lg p-3">
+                <div class="ghost h-24 rounded mb-2 grid place-items-center text-xs">
+                  card image
+                </div>
+                <div class="text-xs text-emerald-700 font-bold">세무</div>
+                <div class="text-sm font-bold mt-1">김전문 · 세무사</div>
+                <div class="text-[11px] text-slate-500">세무법인 ◯◯</div>
+                <div class="mt-2 flex gap-1 text-[11px]">
+                  <span class="px-1.5 py-0.5 bg-slate-100 rounded">활성</span>
+                  <button class="ml-auto px-2 py-0.5 bg-slate-100 rounded">수정</button>
+                </div>
+              </div>
+              <div
+                class="border border-dashed border-slate-300 rounded-lg p-3 grid place-items-center text-xs text-slate-400"
+              >
+                + 새 서비스 카드
+              </div>
+            </div>
+          </div>
+
+          <!-- 다른 탭 미리보기 -->
+          <div class="grid grid-cols-2 gap-3 mt-4">
+            <div class="wire p-3">
+              <div class="text-[11px] font-bold text-slate-500 mb-2">
+                탭 2 · 프로필 · 계정 연결 (구 /admin/experts)
+              </div>
+              <div class="space-y-1.5">
+                <div class="skel w90"></div>
+                <div class="skel w70"></div>
+                <div class="skel w90"></div>
+              </div>
+              <div class="text-[11px] text-slate-500 mt-2">
+                ← 사용자 검색 → 전문가 프로필에 user 연결
+              </div>
+            </div>
+            <div class="wire p-3">
+              <div class="text-[11px] font-bold text-slate-500 mb-2">
+                탭 3 · 목록 · 검색 (구 /admin/expert-dashboards)
+              </div>
+              <table class="w-full text-[11px]">
+                <thead class="text-slate-500">
+                  <tr class="border-b">
+                    <th class="text-left py-1">이름</th>
+                    <th>회사</th>
+                    <th>분야</th>
+                    <th>상태</th>
+                  </tr>
+                </thead>
+                <tbody class="[&_td]:py-1">
+                  <tr>
+                    <td>홍길동</td>
+                    <td>나라똔</td>
+                    <td>정책자금</td>
+                    <td>활성</td>
+                  </tr>
+                  <tr>
+                    <td>김전문</td>
+                    <td>세무법인</td>
+                    <td>세무</td>
+                    <td>활성</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 프로필 + 회사정보 통합 편집 모달 와이어 -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6">
+          <div class="label">Unified Edit Modal — Profile + Company Brand Page</div>
+          <h4 class="text-lg font-bold mb-1">
+            프로필 편집 시 <span class="text-emerald-700">회사정보(brandPage)</span>도 같이 수정
+          </h4>
+          <p class="text-sm text-slate-600 mb-4">
+            현재 회사 로고·소개·경력·연락처 등 <code>ExpertExaminer.brandPage</code>는 examiner 본인
+            대시보드(<code>src/components/examiner/*Editor.tsx</code>)에서만 편집 가능합니다. 관리자
+            통합 편집 화면에서 <b>같은 모달 안에서 한 번에</b> 수정하도록 합칩니다.
+          </p>
+
+          <div class="wire p-0 overflow-hidden">
+            <!-- 모달 헤더 -->
+            <div
+              class="flex items-center justify-between px-5 py-3 border-b border-slate-200 bg-slate-50"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-9 h-9 rounded-full bg-emerald-600 text-white grid place-items-center text-xs font-bold"
+                >
+                  홍
+                </div>
+                <div>
+                  <div class="text-sm font-bold">홍길동 · 대표</div>
+                  <div class="text-[11px] text-slate-500">나라똔 컨설팅 · 정책자금</div>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button class="h-8 px-3 text-xs rounded border border-slate-200">취소</button>
+                <button class="h-8 px-3 text-xs rounded bg-emerald-600 text-white font-bold">
+                  저장
+                </button>
+              </div>
+            </div>
+
+            <!-- 좌 섹션 메뉴 / 우 폼 -->
+            <div class="grid grid-cols-12">
+              <aside class="col-span-3 border-r border-slate-200 bg-slate-50/40 py-3">
+                <div class="px-3 text-[10px] font-bold text-slate-400 tracking-widest mb-2">
+                  EDIT SECTIONS
+                </div>
+                <ul class="text-[12px]">
+                  <li
+                    class="px-3 py-2 bg-emerald-50 border-l-2 border-emerald-600 font-bold text-emerald-800"
+                  >
+                    기본 정보
+                  </li>
+                  <li class="px-3 py-2 hover:bg-slate-100 text-slate-600">계정 연결 (User)</li>
+                  <li class="px-3 py-2 hover:bg-slate-100 text-slate-600">서비스 카드 이미지</li>
+                  <li class="px-3 py-2 mt-2 text-[10px] font-bold text-slate-400 tracking-widest">
+                    COMPANY · brandPage
+                  </li>
+                  <li class="px-3 py-2 hover:bg-slate-100 text-slate-600">회사 로고 · 소개</li>
+                  <li class="px-3 py-2 hover:bg-slate-100 text-slate-600">정보 이미지</li>
+                  <li class="px-3 py-2 hover:bg-slate-100 text-slate-600">경력 (n건)</li>
+                  <li class="px-3 py-2 hover:bg-slate-100 text-slate-600">성공 케이스 (n건)</li>
+                  <li class="px-3 py-2 hover:bg-slate-100 text-slate-600">연락처</li>
+                </ul>
+              </aside>
+
+              <div class="col-span-9 p-5 space-y-6 max-h-[520px] overflow-auto">
+                <!-- 1) 기본 정보 -->
+                <div>
+                  <div class="text-xs font-bold text-emerald-700 mb-2">1. 기본 정보</div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <label class="text-xs"
+                      ><span class="block text-slate-500 mb-1">이름</span
+                      ><input
+                        class="w-full h-9 px-2 border border-slate-200 rounded"
+                        value="홍길동"
+                    /></label>
+                    <label class="text-xs"
+                      ><span class="block text-slate-500 mb-1">직책</span
+                      ><input class="w-full h-9 px-2 border border-slate-200 rounded" value="대표"
+                    /></label>
+                    <label class="text-xs"
+                      ><span class="block text-slate-500 mb-1">회사명 (companyName)</span
+                      ><input
+                        class="w-full h-9 px-2 border border-slate-200 rounded"
+                        value="나라똔 컨설팅"
+                    /></label>
+                    <label class="text-xs"
+                      ><span class="block text-slate-500 mb-1">분야 (specialties)</span
+                      ><input
+                        class="w-full h-9 px-2 border border-slate-200 rounded"
+                        value="정책자금, 창업"
+                    /></label>
+                    <label class="text-xs col-span-2"
+                      ><span class="block text-slate-500 mb-1">한 줄 소개 (headline)</span
+                      ><input
+                        class="w-full h-9 px-2 border border-slate-200 rounded"
+                        value="중소기업 정책자금 10년차"
+                    /></label>
+                  </div>
+                </div>
+
+                <!-- 2) 회사 로고 · 소개 -->
+                <div class="border-t border-slate-100 pt-5">
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="text-xs font-bold text-emerald-700">2. 회사 로고 · 소개</div>
+                    <span
+                      class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold"
+                      >brandPage.companyLogo / companyIntro</span
+                    >
+                  </div>
+                  <div class="grid grid-cols-12 gap-3">
+                    <div class="col-span-3">
+                      <div class="ghost h-24 rounded grid place-items-center text-[11px]">
+                        로고 업로드
+                      </div>
+                      <button class="mt-1 w-full h-7 text-[11px] border border-slate-200 rounded">
+                        파일 선택
+                      </button>
+                    </div>
+                    <div class="col-span-9">
+                      <label class="flex items-center gap-2 text-[11px] mb-2">
+                        <input type="checkbox" checked /> 나라똔 기본 소개 사용
+                        <span class="text-slate-400">(useDefaultIntro)</span>
+                      </label>
+                      <textarea
+                        class="w-full h-20 p-2 border border-slate-200 rounded text-[12px]"
+                        placeholder="회사 소개 (직접 작성 시 입력)"
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 3) 정보 이미지 -->
+                <div class="border-t border-slate-100 pt-5">
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="text-xs font-bold text-emerald-700">3. 정보 이미지</div>
+                    <span
+                      class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold"
+                      >brandPage.infoImage</span
+                    >
+                    <span class="text-[10px] text-slate-400">10MB · 자동 webp 압축</span>
+                  </div>
+                  <div class="ghost h-20 rounded grid place-items-center text-[11px]">
+                    단일 이미지 (드롭/선택)
+                  </div>
+                </div>
+
+                <!-- 4) 경력 -->
+                <div class="border-t border-slate-100 pt-5">
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                      <div class="text-xs font-bold text-emerald-700">4. 경력</div>
+                      <span
+                        class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold"
+                        >brandPage.careers[]</span
+                      >
+                    </div>
+                    <button class="h-7 px-2 text-[11px] rounded border border-slate-200">
+                      + 경력 추가
+                    </button>
+                  </div>
+                  <div class="space-y-2">
+                    <div class="grid grid-cols-12 gap-2 items-center">
+                      <input
+                        class="col-span-3 h-8 px-2 text-[12px] border border-slate-200 rounded"
+                        placeholder="기간"
+                        value="2020.01 - 2022.12"
+                      />
+                      <input
+                        class="col-span-3 h-8 px-2 text-[12px] border border-slate-200 rounded"
+                        placeholder="회사"
+                        value="○○ 컨설팅"
+                      />
+                      <input
+                        class="col-span-2 h-8 px-2 text-[12px] border border-slate-200 rounded"
+                        placeholder="직책"
+                        value="팀장"
+                      />
+                      <input
+                        class="col-span-3 h-8 px-2 text-[12px] border border-slate-200 rounded"
+                        placeholder="업무"
+                        value="정책자금 컨설팅"
+                      />
+                      <button class="col-span-1 h-8 text-[11px] text-rose-600">삭제</button>
+                    </div>
+                    <div class="grid grid-cols-12 gap-2 items-center">
+                      <input
+                        class="col-span-3 h-8 px-2 text-[12px] border border-slate-200 rounded"
+                        placeholder="기간"
+                      />
+                      <input
+                        class="col-span-3 h-8 px-2 text-[12px] border border-slate-200 rounded"
+                        placeholder="회사"
+                      />
+                      <input
+                        class="col-span-2 h-8 px-2 text-[12px] border border-slate-200 rounded"
+                        placeholder="직책"
+                      />
+                      <input
+                        class="col-span-3 h-8 px-2 text-[12px] border border-slate-200 rounded"
+                        placeholder="업무"
+                      />
+                      <button class="col-span-1 h-8 text-[11px] text-rose-600">삭제</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 5) 성공 케이스 -->
+                <div class="border-t border-slate-100 pt-5">
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                      <div class="text-xs font-bold text-emerald-700">5. 성공 케이스</div>
+                      <span
+                        class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold"
+                        >brandPage.successCases[]</span
+                      >
+                    </div>
+                    <button class="h-7 px-2 text-[11px] rounded border border-slate-200">
+                      + 케이스 추가
+                    </button>
+                  </div>
+                  <div
+                    class="border border-slate-200 rounded p-2 grid grid-cols-12 gap-2 items-start"
+                  >
+                    <input
+                      class="col-span-4 h-8 px-2 text-[12px] border border-slate-200 rounded"
+                      placeholder="제목"
+                      value="○○제조 자금 5억 지원"
+                    />
+                    <input
+                      class="col-span-3 h-8 px-2 text-[12px] border border-slate-200 rounded"
+                      placeholder="고객사 (선택)"
+                      value="○○제조"
+                    />
+                    <textarea
+                      class="col-span-4 h-12 px-2 py-1 text-[12px] border border-slate-200 rounded"
+                      placeholder="내용"
+                    ></textarea>
+                    <button class="col-span-1 h-8 text-[11px] text-rose-600">삭제</button>
+                  </div>
+                </div>
+
+                <!-- 6) 연락처 -->
+                <div class="border-t border-slate-100 pt-5">
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="text-xs font-bold text-emerald-700">6. 연락처</div>
+                    <span
+                      class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold"
+                      >brandPage.contactInfo</span
+                    >
+                  </div>
+                  <div class="grid grid-cols-3 gap-3">
+                    <label class="text-xs"
+                      ><span class="block text-slate-500 mb-1">웹사이트</span
+                      ><input
+                        class="w-full h-9 px-2 border border-slate-200 rounded"
+                        placeholder="https://"
+                    /></label>
+                    <label class="text-xs"
+                      ><span class="block text-slate-500 mb-1">상담 시간</span
+                      ><input
+                        class="w-full h-9 px-2 border border-slate-200 rounded"
+                        placeholder="평일 09:00-18:00"
+                    /></label>
+                    <label class="text-xs"
+                      ><span class="block text-slate-500 mb-1">주소</span
+                      ><input
+                        class="w-full h-9 px-2 border border-slate-200 rounded"
+                        placeholder="서울시 …"
+                    /></label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 모델 매핑 표 -->
+          <div class="mt-5 grid grid-cols-2 gap-4">
+            <table class="spec w-full">
+              <thead>
+                <tr>
+                  <th>UI 섹션</th>
+                  <th>모델 필드</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1. 기본 정보</td>
+                  <td>
+                    <code>ExpertExaminer.{name,position,companyName,specialties,headline,bio}</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td>2. 회사 로고 · 소개</td>
+                  <td><code>brandPage.{companyLogo, companyIntro, useDefaultIntro}</code></td>
+                </tr>
+                <tr>
+                  <td>3. 정보 이미지</td>
+                  <td><code>brandPage.infoImage</code></td>
+                </tr>
+                <tr>
+                  <td>4. 경력</td>
+                  <td><code>brandPage.careers[]</code></td>
+                </tr>
+                <tr>
+                  <td>5. 성공 케이스</td>
+                  <td><code>brandPage.successCases[]</code></td>
+                </tr>
+                <tr>
+                  <td>6. 연락처</td>
+                  <td><code>brandPage.contactInfo</code></td>
+                </tr>
+                <tr>
+                  <td>계정 연결</td>
+                  <td><code>ExpertExaminer.{email, userId}</code></td>
+                </tr>
+                <tr>
+                  <td>서비스 카드 이미지</td>
+                  <td><code>Expert.{imageKey, imageUrl, cardImageUrl, order, isActive}</code> ※</td>
+                </tr>
+              </tbody>
+            </table>
+            <div
+              class="bg-amber-50 border border-amber-200 rounded-lg p-4 text-[12px] leading-relaxed text-amber-900"
+            >
+              <div class="font-bold mb-1">⚠️ 모델 이원화 이슈</div>
+              현재 <code>Expert</code> (서비스 카드)와 <code>ExpertExaminer</code> (브랜드 페이지)가
+              분리돼 있습니다.<br />
+              <b>권장 접근</b> :
+              <ol class="list-decimal pl-5 mt-1 space-y-0.5">
+                <li>편집 UI는 <b>한 모달</b>에서 양쪽을 동시 저장 (트랜잭션 묶음)</li>
+                <li>두 컬렉션은 <code>name+companyName</code> 또는 <code>userId</code>로 매칭</li>
+                <li>
+                  Phase 2: <code>Expert</code> 필드를 <code>ExpertExaminer</code>에 흡수해 단일
+                  모델로 통합
+                </li>
+              </ol>
+              <div class="mt-2">
+                기존
+                <code
+                  >src/components/examiner/{BrandIntro,Career,InfoImage,SuccessCase,ContactInfo}Editor.tsx</code
+                >
+                컴포넌트를 그대로 재사용 가능.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 권한 매트릭스 -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6">
+          <div class="label">Permission Matrix</div>
+          <h4 class="text-lg font-bold mb-4">권한 완화 — admin 이상이면 전부 허용</h4>
+          <table class="spec w-full">
+            <thead>
+              <tr>
+                <th>액션</th>
+                <th>현재</th>
+                <th>변경 후</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>전문가 서비스 카드 조회/수정/이미지 업로드</td>
+                <td>admin · super_admin</td>
+                <td class="text-emerald-700"><b>admin · super_admin (유지)</b></td>
+              </tr>
+              <tr>
+                <td>전문가 프로필 수정 + 계정 연결</td>
+                <td class="text-rose-700">admin <b>only</b> (super_admin 차단)</td>
+                <td class="text-emerald-700"><b>admin · super_admin</b></td>
+              </tr>
+              <tr>
+                <td>전문가 목록 검색/조회</td>
+                <td>x-admin-auth 헤더 (느슨)</td>
+                <td class="text-emerald-700">
+                  <b>requirePerm('expert:read') · admin·super_admin</b>
+                </td>
+              </tr>
+              <tr>
+                <td>전문가 삭제</td>
+                <td>admin only</td>
+                <td><b>admin · super_admin</b> (확인 모달 필수)</td>
+              </tr>
+            </tbody>
+          </table>
+          <div
+            class="mt-3 text-xs text-slate-600 leading-relaxed bg-slate-50 border border-slate-200 rounded p-3"
+          >
+            <b>코드 변경 포인트</b><br />
+            · <code>app/admin/experts/page.tsx</code> Line 77 의
+            <code>session.user.role !== 'admin'</code> 가드 제거 → AdminLayout 가드로 위임<br />
+            · <code>src/components/Header.tsx</code> Line 283-290 의
+            <code>&lt;CanAccess role="expert"&gt;</code> 항목 삭제,
+            <code>&lt;CanAccess role="admin"&gt;</code> 영역에 “전문가 관리” 단일 추가<br />
+            · <code>src/components/admin/AdminSidebar.tsx</code> 라벨 “전문가 관리” → 경로
+            <code>/admin/experts</code> 로 변경<br />
+            · 구 경로(<code>/admin/expert-services</code>, <code>/admin/expert-dashboards</code>,
+            <code>/expert-services/admin</code>) 는 <code>redirect()</code> 로 단일 진입점에 합류
+          </div>
+        </div>
+
+        <!-- 마이그레이션 단계 -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6">
+          <div class="label">Rollout Plan</div>
+          <h4 class="text-lg font-bold mb-4">단계별 적용 (안전 마이그레이션)</h4>
+          <ol class="grid grid-cols-4 gap-3 text-xs text-center">
+            <li class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+              <div class="font-bold text-slate-700">1. 헤더·사이드바</div>
+              <div class="text-slate-500 mt-1">메뉴 1개로 정리<br />(라우팅만 변경)</div>
+            </li>
+            <li class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+              <div class="font-bold text-slate-700">2. 통합 페이지</div>
+              <div class="text-slate-500 mt-1">/admin/experts<br />3 탭 구조로 재구성</div>
+            </li>
+            <li class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+              <div class="font-bold text-slate-700">3. 권한 가드</div>
+              <div class="text-slate-500 mt-1">
+                role !== 'admin' 제거<br />requirePerm 으로 통일
+              </div>
+            </li>
+            <li class="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+              <div class="font-bold text-emerald-800">4. 구 라우트 redirect</div>
+              <div class="text-emerald-700 mt-1">기존 링크 호환 유지<br />30일 후 410으로 전환</div>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <footer class="max-w-[1200px] mx-auto px-6 py-10 text-xs text-slate-400">
+      © Naraddon · Wireframe & Demo · 작성일 2026-04-28
+    </footer>
+
+    <script>
+      /* ====== Tabs ====== */
+      const tabs = document.querySelectorAll('.tab-btn');
+      const panes = document.querySelectorAll('[data-pane]');
+      function showTab(name) {
+        tabs.forEach((b) => (b.dataset.active = b.dataset.tab === name ? 'true' : 'false'));
+        panes.forEach((p) => p.classList.toggle('hidden', p.dataset.pane !== name));
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }
+      tabs.forEach((b) => b.addEventListener('click', () => showTab(b.dataset.tab)));
+
+      /* ====== Editor commands ====== */
+      const editor = document.getElementById('editor');
+      const toolbar = document.getElementById('toolbar');
+      const charCount = document.getElementById('charCount');
+
+      function updateCount() {
+        if (charCount)
+          charCount.textContent = (editor?.innerText || '').replace(/\s+/g, ' ').trim().length;
+      }
+      editor?.addEventListener('input', updateCount);
+      updateCount();
+
+      // font size 매핑 (execCommand fontSize는 1~7만 허용 → 임시 적용 후 span style 교체)
+      function applyFontSize(px) {
+        document.execCommand('fontSize', false, '7');
+        document.querySelectorAll('font[size="7"]').forEach((f) => {
+          const span = document.createElement('span');
+          span.style.fontSize = px + 'px';
+          span.innerHTML = f.innerHTML;
+          f.replaceWith(span);
+        });
+      }
+
+      toolbar?.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-cmd]');
+        if (!btn) return;
+        editor.focus();
+        const cmd = btn.dataset.cmd;
+        document.execCommand(cmd, false, null);
+      });
+      toolbar?.addEventListener('change', (e) => {
+        const el = e.target.closest('[data-cmd]');
+        if (!el) return;
+        editor.focus();
+        const cmd = el.dataset.cmd;
+        if (cmd === 'fontSize') applyFontSize(el.value);
+        else if (cmd === 'formatBlock') document.execCommand('formatBlock', false, el.value);
+        else if (cmd === 'foreColor') document.execCommand('foreColor', false, el.value);
+      });
+
+      document.getElementById('btnLink')?.addEventListener('click', () => {
+        const url = prompt('링크 URL을 입력하세요', 'https://');
+        if (url) document.execCommand('createLink', false, url);
+      });
+
+      /* ====== Image upload (editor) ====== */
+      const filePicker = document.getElementById('filePicker');
+      const queue = document.getElementById('uploadQueue');
+      document.getElementById('btnImage')?.addEventListener('click', () => filePicker.click());
+      filePicker?.addEventListener('change', async (e) => {
+        const files = Array.from(e.target.files || []);
+        for (const f of files) {
+          const result = await convertToWebp(f, { quality: 0.85, maxSide: 1600 });
+          insertImageAtCursor(result.dataUrl);
+          appendQueueRow(queue, f, result, true);
+        }
+        filePicker.value = '';
+      });
+
+      function insertImageAtCursor(src) {
+        editor.focus();
+        // execCommand insertImage 는 deprecated 이지만 데모용
+        document.execCommand('insertImage', false, src);
+      }
+
+      /* ====== Standalone upload demo ====== */
+      const standaloneFile = document.getElementById('standaloneFile');
+      const standaloneList = document.getElementById('standaloneList');
+      const totalSummary = document.getElementById('totalSummary');
+      const qIn = document.getElementById('qIn'),
+        qOut = document.getElementById('qOut');
+      const mIn = document.getElementById('mIn');
+      qIn?.addEventListener('input', () => (qOut.textContent = (+qIn.value).toFixed(2)));
+
+      let totals = { orig: 0, out: 0, n: 0 };
+      standaloneFile?.addEventListener('change', async (e) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length && standaloneList.firstElementChild?.classList.contains('text-slate-400'))
+          standaloneList.innerHTML = '';
+        for (const f of files) {
+          const result = await convertToWebp(f, { quality: +qIn.value, maxSide: +mIn.value });
+          appendQueueRow(standaloneList, f, result, false);
+          totals.orig += f.size;
+          totals.out += result.size;
+          totals.n += 1;
+          totalSummary.innerHTML = `누적 ${totals.n}장 · 원본 ${(totals.orig / 1024).toFixed(0)}KB → webp ${(totals.out / 1024).toFixed(0)}KB · 절감 <b>${((1 - totals.out / totals.orig) * 100).toFixed(1)}%</b>`;
+        }
+        standaloneFile.value = '';
+      });
+
+      /* ====== Core: webp conversion (Canvas) ====== */
+      async function convertToWebp(file, { quality = 0.85, maxSide = 1600 } = {}) {
+        const url = URL.createObjectURL(file);
+        const img = await loadImage(url);
+        let { width: w, height: h } = img;
+        if (Math.max(w, h) > maxSide) {
+          const r = maxSide / Math.max(w, h);
+          w = Math.round(w * r);
+          h = Math.round(h * r);
+        }
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        const blob = await new Promise((res) => c.toBlob(res, 'image/webp', quality));
+        URL.revokeObjectURL(url);
+        const dataUrl = await blobToDataUrl(blob);
+        return { blob, dataUrl, size: blob.size, width: w, height: h };
+      }
+      function loadImage(src) {
+        return new Promise((res, rej) => {
+          const i = new Image();
+          i.onload = () => res(i);
+          i.onerror = rej;
+          i.src = src;
+        });
+      }
+      function blobToDataUrl(b) {
+        return new Promise((res) => {
+          const r = new FileReader();
+          r.onload = () => res(r.result);
+          r.readAsDataURL(b);
+        });
+      }
+
+      function appendQueueRow(container, original, result, insertedToEditor) {
+        const row = document.createElement('div');
+        row.className = 'upload-row';
+        row.innerHTML = `
+    <img src="${result.dataUrl}" alt="">
+    <div>
+      <div class="text-sm font-semibold text-slate-800 truncate">${original.name}</div>
+      <div class="text-xs text-slate-500">
+        ${(original.size / 1024).toFixed(0)}KB → <b class="text-emerald-700">${(result.size / 1024).toFixed(0)}KB</b>
+        · ${result.width}×${result.height} · webp
+        ${insertedToEditor ? '· <span class="text-emerald-700">에디터 삽입됨</span>' : ''}
+      </div>
+    </div>
+    <div class="text-xs">
+      <span class="px-2 py-1 rounded bg-emerald-50 text-emerald-700 font-bold">절감 ${((1 - result.size / original.size) * 100).toFixed(1)}%</span>
+    </div>`;
+        container.appendChild(row);
+      }
+    </script>
+  </body>
+</html>
