@@ -289,228 +289,246 @@ const PolicyNewsDetail = () => {
       {/* 브레드크럼/조회수 제거 — 2026-04-28 리디자인 (와이어 ② 확정) */}
 
       {/*
+        흰 카드 래퍼 — 페이지 양옆 회색(#f7f8fa)과 시각적으로 분리
+        @decision 와이어프레임 ② "bg-white rounded-2xl border border-slate-200" 그대로 반영
+      */}
+      <div className="detail-card">
+        {/*
         헤더 영역 — 와이어프레임 ②(2026-04-28) 기준
         카테고리 뱃지 → 제목 → 작성자/날짜 + 공유·저장·인쇄 버튼
       */}
-      <div className="detail-header">
-        {post.category && <span className="category-badge">{post.category}</span>}
+        <div className="detail-header">
+          {post.category && <span className="category-badge">{post.category}</span>}
 
-        <h1 className="post-title">{post.title}</h1>
+          <h1 className="post-title">{post.title}</h1>
 
-        <div className="post-meta">
-          <div className="meta-author">
-            <span className="author-avatar" aria-hidden="true">
-              N
-            </span>
-            <span className="author-name">나라똔 편집부</span>
-            <span className="meta-dot" aria-hidden="true">
-              ·
-            </span>
-            <span className="meta-date">{createdDate}</span>
+          <div className="post-meta">
+            <div className="meta-author">
+              <span className="author-avatar" aria-hidden="true">
+                N
+              </span>
+              <span className="author-name">나라똔 편집부</span>
+              <span className="meta-dot" aria-hidden="true">
+                ·
+              </span>
+              <span className="meta-date">{createdDate}</span>
+            </div>
+            <div className="meta-actions">
+              <button type="button" className="meta-action-btn" onClick={handleShare}>
+                🔗 공유
+              </button>
+              <button type="button" className="meta-action-btn" onClick={handleBookmark}>
+                🔖 저장
+              </button>
+              <button type="button" className="meta-action-btn" onClick={handlePrint}>
+                🖨 인쇄
+              </button>
+            </div>
           </div>
-          <div className="meta-actions">
-            <button type="button" className="meta-action-btn" onClick={handleShare}>
-              🔗 공유
-            </button>
-            <button type="button" className="meta-action-btn" onClick={handleBookmark}>
-              🔖 저장
-            </button>
-            <button type="button" className="meta-action-btn" onClick={handlePrint}>
-              🖨 인쇄
-            </button>
-          </div>
+
+          {isAdmin && (
+            <div className="admin-actions">
+              <button
+                className="admin-button"
+                onClick={() => router.push(`/policy-news/${params.id}/edit`)}
+              >
+                <i className="fas fa-edit"></i> 수정
+              </button>
+              <button className="admin-button delete" onClick={handleDelete}>
+                <i className="fas fa-trash"></i> 삭제
+              </button>
+            </div>
+          )}
         </div>
 
-        {isAdmin && (
-          <div className="admin-actions">
-            <button
-              className="admin-button"
-              onClick={() => router.push(`/policy-news/${params.id}/edit`)}
-            >
-              <i className="fas fa-edit"></i> 수정
-            </button>
-            <button className="admin-button delete" onClick={handleDelete}>
-              <i className="fas fa-trash"></i> 삭제
-            </button>
-          </div>
-        )}
-      </div>
+        {/* 콘텐츠 영역 */}
+        <div className="content-wrapper">
+          {/* 메인 콘텐츠 */}
+          <div className="main-content">
+            {/* 요약 - 이미지 위로 이동 */}
+            {post.excerpt && (
+              <div className="post-excerpt">
+                <p>{post.excerpt}</p>
+              </div>
+            )}
 
-      {/* 콘텐츠 영역 */}
-      <div className="content-wrapper">
-        {/* 메인 콘텐츠 */}
-        <div className="main-content">
-          {/* 요약 - 이미지 위로 이동 */}
-          {post.excerpt && (
-            <div className="post-excerpt">
-              <p>{post.excerpt}</p>
-            </div>
-          )}
+            {/* 썸네일 이미지 */}
+            {post.thumbnail && (
+              <div className="post-thumbnail">
+                <img
+                  src={post.thumbnail}
+                  alt={post.title}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
 
-          {/* 썸네일 이미지 */}
-          {post.thumbnail && (
-            <div className="post-thumbnail">
-              <img
-                src={post.thumbnail}
-                alt={post.title}
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                }}
-              />
-            </div>
-          )}
-
-          {/*
+            {/*
             본문 콘텐츠 — HTML(신규) / 마크다운(기존) 자동 분기
             @context 새 에디터(ReactQuill)는 HTML, 구버전은 textarea + 마크다운 형식
           */}
-          {isHtmlContent(post.content) ? (
-            <div
-              className="post-content"
-              ref={contentRef}
-              dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
-            />
-          ) : (
-            <div className="post-content" ref={contentRef}>
-              {post.content.split('\n').map((paragraph, index) => {
-                if (!paragraph.trim()) return <br key={index} />;
+            {isHtmlContent(post.content) ? (
+              <div
+                className="post-content"
+                ref={contentRef}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
+              />
+            ) : (
+              <div className="post-content" ref={contentRef}>
+                {post.content.split('\n').map((paragraph, index) => {
+                  if (!paragraph.trim()) return <br key={index} />;
 
-                // 이미지 처리
-                const imageMatch = paragraph.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
-                if (imageMatch) {
-                  return (
-                    <div key={index} className="content-image-wrapper">
-                      <img
-                        src={imageMatch[2]}
-                        alt={imageMatch[1] || '이미지'}
-                        className="content-image"
-                      />
-                      {imageMatch[1] && <p className="image-caption">{imageMatch[1]}</p>}
-                    </div>
-                  );
-                }
+                  // 이미지 처리
+                  const imageMatch = paragraph.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+                  if (imageMatch) {
+                    return (
+                      <div key={index} className="content-image-wrapper">
+                        <img
+                          src={imageMatch[2]}
+                          alt={imageMatch[1] || '이미지'}
+                          className="content-image"
+                        />
+                        {imageMatch[1] && <p className="image-caption">{imageMatch[1]}</p>}
+                      </div>
+                    );
+                  }
 
-                // 제목 처리
-                const headingMatch = paragraph.match(/^(#{1,6})\s+(.+)$/);
-                if (headingMatch) {
-                  const level = headingMatch[1].length;
-                  const HeadingTag = `h${Math.min(level, 6)}`;
-                  return (
-                    <HeadingTag key={index} id={headingMatch[2].replace(/\s+/g, '-').toLowerCase()}>
-                      {headingMatch[2]}
-                    </HeadingTag>
-                  );
-                }
+                  // 제목 처리
+                  const headingMatch = paragraph.match(/^(#{1,6})\s+(.+)$/);
+                  if (headingMatch) {
+                    const level = headingMatch[1].length;
+                    const HeadingTag = `h${Math.min(level, 6)}`;
+                    return (
+                      <HeadingTag
+                        key={index}
+                        id={headingMatch[2].replace(/\s+/g, '-').toLowerCase()}
+                      >
+                        {headingMatch[2]}
+                      </HeadingTag>
+                    );
+                  }
 
-                // 구분선
-                if (paragraph.match(/^(-{3,}|\*{3,})$/)) {
-                  return <hr key={index} />;
-                }
+                  // 구분선
+                  if (paragraph.match(/^(-{3,}|\*{3,})$/)) {
+                    return <hr key={index} />;
+                  }
 
-                // 일반 단락
-                return <p key={index}>{paragraph}</p>;
-              })}
-            </div>
-          )}
-
-          {/* 태그 */}
-          {plainTags.length > 0 && (
-            <div className="post-tags">
-              <div className="tags-container">
-                {plainTags.map((tag) => (
-                  <span key={tag} className="tag">
-                    #{tag}
-                  </span>
-                ))}
+                  // 일반 단락
+                  return <p key={index}>{paragraph}</p>;
+                })}
               </div>
-            </div>
-          )}
+            )}
+
+            {/* 태그 */}
+            {plainTags.length > 0 && (
+              <div className="post-tags">
+                <div className="tags-container">
+                  {plainTags.map((tag) => (
+                    <span key={tag} className="tag">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 사이드바 */}
+          <aside className="sidebar">
+            {/* 목차 */}
+            {generateTOC().length > 0 && (
+              <div className="toc-box">
+                <div className="toc-header">
+                  <h3>목차</h3>
+                  <button className="toc-toggle" onClick={() => setShowTOC(!showTOC)}>
+                    <i className={`fas fa-chevron-${showTOC ? 'up' : 'down'}`}></i>
+                  </button>
+                </div>
+                {showTOC && (
+                  <ul className="toc-list">
+                    {generateTOC().map((item, idx) => (
+                      <li key={idx} className="toc-item">
+                        <a
+                          href={`#${item.id}`}
+                          className="toc-link"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            document
+                              .getElementById(item.id)
+                              ?.scrollIntoView({ behavior: 'smooth' });
+                          }}
+                        >
+                          {item.text}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </aside>
         </div>
 
-        {/* 사이드바 */}
-        <aside className="sidebar">
-          {/* 목차 */}
-          {generateTOC().length > 0 && (
-            <div className="toc-box">
-              <div className="toc-header">
-                <h3>목차</h3>
-                <button className="toc-toggle" onClick={() => setShowTOC(!showTOC)}>
-                  <i className={`fas fa-chevron-${showTOC ? 'up' : 'down'}`}></i>
-                </button>
-              </div>
-              {showTOC && (
-                <ul className="toc-list">
-                  {generateTOC().map((item, idx) => (
-                    <li key={idx} className="toc-item">
-                      <a
-                        href={`#${item.id}`}
-                        className="toc-link"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
-                        }}
-                      >
-                        {item.text}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
-        </aside>
-      </div>
-
-      {/*
+        {/*
         이전글 / 목록 / 다음글 네비게이션 — 와이어프레임 ② 하단 (2026-04-28)
         목록으로 버튼은 emerald 강조, 이전·다음은 회색 보더 카드
       */}
-      <nav className="post-navigation">
-        {prevPost ? (
-          <Link href={`/policy-news/${prevPost._id || prevPost.id}`} className="nav-item nav-prev">
-            <div className="nav-label">← 이전글</div>
-            <div className="nav-title">{prevPost.title}</div>
+        <nav className="post-navigation">
+          {prevPost ? (
+            <Link
+              href={`/policy-news/${prevPost._id || prevPost.id}`}
+              className="nav-item nav-prev"
+            >
+              <div className="nav-label">← 이전글</div>
+              <div className="nav-title">{prevPost.title}</div>
+            </Link>
+          ) : (
+            <div className="nav-item nav-prev nav-empty" aria-hidden="true" />
+          )}
+
+          <Link href="/policy-news" className="nav-list-button">
+            목록으로
           </Link>
-        ) : (
-          <div className="nav-item nav-prev nav-empty" aria-hidden="true" />
-        )}
 
-        <Link href="/policy-news" className="nav-list-button">
-          목록으로
-        </Link>
+          {nextPost ? (
+            <Link
+              href={`/policy-news/${nextPost._id || nextPost.id}`}
+              className="nav-item nav-next"
+            >
+              <div className="nav-label">다음글 →</div>
+              <div className="nav-title">{nextPost.title}</div>
+            </Link>
+          ) : (
+            <div className="nav-item nav-next nav-empty" aria-hidden="true" />
+          )}
+        </nav>
 
-        {nextPost ? (
-          <Link href={`/policy-news/${nextPost._id || nextPost.id}`} className="nav-item nav-next">
-            <div className="nav-label">다음글 →</div>
-            <div className="nav-title">{nextPost.title}</div>
-          </Link>
-        ) : (
-          <div className="nav-item nav-next nav-empty" aria-hidden="true" />
-        )}
-      </nav>
-
-      {/* 관련 정책소식 — 회색 배경 영역, 3열 카드 */}
-      {relatedNews.length > 0 && (
-        <div className="related-news">
-          <div className="related-news-inner">
-            <h2 className="related-news-title">관련 정책소식</h2>
-            <div className="related-grid">
-              {relatedNews.map((news) => {
-                const newsId = news._id || news.id;
-                return (
-                  <Link key={newsId} href={`/policy-news/${newsId}`} className="related-item">
-                    <div className="related-thumb">
-                      {news.thumbnail ? <img src={news.thumbnail} alt="" /> : null}
-                    </div>
-                    <div className="related-category">{news.category || '정책소식'}</div>
-                    <h3 className="related-title">{news.title}</h3>
-                  </Link>
-                );
-              })}
+        {/* 관련 정책소식 — 회색 배경 영역, 3열 카드 */}
+        {relatedNews.length > 0 && (
+          <div className="related-news">
+            <div className="related-news-inner">
+              <h2 className="related-news-title">관련 정책소식</h2>
+              <div className="related-grid">
+                {relatedNews.map((news) => {
+                  const newsId = news._id || news.id;
+                  return (
+                    <Link key={newsId} href={`/policy-news/${newsId}`} className="related-item">
+                      <div className="related-thumb">
+                        {news.thumbnail ? <img src={news.thumbnail} alt="" /> : null}
+                      </div>
+                      <div className="related-category">{news.category || '정책소식'}</div>
+                      <h3 className="related-title">{news.title}</h3>
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
+      {/* /detail-card */}
 
       {/* 스크롤 탑 버튼 */}
       <button
