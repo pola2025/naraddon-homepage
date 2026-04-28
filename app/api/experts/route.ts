@@ -14,8 +14,10 @@ import Expert from '@/models/Expert';
 
 /* 허용 필드 allowlist — MongoDB에 직접 전달되므로 명시적으로 제한
  *
- * @note 2026-04-28 통합 페이지 대응으로 Expert 모델 실제 필드 보강:
- *       position, companyName, specialties(복수), cardImageUrl, email, userId, introduction
+ * @note 2026-04-28 통합 페이지 대응으로 Expert 컬렉션 실제 필드 보강:
+ *       position, companyName, specialties, cardImageUrl, email, userId, introduction,
+ *       detailedIntro, services, successCases, galleryImages, certifications
+ *       (detail 페이지 /expert-services/[id] 가 직접 사용)
  */
 const ALLOWED_EXPERT_FIELDS = [
   'name',
@@ -31,6 +33,11 @@ const ALLOWED_EXPERT_FIELDS = [
   'userId',
   'bio',
   'introduction',
+  'detailedIntro',
+  'services',
+  'successCases',
+  'galleryImages',
+  'certifications',
   'order',
   'isActive',
   'contact',

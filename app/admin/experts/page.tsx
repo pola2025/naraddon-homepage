@@ -2,8 +2,8 @@
 
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import ExaminerBrandModal from '@/components/admin/experts/ExaminerBrandModal';
+import { useEffect, useRef, useState } from 'react';
+import ExpertContentModal from '@/components/admin/experts/ExpertContentModal';
 import './page.css';
 
 /**
@@ -40,14 +40,6 @@ interface User {
   role: string;
 }
 
-/** examiner 매칭용 최소 정보 (전체 brandPage 는 모달이 fetch) */
-interface ExaminerLite {
-  _id: string;
-  email?: string | null;
-  name: string;
-  companyName?: string;
-}
-
 // 편집 폼 데이터 타입
 interface EditFormData {
   name: string;
@@ -82,7 +74,6 @@ export default function AdminExpertsPage() {
   const router = useRouter();
   const [experts, setExperts] = useState<Expert[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [examiners, setExaminers] = useState<ExaminerLite[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -102,21 +93,11 @@ export default function AdminExpertsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cardFileInputRef = useRef<HTMLInputElement>(null);
 
-  // 회사정보(brandPage) 모달 상태
-  const [brandModalExpert, setBrandModalExpert] = useState<Expert | null>(null);
-
   /**
-   * 회사정보 모달용 examiner 매칭
-   * @decision Expert.email ↔ ExpertExaminer.email 자동 매칭. 못 찾으면 모달이 안내 메시지 표시
+   * 회사정보 편집 모달 상태
+   * @context Expert 도큐먼트의 introduction/services/career/successCases/galleryImages 직접 편집
    */
-  const matchedExaminerForBrand = useMemo(() => {
-    if (!brandModalExpert?.email) return null;
-    return (
-      examiners.find(
-        (ex) => (ex.email || '').toLowerCase() === brandModalExpert.email.toLowerCase()
-      ) || null
-    );
-  }, [brandModalExpert, examiners]);
+  const [contentModalExpert, setContentModalExpert] = useState<Expert | null>(null);
 
   /**
    * 데이터 로드
@@ -130,15 +111,15 @@ export default function AdminExpertsPage() {
   /**
    * 통합 페이지 데이터 일괄 로드
    *
-   * @purpose Expert 카드 + User(계정 연결용) + ExpertExaminer(회사정보 매칭용) 모두 fetch
-   * @decision 3개 병렬 호출, 부분 실패 허용 (examiners 실패해도 카드 관리는 계속)
+   * @purpose Expert 카드 + User(계정 연결용) 병렬 fetch
+   * @note 회사정보(introduction/services/career/successCases/galleryImages)는
+   *       Expert 도큐먼트 자체에 들어있으므로 별도 모달이 열릴 때 GET /api/experts/[id] 로 로드
    */
   const fetchData = async () => {
     try {
-      const [expertsRes, usersRes, examinersRes] = await Promise.all([
+      const [expertsRes, usersRes] = await Promise.all([
         fetch('/api/admin/experts'),
         fetch('/api/admin/users'),
-        fetch('/api/admin/examiners').catch(() => null),
       ]);
 
       const expertsData = await expertsRes.json();
@@ -149,13 +130,6 @@ export default function AdminExpertsPage() {
       const usersData = await usersRes.json();
       if (usersData.success !== undefined ? usersData.success : usersData.users) {
         setUsers(usersData.users || []);
-      }
-
-      // examiners 매칭 정보 (brandPage 편집용)
-      if (examinersRes && examinersRes.ok) {
-        const examinersData = await examinersRes.json();
-        const list = (examinersData?.examiners ?? examinersData?.data ?? []) as ExaminerLite[];
-        setExaminers(list);
       }
     } catch (error) {
       console.error('Failed to fetch data:', error);
@@ -629,11 +603,11 @@ export default function AdminExpertsPage() {
                     보기
                   </a>
 
-                  {/* 회사정보(brandPage) 모달 — 사용자 핵심 요구 (2026-04-28) */}
+                  {/* 회사정보 모달 — Expert 도큐먼트 자체의 introduction/services/career/successCases/galleryImages 편집 */}
                   <button
                     type="button"
-                    onClick={() => setBrandModalExpert(expert)}
-                    title="회사정보 (로고/소개/경력/성공케이스/연락처) 편집"
+                    onClick={() => setContentModalExpert(expert)}
+                    title="회사정보 (소개/서비스/경력/성공케이스/갤러리) 편집"
                   >
                     <i className="fas fa-building" />
                     회사정보
@@ -901,17 +875,16 @@ export default function AdminExpertsPage() {
       )}
 
       {/*
-        회사정보(brandPage) 통합 편집 모달
-        @purpose Expert 카드의 "회사정보" 버튼 클릭 시 매칭된 examiner 의 brandPage 편집
-        @decision email 자동 매칭 → 매칭 실패 시 모달 내부에서 안내
+        회사정보 편집 모달 — Expert 도큐먼트 자체를 직접 편집
+        @purpose detail 페이지(/expert-services/[id]) 가 보여주는 회사소개/서비스/경력/성공케이스/갤러리 5섹션
+        @decision PUT /api/experts 로 같은 _id 도큐먼트 부분 업데이트 (matching 불필요)
       */}
-      <ExaminerBrandModal
-        open={!!brandModalExpert}
-        examinerId={matchedExaminerForBrand?._id || null}
-        examinerName={matchedExaminerForBrand?.name || brandModalExpert?.name || ''}
-        examinerCompany={matchedExaminerForBrand?.companyName || brandModalExpert?.companyName}
-        expertEmail={brandModalExpert?.email || ''}
-        onClose={() => setBrandModalExpert(null)}
+      <ExpertContentModal
+        open={!!contentModalExpert}
+        expertId={contentModalExpert?._id || null}
+        expertName={contentModalExpert?.name || ''}
+        expertCompany={contentModalExpert?.companyName}
+        onClose={() => setContentModalExpert(null)}
         onSaved={fetchData}
       />
     </div>
