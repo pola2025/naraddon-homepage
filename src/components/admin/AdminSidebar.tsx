@@ -42,7 +42,7 @@ const menuGroups = [
   {
     label: '서비스',
     items: [
-      { name: '전문가 관리', href: '/admin/expert-services', icon: BriefcaseIcon },
+      { name: '전문가 관리', href: '/admin/experts', icon: BriefcaseIcon },
       { name: '심사관 관리', href: '/admin/examiners', icon: ShieldCheckIcon },
     ],
   },

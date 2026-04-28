@@ -22,33 +22,33 @@ export async function GET(request: NextRequest) {
     const client = await clientPromise;
     const db = client.db('naraddon');
 
-    // DB에서 실제 사용자 역할 확인
+    /**
+     * DB에서 실제 사용자 역할 확인
+     *
+     * @purpose 권한 완화 (2026-04-28) — admin/super_admin 모두 전문가 목록 조회 가능
+     * @context 통합 페이지(/admin/experts) 에서 사용. 마스터만 보던 화면을 일반 관리자도 사용
+     */
     const currentUser = await db.collection('users').findOne({ email: session.user.email });
+    const role = currentUser?.role;
 
-    if (!currentUser || currentUser.role !== 'admin') {
+    if (!currentUser || (role !== 'admin' && role !== 'super_admin')) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized: Admin access required' },
         { status: 401 }
       );
     }
 
-    const experts = await db.collection('experts')
-      .find({})
-      .sort({ name: 1 })
-      .toArray();
+    const experts = await db.collection('experts').find({}).sort({ name: 1 }).toArray();
 
     return NextResponse.json({
       success: true,
-      experts: experts.map(expert => ({
+      experts: experts.map((expert) => ({
         ...expert,
-        _id: expert._id.toString()
-      }))
+        _id: expert._id.toString(),
+      })),
     });
   } catch (error) {
     console.error('Failed to fetch experts:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch experts' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Failed to fetch experts' }, { status: 500 });
   }
 }

@@ -63,8 +63,8 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
           icon: MicrophoneIcon,
         },
         {
-          name: '전문가서비스',
-          href: '/expert-services/admin',
+          name: '전문가 관리',
+          href: '/admin/experts',
           icon: BriefcaseIcon,
         },
         {

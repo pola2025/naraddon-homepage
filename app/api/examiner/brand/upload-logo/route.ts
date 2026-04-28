@@ -25,16 +25,17 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user?.email) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 심사관 권한 확인
-    if (session.user.role !== 'examiner' && session.user.role !== 'admin') {
+    /**
+     * 권한 체크: examiner 본인 + admin/super_admin 모두 허용
+     * @context 관리자가 통합 페이지(/admin/experts)에서 모든 전문가의 brandPage 편집 가능
+     */
+    const role = session.user.role;
+    if (role !== 'examiner' && role !== 'admin' && role !== 'super_admin') {
       return NextResponse.json(
-        { success: false, error: 'Forbidden: Examiner role required' },
+        { success: false, error: 'Forbidden: examiner/admin role required' },
         { status: 403 }
       );
     }
@@ -60,10 +61,7 @@ export async function POST(request: NextRequest) {
 
     // 이미지 타입 체크
     if (!image.type.startsWith('image/')) {
-      return NextResponse.json(
-        { success: false, error: 'File must be an image' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'File must be an image' }, { status: 400 });
     }
 
     // 이미지 버퍼 읽기
@@ -120,9 +118,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('[Company Logo Upload] Error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to upload logo' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Failed to upload logo' }, { status: 500 });
   }
 }

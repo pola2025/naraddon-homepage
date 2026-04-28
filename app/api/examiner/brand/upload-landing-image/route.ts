@@ -18,11 +18,13 @@ export async function POST(req: NextRequest) {
     // 인증 확인
     const session = await getServerSession(authOptions);
 
-    if (!session || session.user.role !== 'examiner') {
-      return NextResponse.json(
-        { error: '심사관 권한이 필요합니다.' },
-        { status: 403 }
-      );
+    /**
+     * 권한 체크: examiner 본인 + admin/super_admin 모두 허용
+     * @context 관리자가 통합 페이지(/admin/experts)에서 모든 전문가의 brandPage 편집 가능
+     */
+    const role = session?.user?.role;
+    if (!session || (role !== 'examiner' && role !== 'admin' && role !== 'super_admin')) {
+      return NextResponse.json({ error: '심사관 또는 관리자 권한이 필요합니다.' }, { status: 403 });
     }
 
     // FormData에서 이미지 가져오기
@@ -30,10 +32,7 @@ export async function POST(req: NextRequest) {
     const file = formData.get('image') as File;
 
     if (!file) {
-      return NextResponse.json(
-        { error: '이미지 파일이 필요합니다.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: '이미지 파일이 필요합니다.' }, { status: 400 });
     }
 
     // 파일 타입 검증
@@ -49,7 +48,9 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    console.log(`📸 원본 이미지: ${file.name}, 크기: ${(buffer.length / 1024 / 1024).toFixed(2)}MB`);
+    console.log(
+      `📸 원본 이미지: ${file.name}, 크기: ${(buffer.length / 1024 / 1024).toFixed(2)}MB`
+    );
 
     // 이미지 압축 (10MB 이하, 1920px 제한)
     const compressed = await compressImageOnServer(buffer, {
@@ -57,10 +58,12 @@ export async function POST(req: NextRequest) {
       maxWidth: 1920,
       maxHeight: 1920,
       quality: 85,
-      format: 'jpeg' // 랜딩 이미지는 JPEG로 통일
+      format: 'jpeg', // 랜딩 이미지는 JPEG로 통일
     });
 
-    console.log(`✅ 압축 완료: ${(compressed.compressedSize / 1024 / 1024).toFixed(2)}MB (${compressed.compressionRatio.toFixed(1)}% 절감)`);
+    console.log(
+      `✅ 압축 완료: ${(compressed.compressedSize / 1024 / 1024).toFixed(2)}MB (${compressed.compressionRatio.toFixed(1)}% 절감)`
+    );
 
     // Cloudflare R2에 업로드
     const examinerSlug = session.user.slug || session.user.id;
@@ -69,7 +72,7 @@ export async function POST(req: NextRequest) {
     const uploadedUrl = await uploadToR2({
       key: fileName,
       body: compressed.buffer,
-      contentType: 'image/jpeg'
+      contentType: 'image/jpeg',
     });
 
     // 데이터베이스에 이미지 URL 저장
@@ -79,8 +82,8 @@ export async function POST(req: NextRequest) {
       {
         $set: {
           'brandPage.landingImage': uploadedUrl,
-          'brandPage.landingImageUpdatedAt': new Date()
-        }
+          'brandPage.landingImageUpdatedAt': new Date(),
+        },
       }
     );
 
@@ -92,17 +95,16 @@ export async function POST(req: NextRequest) {
         compressedSize: compressed.compressedSize,
         compressionRatio: compressed.compressionRatio,
         width: compressed.width,
-        height: compressed.height
-      }
+        height: compressed.height,
+      },
     });
-
   } catch (error) {
     console.error('랜딩 이미지 업로드 실패:', error);
 
     return NextResponse.json(
       {
         error: '이미지 업로드에 실패했습니다.',
-        details: error instanceof Error ? error.message : '알 수 없는 오류'
+        details: error instanceof Error ? error.message : '알 수 없는 오류',
       },
       { status: 500 }
     );

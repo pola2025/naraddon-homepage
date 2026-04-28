@@ -41,6 +41,7 @@ const ALL_NAV_ITEMS = [...PRIMARY_NAV, ...SECONDARY_NAV];
 const ADMIN_NAV: NavItem = { href: '/admin', label: '관리자' };
 const EXAMINER_NAV: NavItem = { href: '/examiner/dashboard', label: '심사관' };
 const EXPERT_NAV: NavItem = { href: '/expert-dashboard', label: '전문가' };
+// expert 역할 사용자만 본인 대시보드 진입. 관리자용 전문가 메뉴는 ADMIN_NAV 하위(/admin/experts)로 통합
 
 export default function Header() {
   const pathname = usePathname();
@@ -280,13 +281,9 @@ export default function Header() {
                   <CanAccess role="examiner" key="examiner-dropdown">
                     <li>{renderNavLink(EXAMINER_NAV, styles.dropdownItem)}</li>
                   </CanAccess>
+                  {/* 전문가 메뉴 통합: 관리자는 ADMIN_NAV(/admin/experts)에서 관리, expert 역할은 본인 대시보드만 노출 */}
                   <CanAccess role="expert" key="expert-dropdown">
-                    <li>
-                      {renderNavLink(
-                        { href: '/admin/expert-dashboards', label: '전문가' },
-                        styles.dropdownItem
-                      )}
-                    </li>
+                    <li>{renderNavLink(EXPERT_NAV, styles.dropdownItem)}</li>
                   </CanAccess>
                 </ul>
               </div>
@@ -346,12 +343,7 @@ export default function Header() {
                       </Link>
                     </CanAccess>
                     <CanAccess role="expert" key="expert-mobile">
-                      <Link
-                        href={
-                          user?.role === 'expert' ? '/expert-dashboard' : '/admin/expert-dashboards'
-                        }
-                        className={styles.profileLink}
-                      >
+                      <Link href="/expert-dashboard" className={styles.profileLink}>
                         전문가 대시보드
                       </Link>
                     </CanAccess>

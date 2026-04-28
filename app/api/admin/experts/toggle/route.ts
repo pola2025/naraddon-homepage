@@ -13,7 +13,11 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || !session.user || session.user.role !== 'admin') {
+    /**
+     * 권한 완화 (2026-04-28): admin/super_admin 모두 허용
+     */
+    const role = session?.user?.role;
+    if (!session || !session.user || (role !== 'admin' && role !== 'super_admin')) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized: Admin access required' },
         { status: 401 }
@@ -45,23 +49,20 @@ export async function POST(request: NextRequest) {
       {
         $set: {
           isActive: isActive,
-          updatedAt: new Date()
-        }
+          updatedAt: new Date(),
+        },
       }
     );
 
     if (result.matchedCount === 0) {
-      return NextResponse.json(
-        { success: false, error: 'Expert not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: 'Expert not found' }, { status: 404 });
     }
 
     console.log(`[Admin] Expert ${expertId} isActive changed to ${isActive}`);
 
     return NextResponse.json({
       success: true,
-      message: `Expert ${isActive ? 'activated' : 'deactivated'} successfully`
+      message: `Expert ${isActive ? 'activated' : 'deactivated'} successfully`,
     });
   } catch (error) {
     console.error('Failed to toggle expert status:', error);

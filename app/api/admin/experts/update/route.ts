@@ -23,10 +23,13 @@ export async function POST(request: NextRequest) {
     const client = await clientPromise;
     const db = client.db('naraddon');
 
-    // DB에서 실제 사용자 역할 확인
+    /**
+     * 권한 완화 (2026-04-28): admin/super_admin 모두 허용
+     */
     const currentUser = await db.collection('users').findOne({ email: session.user.email });
+    const role = currentUser?.role;
 
-    if (!currentUser || currentUser.role !== 'admin') {
+    if (!currentUser || (role !== 'admin' && role !== 'super_admin')) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized: Admin access required' },
         { status: 401 }

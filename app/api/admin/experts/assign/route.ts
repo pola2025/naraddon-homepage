@@ -13,7 +13,11 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || !session.user || session.user.role !== 'admin') {
+    /**
+     * 권한 완화 (2026-04-28): admin/super_admin 모두 허용
+     */
+    const role = session?.user?.role;
+    if (!session || !session.user || (role !== 'admin' && role !== 'super_admin')) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized: Admin access required' },
         { status: 401 }
@@ -30,10 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!ObjectId.isValid(expertId) || !ObjectId.isValid(userId)) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid ID format' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'Invalid ID format' }, { status: 400 });
     }
 
     const client = await clientPromise;
@@ -41,26 +42,20 @@ export async function POST(request: NextRequest) {
 
     // 1. 사용자 존재 확인
     const user = await db.collection('users').findOne({
-      _id: new ObjectId(userId)
+      _id: new ObjectId(userId),
     });
 
     if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
     }
 
     // 2. 전문가 존재 확인
     const expert = await db.collection('experts').findOne({
-      _id: new ObjectId(expertId)
+      _id: new ObjectId(expertId),
     });
 
     if (!expert) {
-      return NextResponse.json(
-        { success: false, error: 'Expert not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: 'Expert not found' }, { status: 404 });
     }
 
     // 3. 사용자에게 expert 역할 부여
@@ -69,8 +64,8 @@ export async function POST(request: NextRequest) {
       {
         $set: {
           role: 'expert',
-          updatedAt: new Date()
-        }
+          updatedAt: new Date(),
+        },
       }
     );
 
@@ -80,8 +75,8 @@ export async function POST(request: NextRequest) {
       {
         $set: {
           userId: userId,
-          updatedAt: new Date()
-        }
+          updatedAt: new Date(),
+        },
       }
     );
 
@@ -89,7 +84,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Expert successfully linked to user account'
+      message: 'Expert successfully linked to user account',
     });
   } catch (error) {
     console.error('Failed to assign expert to user:', error);
