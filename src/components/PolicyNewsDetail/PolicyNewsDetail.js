@@ -63,6 +63,8 @@ const PolicyNewsDetail = () => {
   const { data: session, status } = useSession();
   const [post, setPost] = useState(null);
   const [relatedNews, setRelatedNews] = useState([]);
+  const [prevPost, setPrevPost] = useState(null);
+  const [nextPost, setNextPost] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -91,12 +93,24 @@ const PolicyNewsDetail = () => {
         }
         setPost(data.post);
 
-        const relatedResponse = await fetch('/api/policy-news?limit=6', { cache: 'no-store' });
+        /*
+          관련 게시글 + 이전글/다음글 동시 산출
+          @decision 별도 API 추가 없이 목록 응답(시간 역순)에서 인덱스 계산
+          @note posts는 createdAt desc → 더 최근이 next 방향, 더 과거가 prev 방향
+        */
+        const relatedResponse = await fetch('/api/policy-news?limit=20', { cache: 'no-store' });
         if (relatedResponse.ok) {
           const relatedData = await relatedResponse.json();
-          const filtered = (relatedData.posts || [])
-            .filter((item) => (item._id || item.id) !== (data.post._id || data.post.id))
-            .slice(0, 4);
+          const allPosts = relatedData.posts || [];
+          const currentId = data.post._id || data.post.id;
+          const idx = allPosts.findIndex((item) => (item._id || item.id) === currentId);
+          if (idx !== -1) {
+            setNextPost(idx > 0 ? allPosts[idx - 1] : null);
+            setPrevPost(idx < allPosts.length - 1 ? allPosts[idx + 1] : null);
+          }
+          const filtered = allPosts
+            .filter((item) => (item._id || item.id) !== currentId)
+            .slice(0, 3);
           setRelatedNews(filtered);
         }
 
@@ -175,6 +189,54 @@ const PolicyNewsDetail = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  /**
+   * 공유: navigator.share 우선, 미지원 시 URL 클립보드 복사
+   * @context 와이어프레임 헤더 우측 액션 버튼 (2026-04-28)
+   */
+  const handleShare = async () => {
+    if (typeof window === 'undefined') return;
+    const url = window.location.href;
+    const shareTitle = post?.title || '나라똔 정책소식';
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: shareTitle, url });
+        return;
+      } catch (error) {
+        // 사용자 취소 시 클립보드 폴백 진행
+        if (error?.name === 'AbortError') return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      alert('링크가 복사되었습니다.');
+    } catch {
+      alert('링크 복사에 실패했습니다.');
+    }
+  };
+
+  /**
+   * 저장: 로컬 북마크 토글 (서버 저장은 별도 단계에서)
+   */
+  const handleBookmark = () => {
+    if (typeof window === 'undefined' || !post) return;
+    const id = post._id || post.id;
+    if (!id) return;
+    const key = 'policyNewsBookmarks';
+    const saved = JSON.parse(localStorage.getItem(key) || '[]');
+    if (saved.includes(id)) {
+      localStorage.setItem(key, JSON.stringify(saved.filter((x) => x !== id)));
+      alert('저장이 해제되었습니다.');
+    } else {
+      saved.push(id);
+      localStorage.setItem(key, JSON.stringify(saved));
+      alert('저장되었습니다.');
+    }
+  };
+
+  const handlePrint = () => {
+    if (typeof window !== 'undefined') window.print();
+  };
+
   const generateTOC = () => {
     if (!contentRef.current) return [];
     const headings = contentRef.current.querySelectorAll('h2, h3');
@@ -226,12 +288,39 @@ const PolicyNewsDetail = () => {
 
       {/* 브레드크럼/조회수 제거 — 2026-04-28 리디자인 (와이어 ② 확정) */}
 
-      {/* 헤더 영역 */}
+      {/*
+        헤더 영역 — 와이어프레임 ②(2026-04-28) 기준
+        카테고리 뱃지 → 제목 → 작성자/날짜 + 공유·저장·인쇄 버튼
+      */}
       <div className="detail-header">
-        {/* 제목 */}
+        {post.category && <span className="category-badge">{post.category}</span>}
+
         <h1 className="post-title">{post.title}</h1>
 
-        {/* 관리자 액션 */}
+        <div className="post-meta">
+          <div className="meta-author">
+            <span className="author-avatar" aria-hidden="true">
+              N
+            </span>
+            <span className="author-name">나라똔 편집부</span>
+            <span className="meta-dot" aria-hidden="true">
+              ·
+            </span>
+            <span className="meta-date">{createdDate}</span>
+          </div>
+          <div className="meta-actions">
+            <button type="button" className="meta-action-btn" onClick={handleShare}>
+              🔗 공유
+            </button>
+            <button type="button" className="meta-action-btn" onClick={handleBookmark}>
+              🔖 저장
+            </button>
+            <button type="button" className="meta-action-btn" onClick={handlePrint}>
+              🖨 인쇄
+            </button>
+          </div>
+        </div>
+
         {isAdmin && (
           <div className="admin-actions">
             <button
@@ -372,21 +461,53 @@ const PolicyNewsDetail = () => {
         </aside>
       </div>
 
-      {/* 관련 게시글 */}
+      {/*
+        이전글 / 목록 / 다음글 네비게이션 — 와이어프레임 ② 하단 (2026-04-28)
+        목록으로 버튼은 emerald 강조, 이전·다음은 회색 보더 카드
+      */}
+      <nav className="post-navigation">
+        {prevPost ? (
+          <Link href={`/policy-news/${prevPost._id || prevPost.id}`} className="nav-item nav-prev">
+            <div className="nav-label">← 이전글</div>
+            <div className="nav-title">{prevPost.title}</div>
+          </Link>
+        ) : (
+          <div className="nav-item nav-prev nav-empty" aria-hidden="true" />
+        )}
+
+        <Link href="/policy-news" className="nav-list-button">
+          목록으로
+        </Link>
+
+        {nextPost ? (
+          <Link href={`/policy-news/${nextPost._id || nextPost.id}`} className="nav-item nav-next">
+            <div className="nav-label">다음글 →</div>
+            <div className="nav-title">{nextPost.title}</div>
+          </Link>
+        ) : (
+          <div className="nav-item nav-next nav-empty" aria-hidden="true" />
+        )}
+      </nav>
+
+      {/* 관련 정책소식 — 회색 배경 영역, 3열 카드 */}
       {relatedNews.length > 0 && (
         <div className="related-news">
-          <h2>관련 정책 알리미</h2>
-          <div className="related-grid">
-            {relatedNews.map((news) => {
-              const newsId = news._id || news.id;
-              return (
-                <Link key={newsId} href={`/policy-news/${newsId}`} className="related-item">
-                  <div className="related-category">{news.category || '정책 알리미'}</div>
-                  <h3 className="related-title">{news.title}</h3>
-                  {/* 날짜 숨김 - 2026-01-26 */}
-                </Link>
-              );
-            })}
+          <div className="related-news-inner">
+            <h2 className="related-news-title">관련 정책소식</h2>
+            <div className="related-grid">
+              {relatedNews.map((news) => {
+                const newsId = news._id || news.id;
+                return (
+                  <Link key={newsId} href={`/policy-news/${newsId}`} className="related-item">
+                    <div className="related-thumb">
+                      {news.thumbnail ? <img src={news.thumbnail} alt="" /> : null}
+                    </div>
+                    <div className="related-category">{news.category || '정책소식'}</div>
+                    <h3 className="related-title">{news.title}</h3>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
