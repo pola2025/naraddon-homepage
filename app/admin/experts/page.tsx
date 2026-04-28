@@ -633,8 +633,6 @@ export default function AdminExpertsPage() {
                   <button
                     type="button"
                     onClick={() => setBrandModalExpert(expert)}
-                    className="btn-edit"
-                    style={{ background: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' }}
                     title="회사정보 (로고/소개/경력/성공케이스/연락처) 편집"
                   >
                     <i className="fas fa-building" />
@@ -643,9 +641,8 @@ export default function AdminExpertsPage() {
 
                   <button
                     type="button"
+                    className="btn-danger"
                     onClick={() => handleDeleteExpert(expert._id, expert.name)}
-                    className="btn-edit"
-                    style={{ background: '#fef2f2', color: '#b91c1c', borderColor: '#fecaca' }}
                     title="전문가 카드 삭제"
                   >
                     <i className="fas fa-trash" />

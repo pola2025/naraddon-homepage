@@ -229,53 +229,48 @@
   gap: 8px;
 }
 
+/* 카드 액션 버튼 — 단일 톤 통일 (2026-04-28 디자인 정비) */
 .expert-card-actions button,
 .expert-card-actions a {
   flex: 1;
-  display: flex;
+  min-width: 0;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  gap: 4px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
   font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
-  transition: all 0.3s;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
   text-decoration: none;
+  background: #ffffff;
+  color: #475569;
+  border: 1px solid #e2e8f0;
 }
 
-.btn-connect {
-  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
-  color: white;
-  border: none;
+.expert-card-actions button:hover,
+.expert-card-actions a:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
 }
 
-.btn-connect:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+.expert-card-actions i {
+  font-size: 11px;
 }
 
-.btn-edit {
-  background: #fff3e0;
-  color: #e65100;
-  border: 1px solid #ffb74d;
-}
-
-.btn-edit:hover {
-  background: #ffe0b2;
-  transform: translateY(-2px);
-}
-
-.btn-view {
-  background: #e3f2fd;
-  color: #1565c0;
-  border: 1px solid #64b5f6;
-}
-
-.btn-view:hover {
-  background: #bbdefb;
-  transform: translateY(-2px);
+/* 삭제 버튼만 호버 시 위험 색상 — 디자인 톤 보존 */
+.expert-card-actions .btn-danger:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
 }
 
 /* 모달 */
