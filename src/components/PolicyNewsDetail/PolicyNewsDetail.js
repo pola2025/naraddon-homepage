@@ -367,12 +367,9 @@ const PolicyNewsDetail = ({ previewPost = null } = {}) => {
         <div className="content-wrapper">
           {/* 메인 콘텐츠 */}
           <div className="main-content">
-            {/* 요약 - 이미지 위로 이동 */}
-            {post.excerpt && (
-              <div className="post-excerpt">
-                <p>{post.excerpt}</p>
-              </div>
-            )}
+            {/* 요약 박스(post-excerpt) 제거 — 2026-04-28
+                @decision excerpt 는 목록 카드/SEO meta description 에만 사용,
+                          상세 페이지 본문 위 표시는 시각 노이즈라 숨김 */}
 
             {/* 썸네일 이미지 */}
             {post.thumbnail && (

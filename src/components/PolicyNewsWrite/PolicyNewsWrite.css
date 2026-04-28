@@ -116,6 +116,14 @@
   font-weight: 700;
 }
 
+/* 선택 입력 라벨 부가 설명 (예: 요약 - 목록 카드/SEO 용도) */
+.form-group .optional-hint {
+  margin-left: 6px;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 500;
+}
+
 .form-group input,
 .form-group select,
 .form-group textarea {

@@ -269,9 +269,8 @@ const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
     if (!formData.category) {
       nextErrors.category = '카테고리를 선택해주세요.';
     }
-    if (!formData.excerpt.trim()) {
-      nextErrors.excerpt = '요약을 입력해주세요.';
-    }
+    // 요약(excerpt) 필수 검증 제거 — 상세 페이지 노출 안 하므로 선택 입력
+    // (목록 카드/SEO 에만 사용. 비워두면 본문 일부 자동 추출 가능 여지)
     if (!formData.content.trim()) {
       nextErrors.content = '내용을 입력해주세요.';
     }
@@ -523,7 +522,10 @@ const PolicyNewsWrite = ({ postId = null, mode = 'create' }) => {
 
         <div className="form-group">
           <label htmlFor="excerpt">
-            요약 <span className="required">*</span>
+            요약{' '}
+            <span className="optional-hint">
+              (선택 · 목록 카드/SEO 메타용, 상세 페이지 노출 안 함)
+            </span>
           </label>
           <textarea
             id="excerpt"
