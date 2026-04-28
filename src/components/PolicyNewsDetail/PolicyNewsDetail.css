@@ -520,17 +520,19 @@
   color: white;
 }
 
-/* 콘텐츠 영역 */
+/* 콘텐츠 영역 — 와이어프레임 ② 정합: 본문 760px 단일 컬럼 (2026-04-28 수정)
+   @before content-wrapper 가 display:flex + .sidebar 300px 차지 → 본문 영역이 378px 로 좁아져
+            텍스트가 가운데 정렬되어도 왼쪽에 붙어 보이는 문제
+   @after  단일 컬럼으로 강제, main-content 100% 차지, sidebar 는 본문 아래로 이동 */
 .policy-news-detail .content-wrapper {
-  display: flex !important;
-  gap: 40px !important;
+  display: block !important;
   margin-top: 30px !important;
   width: 100% !important;
   clear: both !important;
 }
 
 .policy-news-detail .main-content {
-  flex: 1 !important;
+  width: 100% !important;
   min-width: 0 !important;
   display: block !important;
   float: none !important;
@@ -770,12 +772,12 @@
   color: #334155;
 }
 
-/* 사이드바 */
+/* 사이드바 (TOC 등) — 단일 컬럼 전환에 따라 본문 아래로 이동 */
 .policy-news-detail .sidebar {
-  width: 300px;
-  position: sticky;
-  top: 80px;
-  height: fit-content;
+  width: 100%;
+  margin-top: 32px;
+  position: static;
+  height: auto;
 }
 
 /* 목차 (TOC) */
