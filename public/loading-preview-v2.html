@@ -1,0 +1,1585 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>나라똔 로딩 애니메이션 v2 — KPEC 스타일 프리뷰</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        font-family: 'Pretendard', system-ui, sans-serif;
+      }
+      body {
+        background: #f8fafb;
+      }
+
+      /* shimmer 애니메이션 */
+      @keyframes shimmer {
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
+      }
+      .animate-shimmer {
+        animation: shimmer 1.5s ease-in-out infinite;
+        background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+        background-size: 200% 100%;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .animate-fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ScrollReveal 시뮬레이션 */
+      .scroll-reveal {
+        opacity: 0;
+        transform: translateY(40px);
+        transition:
+          opacity 0.6s cubic-bezier(0.25, 0.1, 0.25, 1),
+          transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
+      }
+      .scroll-reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .scroll-reveal.from-left {
+        transform: translateX(40px);
+      }
+      .scroll-reveal.from-left.visible {
+        transform: translateX(0);
+      }
+      .scroll-reveal.from-right {
+        transform: translateX(-40px);
+      }
+      .scroll-reveal.from-right.visible {
+        transform: translateX(0);
+      }
+
+      /* Stagger children */
+      .stagger-item {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      .stagger-item.visible {
+        opacity: 1;
+        transform: translateY(0);
+        transition:
+          opacity 0.5s cubic-bezier(0.25, 0.1, 0.25, 1),
+          transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+      }
+
+      /* 스켈레톤 블록 */
+      .skeleton {
+        background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s ease-in-out infinite;
+        border-radius: 8px;
+      }
+
+      /* 프리뷰 프레임 */
+      .preview-frame {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+      }
+      .preview-frame:hover {
+        box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1);
+        transition: box-shadow 0.3s ease;
+      }
+      .frame-label {
+        background: #f8fafc;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .frame-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+
+      /* 실제 콘텐츠 데모 */
+      .demo-card {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+        transition:
+          transform 0.3s ease,
+          box-shadow 0.3s ease;
+      }
+      .demo-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px -4px rgb(0 0 0 / 0.1);
+      }
+
+      .brand-green {
+        color: #059669;
+      }
+      .bg-brand {
+        background: #059669;
+      }
+      .bg-brand-light {
+        background: #10b981;
+      }
+    </style>
+  </head>
+  <body>
+    <div style="max-width: 1000px; margin: 0 auto; padding: 40px 20px 80px">
+      <!-- 헤더 -->
+      <div style="text-align: center; margin-bottom: 56px">
+        <div
+          style="
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #ecfdf5;
+            color: #059669;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 6px 16px;
+            border-radius: 100px;
+            margin-bottom: 16px;
+          "
+        >
+          KPEC 스타일 차용 · Framer Motion 기반
+        </div>
+        <h1 style="font-size: 32px; font-weight: 800; color: #111; margin-bottom: 8px">
+          나라똔 로딩 & 모션 체계 v2
+        </h1>
+        <p style="font-size: 15px; color: #6b7280; line-height: 1.6">
+          콘텐츠 구조 반영 shimmer 스켈레톤 + ScrollReveal 등장 + StaggerContainer 순차
+        </p>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 1. 메인 페이지 loading.tsx -->
+      <!-- ============================================================ -->
+      <section style="margin-bottom: 56px">
+        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 6px; color: #111">
+          1. 메인 페이지 로딩 스켈레톤
+        </h2>
+        <p style="font-size: 13px; color: #6b7282; margin-bottom: 16px">
+          app/loading.tsx — 히어로 → 신뢰섹션 → 정책소식 → 인터뷰 구조를 그대로 반영
+        </p>
+
+        <div class="preview-frame">
+          <div class="frame-label">
+            <div class="frame-dot" style="background: #ef4444"></div>
+            <div class="frame-dot" style="background: #f59e0b"></div>
+            <div class="frame-dot" style="background: #22c55e"></div>
+            <span style="font-size: 12px; color: #9ca3af; margin-left: 8px">localhost:3000</span>
+          </div>
+          <div class="animate-fade-in">
+            <!-- 히어로 스켈레톤 -->
+            <div
+              style="position: relative; width: 100%; height: 280px"
+              class="skeleton"
+              style="border-radius: 0"
+            >
+              <div
+                style="
+                  position: absolute;
+                  inset: 0;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                "
+              >
+                <div style="text-align: center; width: 60%">
+                  <div class="skeleton" style="height: 24px; width: 30%; margin: 0 auto 12px"></div>
+                  <div class="skeleton" style="height: 36px; width: 80%; margin: 0 auto 12px"></div>
+                  <div class="skeleton" style="height: 16px; width: 50%; margin: 0 auto 16px"></div>
+                  <div style="display: flex; gap: 12px; justify-content: center">
+                    <div class="skeleton" style="height: 40px; width: 100px"></div>
+                    <div class="skeleton" style="height: 40px; width: 100px"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 카드 그리드 -->
+            <div style="padding: 32px 24px; background: #f9fafb">
+              <div style="text-align: center; margin-bottom: 24px">
+                <div class="skeleton" style="height: 14px; width: 60px; margin: 0 auto 8px"></div>
+                <div class="skeleton" style="height: 24px; width: 180px; margin: 0 auto"></div>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px">
+                <div
+                  style="
+                    background: white;
+                    border-radius: 12px;
+                    border: 1px solid #f0f0f0;
+                    overflow: hidden;
+                  "
+                >
+                  <div class="skeleton" style="height: 80px; border-radius: 0"></div>
+                  <div style="padding: 12px">
+                    <div
+                      class="skeleton"
+                      style="height: 14px; width: 60%; margin-bottom: 8px"
+                    ></div>
+                    <div class="skeleton" style="height: 10px; width: 100%"></div>
+                  </div>
+                </div>
+                <div
+                  style="
+                    background: white;
+                    border-radius: 12px;
+                    border: 1px solid #f0f0f0;
+                    overflow: hidden;
+                  "
+                >
+                  <div class="skeleton" style="height: 80px; border-radius: 0"></div>
+                  <div style="padding: 12px">
+                    <div
+                      class="skeleton"
+                      style="height: 14px; width: 50%; margin-bottom: 8px"
+                    ></div>
+                    <div class="skeleton" style="height: 10px; width: 90%"></div>
+                  </div>
+                </div>
+                <div
+                  style="
+                    background: white;
+                    border-radius: 12px;
+                    border: 1px solid #f0f0f0;
+                    overflow: hidden;
+                  "
+                >
+                  <div class="skeleton" style="height: 80px; border-radius: 0"></div>
+                  <div style="padding: 12px">
+                    <div
+                      class="skeleton"
+                      style="height: 14px; width: 55%; margin-bottom: 8px"
+                    ></div>
+                    <div class="skeleton" style="height: 10px; width: 85%"></div>
+                  </div>
+                </div>
+                <div
+                  style="
+                    background: white;
+                    border-radius: 12px;
+                    border: 1px solid #f0f0f0;
+                    overflow: hidden;
+                  "
+                >
+                  <div class="skeleton" style="height: 80px; border-radius: 0"></div>
+                  <div style="padding: 12px">
+                    <div
+                      class="skeleton"
+                      style="height: 14px; width: 45%; margin-bottom: 8px"
+                    ></div>
+                    <div class="skeleton" style="height: 10px; width: 95%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 콘텐츠 블록 -->
+            <div style="padding: 32px 24px">
+              <div class="skeleton" style="height: 200px; width: 100%"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- 2. 서브페이지 loading.tsx -->
+      <!-- ============================================================ -->
+      <section style="margin-bottom: 56px">
+        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 6px; color: #111">
+          2. 서브페이지 로딩 스켈레톤
+        </h2>
+        <p style="font-size: 13px; color: #6b7282; margin-bottom: 16px">
+          각 라우트별 구조를 반영한 맞춤 스켈레톤 — 정책소식(리스트), 경영의소리(카드),
+          관리자(대시보드)
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px">
+          <!-- 정책소식 -->
+          <div class="preview-frame">
+            <div class="frame-label">
+              <span style="font-size: 11px; color: #059669; font-weight: 600">정책소식</span>
+            </div>
+            <div style="padding: 16px">
+              <!-- 페이지 헤더 -->
+              <div class="skeleton" style="height: 80px; margin-bottom: 16px"></div>
+              <!-- 필터 탭 -->
+              <div style="display: flex; gap: 6px; margin-bottom: 12px">
+                <div class="skeleton" style="height: 28px; width: 50px"></div>
+                <div class="skeleton" style="height: 28px; width: 50px"></div>
+                <div class="skeleton" style="height: 28px; width: 50px"></div>
+              </div>
+              <!-- 리스트 -->
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <div style="display: flex; gap: 8px; align-items: start">
+                  <div class="skeleton" style="width: 48px; height: 48px; flex-shrink: 0"></div>
+                  <div style="flex: 1">
+                    <div
+                      class="skeleton"
+                      style="height: 12px; width: 80%; margin-bottom: 6px"
+                    ></div>
+                    <div class="skeleton" style="height: 10px; width: 60%"></div>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: start">
+                  <div class="skeleton" style="width: 48px; height: 48px; flex-shrink: 0"></div>
+                  <div style="flex: 1">
+                    <div
+                      class="skeleton"
+                      style="height: 12px; width: 70%; margin-bottom: 6px"
+                    ></div>
+                    <div class="skeleton" style="height: 10px; width: 50%"></div>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: start">
+                  <div class="skeleton" style="width: 48px; height: 48px; flex-shrink: 0"></div>
+                  <div style="flex: 1">
+                    <div
+                      class="skeleton"
+                      style="height: 12px; width: 75%; margin-bottom: 6px"
+                    ></div>
+                    <div class="skeleton" style="height: 10px; width: 55%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 경영의 소리 -->
+          <div class="preview-frame">
+            <div class="frame-label">
+              <span style="font-size: 11px; color: #059669; font-weight: 600">경영의 소리</span>
+            </div>
+            <div style="padding: 16px">
+              <div class="skeleton" style="height: 80px; margin-bottom: 16px"></div>
+              <div style="text-align: center; margin-bottom: 12px">
+                <div class="skeleton" style="height: 16px; width: 100px; margin: 0 auto 6px"></div>
+                <div class="skeleton" style="height: 12px; width: 160px; margin: 0 auto"></div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+                <div
+                  style="
+                    background: white;
+                    border-radius: 8px;
+                    border: 1px solid #f0f0f0;
+                    overflow: hidden;
+                  "
+                >
+                  <div class="skeleton" style="height: 70px; border-radius: 0"></div>
+                  <div style="padding: 8px">
+                    <div
+                      class="skeleton"
+                      style="height: 10px; width: 70%; margin-bottom: 4px"
+                    ></div>
+                    <div class="skeleton" style="height: 8px; width: 100%"></div>
+                  </div>
+                </div>
+                <div
+                  style="
+                    background: white;
+                    border-radius: 8px;
+                    border: 1px solid #f0f0f0;
+                    overflow: hidden;
+                  "
+                >
+                  <div class="skeleton" style="height: 70px; border-radius: 0"></div>
+                  <div style="padding: 8px">
+                    <div
+                      class="skeleton"
+                      style="height: 10px; width: 60%; margin-bottom: 4px"
+                    ></div>
+                    <div class="skeleton" style="height: 8px; width: 90%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 관리자 -->
+          <div class="preview-frame">
+            <div class="frame-label">
+              <span style="font-size: 11px; color: #059669; font-weight: 600">관리자</span>
+            </div>
+            <div style="display: flex; height: 260px">
+              <div
+                style="
+                  width: 80px;
+                  background: #f9fafb;
+                  border-right: 1px solid #e5e7eb;
+                  padding: 12px 8px;
+                "
+              >
+                <div class="skeleton" style="height: 14px; width: 100%; margin-bottom: 10px"></div>
+                <div class="skeleton" style="height: 12px; width: 100%; margin-bottom: 6px"></div>
+                <div class="skeleton" style="height: 12px; width: 100%; margin-bottom: 6px"></div>
+                <div class="skeleton" style="height: 12px; width: 100%; margin-bottom: 6px"></div>
+                <div class="skeleton" style="height: 12px; width: 100%; margin-bottom: 6px"></div>
+              </div>
+              <div style="flex: 1; padding: 12px">
+                <div class="skeleton" style="height: 16px; width: 100px; margin-bottom: 12px"></div>
+                <div
+                  style="
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 8px;
+                    margin-bottom: 12px;
+                  "
+                >
+                  <div class="skeleton" style="height: 48px"></div>
+                  <div class="skeleton" style="height: 48px"></div>
+                  <div class="skeleton" style="height: 48px"></div>
+                </div>
+                <div class="skeleton" style="height: 120px"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- 3. ScrollReveal 등장 애니메이션 -->
+      <!-- ============================================================ -->
+      <section style="margin-bottom: 56px">
+        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 6px; color: #111">
+          3. ScrollReveal — 섹션별 등장 애니메이션
+        </h2>
+        <p style="font-size: 13px; color: #6b7282; margin-bottom: 16px">
+          스크롤 시 각 섹션이 fade + slide로 부드럽게 등장 · 방향: up / left / right
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 24px">
+          <!-- 위에서 등장 -->
+          <div class="scroll-reveal" data-direction="up">
+            <div class="demo-card" style="padding: 32px; text-align: center">
+              <div
+                style="
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 6px;
+                  background: #ecfdf5;
+                  color: #059669;
+                  font-size: 12px;
+                  font-weight: 600;
+                  padding: 4px 12px;
+                  border-radius: 100px;
+                  margin-bottom: 12px;
+                "
+              >
+                direction="up"
+              </div>
+              <h3 style="font-size: 18px; font-weight: 700; color: #111; margin-bottom: 6px">
+                아래에서 위로 등장
+              </h3>
+              <p style="font-size: 13px; color: #6b7282">기본 방향 · 대부분의 섹션에 적용</p>
+            </div>
+          </div>
+
+          <!-- 좌에서 등장 + 우에서 등장 -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px">
+            <div class="scroll-reveal from-left" data-direction="left" data-delay="0">
+              <div class="demo-card" style="padding: 24px; text-align: center">
+                <div
+                  style="
+                    display: inline-flex;
+                    background: #ecfdf5;
+                    color: #059669;
+                    font-size: 12px;
+                    font-weight: 600;
+                    padding: 4px 12px;
+                    border-radius: 100px;
+                    margin-bottom: 8px;
+                  "
+                >
+                  direction="left"
+                </div>
+                <p style="font-size: 13px; font-weight: 600; color: #111">오른쪽에서 등장</p>
+              </div>
+            </div>
+            <div class="scroll-reveal from-right" data-direction="right" data-delay="150">
+              <div class="demo-card" style="padding: 24px; text-align: center">
+                <div
+                  style="
+                    display: inline-flex;
+                    background: #ecfdf5;
+                    color: #059669;
+                    font-size: 12px;
+                    font-weight: 600;
+                    padding: 4px 12px;
+                    border-radius: 100px;
+                    margin-bottom: 8px;
+                  "
+                >
+                  direction="right"
+                </div>
+                <p style="font-size: 13px; font-weight: 600; color: #111">왼쪽에서 등장</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- 4. StaggerContainer 순차 등장 -->
+      <!-- ============================================================ -->
+      <section style="margin-bottom: 56px">
+        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 6px; color: #111">
+          4. StaggerContainer — 카드 순차 등장
+        </h2>
+        <p style="font-size: 13px; color: #6b7282; margin-bottom: 16px">
+          카드/리스트 아이템이 0.1초 간격으로 차례로 등장 · KPEC ServiceCards 패턴
+        </p>
+
+        <div class="scroll-reveal" data-stagger="true">
+          <div
+            style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px"
+            id="stagger-grid"
+          >
+            <div class="stagger-item">
+              <div class="demo-card">
+                <div
+                  style="
+                    height: 120px;
+                    background: linear-gradient(135deg, #059669, #10b981);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  "
+                >
+                  <span style="font-size: 32px; color: white">📋</span>
+                </div>
+                <div style="padding: 16px">
+                  <p style="font-size: 14px; font-weight: 700; color: #111; margin-bottom: 4px">
+                    정책자금 분석
+                  </p>
+                  <p style="font-size: 12px; color: #6b7282">최적의 정책정보를 찾아드립니다</p>
+                </div>
+              </div>
+            </div>
+            <div class="stagger-item">
+              <div class="demo-card">
+                <div
+                  style="
+                    height: 120px;
+                    background: linear-gradient(135deg, #047857, #059669);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  "
+                >
+                  <span style="font-size: 32px; color: white">🏢</span>
+                </div>
+                <div style="padding: 16px">
+                  <p style="font-size: 14px; font-weight: 700; color: #111; margin-bottom: 4px">
+                    기업 인증
+                  </p>
+                  <p style="font-size: 12px; color: #6b7282">인증심사관 네트워크</p>
+                </div>
+              </div>
+            </div>
+            <div class="stagger-item">
+              <div class="demo-card">
+                <div
+                  style="
+                    height: 120px;
+                    background: linear-gradient(135deg, #10b981, #34d399);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  "
+                >
+                  <span style="font-size: 32px; color: white">📰</span>
+                </div>
+                <div style="padding: 16px">
+                  <p style="font-size: 14px; font-weight: 700; color: #111; margin-bottom: 4px">
+                    정책소식
+                  </p>
+                  <p style="font-size: 12px; color: #6b7282">실시간 정책 업데이트</p>
+                </div>
+              </div>
+            </div>
+            <div class="stagger-item">
+              <div class="demo-card">
+                <div
+                  style="
+                    height: 120px;
+                    background: linear-gradient(135deg, #065f46, #047857);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  "
+                >
+                  <span style="font-size: 32px; color: white">🎬</span>
+                </div>
+                <div style="padding: 16px">
+                  <p style="font-size: 14px; font-weight: 700; color: #111; margin-bottom: 4px">
+                    나라똔 인터뷰
+                  </p>
+                  <p style="font-size: 12px; color: #6b7282">경영 현장의 목소리</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- 5. 게시글 상세 로딩 스켈레톤 -->
+      <!-- ============================================================ -->
+      <section style="margin-bottom: 56px">
+        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 6px; color: #111">
+          5. 게시글/상세 로딩 — 동그라미 스피너 대체
+        </h2>
+        <p style="font-size: 13px; color: #6b7282; margin-bottom: 16px">
+          기존: ⭕ animate-spin 동그라미 + "콘텐츠를 불러오는 중..." →
+          <strong>After:</strong> 게시글 구조 반영 shimmer 스켈레톤
+        </p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px">
+          <!-- Before -->
+          <div class="preview-frame">
+            <div class="frame-label">
+              <span style="font-size: 11px; color: #ef4444; font-weight: 600"
+                >Before — 동그라미 스피너</span
+              >
+            </div>
+            <div style="padding: 48px 24px; text-align: center">
+              <div
+                style="
+                  width: 48px;
+                  height: 48px;
+                  border: 4px solid #e5e7eb;
+                  border-top-color: #3b82f6;
+                  border-radius: 50%;
+                  margin: 0 auto 16px;
+                  animation: spin 1s linear infinite;
+                "
+              ></div>
+              <p style="font-size: 14px; color: #9ca3af">콘텐츠를 불러오는 중...</p>
+            </div>
+          </div>
+          <style>
+            @keyframes spin {
+              to {
+                transform: rotate(360deg);
+              }
+            }
+          </style>
+
+          <!-- After -->
+          <div class="preview-frame">
+            <div class="frame-label">
+              <span style="font-size: 11px; color: #059669; font-weight: 600"
+                >After — 콘텐츠 스켈레톤</span
+              >
+            </div>
+            <div class="animate-fade-in" style="padding: 24px">
+              <!-- 뒤로가기 + 카테고리 -->
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px">
+                <div class="skeleton" style="width: 24px; height: 24px; border-radius: 50%"></div>
+                <div class="skeleton" style="height: 12px; width: 60px"></div>
+              </div>
+              <!-- 제목 -->
+              <div class="skeleton" style="height: 22px; width: 85%; margin-bottom: 8px"></div>
+              <div class="skeleton" style="height: 22px; width: 60%; margin-bottom: 16px"></div>
+              <!-- 메타 (날짜, 태그) -->
+              <div style="display: flex; gap: 8px; margin-bottom: 20px">
+                <div class="skeleton" style="height: 14px; width: 70px"></div>
+                <div class="skeleton" style="height: 14px; width: 50px"></div>
+                <div class="skeleton" style="height: 14px; width: 40px"></div>
+              </div>
+              <!-- 구분선 -->
+              <div style="height: 1px; background: #f0f0f0; margin-bottom: 20px"></div>
+              <!-- 본문 -->
+              <div style="display: flex; flex-direction: column; gap: 10px">
+                <div class="skeleton" style="height: 12px; width: 100%"></div>
+                <div class="skeleton" style="height: 12px; width: 95%"></div>
+                <div class="skeleton" style="height: 12px; width: 88%"></div>
+                <div class="skeleton" style="height: 140px; width: 100%; margin: 4px 0"></div>
+                <div class="skeleton" style="height: 12px; width: 92%"></div>
+                <div class="skeleton" style="height: 12px; width: 78%"></div>
+                <div class="skeleton" style="height: 12px; width: 85%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 다른 상세 유형들 -->
+        <div
+          style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px"
+        >
+          <!-- 전문가 프로필 -->
+          <div class="preview-frame">
+            <div class="frame-label">
+              <span style="font-size: 11px; color: #059669; font-weight: 600">전문가 프로필</span>
+            </div>
+            <div style="padding: 16px; text-align: center">
+              <div
+                class="skeleton"
+                style="width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 12px"
+              ></div>
+              <div class="skeleton" style="height: 16px; width: 80px; margin: 0 auto 6px"></div>
+              <div class="skeleton" style="height: 12px; width: 120px; margin: 0 auto 16px"></div>
+              <div style="display: flex; flex-direction: column; gap: 6px; text-align: left">
+                <div class="skeleton" style="height: 10px; width: 100%"></div>
+                <div class="skeleton" style="height: 10px; width: 90%"></div>
+                <div class="skeleton" style="height: 10px; width: 75%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 영상 상세 -->
+          <div class="preview-frame">
+            <div class="frame-label">
+              <span style="font-size: 11px; color: #059669; font-weight: 600">영상/인터뷰</span>
+            </div>
+            <div style="padding: 16px">
+              <div
+                class="skeleton"
+                style="height: 120px; width: 100%; margin-bottom: 12px; border-radius: 8px"
+              ></div>
+              <div class="skeleton" style="height: 14px; width: 80%; margin-bottom: 6px"></div>
+              <div class="skeleton" style="height: 10px; width: 60%; margin-bottom: 12px"></div>
+              <div style="display: flex; gap: 6px">
+                <div class="skeleton" style="height: 24px; width: 60px"></div>
+                <div class="skeleton" style="height: 24px; width: 60px"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 데이터 테이블 -->
+          <div class="preview-frame">
+            <div class="frame-label">
+              <span style="font-size: 11px; color: #059669; font-weight: 600">데이터 테이블</span>
+            </div>
+            <div style="padding: 16px">
+              <!-- 테이블 헤더 -->
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 2fr 1fr 1fr;
+                  gap: 6px;
+                  margin-bottom: 8px;
+                "
+              >
+                <div class="skeleton" style="height: 12px"></div>
+                <div class="skeleton" style="height: 12px"></div>
+                <div class="skeleton" style="height: 12px"></div>
+              </div>
+              <div style="height: 1px; background: #f0f0f0; margin-bottom: 8px"></div>
+              <!-- 테이블 행 -->
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 6px">
+                  <div class="skeleton" style="height: 10px"></div>
+                  <div class="skeleton" style="height: 10px"></div>
+                  <div class="skeleton" style="height: 10px"></div>
+                </div>
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 6px">
+                  <div class="skeleton" style="height: 10px"></div>
+                  <div class="skeleton" style="height: 10px"></div>
+                  <div class="skeleton" style="height: 10px"></div>
+                </div>
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 6px">
+                  <div class="skeleton" style="height: 10px"></div>
+                  <div class="skeleton" style="height: 10px"></div>
+                  <div class="skeleton" style="height: 10px"></div>
+                </div>
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 6px">
+                  <div class="skeleton" style="height: 10px"></div>
+                  <div class="skeleton" style="height: 10px"></div>
+                  <div class="skeleton" style="height: 10px"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- 6. 모션그래픽 로더 — 동그라미 스피너 대체 후보 8가지 -->
+      <!-- ============================================================ -->
+      <section style="margin-bottom: 56px">
+        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 6px; color: #111">
+          6. 모션그래픽 로더 — 스피너 대체 후보 8가지
+        </h2>
+        <p style="font-size: 13px; color: #6b7282; margin-bottom: 16px">
+          게시글/상세 열 때 콘텐츠 로딩 중 표시. 마음에 드는 번호를 알려주세요.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px">
+          <!-- A. 문서 스캔 -->
+          <div class="preview-frame">
+            <div class="frame-label">
+              <span style="font-size: 11px; color: #059669; font-weight: 600">A. 문서 스캔</span>
+            </div>
+            <div
+              style="
+                height: 200px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 14px;
+                background: #fafbfc;
+              "
+            >
+              <div
+                style="
+                  position: relative;
+                  width: 44px;
+                  height: 56px;
+                  background: white;
+                  border-radius: 4px;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+                  border: 1.5px solid #e5e7eb;
+                  overflow: hidden;
+                "
+              >
+                <div style="padding: 8px 6px; display: flex; flex-direction: column; gap: 4px">
+                  <div
+                    style="height: 3px; width: 80%; background: #e5e7eb; border-radius: 2px"
+                  ></div>
+                  <div
+                    style="height: 3px; width: 65%; background: #e5e7eb; border-radius: 2px"
+                  ></div>
+                  <div
+                    style="height: 3px; width: 75%; background: #e5e7eb; border-radius: 2px"
+                  ></div>
+                  <div
+                    style="height: 3px; width: 50%; background: #e5e7eb; border-radius: 2px"
+                  ></div>
+                  <div
+                    style="height: 3px; width: 70%; background: #e5e7eb; border-radius: 2px"
+                  ></div>
+                </div>
+                <div class="scan-beam"></div>
+              </div>
+              <span style="font-size: 11px; color: #6b7282; font-weight: 500"
+                >최적의 정책정보 분석중</span
+              >
+            </div>
+          </div>
+
+          <!-- B. 로고 브리딩 -->
+          <div class="preview-frame">
+            <div class="frame-label">
+              <span style="font-size: 11px; color: #059669; font-weight: 600">B. 로고 브리딩</span>
+            </div>
+            <div
+              style="
+                height: 200px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 14px;
+                background: #fafbfc;
+              "
+            >
+              <div
+                class="logo-breathing"
+                style="
+                  width: 48px;
+                  height: 48px;
+                  display: grid;
+                  grid-template-columns: 1fr 1fr;
+                  gap: 3px;
+                "
+              >
+                <div style="border-radius: 4px" class="logo-cell c1"></div>
+                <div style="border-radius: 4px" class="logo-cell c2"></div>
+                <div style="border-radius: 4px" class="logo-cell c3"></div>
+                <div style="border-radius: 4px" class="logo-cell c4"></div>
+              </div>
+              <span style="font-size: 11px; color: #6b7282; font-weight: 500">콘텐츠 준비중</span>
+            </div>
+          </div>
+
+          <!-- C. 펄스 라인 -->
+          <div class="preview-frame">
+            <div class="frame-label">
+              <span style="font-size: 11px; color: #059669; font-weight: 600">C. 펄스 라인</span>
+            </div>
+            <div
+              style="
+                height: 200px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 14px;
+                background: #fafbfc;
+              "
+            >
+              <svg width="64" height="32" viewBox="0 0 64 32">
+                <polyline
+                  class="pulse-line"
+                  fill="none"
+                  stroke="#059669"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  points="0,16 12,16 18,6 24,26 30,10 36,22 42,16 64,16"
+                />
+              </svg>
+              <span style="font-size: 11px; color: #6b7282; font-weight: 500">데이터 분석중</span>
+            </div>
+          </div>
+
+          <!-- D. 프로그레스 링 -->
+          <div class="preview-frame">
+            <div class="frame-label">
+              <span style="font-size: 11px; color: #059669; font-weight: 600"
+                >D. 프로그레스 링</span
+              >
+            </div>
+            <div
+              style="
+                height: 200px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 14px;
+                background: #fafbfc;
+              "
+            >
+              <div style="position: relative; width: 48px; height: 48px">
+                <svg width="48" height="48" viewBox="0 0 48 48" class="progress-ring-svg">
+                  <circle cx="24" cy="24" r="20" fill="none" stroke="#e5e7eb" stroke-width="3" />
+                  <circle
+                    class="progress-ring-circle"
+                    cx="24"
+                    cy="24"
+                    r="20"
+                    fill="none"
+                    stroke="url(#grad1)"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                  />
+                  <defs>
+                    <linearGradient id="grad1">
+                      <stop offset="0%" stop-color="#059669" />
+                      <stop offset="100%" stop-color="#10b981" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div
+                  style="
+                    position: absolute;
+                    inset: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  "
+                >
+                  <div
+                    class="ring-dot"
+                    style="width: 6px; height: 6px; background: #059669; border-radius: 50%"
+                  ></div>
+                </div>
+              </div>
+              <span style="font-size: 11px; color: #6b7282; font-weight: 500">불러오는 중</span>
+            </div>
+          </div>
+
+          <!-- E. 타이핑 버블 -->
+          <div class="preview-frame">
+            <div class="frame-label">
+              <span style="font-size: 11px; color: #059669; font-weight: 600">E. 타이핑 버블</span>
+            </div>
+            <div
+              style="
+                height: 200px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 14px;
+                background: #fafbfc;
+              "
+            >
+              <div
+                style="
+                  background: #ecfdf5;
+                  border-radius: 16px 16px 16px 4px;
+                  padding: 14px 20px;
+                  display: flex;
+                  gap: 6px;
+                  align-items: center;
+                "
+              >
+                <div class="typing-dot" style="--i: 0"></div>
+                <div class="typing-dot" style="--i: 1"></div>
+                <div class="typing-dot" style="--i: 2"></div>
+              </div>
+              <span style="font-size: 11px; color: #6b7282; font-weight: 500">정책정보 검색중</span>
+            </div>
+          </div>
+
+          <!-- F. 플로우 웨이브 -->
+          <div class="preview-frame">
+            <div class="frame-label">
+              <span style="font-size: 11px; color: #059669; font-weight: 600"
+                >F. 플로우 웨이브</span
+              >
+            </div>
+            <div
+              style="
+                height: 200px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 14px;
+                background: #fafbfc;
+              "
+            >
+              <div style="display: flex; gap: 4px; align-items: end; height: 40px">
+                <div class="flow-bar" style="--i: 0"></div>
+                <div class="flow-bar" style="--i: 1"></div>
+                <div class="flow-bar" style="--i: 2"></div>
+                <div class="flow-bar" style="--i: 3"></div>
+                <div class="flow-bar" style="--i: 4"></div>
+                <div class="flow-bar" style="--i: 5"></div>
+                <div class="flow-bar" style="--i: 6"></div>
+              </div>
+              <span style="font-size: 11px; color: #6b7282; font-weight: 500">분석 진행중</span>
+            </div>
+          </div>
+
+          <!-- G. 오르빗 -->
+          <div class="preview-frame">
+            <div class="frame-label">
+              <span style="font-size: 11px; color: #059669; font-weight: 600">G. 오르빗</span>
+            </div>
+            <div
+              style="
+                height: 200px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 14px;
+                background: #fafbfc;
+              "
+            >
+              <div class="orbit-container">
+                <div class="orbit-center"></div>
+                <div class="orbit-ring"><div class="orbit-dot"></div></div>
+                <div class="orbit-ring ring2"><div class="orbit-dot dot2"></div></div>
+              </div>
+              <span style="font-size: 11px; color: #6b7282; font-weight: 500">데이터 수집중</span>
+            </div>
+          </div>
+
+          <!-- H. 블록 빌드 -->
+          <div class="preview-frame">
+            <div class="frame-label">
+              <span style="font-size: 11px; color: #059669; font-weight: 600">H. 블록 빌드</span>
+            </div>
+            <div
+              style="
+                height: 200px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 14px;
+                background: #fafbfc;
+              "
+            >
+              <div class="block-build">
+                <div class="block b1"></div>
+                <div class="block b2"></div>
+                <div class="block b3"></div>
+                <div class="block b4"></div>
+              </div>
+              <span style="font-size: 11px; color: #6b7282; font-weight: 500">페이지 구성중</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- 7. InlineLoader -->
+      <!-- ============================================================ -->
+      <section style="margin-bottom: 56px">
+        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 6px; color: #111">
+          7. InlineLoader — 버튼/텍스트 내 소형 로더
+        </h2>
+        <p style="font-size: 13px; color: #6b7282; margin-bottom: 16px">
+          저장, 검색, 분석 등 인라인 액션의 로딩 상태
+        </p>
+
+        <div style="display: flex; gap: 16px; flex-wrap: wrap">
+          <div
+            style="
+              background: white;
+              border: 1px solid #e5e7eb;
+              border-radius: 12px;
+              padding: 16px 24px;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            "
+          >
+            <span style="font-size: 13px; color: #374151">저장중</span>
+            <span class="inline-dots">
+              <span class="dot" style="--delay: 0s"></span>
+              <span class="dot" style="--delay: 0.15s"></span>
+              <span class="dot" style="--delay: 0.3s"></span>
+            </span>
+          </div>
+          <button
+            style="
+              background: #059669;
+              color: white;
+              border: none;
+              border-radius: 10px;
+              padding: 12px 24px;
+              font-size: 14px;
+              font-weight: 600;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              cursor: pointer;
+            "
+          >
+            분석 진행중
+            <span class="inline-dots white">
+              <span class="dot" style="--delay: 0s"></span>
+              <span class="dot" style="--delay: 0.15s"></span>
+              <span class="dot" style="--delay: 0.3s"></span>
+            </span>
+          </button>
+          <div
+            style="
+              background: white;
+              border: 1px solid #e5e7eb;
+              border-radius: 12px;
+              padding: 16px 24px;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            "
+          >
+            <span style="font-size: 13px; color: #374151">검색중</span>
+            <span class="inline-dots">
+              <span class="dot sm" style="--delay: 0s"></span>
+              <span class="dot sm" style="--delay: 0.15s"></span>
+              <span class="dot sm" style="--delay: 0.3s"></span>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 비교 표 -->
+      <section style="margin-bottom: 40px">
+        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 16px; color: #111">
+          변경 요약
+        </h2>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px">
+          <tr style="background: #f9fafb">
+            <th style="text-align: left; padding: 10px 16px; border-bottom: 1px solid #e5e7eb">
+              항목
+            </th>
+            <th
+              style="
+                text-align: left;
+                padding: 10px 16px;
+                border-bottom: 1px solid #e5e7eb;
+                color: #ef4444;
+              "
+            >
+              Before (v1)
+            </th>
+            <th
+              style="
+                text-align: left;
+                padding: 10px 16px;
+                border-bottom: 1px solid #e5e7eb;
+                color: #059669;
+              "
+            >
+              After (v2 KPEC)
+            </th>
+          </tr>
+          <tr>
+            <td style="padding: 10px 16px; border-bottom: 1px solid #f0f0f0">loading.tsx</td>
+            <td style="padding: 10px 16px; border-bottom: 1px solid #f0f0f0; color: #9ca3af">
+              없음 (로딩 중... 텍스트)
+            </td>
+            <td style="padding: 10px 16px; border-bottom: 1px solid #f0f0f0">
+              페이지 구조 반영 shimmer 스켈레톤
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 10px 16px; border-bottom: 1px solid #f0f0f0">섹션 등장</td>
+            <td style="padding: 10px 16px; border-bottom: 1px solid #f0f0f0; color: #9ca3af">
+              즉시 표시 (애니메이션 없음)
+            </td>
+            <td style="padding: 10px 16px; border-bottom: 1px solid #f0f0f0">
+              ScrollReveal (fade + slide)
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 10px 16px; border-bottom: 1px solid #f0f0f0">카드/리스트</td>
+            <td style="padding: 10px 16px; border-bottom: 1px solid #f0f0f0; color: #9ca3af">
+              동시 표시
+            </td>
+            <td style="padding: 10px 16px; border-bottom: 1px solid #f0f0f0">
+              StaggerContainer 순차 등장
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 10px 16px; border-bottom: 1px solid #f0f0f0">기술</td>
+            <td style="padding: 10px 16px; border-bottom: 1px solid #f0f0f0; color: #9ca3af">
+              CSS-only + 텍스트
+            </td>
+            <td style="padding: 10px 16px; border-bottom: 1px solid #f0f0f0">
+              Framer Motion + Tailwind shimmer
+            </td>
+          </tr>
+        </table>
+      </section>
+    </div>
+
+    <!-- 모션그래픽 로더 CSS -->
+    <style>
+      /* A. 문서 스캔 */
+      @keyframes scanBeam {
+        0% {
+          top: 0;
+          opacity: 0;
+        }
+        10% {
+          opacity: 1;
+        }
+        90% {
+          opacity: 1;
+        }
+        100% {
+          top: 100%;
+          opacity: 0;
+        }
+      }
+      .scan-beam {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #059669, transparent);
+        box-shadow: 0 0 8px rgba(5, 150, 105, 0.4);
+        animation: scanBeam 2s ease-in-out infinite;
+      }
+
+      /* B. 로고 브리딩 */
+      @keyframes logoBreath {
+        0%,
+        100% {
+          opacity: 0.3;
+          transform: scale(0.9);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      .logo-cell {
+        animation: logoBreath 2s ease-in-out infinite;
+      }
+      .logo-cell.c1 {
+        background: #059669;
+        animation-delay: 0s;
+      }
+      .logo-cell.c2 {
+        background: #10b981;
+        animation-delay: 0.2s;
+      }
+      .logo-cell.c3 {
+        background: #10b981;
+        animation-delay: 0.4s;
+      }
+      .logo-cell.c4 {
+        background: #34d399;
+        animation-delay: 0.6s;
+      }
+
+      /* C. 펄스 라인 */
+      @keyframes pulseDash {
+        0% {
+          stroke-dashoffset: 200;
+        }
+        50% {
+          stroke-dashoffset: 0;
+        }
+        100% {
+          stroke-dashoffset: -200;
+        }
+      }
+      .pulse-line {
+        stroke-dasharray: 40 160;
+        stroke-dashoffset: 200;
+        animation: pulseDash 2s ease-in-out infinite;
+      }
+
+      /* D. 프로그레스 링 */
+      @keyframes ringProgress {
+        0% {
+          stroke-dashoffset: 126;
+          transform: rotate(-90deg);
+        }
+        50% {
+          stroke-dashoffset: 32;
+        }
+        100% {
+          stroke-dashoffset: 126;
+          transform: rotate(270deg);
+        }
+      }
+      .progress-ring-circle {
+        stroke-dasharray: 126;
+        stroke-dashoffset: 126;
+        transform-origin: center;
+        animation: ringProgress 1.8s ease-in-out infinite;
+      }
+      @keyframes ringDotPulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 0.5;
+        }
+        50% {
+          transform: scale(1.6);
+          opacity: 1;
+        }
+      }
+      .ring-dot {
+        animation: ringDotPulse 1.8s ease-in-out infinite;
+      }
+
+      /* E. 타이핑 버블 */
+      @keyframes typingBounce {
+        0%,
+        60%,
+        100% {
+          transform: translateY(0);
+          opacity: 0.4;
+        }
+        30% {
+          transform: translateY(-8px);
+          opacity: 1;
+        }
+      }
+      .typing-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #059669;
+        animation: typingBounce 1.4s ease-in-out infinite;
+        animation-delay: calc(var(--i) * 0.2s);
+      }
+
+      /* F. 플로우 웨이브 */
+      @keyframes flowWave {
+        0%,
+        100% {
+          height: 12px;
+          opacity: 0.3;
+        }
+        50% {
+          height: 36px;
+          opacity: 1;
+        }
+      }
+      .flow-bar {
+        width: 5px;
+        border-radius: 3px;
+        background: linear-gradient(180deg, #059669, #10b981);
+        animation: flowWave 1.2s ease-in-out infinite;
+        animation-delay: calc(var(--i) * 0.1s);
+      }
+
+      /* G. 오르빗 */
+      .orbit-container {
+        position: relative;
+        width: 52px;
+        height: 52px;
+      }
+      .orbit-center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 10px;
+        height: 10px;
+        background: #059669;
+        border-radius: 50%;
+      }
+      .orbit-ring {
+        position: absolute;
+        inset: 0;
+        border: 1.5px solid rgba(5, 150, 105, 0.15);
+        border-radius: 50%;
+        animation: orbitSpin 2s linear infinite;
+      }
+      .orbit-ring.ring2 {
+        inset: 6px;
+        animation-duration: 1.5s;
+        animation-direction: reverse;
+      }
+      @keyframes orbitSpin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .orbit-dot {
+        position: absolute;
+        top: -3px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 7px;
+        height: 7px;
+        background: #059669;
+        border-radius: 50%;
+      }
+      .orbit-dot.dot2 {
+        width: 5px;
+        height: 5px;
+        background: #10b981;
+      }
+
+      /* H. 블록 빌드 */
+      .block-build {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
+        width: 44px;
+        height: 44px;
+      }
+      @keyframes blockPop {
+        0%,
+        100% {
+          transform: scale(0);
+          border-radius: 50%;
+        }
+        15%,
+        85% {
+          transform: scale(1);
+          border-radius: 4px;
+        }
+      }
+      .block {
+        background: #059669;
+        border-radius: 4px;
+        animation: blockPop 2.4s ease-in-out infinite;
+      }
+      .block.b1 {
+        animation-delay: 0s;
+      }
+      .block.b2 {
+        animation-delay: 0.2s;
+        background: #10b981;
+      }
+      .block.b3 {
+        animation-delay: 0.4s;
+        background: #10b981;
+      }
+      .block.b4 {
+        animation-delay: 0.6s;
+        background: #34d399;
+      }
+    </style>
+
+    <!-- InlineLoader CSS -->
+    <style>
+      @keyframes dotPulse {
+        0%,
+        100% {
+          opacity: 0.3;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+      .inline-dots {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+      }
+      .inline-dots .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #059669;
+        animation: dotPulse 1s ease-in-out infinite;
+        animation-delay: var(--delay);
+      }
+      .inline-dots .dot.sm {
+        width: 5px;
+        height: 5px;
+      }
+      .inline-dots.white .dot {
+        background: white;
+      }
+    </style>
+
+    <!-- ScrollReveal + Stagger 스크립트 -->
+    <script>
+      // IntersectionObserver로 ScrollReveal 시뮬레이션
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const el = entry.target;
+              const delay = el.dataset.delay || 0;
+
+              // stagger 처리
+              if (el.dataset.stagger === 'true') {
+                const items = el.querySelectorAll('.stagger-item');
+                items.forEach((item, i) => {
+                  setTimeout(() => item.classList.add('visible'), i * 120);
+                });
+              }
+
+              setTimeout(() => el.classList.add('visible'), delay);
+              observer.unobserve(el);
+            }
+          });
+        },
+        { threshold: 0.15, rootMargin: '-40px' }
+      );
+
+      document.querySelectorAll('.scroll-reveal').forEach((el) => observer.observe(el));
+    </script>
+  </body>
+</html>
