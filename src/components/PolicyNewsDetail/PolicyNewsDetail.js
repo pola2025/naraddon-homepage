@@ -57,15 +57,22 @@ const formatDate = (value) => {
   }
 };
 
-const PolicyNewsDetail = () => {
+/**
+ * 정책소식 상세 컴포넌트
+ *
+ * @props previewPost — 작성 페이지 라이브 미리보기에서 fetch 우회용 (선택)
+ *                      넘기면 API 호출 없이 그대로 렌더 → 작성/수정 페이지에서 100% 동일 화면 미리보기
+ */
+const PolicyNewsDetail = ({ previewPost = null } = {}) => {
   const router = useRouter();
   const params = useParams();
   const { data: session, status } = useSession();
-  const [post, setPost] = useState(null);
+  const isPreview = !!previewPost;
+  const [post, setPost] = useState(previewPost || null);
   const [relatedNews, setRelatedNews] = useState([]);
   const [prevPost, setPrevPost] = useState(null);
   const [nextPost, setNextPost] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!isPreview);
   const [errorMessage, setErrorMessage] = useState('');
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -73,7 +80,22 @@ const PolicyNewsDetail = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const contentRef = useRef(null);
 
+  /**
+   * 미리보기 모드 — props 변경 시 post 동기화
+   * @purpose 모달이 열린 상태로 form 입력해도 즉시 반영
+   */
   useEffect(() => {
+    if (isPreview) {
+      setPost(previewPost);
+    }
+  }, [isPreview, previewPost]);
+
+  useEffect(() => {
+    if (isPreview) {
+      // 미리보기 — fetch 스킵, 관련글/이전·다음글 빈 상태 유지
+      return;
+    }
+
     let cancelled = false;
 
     const fetchPost = async () => {
@@ -137,7 +159,7 @@ const PolicyNewsDetail = () => {
     return () => {
       cancelled = true;
     };
-  }, [params.id]);
+  }, [params?.id, isPreview]);
 
   useEffect(() => {
     const handleScroll = () => {
