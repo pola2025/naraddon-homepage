@@ -58,6 +58,11 @@ export default function BrandEditPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false); // 미저장 변경사항 추적
+  /**
+   * 정보 이미지 사전 압축 파일 — 저장 클릭 시점에 R2 업로드
+   * @purpose 사용자가 선택만 하고 저장 안 하면 R2에 고아 파일 발생 안 하도록
+   */
+  const [pendingInfoImageFile, setPendingInfoImageFile] = useState<File | null>(null);
 
   // 개발 환경: URL 파라미터로 테스트 ID 받기
   const [testExaminerId, setTestExaminerId] = useState<string | null>(null);
@@ -138,10 +143,50 @@ export default function BrandEditPage() {
       setSaving(true);
       setError('');
 
+      /**
+       * 1단계: 보류된 정보 이미지 파일이 있으면 먼저 R2 업로드
+       * @context 사용자가 선택만 하고 저장 안 하는 시나리오의 고아 파일 방지를 위해
+       *          저장 클릭 시점에만 실제 R2에 올림
+       */
+      const brandPageToSave = { ...profile.brandPage };
+
+      if (pendingInfoImageFile) {
+        console.log('[handleSave] Uploading pending info image...', {
+          fileSize: `${(pendingInfoImageFile.size / 1024 / 1024).toFixed(2)}MB`,
+          fileType: pendingInfoImageFile.type,
+        });
+
+        const uploadForm = new FormData();
+        uploadForm.append('image', pendingInfoImageFile);
+        uploadForm.append('type', 'info-image');
+
+        const uploadRes = await fetch('/api/examiner/brand/upload-info-image', {
+          method: 'POST',
+          body: uploadForm,
+        });
+
+        if (!uploadRes.ok) {
+          const text = await uploadRes.text().catch(() => '');
+          console.error('[handleSave] Info image upload failed', {
+            status: uploadRes.status,
+            body: text,
+          });
+          throw new Error(`정보 이미지 업로드 실패 (HTTP ${uploadRes.status})`);
+        }
+
+        const uploadData = await uploadRes.json();
+        if (!uploadData.success || !uploadData.imageUrl) {
+          throw new Error(uploadData.error || '정보 이미지 업로드 실패');
+        }
+
+        brandPageToSave.infoImage = uploadData.imageUrl;
+        console.log('[handleSave] Info image uploaded:', uploadData.imageUrl);
+      }
+
       console.log('[handleSave] Saving brand page...', {
         examinerId: testExaminerId,
-        hasCompanyIntro: !!profile.brandPage?.companyIntro,
-        companyIntroLength: profile.brandPage?.companyIntro?.length || 0,
+        hasCompanyIntro: !!brandPageToSave.companyIntro,
+        companyIntroLength: brandPageToSave.companyIntro?.length || 0,
       });
 
       const response = await fetch('/api/examiner/brand-page', {
@@ -150,7 +195,7 @@ export default function BrandEditPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          brandPage: profile.brandPage,
+          brandPage: brandPageToSave,
           examinerId: testExaminerId || undefined, // 관리자 편집 시 특정 심사관 ID 전달
         }),
       });
@@ -167,7 +212,12 @@ export default function BrandEditPage() {
       console.log('[handleSave] Response data:', data);
 
       if (data.success) {
-        setHasUnsavedChanges(false); // 저장 성공 시 플래그 리셋
+        // 저장 성공 후 로컬 state 동기화 — brandPage.infoImage가 새 URL로 갱신됐을 수 있음
+        if (pendingInfoImageFile) {
+          setProfile({ ...profile, brandPage: brandPageToSave });
+          setPendingInfoImageFile(null);
+        }
+        setHasUnsavedChanges(false);
         alert('저장되었습니다.');
       } else {
         throw new Error(data.error || '저장 중 오류가 발생했습니다.');
@@ -238,7 +288,8 @@ export default function BrandEditPage() {
                 <div>
                   <p className="font-bold text-lg">변경사항이 저장되지 않았습니다!</p>
                   <p className="text-sm text-white/90">
-                    로고나 정보를 수정했다면 반드시 <span className="font-bold underline">저장 버튼</span>을 클릭하세요.
+                    로고나 정보를 수정했다면 반드시{' '}
+                    <span className="font-bold underline">저장 버튼</span>을 클릭하세요.
                   </p>
                 </div>
               </div>
@@ -254,7 +305,9 @@ export default function BrandEditPage() {
           </div>
         )}
 
-        <div className={`max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 ${hasUnsavedChanges ? 'pt-20' : ''}`}>
+        <div
+          className={`max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 ${hasUnsavedChanges ? 'pt-20' : ''}`}
+        >
           {/* 헤더 */}
           <div className="mb-6 sm:mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -344,7 +397,9 @@ export default function BrandEditPage() {
                   onSave={handleSave}
                   onApply={async (html, logo) => {
                     // 생성된 HTML을 즉시 상태에 반영하고 저장
-                    console.log('[onApply] Applying and saving HTML...', { htmlLength: html.length });
+                    console.log('[onApply] Applying and saving HTML...', {
+                      htmlLength: html.length,
+                    });
 
                     const updatedProfile = {
                       ...profile,
@@ -478,8 +533,10 @@ export default function BrandEditPage() {
               {activeTab === 'info' && (
                 <InfoImageEditor
                   infoImage={profile.brandPage?.infoImage || ''}
+                  pendingFile={pendingInfoImageFile}
                   onChange={(imageUrl) => {
-                    setHasUnsavedChanges(true); // 변경사항 발생
+                    // 기존 저장된 이미지 삭제 의도 (빈 문자열) — 저장 클릭 시 실반영
+                    setHasUnsavedChanges(true);
                     setProfile({
                       ...profile,
                       brandPage: {
@@ -493,6 +550,12 @@ export default function BrandEditPage() {
                         infoImage: imageUrl,
                       },
                     });
+                  }}
+                  onPendingFileChange={(file) => {
+                    // 새 파일 선택/취소 — 실제 업로드는 저장 클릭 시점에 수행
+                    setPendingInfoImageFile(file);
+                    if (file) setHasUnsavedChanges(true);
+                    // file === null (취소): 다른 미저장 변경사항이 있을 수 있어 플래그 유지
                   }}
                   onSave={handleSave}
                 />
@@ -510,9 +573,5 @@ export default function BrandEditPage() {
   }
 
   // 일반 환경: ProtectedRoute로 감싸기
-  return (
-    <ProtectedRoute requiredRole="examiner">
-      {renderContent()}
-    </ProtectedRoute>
-  );
+  return <ProtectedRoute requiredRole="examiner">{renderContent()}</ProtectedRoute>;
 }

@@ -1,62 +1,74 @@
 'use client';
 
-import { useState } from 'react';
-import Image from 'next/image';
+import { useEffect, useMemo, useState } from 'react';
 import { compressImage } from '@/lib/image/imageCompressor';
 
 /**
- * 정보 이미지 편집기
+ * 정보 이미지 편집기 (deferred upload)
  *
- * @purpose 브랜드 페이지 정보 섹션에 표시될 이미지 업로드
- * @context 심사관이 브랜드 정보 이미지를 업로드하여 소개 페이지에 표시
+ * @purpose 브랜드 페이지 정보 섹션에 표시될 이미지 선택 + 사전 압축
  * @decision
- *   - 원본 최대 20MB까지 허용 (모바일 고해상도 사진 커버)
- *   - 업로드 직전 클라이언트에서 3.5MB / 1920px / Q85 로 압축 → Vercel 4.5MB body 한도 회피
- *   - 서버에서 sharp로 추가 압축 (1200px / Q80)
- *   - Cloudflare R2에 저장
+ *   - 파일 선택 시 R2 업로드 안 함 → 상단 "저장" 버튼 클릭 시에만 업로드
+ *     (사용자가 선택 후 저장 안 하면 R2에 고아 파일 안 생김)
+ *   - 선택 직후 클라이언트에서 WebP 사전 압축 (1920px / Q85 / 3.5MB) 후 부모에 File 전달
+ *   - 프리뷰는 blob URL로 즉시 표시 (사용자에게 로딩 노출 안 함)
+ *   - 실제 업로드 로딩은 상단 "저장" 버튼에서 표현됨
  */
 
 interface InfoImageEditorProps {
   infoImage: string;
+  /** 부모가 관리하는 사전 압축 파일 — 저장 시점에 업로드됨 */
+  pendingFile: File | null;
+  /** 기존 저장된 URL을 변경/삭제할 때 호출 (빈 문자열 = 삭제 의도) */
   onChange: (imageUrl: string) => void;
+  /** 새 파일 선택 시 호출 (저장 시점까지 업로드 보류) */
+  onPendingFileChange: (file: File | null) => void;
   onSave: () => Promise<void>;
 }
 
-export default function InfoImageEditor({ infoImage, onChange, onSave }: InfoImageEditorProps) {
-  const [uploading, setUploading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState(infoImage);
+export default function InfoImageEditor({
+  infoImage,
+  pendingFile,
+  onChange,
+  onPendingFileChange,
+}: InfoImageEditorProps) {
+  const [compressing, setCompressing] = useState(false);
 
-  /**
-   * 이미지 파일 업로드
-   *
-   * @purpose 선택한 이미지를 R2에 업로드하고 자동 압축
-   * @note 업로드 API에서 sharp를 사용하여 이미지 압축 처리
-   */
-  const handleImageUpload = async (file: File) => {
+  // 로컬 blob 프리뷰 — pendingFile 있을 때만 생성
+  const localPreviewUrl = useMemo(
+    () => (pendingFile ? URL.createObjectURL(pendingFile) : null),
+    [pendingFile]
+  );
+
+  // 메모리 누수 방지: blob URL 정리
+  useEffect(() => {
+    return () => {
+      if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
+    };
+  }, [localPreviewUrl]);
+
+  // 표시할 프리뷰: 선택된 파일 우선, 없으면 기존 저장된 URL
+  const previewUrl = localPreviewUrl || infoImage;
+
+  const handleImageSelect = async (file: File) => {
     if (!file) return;
 
-    // 원본 파일 크기 검증 (20MB) — 모바일 4K 사진까지 커버
-    // Why: 이보다 크면 canvas 압축 시 모바일 브라우저 메모리 부족 위험
+    // 원본 한도 (20MB)
     if (file.size > 20 * 1024 * 1024) {
       alert(
-        `파일이 너무 큽니다.\n원본 ${(file.size / 1024 / 1024).toFixed(1)}MB → 최대 20MB까지 업로드 가능합니다.`
+        `파일이 너무 큽니다.\n원본 ${(file.size / 1024 / 1024).toFixed(1)}MB → 최대 20MB까지 가능합니다.`
       );
       return;
     }
-
-    // 이미지 파일 검증
     if (!file.type.startsWith('image/')) {
-      alert('이미지 파일만 업로드 가능합니다.');
+      alert('이미지 파일만 선택 가능합니다.');
       return;
     }
 
     try {
-      setUploading(true);
+      setCompressing(true);
 
-      /**
-       * 클라이언트 측 WebP 압축 (Vercel 4.5MB body 한도 회피)
-       * 1920px / Q85 / WebP → 일반적으로 1~3MB 산출 → 서버에서 sharp 추가 압축
-       */
+      // 클라이언트 사전 WebP 압축 — 저장 시 빠른 업로드 + Vercel 4.5MB 한도 회피
       const compressed = await compressImage(file, {
         maxSizeMB: 3.5,
         maxWidthOrHeight: 1920,
@@ -64,52 +76,29 @@ export default function InfoImageEditor({ infoImage, onChange, onSave }: InfoIma
         fileType: 'image/webp',
       });
 
-      console.log('[InfoImage] compressed', {
+      console.log('[InfoImage] pre-compressed (not uploaded yet)', {
         originalMB: (compressed.originalSize / 1024 / 1024).toFixed(2),
         compressedMB: (compressed.compressedSize / 1024 / 1024).toFixed(2),
         ratio: `${compressed.compressionRatio.toFixed(1)}%`,
       });
 
-      const formData = new FormData();
-      formData.append('image', compressed.file);
-      formData.append('type', 'info-image');
-
-      const response = await fetch('/api/examiner/brand/upload-info-image', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        // status + body 같이 노출 — 다음 실패 재현 시 즉시 진단 가능
-        const text = await response.text().catch(() => '');
-        console.error('[InfoImage] upload failed', { status: response.status, body: text });
-        throw new Error(`업로드 실패 (HTTP ${response.status}) ${text.slice(0, 200)}`);
-      }
-
-      const data = await response.json();
-      if (data.success && data.imageUrl) {
-        setPreviewUrl(data.imageUrl);
-        onChange(data.imageUrl);
-        alert('이미지가 업로드되었습니다. 페이지 상단의 "저장" 버튼을 클릭하여 최종 저장하세요.');
-      } else {
-        throw new Error(data.error || '업로드 실패');
-      }
-    } catch (error) {
-      console.error('Image upload error:', error);
-      alert(error instanceof Error ? error.message : '이미지 업로드 실패');
+      onPendingFileChange(compressed.file);
+    } catch (err) {
+      console.error('[InfoImage] compress error:', err);
+      alert(err instanceof Error ? err.message : '이미지 처리 실패');
     } finally {
-      setUploading(false);
+      setCompressing(false);
     }
   };
 
-  /**
-   * 이미지 삭제
-   */
   const handleImageRemove = () => {
-    if (confirm('정보 이미지를 삭제하시겠습니까?')) {
-      setPreviewUrl('');
+    if (!confirm('정보 이미지를 삭제하시겠습니까? (페이지 상단 "저장" 클릭 시 적용)')) return;
+    if (pendingFile) {
+      // 새 선택만 취소 (아직 업로드 안 됨)
+      onPendingFileChange(null);
+    } else {
+      // 기존 저장된 이미지 삭제 의도 — 저장 클릭 시 DB에서 제거됨
       onChange('');
-      alert('이미지가 삭제되었습니다. 페이지 상단의 "저장" 버튼을 클릭하여 최종 저장하세요.');
     }
   };
 
@@ -126,13 +115,16 @@ export default function InfoImageEditor({ infoImage, onChange, onSave }: InfoIma
               <br />
               제품/서비스 소개, 회사 연혁, 비전 등을 이미지로 표현할 수 있습니다.
               <br />
-              <strong>최대 20MB까지 업로드 가능하며, 자동으로 WebP 압축됩니다.</strong>
+              <strong>
+                최대 20MB · 자동 WebP 압축 · 페이지 상단 &quot;저장&quot; 버튼 클릭 시에만
+                적용됩니다.
+              </strong>
             </p>
           </div>
         </div>
       </div>
 
-      {/* 이미지 업로드 */}
+      {/* 이미지 영역 */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           <i className="fas fa-image text-blue-500 mr-2"></i>
@@ -140,24 +132,39 @@ export default function InfoImageEditor({ infoImage, onChange, onSave }: InfoIma
         </label>
 
         {previewUrl ? (
-          /* 이미지 미리보기 */
           <div className="space-y-4">
-            <div className="relative w-full border border-gray-300 rounded-lg overflow-hidden">
-              <Image
+            <div className="relative w-full border border-gray-300 rounded-lg overflow-hidden bg-gray-50">
+              {/* blob: URL 호환 위해 plain <img> 사용 */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={previewUrl}
                 alt="정보 이미지"
-                width={1200}
-                height={800}
-                style={{ width: '100%', height: 'auto' }}
-                className="object-contain"
+                style={{ width: '100%', height: 'auto', display: 'block' }}
               />
+
+              {/* 압축 중 작은 뱃지 (블로커 X) */}
+              {compressing && (
+                <div className="absolute top-2 right-2 bg-blue-600/90 text-white text-xs px-2 py-1 rounded-full shadow-md flex items-center gap-1.5">
+                  <i className="fas fa-spinner fa-spin"></i>
+                  압축 중
+                </div>
+              )}
+
+              {/* 미저장 상태 뱃지 — 사용자 가시성 */}
+              {pendingFile && !compressing && (
+                <div className="absolute top-2 right-2 bg-amber-500/95 text-white text-xs px-2 py-1 rounded-full shadow-md flex items-center gap-1.5">
+                  <i className="fas fa-clock"></i>
+                  저장 대기 중
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={handleImageRemove}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                disabled={compressing}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400"
               >
                 <i className="fas fa-trash mr-2"></i>
                 이미지 삭제
@@ -171,22 +178,20 @@ export default function InfoImageEditor({ infoImage, onChange, onSave }: InfoIma
                   accept="image/*"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
-                    if (file) handleImageUpload(file);
-                    // 파일 선택 후 초기화하여 같은 파일 재선택 가능하게
+                    if (file) handleImageSelect(file);
                     e.target.value = '';
                   }}
                   className="hidden"
-                  disabled={uploading}
+                  disabled={compressing}
                 />
               </label>
             </div>
           </div>
         ) : (
-          /* 업로드 버튼 */
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
             <i className="fas fa-cloud-upload-alt text-gray-400 text-5xl mb-4"></i>
             <p className="text-gray-600 mb-4">
-              정보 이미지를 업로드하세요
+              정보 이미지를 선택하세요
               <br />
               <span className="text-sm text-gray-500">
                 최대 20MB · JPG/PNG/WebP · 자동 WebP 압축
@@ -194,10 +199,10 @@ export default function InfoImageEditor({ infoImage, onChange, onSave }: InfoIma
             </p>
 
             <label className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer">
-              {uploading ? (
+              {compressing ? (
                 <>
                   <i className="fas fa-spinner fa-spin mr-2"></i>
-                  업로드 중...
+                  압축 중...
                 </>
               ) : (
                 <>
@@ -210,10 +215,11 @@ export default function InfoImageEditor({ infoImage, onChange, onSave }: InfoIma
                 accept="image/*"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (file) handleImageUpload(file);
+                  if (file) handleImageSelect(file);
+                  e.target.value = '';
                 }}
                 className="hidden"
-                disabled={uploading}
+                disabled={compressing}
               />
             </label>
           </div>
