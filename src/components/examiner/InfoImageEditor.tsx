@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { compressImage } from '@/lib/image/imageCompressor';
 
 /**
  * 정보 이미지 편집기
@@ -9,8 +10,9 @@ import Image from 'next/image';
  * @purpose 브랜드 페이지 정보 섹션에 표시될 이미지 업로드
  * @context 심사관이 브랜드 정보 이미지를 업로드하여 소개 페이지에 표시
  * @decision
- *   - 최대 10MB 이미지 업로드 가능
- *   - 업로드 시 자동 압축 (API에서 처리)
+ *   - 원본 최대 20MB까지 허용 (모바일 고해상도 사진 커버)
+ *   - 업로드 직전 클라이언트에서 3.5MB / 1920px / Q85 로 압축 → Vercel 4.5MB body 한도 회피
+ *   - 서버에서 sharp로 추가 압축 (1200px / Q80)
  *   - Cloudflare R2에 저장
  */
 
@@ -33,9 +35,12 @@ export default function InfoImageEditor({ infoImage, onChange, onSave }: InfoIma
   const handleImageUpload = async (file: File) => {
     if (!file) return;
 
-    // 파일 크기 검증 (10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      alert('파일 크기는 10MB 이하여야 합니다.');
+    // 원본 파일 크기 검증 (20MB) — 모바일 4K 사진까지 커버
+    // Why: 이보다 크면 canvas 압축 시 모바일 브라우저 메모리 부족 위험
+    if (file.size > 20 * 1024 * 1024) {
+      alert(
+        `파일이 너무 큽니다.\n원본 ${(file.size / 1024 / 1024).toFixed(1)}MB → 최대 20MB까지 업로드 가능합니다.`
+      );
       return;
     }
 
@@ -48,8 +53,25 @@ export default function InfoImageEditor({ infoImage, onChange, onSave }: InfoIma
     try {
       setUploading(true);
 
+      /**
+       * 클라이언트 측 WebP 압축 (Vercel 4.5MB body 한도 회피)
+       * 1920px / Q85 / WebP → 일반적으로 1~3MB 산출 → 서버에서 sharp 추가 압축
+       */
+      const compressed = await compressImage(file, {
+        maxSizeMB: 3.5,
+        maxWidthOrHeight: 1920,
+        quality: 0.85,
+        fileType: 'image/webp',
+      });
+
+      console.log('[InfoImage] compressed', {
+        originalMB: (compressed.originalSize / 1024 / 1024).toFixed(2),
+        compressedMB: (compressed.compressedSize / 1024 / 1024).toFixed(2),
+        ratio: `${compressed.compressionRatio.toFixed(1)}%`,
+      });
+
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('image', compressed.file);
       formData.append('type', 'info-image');
 
       const response = await fetch('/api/examiner/brand/upload-info-image', {
@@ -58,7 +80,10 @@ export default function InfoImageEditor({ infoImage, onChange, onSave }: InfoIma
       });
 
       if (!response.ok) {
-        throw new Error('이미지 업로드에 실패했습니다.');
+        // status + body 같이 노출 — 다음 실패 재현 시 즉시 진단 가능
+        const text = await response.text().catch(() => '');
+        console.error('[InfoImage] upload failed', { status: response.status, body: text });
+        throw new Error(`업로드 실패 (HTTP ${response.status}) ${text.slice(0, 200)}`);
       }
 
       const data = await response.json();
@@ -101,7 +126,7 @@ export default function InfoImageEditor({ infoImage, onChange, onSave }: InfoIma
               <br />
               제품/서비스 소개, 회사 연혁, 비전 등을 이미지로 표현할 수 있습니다.
               <br />
-              <strong>최대 10MB까지 업로드 가능하며, 자동으로 압축됩니다.</strong>
+              <strong>최대 20MB까지 업로드 가능하며, 자동으로 WebP 압축됩니다.</strong>
             </p>
           </div>
         </div>
@@ -163,7 +188,9 @@ export default function InfoImageEditor({ infoImage, onChange, onSave }: InfoIma
             <p className="text-gray-600 mb-4">
               정보 이미지를 업로드하세요
               <br />
-              <span className="text-sm text-gray-500">최대 10MB, JPG/PNG/GIF 형식</span>
+              <span className="text-sm text-gray-500">
+                최대 20MB · JPG/PNG/WebP · 자동 WebP 압축
+              </span>
             </p>
 
             <label className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer">

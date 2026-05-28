@@ -92,11 +92,11 @@ export async function POST(request: NextRequest) {
           fit: 'inside',
           withoutEnlargement: true,
         })
-        .jpeg({ quality: 80, mozjpeg: true })
+        .webp({ quality: 80 })
         .toBuffer();
     } else {
       // 크기가 충분히 작으면 압축만 적용
-      processedImage = await sharp(buffer).jpeg({ quality: 80, mozjpeg: true }).toBuffer();
+      processedImage = await sharp(buffer).webp({ quality: 80 }).toBuffer();
     }
 
     console.log('[Info Image Upload] Compressed size:', {
@@ -106,8 +106,8 @@ export async function POST(request: NextRequest) {
     });
 
     // Cloudflare R2 업로드
-    const fileName = `brand-info/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
-    const imageUrl = await uploadToR2(processedImage, fileName, 'image/jpeg');
+    const fileName = `brand-info/${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
+    const imageUrl = await uploadToR2(processedImage, fileName, 'image/webp');
 
     console.log('[Info Image Upload] Uploaded:', imageUrl);
 
