@@ -3,13 +3,6 @@ import Link from 'next/link';
 import usePolicyNews from '@/hooks/usePolicyNews';
 import './PolicyThumbnails.css';
 
-const badgeClassMap = {
-  NEW: 'new',
-  HOT: 'hot',
-  추천: 'recommend',
-  중요: 'important',
-};
-
 const categoryIconMap = {
   funding: '💰',
   support: '🤝',
@@ -82,9 +75,6 @@ const PolicyThumbnails = ({ initialData }) => {
       );
     }
 
-    // 화면 크기 체크를 위한 미디어 쿼리
-    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
-
     return (
       <>
         {/* 데스크톱 그리드 뷰 */}
@@ -92,23 +82,15 @@ const PolicyThumbnails = ({ initialData }) => {
           {thumbnails.slice(0, 4).map((item) => (
             <Link key={item.id} href={`/policy-news/${item.id}`} className="thumbnail-item">
               <div className="thumbnail-image-wrapper">
-                <img src={item.thumbnail} alt={item.title} className="thumbnail-image" />
-                {item.isPinned ? (
-                  <div className="pinned-badge">
-                    <i className="fas fa-thumbtack" />
+                {item.thumbnail ? (
+                  <img src={item.thumbnail} alt={item.title} className="thumbnail-image" />
+                ) : (
+                  // 업로드 이미지가 없을 때: 빈 src(<img src="">)는 모바일에서 깨진 이미지 + alt 텍스트가
+                  // 정사각 프레임 위로 보이는 문제가 있어 placeholder div로 대체 - 2026-05-29
+                  <div className="thumbnail-image thumbnail-image--placeholder" aria-hidden="true">
+                    <span className="thumbnail-placeholder-icon">📰</span>
                   </div>
-                ) : null}
-                {item.badge ? (
-                  <div
-                    className={`thumbnail-badge badge-${badgeClassMap[item.badge] || 'default'}`}
-                  >
-                    {item.badge}
-                  </div>
-                ) : null}
-                <div className="thumbnail-overlay">
-                  <p className="overlay-description">{item.description || item.excerpt}</p>
-                  <span className="read-more">자세히 보기 →</span>
-                </div>
+                )}
               </div>
 
               <div className="thumbnail-info">
@@ -149,19 +131,16 @@ const PolicyThumbnails = ({ initialData }) => {
                 className="mobile-thumbnail-item"
               >
                 <div className="mobile-thumbnail-image-wrapper">
-                  <img src={item.thumbnail} alt={item.title} className="mobile-thumbnail-image" />
-                  {item.isPinned ? (
-                    <div className="pinned-badge">
-                      <i className="fas fa-thumbtack" />
-                    </div>
-                  ) : null}
-                  {item.badge ? (
+                  {item.thumbnail ? (
+                    <img src={item.thumbnail} alt={item.title} className="mobile-thumbnail-image" />
+                  ) : (
                     <div
-                      className={`thumbnail-badge badge-${badgeClassMap[item.badge] || 'default'}`}
+                      className="mobile-thumbnail-image thumbnail-image--placeholder"
+                      aria-hidden="true"
                     >
-                      {item.badge}
+                      <span className="thumbnail-placeholder-icon">📰</span>
                     </div>
-                  ) : null}
+                  )}
                 </div>
                 <div className="mobile-thumbnail-info">
                   <div className="mobile-category-tag" data-category={item.category}>

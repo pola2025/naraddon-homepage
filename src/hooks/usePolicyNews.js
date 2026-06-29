@@ -9,7 +9,24 @@ import { sanitizeImageUrl } from '@/utils/imageUrlSanitizer';
  * @context 사용자가 업로드한 이미지가 없으면 placeholder 표시
  */
 
-const stripHtml = (value = '') => value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+const decodeHtmlEntities = (value = '') =>
+  value
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCharCode(parseInt(code, 16)));
+
+const stripHtml = (value = '') =>
+  decodeHtmlEntities(value)
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, ' ')
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, ' ')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 const formatDate = (value) => {
   if (!value) {
@@ -78,23 +95,29 @@ export const normalizePolicyNewsItem = (post, index = 0) => {
 
   const baseContent = typeof post?.content === 'string' ? post.content : '';
   const primaryExcerpt = typeof post?.excerpt === 'string' ? post.excerpt : '';
-  const description =
+  const descriptionSource =
     typeof post?.description === 'string' && post.description.trim().length > 0
       ? post.description.trim()
       : primaryExcerpt || baseContent;
+  const description = stripHtml(descriptionSource);
 
-  const excerptSource = stripHtml(primaryExcerpt || description || baseContent);
-  const excerpt = excerptSource.length > 160 ? `${excerptSource.slice(0, 160).trim()}…` : excerptSource;
+  const excerptSource = stripHtml(primaryExcerpt || descriptionSource || baseContent);
+  const excerpt =
+    excerptSource.length > 160 ? `${excerptSource.slice(0, 160).trim()}…` : excerptSource;
 
   const views = typeof post?.views === 'number' ? post.views : Number(post?.viewCount) || 0;
   const likes = typeof post?.likes === 'number' ? post.likes : Number(post?.likeCount) || 0;
-  const comments = typeof post?.comments === 'number' ? post.comments : Number(post?.commentCount) || 0;
+  const comments =
+    typeof post?.comments === 'number' ? post.comments : Number(post?.commentCount) || 0;
 
   const createdAt = post?.createdAt ?? post?.date ?? null;
 
   return {
     id: String(normalizedId),
-    title: typeof post?.title === 'string' && post.title.trim().length > 0 ? post.title.trim() : '정책 소식',
+    title:
+      typeof post?.title === 'string' && post.title.trim().length > 0
+        ? post.title.trim()
+        : '정책 소식',
     content: baseContent,
     description: description || '현재 확인 가능한 내용이 없습니다.',
     excerpt,
@@ -196,7 +219,7 @@ export const usePolicyNews = ({ limit = 12, initialData } = {}) => {
       total: items.length,
       pinned: items.filter((item) => item.isPinned).length,
     }),
-    [items],
+    [items]
   );
 
   return {

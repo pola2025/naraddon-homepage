@@ -143,7 +143,6 @@
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
-  max-height: 280px;
   overflow: hidden;
   background: #f0f0f0;
   contain: layout style paint;
@@ -160,109 +159,17 @@
   transform: scale(1.1);
 }
 
-/* 고정 배지 */
-.pinned-badge {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  width: 32px;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 50%;
+/* 업로드 이미지가 없을 때 placeholder (빈 src로 인한 깨진 이미지/alt 노출 방지) - 2026-05-29 */
+.thumbnail-image--placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 3;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #e8f7ef 0%, #f5f7f4 60%, #eef6f0 100%);
 }
 
-.pinned-badge i {
-  color: #ff4444;
-  font-size: 14px;
-}
-
-/* 상태 배지 */
-.thumbnail-badge {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  z-index: 2;
-  letter-spacing: 0.5px;
-}
-
-.badge-new {
-  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
-  color: white;
-}
-
-.badge-hot {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ff4444 100%);
-  color: white;
-  animation: pulse 2s infinite;
-}
-
-.badge-recommend {
-  background: linear-gradient(135deg, #ffd700 0%, #ffb700 100%);
-  color: #333;
-}
-
-.badge-important {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-/* 오버레이 */
-.thumbnail-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 20px;
-  color: white;
-}
-
-.thumbnail-item:hover .thumbnail-overlay {
-  opacity: 1;
-}
-
-.overlay-description {
-  font-size: 14px;
-  line-height: 1.6;
-  margin-bottom: 10px;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.4s ease 0.1s;
-}
-
-.thumbnail-item:hover .overlay-description {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.read-more {
-  font-size: 13px;
-  font-weight: 600;
-  color: #ffd700;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.4s ease 0.2s;
-}
-
-.thumbnail-item:hover .read-more {
-  opacity: 1;
-  transform: translateY(0);
+.thumbnail-placeholder-icon {
+  font-size: 34px;
+  opacity: 0.6;
 }
 
 /* 정보 영역 */
@@ -393,16 +300,6 @@
 }
 
 /* 애니메이션 */
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
-
 @keyframes rotate {
   from {
     transform: rotate(0deg);
@@ -735,10 +632,6 @@
   .thumbnail-info {
     padding: 10px 12px;
   }
-
-  .thumbnail-image-wrapper {
-    max-height: 200px;
-  }
 }
 
 @media (max-width: 480px) {
@@ -759,10 +652,6 @@
     justify-content: center;
     font-size: 13px;
     padding: 9px 16px;
-  }
-
-  .thumbnail-image-wrapper {
-    max-height: 160px;
   }
 
   .thumbnail-info {

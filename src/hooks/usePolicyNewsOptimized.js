@@ -11,7 +11,24 @@ const FALLBACK_IMAGES = [boardImage1, boardImage2, boardImage3, boardImage4];
 const CACHE_KEY = 'policyNewsCache';
 const CACHE_DURATION = 5 * 60 * 1000; // 5분
 
-const stripHtml = (value = '') => value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+const decodeHtmlEntities = (value = '') =>
+  value
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCharCode(parseInt(code, 16)));
+
+const stripHtml = (value = '') =>
+  decodeHtmlEntities(value)
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, ' ')
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, ' ')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 const formatDate = (value) => {
   if (!value) {
@@ -79,10 +96,13 @@ const getCachedData = (key) => {
 
 const setCachedData = (key, data) => {
   try {
-    localStorage.setItem(key, JSON.stringify({
-      data,
-      timestamp: Date.now()
-    }));
+    localStorage.setItem(
+      key,
+      JSON.stringify({
+        data,
+        timestamp: Date.now(),
+      })
+    );
   } catch {
     // 스토리지 풀 에러 무시
   }
@@ -105,23 +125,29 @@ export const normalizePolicyNewsItem = (post, index = 0, fallbackImages = FALLBA
 
   const baseContent = typeof post?.content === 'string' ? post.content : '';
   const primaryExcerpt = typeof post?.excerpt === 'string' ? post.excerpt : '';
-  const description =
+  const descriptionSource =
     typeof post?.description === 'string' && post.description.trim().length > 0
       ? post.description.trim()
       : primaryExcerpt || baseContent;
+  const description = stripHtml(descriptionSource);
 
-  const excerptSource = stripHtml(primaryExcerpt || description || baseContent);
-  const excerpt = excerptSource.length > 160 ? `${excerptSource.slice(0, 160).trim()}…` : excerptSource;
+  const excerptSource = stripHtml(primaryExcerpt || descriptionSource || baseContent);
+  const excerpt =
+    excerptSource.length > 160 ? `${excerptSource.slice(0, 160).trim()}…` : excerptSource;
 
   const views = typeof post?.views === 'number' ? post.views : Number(post?.viewCount) || 0;
   const likes = typeof post?.likes === 'number' ? post.likes : Number(post?.likeCount) || 0;
-  const comments = typeof post?.comments === 'number' ? post.comments : Number(post?.commentCount) || 0;
+  const comments =
+    typeof post?.comments === 'number' ? post.comments : Number(post?.commentCount) || 0;
 
   const createdAt = post?.createdAt ?? post?.date ?? null;
 
   return {
     id: String(normalizedId),
-    title: typeof post?.title === 'string' && post.title.trim().length > 0 ? post.title.trim() : '정책 소식',
+    title:
+      typeof post?.title === 'string' && post.title.trim().length > 0
+        ? post.title.trim()
+        : '정책 소식',
     content: baseContent,
     description: description || '현재 확인 가능한 내용이 없습니다.',
     excerpt,
@@ -143,95 +169,98 @@ export const usePolicyNewsOptimized = ({
   limit = 12,
   fallbackImages = FALLBACK_IMAGES,
   useCache = true,
-  cacheKey = CACHE_KEY
+  cacheKey = CACHE_KEY,
 } = {}) => {
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isStale, setIsStale] = useState(false);
 
-  const fetchPolicyNews = useCallback(async (forceRefresh = false) => {
-    const controller = new AbortController();
+  const fetchPolicyNews = useCallback(
+    async (forceRefresh = false) => {
+      const controller = new AbortController();
 
-    // 캐시 확인
-    if (!forceRefresh && useCache) {
-      const cachedData = getCachedData(cacheKey);
-      if (cachedData) {
-        setItems(cachedData);
-        setIsLoading(false);
-        setIsStale(true);
+      // 캐시 확인
+      if (!forceRefresh && useCache) {
+        const cachedData = getCachedData(cacheKey);
+        if (cachedData) {
+          setItems(cachedData);
+          setIsLoading(false);
+          setIsStale(true);
 
-        // 백그라운드에서 데이터 새로고침
-        fetch(`/api/policy-news?limit=${limit}`, {
-          cache: 'no-store',
-          signal: controller.signal,
-        })
-          .then(res => res.json())
-          .then(payload => {
-            const posts = Array.isArray(payload?.posts) ? payload.posts : [];
-            const normalized = posts.map((post, index) =>
-              normalizePolicyNewsItem(post, index, fallbackImages)
-            );
-            setItems(normalized);
-            setCachedData(cacheKey, normalized);
-            setIsStale(false);
+          // 백그라운드에서 데이터 새로고침
+          fetch(`/api/policy-news?limit=${limit}`, {
+            cache: 'no-store',
+            signal: controller.signal,
           })
-          .catch(() => {
-            // 백그라운드 업데이트 실패는 무시
-          });
+            .then((res) => res.json())
+            .then((payload) => {
+              const posts = Array.isArray(payload?.posts) ? payload.posts : [];
+              const normalized = posts.map((post, index) =>
+                normalizePolicyNewsItem(post, index, fallbackImages)
+              );
+              setItems(normalized);
+              setCachedData(cacheKey, normalized);
+              setIsStale(false);
+            })
+            .catch(() => {
+              // 백그라운드 업데이트 실패는 무시
+            });
+
+          return { controller };
+        }
+      }
+
+      setIsLoading(true);
+      setError('');
+
+      try {
+        const response = await fetch(`/api/policy-news?limit=${limit}`, {
+          cache: forceRefresh ? 'no-store' : 'force-cache',
+          signal: controller.signal,
+          next: { revalidate: 300 }, // 5분마다 재검증
+        });
+
+        if (!response.ok) {
+          throw new Error('정책 소식을 불러오는데 실패했습니다.');
+        }
+
+        const payload = await response.json();
+        const posts = Array.isArray(payload?.posts) ? payload.posts : [];
+        const normalized = posts.map((post, index) =>
+          normalizePolicyNewsItem(post, index, fallbackImages)
+        );
+
+        setItems(normalized);
+        if (useCache) {
+          setCachedData(cacheKey, normalized);
+        }
+        setIsStale(false);
 
         return { controller };
-      }
-    }
+      } catch (fetchError) {
+        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+          return { controller };
+        }
+        console.error(fetchError);
+        setError('정책소식 정보를 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
 
-    setIsLoading(true);
-    setError('');
+        // 캐시된 데이터가 있으면 사용
+        const cachedData = getCachedData(cacheKey);
+        if (cachedData) {
+          setItems(cachedData);
+          setIsStale(true);
+        } else {
+          setItems([]);
+        }
 
-    try {
-      const response = await fetch(`/api/policy-news?limit=${limit}`, {
-        cache: forceRefresh ? 'no-store' : 'force-cache',
-        signal: controller.signal,
-        next: { revalidate: 300 } // 5분마다 재검증
-      });
-
-      if (!response.ok) {
-        throw new Error('정책 소식을 불러오는데 실패했습니다.');
-      }
-
-      const payload = await response.json();
-      const posts = Array.isArray(payload?.posts) ? payload.posts : [];
-      const normalized = posts.map((post, index) =>
-        normalizePolicyNewsItem(post, index, fallbackImages)
-      );
-
-      setItems(normalized);
-      if (useCache) {
-        setCachedData(cacheKey, normalized);
-      }
-      setIsStale(false);
-
-      return { controller };
-    } catch (fetchError) {
-      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
         return { controller };
+      } finally {
+        setIsLoading(false);
       }
-      console.error(fetchError);
-      setError('정책소식 정보를 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
-
-      // 캐시된 데이터가 있으면 사용
-      const cachedData = getCachedData(cacheKey);
-      if (cachedData) {
-        setItems(cachedData);
-        setIsStale(true);
-      } else {
-        setItems([]);
-      }
-
-      return { controller };
-    } finally {
-      setIsLoading(false);
-    }
-  }, [fallbackImages, limit, useCache, cacheKey]);
+    },
+    [fallbackImages, limit, useCache, cacheKey]
+  );
 
   useEffect(() => {
     let abortController = new AbortController();
@@ -248,17 +277,20 @@ export const usePolicyNewsOptimized = ({
     };
   }, [fetchPolicyNews]);
 
-  const refetch = useCallback((forceRefresh = true) => {
-    return fetchPolicyNews(forceRefresh);
-  }, [fetchPolicyNews]);
+  const refetch = useCallback(
+    (forceRefresh = true) => {
+      return fetchPolicyNews(forceRefresh);
+    },
+    [fetchPolicyNews]
+  );
 
   const meta = useMemo(
     () => ({
       total: items.length,
       pinned: items.filter((item) => item.isPinned).length,
-      isStale
+      isStale,
     }),
-    [items, isStale],
+    [items, isStale]
   );
 
   return {
