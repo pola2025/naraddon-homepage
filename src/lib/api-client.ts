@@ -52,7 +52,7 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         // 갱신 실패 시 로그아웃
         if (typeof window !== 'undefined') {
-          await signOut({ callbackUrl: '/login' });
+          await signOut({ callbackUrl: '/auth/login' });
         }
         return Promise.reject(refreshError);
       }

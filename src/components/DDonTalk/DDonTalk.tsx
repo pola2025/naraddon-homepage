@@ -70,7 +70,7 @@ export default function DDonTalk() {
 
     if (!user) {
       alert('회원가입이 필요합니다.');
-      router.push('/login');
+      router.push('/auth/login');
       return;
     }
 
@@ -150,7 +150,7 @@ export default function DDonTalk() {
   const handleWriteClick = () => {
     if (!user) {
       alert('회원가입이 필요합니다.');
-      router.push('/login');
+      router.push('/auth/login');
       return;
     }
     setShowWriteForm(true);

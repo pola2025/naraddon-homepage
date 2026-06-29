@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>나라똔 404 페이지 — 와이어프레임 미리보기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* 나라똔 디자인 토큰: 따뜻한 연녹색 배경 (globals.css --background) */
+      body {
+        background: #f8fdf9;
+      }
+    </style>
+  </head>
+  <body class="text-gray-900">
+    <!-- ===========================================================
+         이 파일은 app/not-found.tsx 의 시각 미리보기(와이어프레임)입니다.
+         실제 페이지와 동일한 디자인 토큰/문구/동선을 그대로 반영했습니다.
+         - 배경: #f8fdf9 (따뜻한 연녹색)
+         - 1차 액션: blue-600 / 2차 액션: green-600
+         - 관리자 문의 안내(요청사항) 포함
+         =========================================================== -->
+
+    <!-- 미리보기 정보 바 (실제 페이지엔 없음) -->
+    <div
+      class="w-full bg-amber-100 text-amber-800 text-xs text-center py-2 border-b border-amber-200"
+    >
+      🔍 와이어프레임 미리보기 — 실제 적용 파일: app/not-found.tsx (전역 404)
+    </div>
+
+    <main class="min-h-[70vh] flex items-center justify-center px-4 py-16">
+      <div class="w-full max-w-lg text-center">
+        <!-- 브랜드 로고 -->
+        <img
+          src="file:///F:/2026_naraddon/public/logo-naraddon.png"
+          alt="나라똔"
+          class="mx-auto mb-10 h-12 w-auto select-none"
+          onerror="this.outerHTML='<div class=&quot;mx-auto mb-10 text-2xl font-extrabold text-green-700&quot;>나라똔</div>'"
+        />
+
+        <!-- 404 -->
+        <p class="text-7xl sm:text-8xl font-extrabold tracking-tight text-green-700">404</p>
+        <h1 class="mt-4 text-xl sm:text-2xl font-bold text-gray-900">페이지를 찾을 수 없습니다</h1>
+
+        <!-- 안내 메시지 + 관리자 문의 안내 -->
+        <p class="mt-4 leading-relaxed text-gray-600">
+          요청하신 페이지가 존재하지 않거나 주소가 변경되었습니다.<br />
+          문제가 계속되면 아래로
+          <span class="font-semibold text-gray-800">관리자에게 문의</span>해 주세요.
+        </p>
+
+        <!-- 관리자 연락 카드 -->
+        <div
+          class="mt-6 inline-flex items-center gap-2 rounded-lg border border-green-200 bg-white px-4 py-3 text-sm text-gray-700 shadow-sm"
+        >
+          <span aria-hidden>📩</span>
+          <span>관리자 문의</span>
+          <a
+            href="mailto:jjk_naraddon@naver.com"
+            class="font-semibold text-blue-700 hover:underline"
+          >
+            jjk_naraddon@naver.com
+          </a>
+        </div>
+
+        <!-- 복귀 동선 -->
+        <div class="mt-10 space-y-3">
+          <a
+            href="#"
+            class="block w-full rounded-md bg-blue-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
+          >
+            홈으로 돌아가기
+          </a>
+          <a
+            href="#"
+            class="block w-full rounded-md bg-green-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-green-700"
+          >
+            무료심사 신청하기
+          </a>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

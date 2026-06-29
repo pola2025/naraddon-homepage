@@ -16,7 +16,7 @@ export default function ProtectedRoute({
   children,
   requiredRole,
   requiredPermission,
-  fallbackUrl = '/login',
+  fallbackUrl = '/auth/login',
 }: ProtectedRouteProps) {
   const { user, loading, hasRole, hasPermission } = useAuth();
   const router = useRouter();
