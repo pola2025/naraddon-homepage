@@ -12,6 +12,7 @@ import { authOptions } from '@/app/auth-options';
 import { compressImageOnServer } from '@/lib/image/serverImageCompressor';
 import { uploadToR2 } from '@/lib/cloudflare-r2';
 import { connectToDatabase } from '@/lib/mongodb';
+import { reportInfraError, getClientIp } from '@/lib/telegram-infra';
 
 export async function POST(req: NextRequest) {
   try {
@@ -100,6 +101,13 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error('랜딩 이미지 업로드 실패:', error);
+
+    await reportInfraError({
+      route: 'examiner/upload-landing-image',
+      error,
+      ip: getClientIp(req),
+      status: 500,
+    });
 
     return NextResponse.json(
       {

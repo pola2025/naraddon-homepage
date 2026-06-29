@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/auth-options';
 import clientPromise from '@/lib/mongodb-client';
+import { reportInfraError, getClientIp } from '@/lib/telegram-infra';
 
 /**
  * PATCH /api/examiner/brand-page
@@ -36,10 +37,7 @@ export async function PATCH(request: NextRequest) {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user?.email) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     // MongoDB 연결
@@ -74,10 +72,7 @@ export async function PATCH(request: NextRequest) {
       });
 
       if (!targetExaminer) {
-        return NextResponse.json(
-          { success: false, error: 'Examiner not found' },
-          { status: 404 }
-        );
+        return NextResponse.json({ success: false, error: 'Examiner not found' }, { status: 404 });
       }
     } else {
       // 심사관 권한 확인 (본인 수정)
@@ -102,7 +97,10 @@ export async function PATCH(request: NextRequest) {
         targetExaminer = await db.collection('expert-examiners').findOne({
           _id: new ObjectId(session.user.examinerId),
         });
-        console.log('[Brand Page API] Using cached examinerId from session:', session.user.examinerId);
+        console.log(
+          '[Brand Page API] Using cached examinerId from session:',
+          session.user.examinerId
+        );
       }
 
       if (!targetExaminer) {
@@ -113,14 +111,15 @@ export async function PATCH(request: NextRequest) {
           : { email: session.user.email };
 
         targetExaminer = await db.collection('expert-examiners').findOne(query);
-        console.log('[Brand Page API] Fallback query by email/userId:', { email: session.user.email, userId, found: !!targetExaminer });
+        console.log('[Brand Page API] Fallback query by email/userId:', {
+          email: session.user.email,
+          userId,
+          found: !!targetExaminer,
+        });
       }
 
       if (!targetExaminer) {
-        return NextResponse.json(
-          { success: false, error: 'Examiner not found' },
-          { status: 404 }
-        );
+        return NextResponse.json({ success: false, error: 'Examiner not found' }, { status: 404 });
       }
     }
 
@@ -201,25 +200,32 @@ export async function PATCH(request: NextRequest) {
         }
 
         // 6. 연락처 정보 (5점)
-        if (brandPage.contactInfo && (
-          (brandPage.contactInfo.website && brandPage.contactInfo.website.trim()) ||
-          (brandPage.contactInfo.consultationHours && brandPage.contactInfo.consultationHours.trim()) ||
-          (brandPage.contactInfo.address && brandPage.contactInfo.address.trim())
-        )) {
+        if (
+          brandPage.contactInfo &&
+          ((brandPage.contactInfo.website && brandPage.contactInfo.website.trim()) ||
+            (brandPage.contactInfo.consultationHours &&
+              brandPage.contactInfo.consultationHours.trim()) ||
+            (brandPage.contactInfo.address && brandPage.contactInfo.address.trim()))
+        ) {
           completenessScore += 5;
         }
 
         // 완성도 점수 저장 (횟수가 아닌 완성도)
-        await fetch(`${process.env.NEXTAUTH_URL}/api/admin/examiners/${targetExaminerId}/activities`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            activityType: 'profileCompleteness',
-            completenessScore
-          })
-        });
+        await fetch(
+          `${process.env.NEXTAUTH_URL}/api/admin/examiners/${targetExaminerId}/activities`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              activityType: 'profileCompleteness',
+              completenessScore,
+            }),
+          }
+        );
 
-        console.log(`[Brand Page API] Profile completeness recorded for ${targetExaminer.name}: ${completenessScore}/30점`);
+        console.log(
+          `[Brand Page API] Profile completeness recorded for ${targetExaminer.name}: ${completenessScore}/30점`
+        );
       } catch (activityError) {
         console.error('[Brand Page API] Failed to record activity:', activityError);
         // 활동 기록 실패해도 업데이트는 성공으로 처리
@@ -232,9 +238,12 @@ export async function PATCH(request: NextRequest) {
     });
   } catch (error) {
     console.error('[Brand Page API] Update error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    await reportInfraError({
+      route: 'examiner/brand-page:PATCH',
+      error,
+      ip: getClientIp(request),
+      status: 500,
+    });
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }

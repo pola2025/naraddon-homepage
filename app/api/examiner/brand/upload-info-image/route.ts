@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/auth-options';
 import sharp from 'sharp';
 import { uploadToR2 } from '@/lib/cloudflare-r2';
+import { reportInfraError, getClientIp } from '@/lib/telegram-infra';
 
 /**
  * POST /api/examiner/brand/upload-info-image
@@ -123,6 +124,12 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('[Info Image Upload] Error:', error);
+    await reportInfraError({
+      route: 'examiner/upload-info-image',
+      error,
+      ip: getClientIp(request),
+      status: 500,
+    });
     return NextResponse.json(
       { success: false, error: 'Failed to upload info image' },
       { status: 500 }
