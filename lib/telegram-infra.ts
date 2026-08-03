@@ -122,6 +122,46 @@ export async function reportInfraError(report: InfraErrorReport): Promise<boolea
 }
 
 /**
+ * 인프라봇으로 임의 메시지 전송 (쿨다운·상태코드 필터 없음)
+ *
+ * @purpose 500 에러가 아닌 운영 보고(파이프라인 결과, 봇 차단 로그 등)를 인프라봇 채널로 보냄
+ * @context 기존 상담접수 디버그 알림이 문의접수 채널(-1003280236380)로 가던 것을 인프라봇으로 분리
+ * @note reportInfraError와 달리 중복 억제를 하지 않음 — 접수 건마다 1건씩 보고돼야 하므로
+ */
+export async function sendInfraMessage(text: string): Promise<{ ok: boolean; error?: string }> {
+  const botToken = process.env.TELEGRAM_INFRA_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_INFRA_CHAT_ID;
+  if (!botToken || !chatId) {
+    console.warn('[InfraBot] TELEGRAM_INFRA_BOT_TOKEN/CHAT_ID 미설정 — 전송 스킵');
+    return { ok: false, error: '인프라봇 환경변수 미설정' };
+  }
+
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        parse_mode: 'HTML',
+        disable_web_page_preview: true,
+      }),
+    });
+
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      console.error('[InfraBot] 전송 실패:', res.status, body.slice(0, 200));
+      return { ok: false, error: `${res.status}: ${body.slice(0, 200)}` };
+    }
+    return { ok: true };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error('[InfraBot] 전송 예외:', msg);
+    return { ok: false, error: msg };
+  }
+}
+
+/**
  * 요청에서 클라이언트 IP 추출 (Vercel 헤더 우선)
  */
 export function getClientIp(request: { headers: { get(name: string): string | null } }): string {

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { waitUntil } from '@vercel/functions';
 import clientPromise from '@/lib/mongodb-client';
+import { sendInfraMessage } from '@/lib/telegram-infra';
 import {
   ConsultationRequest,
   ConsultationStatus,
@@ -28,9 +29,10 @@ const STAFF_NOTIFICATION_EMAILS = (
   .trim()
   .replace(/^["']|["']$/g, '');
 
-// 관리자 직통 텔레그램
+// 관리자 직통 텔레그램 (고객DB 채널 발송용 봇)
 const ADMIN_TELEGRAM_BOT_TOKEN = process.env.LEAD_TELEGRAM_BOT_TOKEN || '';
-const ADMIN_TELEGRAM_CHAT_ID = process.env.TELEGRAM_DEBUG_CHAT_ID || '-1003280236380';
+// 파이프라인 보고 / 봇 차단 / 치명적 오류 등 운영 알림은 인프라봇 채널로 발송한다.
+// (문의접수 알림 채널 -1003280236380 은 폴라애드와 공유하므로 디버그 노이즈를 보내지 않음)
 
 // 고객DB 텔레그램 채널
 const CUSTOMER_DB_CHAT_ID = process.env.TELEGRAM_CUSTOMER_DB_CHAT_ID || '-1002948627243';
@@ -616,9 +618,8 @@ export async function POST(request: NextRequest) {
     if (data._hp_website) {
       console.warn(`[Security] 허니팟 탐지: ${clientIp}`);
       waitUntil(
-        sendTelegram(
-          ADMIN_TELEGRAM_CHAT_ID,
-          `[나라똔:상담접수] 🍯 <b>허니팟 봇 차단</b>\nIP: <code>${clientIp}</code>\n허니팟값: ${String(data._hp_website).slice(0, 100)}`
+        sendInfraMessage(
+          `[나라똔:상담접수] 🍯 <b>허니팟 봇 차단</b>\nIP: <code>${clientIp}</code>\n허니팟값: ${escapeHtml(String(data._hp_website).slice(0, 100))}`
         )
       );
       // 봇에게는 성공처럼 보이게 응답
@@ -633,8 +634,7 @@ export async function POST(request: NextRequest) {
       if (elapsed < 3000) {
         console.warn(`[Security] 제출시간 봇 탐지: ${clientIp} - ${elapsed}ms`);
         waitUntil(
-          sendTelegram(
-            ADMIN_TELEGRAM_CHAT_ID,
+          sendInfraMessage(
             `[나라똔:상담접수] ⏱️ <b>제출시간 봇 차단</b>\nIP: <code>${clientIp}</code>\n제출소요: ${elapsed}ms (3초 미만)`
           )
         );
@@ -696,9 +696,8 @@ export async function POST(request: NextRequest) {
     if (urlCheckError) {
       console.warn(`[Security] URL/IP 입력 차단: ${clientIp} - ${urlCheckError}`);
       waitUntil(
-        sendTelegram(
-          ADMIN_TELEGRAM_CHAT_ID,
-          `[나라똔:상담접수] 🛡️ <b>URL/IP 입력 차단</b>\nIP: <code>${clientIp}</code>\n사유: ${urlCheckError}\n데이터: ${JSON.stringify(data).slice(0, 300)}`
+        sendInfraMessage(
+          `[나라똔:상담접수] 🛡️ <b>URL/IP 입력 차단</b>\nIP: <code>${clientIp}</code>\n사유: ${escapeHtml(urlCheckError)}\n데이터: ${escapeHtml(JSON.stringify(data).slice(0, 300))}`
         )
       );
       return NextResponse.json(
@@ -717,9 +716,8 @@ export async function POST(request: NextRequest) {
     if (blacklisted) {
       console.warn(`[Blacklist] 차단된 IP 접수 시도: ${clientIp} - ${blacklisted.reason}`);
       waitUntil(
-        sendTelegram(
-          ADMIN_TELEGRAM_CHAT_ID,
-          `[나라똔:상담접수] 🚫 <b>블랙리스트 IP 접수 시도</b>\nIP: <code>${clientIp}</code>\n사유: ${blacklisted.reason}\nUA: ${request.headers.get('user-agent') || 'unknown'}`
+        sendInfraMessage(
+          `[나라똔:상담접수] 🚫 <b>블랙리스트 IP 접수 시도</b>\nIP: <code>${clientIp}</code>\n사유: ${escapeHtml(String(blacklisted.reason ?? '-'))}\nUA: ${escapeHtml(request.headers.get('user-agent') || 'unknown')}`
         )
       );
       return NextResponse.json(
@@ -765,9 +763,8 @@ export async function POST(request: NextRequest) {
     if (ipTotalCount >= IP_ONLY_RATE_LIMIT_MAX) {
       console.warn(`[RateLimit] IP 전체 차단: ${clientIp} - ${ipTotalCount}회 (30분 내)`);
       waitUntil(
-        sendTelegram(
-          ADMIN_TELEGRAM_CHAT_ID,
-          `[나라똔:상담접수] 🚫 <b>IP 대량접수 차단</b>\nIP: <code>${clientIp}</code>\n30분 내 ${ipTotalCount}회 접수\nUA: ${request.headers.get('user-agent') || 'unknown'}`
+        sendInfraMessage(
+          `[나라똔:상담접수] 🚫 <b>IP 대량접수 차단</b>\nIP: <code>${clientIp}</code>\n30분 내 ${ipTotalCount}회 접수\nUA: ${escapeHtml(request.headers.get('user-agent') || 'unknown')}`
         )
       );
       return NextResponse.json(
@@ -950,14 +947,12 @@ export async function POST(request: NextRequest) {
             : '✨ 모든 단계 정상',
         ].join('\n');
 
-        const debugResult = await sendTelegram(ADMIN_TELEGRAM_CHAT_ID, debugMsg);
+        // 인프라봇 채널로 발송 (문의접수 채널에는 보내지 않음)
+        const debugResult = await sendInfraMessage(debugMsg);
         if (!debugResult.ok) {
-          console.error(`[Pipeline] 디버그 텔레그램도 실패: ${debugResult.error}`);
+          console.error(`[Pipeline] 인프라봇 보고 실패: ${debugResult.error}`);
           console.error(
-            `[Pipeline] 봇토큰 존재: ${!!ADMIN_TELEGRAM_BOT_TOKEN}, 길이: ${ADMIN_TELEGRAM_BOT_TOKEN.length}`
-          );
-          console.error(
-            `[Pipeline] 디버그 채팅ID: ${ADMIN_TELEGRAM_CHAT_ID}, 고객DB 채팅ID: ${CUSTOMER_DB_CHAT_ID}`
+            `[Pipeline] 인프라봇 env 설정: token=${!!process.env.TELEGRAM_INFRA_BOT_TOKEN}, chat=${!!process.env.TELEGRAM_INFRA_CHAT_ID}`
           );
         }
       })().catch(async (err) => {
@@ -965,10 +960,9 @@ export async function POST(request: NextRequest) {
         console.error(
           `[Pipeline] 봇토큰 존재: ${!!ADMIN_TELEGRAM_BOT_TOKEN}, 길이: ${ADMIN_TELEGRAM_BOT_TOKEN.length}`
         );
-        const r = await sendTelegram(
-          ADMIN_TELEGRAM_CHAT_ID,
-          `[나라똔:상담파이프라인] 🔥 <b>백그라운드 파이프라인 오류</b>\n\n${String(err)}`
-        ).catch(() => ({ ok: false }));
+        await sendInfraMessage(
+          `[나라똔:상담파이프라인] 🔥 <b>백그라운드 파이프라인 오류</b>\n\n${escapeHtml(String(err).slice(0, 500))}`
+        ).catch(() => {});
       })
     );
 
@@ -976,10 +970,9 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Failed to create consultation:', error);
 
-    // 치명적 오류도 관리자에게 알림
-    await sendTelegram(
-      ADMIN_TELEGRAM_CHAT_ID,
-      `[나라똔:상담접수] 🔥 <b>상담 접수 치명적 오류</b>\n\n${String(error)}`
+    // 치명적 오류는 인프라봇 채널로 알림
+    await sendInfraMessage(
+      `[나라똔:상담접수] 🔥 <b>상담 접수 치명적 오류</b>\n\n${escapeHtml(String(error).slice(0, 500))}`
     ).catch(() => {});
 
     return NextResponse.json({ error: '상담 신청 중 오류가 발생했습니다.' }, { status: 500 });
