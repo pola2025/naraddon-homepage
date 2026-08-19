@@ -18,7 +18,7 @@ export function getOrganizationSchema() {
     alternateName: 'NARADDON',
     url: 'https://naraddon.com',
     logo: 'https://naraddon.com/logo.png',
-    description: '정부정책자금 전문 컨설팅 플랫폼. 인증 기업심사관과 함께하는 정책자금 성공 파트너',
+    description: '인증심사관이 함께하는 가장 믿음직한 동행, 나라똔이 보증하는 사고 책임제',
     sameAs: [
       // SNS 추가 시 여기에 링크
       // 'https://www.facebook.com/naraddon',

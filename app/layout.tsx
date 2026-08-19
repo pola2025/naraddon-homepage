@@ -10,9 +10,8 @@ import PageVisitTracker from '@/components/analytics/PageVisitTracker';
 import { getOrganizationSchema } from '@/lib/json-ld';
 
 export const metadata: Metadata = {
-  title: '나라똔(NARADDON) - 정부정책자금 전문 컨설팅 | 중소기업 지원금 플랫폼',
-  description:
-    '나라똔은 인증 기업심사관과 함께 정책자금, R&D지원금, 수출바우처 등 정부지원사업을 연결하는 대한민국 1위 플랫폼입니다. 연간 450만원 절약, 100% 책임보증제도',
+  title: "나라똔 - 사업자를 위한 '정책자금 공식 플랫폼'",
+  description: '인증심사관이 함께하는 가장 믿음직한 동행, 나라똔이 보증하는 사고 책임제',
   keywords:
     '정부정책자금, 정부지원자금, 정부지원금, 정부보조금, 정책자금, 정책지원금, ' +
     '중소기업정책자금, 중소기업지원자금, 중소기업지원금, 중소기업보조금, 중소기업자금지원, 중소벤처기업부지원금, ' +
@@ -34,8 +33,8 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: '나라똔(NARADDON) - 정부정책자금 전문 컨설팅',
-    description: '인증 기업심사관과 함께하는 정책자금 성공 파트너. 연간 450만원 절약!',
+    title: "나라똔 - 사업자를 위한 '정책자금 공식 플랫폼'",
+    description: '인증심사관이 함께하는 가장 믿음직한 동행, 나라똔이 보증하는 사고 책임제',
     url: 'https://naraddon.com',
     siteName: '나라똔',
     locale: 'ko_KR',
@@ -51,8 +50,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '나라똔(NARADDON) - 정부정책자금 전문 컨설팅',
-    description: '인증 기업심사관과 함께하는 정책자금 성공 파트너',
+    title: "나라똔 - 사업자를 위한 '정책자금 공식 플랫폼'",
+    description: '인증심사관이 함께하는 가장 믿음직한 동행, 나라똔이 보증하는 사고 책임제',
     images: ['/twitter-image.jpg'],
   },
   robots: {
@@ -168,7 +167,8 @@ export default function RootLayout({
               alternateName: 'NARADDON',
               url: 'https://naraddon.com',
               logo: 'https://naraddon.com/logo.png',
-              description: '정부정책자금 전문 컨설팅 플랫폼',
+              description:
+                '인증심사관이 함께하는 가장 믿음직한 동행, 나라똔이 보증하는 사고 책임제',
               address: {
                 '@type': 'PostalAddress',
                 addressCountry: 'KR',
