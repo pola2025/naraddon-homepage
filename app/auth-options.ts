@@ -314,13 +314,19 @@ export const authOptions: NextAuthOptions = {
                   console.log('[JWT Callback] ExaminerId set from DB:', token.examinerId);
 
                   // expert-examiners에 있으면 role을 examiner로 업데이트
-                  if (dbUser.role !== 'examiner') {
+                  // 🔥 단, 관리자는 강등하지 않는다 (심사관 겸 관리자 허용)
+                  // examinerId는 role과 무관하게 위에서 세팅되므로
+                  // 관리자로 남겨도 브랜드 페이지 등 심사관 기능은 그대로 동작한다
+                  const isAdminRole = dbUser.role === 'admin' || dbUser.role === 'super_admin';
+                  if (dbUser.role !== 'examiner' && !isAdminRole) {
                     await db.collection('users').updateOne(
                       { _id: dbUser._id },
                       { $set: { role: 'examiner' } }
                     );
                     token.role = 'examiner';
                     console.log('[JWT Callback] Role updated to examiner');
+                  } else if (isAdminRole) {
+                    console.log('[JWT Callback] Admin keeps role (examiner 겸직):', dbUser.role);
                   }
                 } else {
                   console.log('[JWT Callback] No ExpertExaminer found for:', token.email);

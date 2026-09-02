@@ -66,7 +66,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const unsetData: Record<string, ''> = {};
 
     // 기업심사관에서 다른 역할로 전환 시 (역할 해제)
-    if (user.role === 'examiner' && newRole !== 'examiner') {
+    // 🔥 단, 관리자 승격은 심사관 자격을 그대로 유지한다 (심사관 겸 관리자 허용)
+    //    연결을 실제로 끊어야 할 때는 /api/admin/examiners/[id]/unlink 를 사용한다
+    const keepsExaminerProfile = newRole === 'admin' || newRole === 'super_admin';
+    if (user.role === 'examiner' && newRole !== 'examiner' && !keepsExaminerProfile) {
       // 배정된 상담이 있는지 확인
       const assignedConsultations = await db.collection('consultations').countDocuments({
         assignedStaffId: user.email,
