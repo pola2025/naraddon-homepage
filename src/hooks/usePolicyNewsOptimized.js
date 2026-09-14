@@ -190,7 +190,7 @@ export const usePolicyNewsOptimized = ({
 
           // 백그라운드에서 데이터 새로고침
           fetch(`/api/policy-news?limit=${limit}`, {
-            cache: 'no-store',
+            cache: 'default',
             signal: controller.signal,
           })
             .then((res) => res.json())

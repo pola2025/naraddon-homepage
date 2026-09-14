@@ -126,6 +126,11 @@ TtontokPostSchema.index({ createdAt: -1 });
 TtontokPostSchema.index({ category: 1, createdAt: -1 });
 TtontokPostSchema.index({ viewCount: -1 });
 TtontokPostSchema.index({ likeCount: -1 });
+TtontokPostSchema.index({ isDraft: 1, createdAt: -1, _id: -1 });
+TtontokPostSchema.index({ isArchived: 1, createdAt: -1, _id: -1 });
+TtontokPostSchema.index({ isArchived: 1, category: 1, createdAt: -1, _id: -1 });
+TtontokPostSchema.index({ isArchived: 1, likeCount: -1, _id: -1 });
+TtontokPostSchema.index({ isArchived: 1, replyCount: -1, _id: -1 });
 
 const TtontokPost: Model<ITtontokPost> =
   mongoose.models.TtontokPost || mongoose.model<ITtontokPost>('TtontokPost', TtontokPostSchema);

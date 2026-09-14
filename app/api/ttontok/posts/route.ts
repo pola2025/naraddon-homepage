@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 
 import connectDB from '@/lib/mongodb';
 import TtontokPost, { TtontokCategory } from '@/models/TtontokPost';
+import {
+  buildDescendingDateCursorFilter,
+  parseListRequest,
+  takePage,
+} from '@/lib/bounded-read';
 
 // API Route를 동적으로 설정 (환경변수 문제 해결)
 export const dynamic = 'force-dynamic';
@@ -45,6 +50,11 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const includeMyDrafts = searchParams.get('includeMyDrafts') === 'true';
   const memberId = searchParams.get('memberId');
+  const listRequestResult = parseListRequest(searchParams, { defaultLimit: 20, maxLimit: 50 });
+  if (listRequestResult.kind === 'invalid') {
+    return NextResponse.json({ message: listRequestResult.message }, { status: 400 });
+  }
+  const { limit, cursor } = listRequestResult.request;
 
   // 만료된 임시저장 글 자동 삭제 (2일 경과)
   await TtontokPost.deleteMany({
@@ -66,19 +76,44 @@ export async function GET(request: Request) {
     };
   }
 
-  const posts = await TtontokPost.find(query)
-    .sort({ createdAt: -1 })
-    .lean();
+  let queryFilter = query;
+  if (cursor) {
+    const cursorFilterResult = buildDescendingDateCursorFilter(cursor, 'createdAt');
+    if (cursorFilterResult.kind === 'invalid') {
+      return NextResponse.json({ message: 'cursor is invalid' }, { status: 400 });
+    }
+    queryFilter = { $and: [query, cursorFilterResult.filter] };
+  }
 
-  return NextResponse.json({
-    posts: posts.map((post) => ({
-      ...post,
-      _id: post._id.toString(),
-      createdAt: post.createdAt?.toISOString() ?? null,
-      updatedAt: post.updatedAt?.toISOString() ?? null,
-      draftExpiresAt: post.draftExpiresAt?.toISOString() ?? null,
-    })),
-  });
+  const posts = await TtontokPost.find(queryFilter)
+    .sort({ createdAt: -1, _id: -1 })
+    .limit(limit + 1)
+    .lean();
+  const page = takePage(posts, limit, (post) => ({
+    sortValue: new Date(post.createdAt).toISOString(),
+    id: post._id.toString(),
+  }));
+
+  return NextResponse.json(
+    {
+      posts: page.items.map((post) => ({
+        ...post,
+        _id: post._id.toString(),
+        createdAt: post.createdAt?.toISOString() ?? null,
+        updatedAt: post.updatedAt?.toISOString() ?? null,
+        draftExpiresAt: post.draftExpiresAt?.toISOString() ?? null,
+      })),
+      nextCursor: page.nextCursor,
+      hasMore: page.hasMore,
+    },
+    {
+      headers: {
+        'Cache-Control': includeMyDrafts
+          ? 'private, no-store'
+          : 'public, s-maxage=30, stale-while-revalidate=120',
+      },
+    }
+  );
 }
 
 export async function POST(request: Request) {

@@ -137,6 +137,7 @@ export async function GET(request: NextRequest) {
 
     const examiners = await ExaminerProfile.find({ isPublished: true })
       .sort({ sortOrder: 1, createdAt: -1 })
+      .limit(50)
       .lean();
 
     console.log(`[naraddon-tube/verify] Found ${examiners.length} examiners`);

@@ -4,15 +4,15 @@ import { requireLogin , handleAuthError } from '@/lib/auth/guards';
 
 import connectDB from '@/lib/mongodb';
 import TtontokPost, { ITtontokPost, TtontokCategory } from '@/models/TtontokPost';
+import {
+  buildDescendingCursorFilter,
+  buildDescendingDateCursorFilter,
+  parseListRequest,
+  takePage,
+} from '@/lib/bounded-read';
 
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 50;
-
-const parseNumber = (value: string | null, fallback: number) => {
-  if (!value) return fallback;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
-};
 
 const normalizeCategory = (value: string | null): TtontokCategory | undefined => {
   if (!value) return undefined;
@@ -24,12 +24,12 @@ const normalizeCategory = (value: string | null): TtontokCategory | undefined =>
 const parseSort = (value: string | null) => {
   switch ((value ?? '').toLowerCase()) {
     case 'popular':
-      return { likeCount: -1, viewCount: -1, createdAt: -1 } as const;
+      return { likeCount: -1, _id: -1 } as const;
     case 'discussed':
-      return { replyCount: -1, createdAt: -1 } as const;
+      return { replyCount: -1, _id: -1 } as const;
     case 'latest':
     default:
-      return { createdAt: -1 } as const;
+      return { createdAt: -1, _id: -1 } as const;
   }
 };
 
@@ -60,33 +60,57 @@ export async function GET(request: NextRequest) {
   await connectDB();
 
   const { searchParams } = new URL(request.url);
-  const page = Math.max(parseNumber(searchParams.get('page'), 1), 1);
-  const limit = Math.min(parseNumber(searchParams.get('limit'), DEFAULT_LIMIT), MAX_LIMIT);
+  const listRequestResult = parseListRequest(searchParams, {
+    defaultLimit: DEFAULT_LIMIT,
+    maxLimit: MAX_LIMIT,
+  });
+  if (listRequestResult.kind === 'invalid') {
+    return NextResponse.json({ message: listRequestResult.message }, { status: 400 });
+  }
+  const { limit, cursor } = listRequestResult.request;
   const category = normalizeCategory(searchParams.get('category'));
-  const sort = parseSort(searchParams.get('sort'));
+  const sortKey = (searchParams.get('sort') || 'latest').toLowerCase();
+  const sort = parseSort(sortKey);
 
   const query: Record<string, unknown> = { isArchived: false };
   if (category) {
     query.category = category;
   }
 
-  const skip = (page - 1) * limit;
+  if (cursor) {
+    const cursorFilterResult =
+      sortKey === 'popular'
+        ? { kind: 'valid' as const, filter: buildDescendingCursorFilter(cursor, 'likeCount') }
+        : sortKey === 'discussed'
+          ? { kind: 'valid' as const, filter: buildDescendingCursorFilter(cursor, 'replyCount') }
+          : buildDescendingDateCursorFilter(cursor, 'createdAt');
+    if (cursorFilterResult.kind === 'invalid') {
+      return NextResponse.json({ message: 'cursor is invalid' }, { status: 400 });
+    }
+    Object.assign(query, { $and: [cursorFilterResult.filter] });
+  }
 
-  const [items, total] = await Promise.all([
-    TtontokPost.find(query)
-      .sort(sort)
-      .skip(skip)
-      .limit(limit)
-      .lean<ITtontokPost[]>(),
-    TtontokPost.countDocuments(query),
-  ]);
+  const items = await TtontokPost.find(query)
+    .sort(sort)
+    .limit(limit + 1)
+    .lean<ITtontokPost[]>();
+  const page = takePage(items, limit, (item) => ({
+    sortValue:
+      sortKey === 'popular'
+        ? item.likeCount
+        : sortKey === 'discussed'
+          ? item.replyCount
+          : item.createdAt.toISOString(),
+    id: item._id.toString(),
+  }));
 
   return NextResponse.json({
-    page,
     limit,
-    total,
-    totalPages: Math.ceil(total / limit),
-    items: items.map((item) => ({
+    total: null,
+    totalPages: null,
+    nextCursor: page.nextCursor,
+    hasMore: page.hasMore,
+    items: page.items.map((item) => ({
       id: item._id,
       title: item.title,
       content: item.content,

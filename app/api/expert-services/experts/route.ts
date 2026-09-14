@@ -1,21 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/auth-options';
 import dbConnect from '@/lib/mongodb';
 import Expert from '@/models/Expert';
+import { isAdmin } from '@/lib/auth/role-check';
+import { buildAscendingCursorFilter, parseListRequest, takePage } from '@/lib/bounded-read';
 
 export async function GET(request: NextRequest) {
   try {
     await dbConnect();
 
-    // 관리자 권한이 있으면 모든 전문가, 없으면 활성화된 전문가만
-    const adminAuth = request.headers.get('x-admin-auth');
-    const query = adminAuth === 'true' ? {} : { isActive: true };
+    const listRequestResult = parseListRequest(request.nextUrl.searchParams, {
+      defaultLimit: 24,
+      maxLimit: 50,
+    });
+    if (listRequestResult.kind === 'invalid') {
+      return NextResponse.json({ success: false, error: listRequestResult.message }, { status: 400 });
+    }
+    const { limit, cursor } = listRequestResult.request;
+    const adminAuthRequested = request.headers.get('x-admin-auth') === 'true';
+    if (adminAuthRequested) {
+      const session = await getServerSession(authOptions);
+      if (!session?.user || !isAdmin(session.user)) {
+        return NextResponse.json({ success: false, error: '관리자 권한이 필요합니다.' }, { status: 403 });
+      }
+    }
+    const baseQuery: Record<string, unknown> = adminAuthRequested ? {} : { isActive: true };
+    const cursorFilter = cursor ? buildAscendingCursorFilter(cursor, 'order') : null;
+    const query = cursorFilter ? { $and: [baseQuery, cursorFilter] } : baseQuery;
 
     const experts = await Expert.find(query)
-      .sort({ order: 1, createdAt: -1 })
+      .sort({ order: 1, _id: 1 })
+      .limit(limit + 1)
       .select('-__v');
+    const page = takePage(experts, limit, (expert) => ({
+      sortValue: Number(expert.order || 0),
+      id: expert._id.toString(),
+    }));
 
     // Transform data to match ExaminerProfile format
-    const transformedExperts = experts.map((expert) => ({
+    const transformedExperts = page.items.map((expert) => ({
       _id: expert._id.toString(),
       name: expert.name,
       position: expert.position,
@@ -34,7 +58,15 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      experts: transformedExperts
+      experts: transformedExperts,
+      nextCursor: page.nextCursor,
+      hasMore: page.hasMore,
+    }, {
+      headers: {
+        'Cache-Control': adminAuthRequested
+          ? 'private, no-store'
+          : 'public, s-maxage=60, stale-while-revalidate=300',
+      },
     });
   } catch (error) {
     console.error('Error fetching experts:', error);

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb-client';
+import { handleAuthError, requireAdmin } from '@/lib/auth/guards';
 
 /**
  * 실시간 대시보드 API
@@ -10,6 +11,7 @@ import clientPromise from '@/lib/mongodb-client';
 
 export async function GET(request: NextRequest) {
   try {
+    await requireAdmin();
     const { searchParams } = new URL(request.url);
     const timeRange = searchParams.get('range') || '10m'; // 10m, 1h, today
 
@@ -168,6 +170,8 @@ export async function GET(request: NextRequest) {
       })),
     });
   } catch (error) {
+    const authError = handleAuthError(error);
+    if (authError) return authError;
     console.error('[Analytics/Realtime] Error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch realtime data' },

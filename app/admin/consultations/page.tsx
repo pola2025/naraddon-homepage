@@ -12,7 +12,7 @@
  */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { AdminLogger } from '@/lib/admin-logger';
@@ -23,19 +23,14 @@ import {
   CustomerType
 } from '@/types/consultation.types';
 import {
-  ClipboardDocumentCheckIcon,
   UserGroupIcon,
   PhoneIcon,
   CalendarIcon,
   DocumentCheckIcon,
   CheckCircleIcon,
-  XCircleIcon,
   ClockIcon,
-  ExclamationTriangleIcon,
-  ChevronRightIcon,
   FunnelIcon,
   ArrowPathIcon,
-  UserIcon,
   BuildingOfficeIcon,
   TrashIcon
 } from '@heroicons/react/24/outline';
@@ -112,10 +107,8 @@ export default function AdminConsultationsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedConsultation, setSelectedConsultation] = useState<string | null>(null);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
-  const [statusUpdateModalOpen, setStatusUpdateModalOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<string>('');
   const [assignNotes, setAssignNotes] = useState('');
-  const [statusMemo, setStatusMemo] = useState('');
   const [filters, setFilters] = useState({
     status: '',
     phase: '',
@@ -124,6 +117,10 @@ export default function AdminConsultationsPage() {
   });
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [loadedPages, setLoadedPages] = useState(0);
+  const consultationRequest = useRef<AbortController | null>(null);
+  const staffRequest = useRef<AbortController | null>(null);
 
   // 권한 체크
   useEffect(() => {
@@ -143,24 +140,55 @@ export default function AdminConsultationsPage() {
     // 페이지 접근 로그
     AdminLogger.logPageView('/admin/consultations', '상담 관리');
 
-    fetchConsultations();
-    fetchStaffList();
+    void fetchConsultations();
+    void fetchStaffList();
+    return () => {
+      consultationRequest.current?.abort();
+      staffRequest.current?.abort();
+    };
   }, [status, session, router]);
 
-  const fetchConsultations = async () => {
+  const fetchConsultations = async (cursor: string | null = null, append = false) => {
+    consultationRequest.current?.abort();
+    const controller = new AbortController();
+    consultationRequest.current = controller;
     setLoading(true);
     try {
       const params = new URLSearchParams(
         Object.entries(filters).filter(([_, value]) => value)
       );
+      params.set('limit', '25');
+      if (cursor) params.set('cursor', cursor);
 
-      const response = await fetch(`/api/consultations?${params}`);
+      const response = await fetch(`/api/consultations?${params}`, {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
       const data = await response.json();
 
       if (response.ok && Array.isArray(data)) {
-        setConsultations(data);
+        setConsultations((previousConsultations) => {
+          const consultationsById = new Map(
+            (append ? previousConsultations : []).map((consultation) => [consultation._id, consultation])
+          );
+          for (const consultation of data) {
+            consultationsById.set(consultation._id, consultation);
+          }
+          return Array.from(consultationsById.values());
+        });
+        const nextPageCount = append ? loadedPages + 1 : 1;
+        const responseCursor = response.headers.get('X-Next-Cursor');
+        setLoadedPages(nextPageCount);
+        setNextCursor(
+          response.headers.get('X-Has-More') === 'true' && nextPageCount < 20
+            ? responseCursor || null
+            : null
+        );
       }
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
       console.error('Failed to fetch consultations:', error);
     } finally {
       setLoading(false);
@@ -168,8 +196,14 @@ export default function AdminConsultationsPage() {
   };
 
   const fetchStaffList = async () => {
+    staffRequest.current?.abort();
+    const controller = new AbortController();
+    staffRequest.current = controller;
     try {
-      const response = await fetch('/api/admin/users?role=expert,examiner');
+      const response = await fetch('/api/admin/users?role=expert,examiner&limit=50', {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
       const data = await response.json();
 
       // API 응답에서 users 배열 추출
@@ -185,6 +219,9 @@ export default function AdminConsultationsPage() {
         })));
       }
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
       console.error('Failed to fetch staff list:', error);
     }
   };
@@ -244,34 +281,6 @@ export default function AdminConsultationsPage() {
     } catch (error) {
       console.error('Failed to delete consultation:', error);
       alert('삭제 중 오류가 발생했습니다.');
-    }
-  };
-
-  const handleStatusUpdate = async (consultationId: string, newStatus: ConsultationStatus, newPhase?: ConsultationPhase) => {
-    try {
-      const response = await fetch(`/api/consultations/${consultationId}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: newStatus,
-          phase: newPhase,
-          memo: statusMemo
-        })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        alert('상태가 업데이트되었습니다.');
-        setStatusUpdateModalOpen(false);
-        setStatusMemo('');
-        fetchConsultations();
-      } else {
-        alert(data.error || '상태 업데이트에 실패했습니다.');
-      }
-    } catch (error) {
-      console.error('Failed to update status:', error);
-      alert('상태 업데이트 중 오류가 발생했습니다.');
     }
   };
 
@@ -451,7 +460,7 @@ export default function AdminConsultationsPage() {
               </div>
 
               <button
-                onClick={fetchConsultations}
+                onClick={() => void fetchConsultations()}
                 className="flex items-center text-sm text-blue-600 hover:text-blue-800"
               >
                 <ArrowPathIcon className="h-4 w-4 mr-1" />
@@ -593,6 +602,18 @@ export default function AdminConsultationsPage() {
               )}
             </tbody>
           </table>
+          {nextCursor && (
+            <div className="bg-gray-50 px-6 py-4 flex justify-center border-t">
+              <button
+                type="button"
+                onClick={() => void fetchConsultations(nextCursor, true)}
+                disabled={loading}
+                className="px-4 py-2 text-sm border rounded-md bg-white disabled:opacity-50"
+              >
+                {loading ? '불러오는 중...' : '다음 25건 불러오기'}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* 삭제 확인 모달 */}

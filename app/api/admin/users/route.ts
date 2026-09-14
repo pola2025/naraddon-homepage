@@ -2,8 +2,32 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/auth-options';
 import clientPromise from '@/lib/mongodb-client';
+import { ObjectId } from 'mongodb';
+import {
+  buildDescendingDateCursorFilter,
+  parseListRequest,
+  takePage,
+} from '@/lib/bounded-read';
 
 export const dynamic = 'force-dynamic';
+
+type AdminUserDocument = {
+  readonly _id: { toString(): string };
+  readonly email?: string;
+  readonly name?: string;
+  readonly mobile?: string;
+  readonly role?: string;
+  readonly status?: string;
+  readonly isAdmin?: boolean;
+  readonly profile?: Record<string, unknown>;
+  readonly examinerProfile?: unknown;
+  readonly auditorProfile?: unknown;
+  readonly expertProfile?: unknown;
+  readonly examinerId?: unknown;
+  readonly createdAt: Date | string;
+  readonly updatedAt?: Date | string;
+  readonly lastLoginAt?: Date | string;
+};
 
 // GET /api/admin/users - 사용자 목록 조회
 export async function GET(request: NextRequest) {
@@ -23,15 +47,6 @@ export async function GET(request: NextRequest) {
     // 관리자 권한 확인
     let userRole = (session.user as any)?.role;
     let userIsAdmin = (session.user as any)?.isAdmin;
-    console.log(
-      '[Admin Users API] Session role:',
-      userRole,
-      'isAdmin:',
-      userIsAdmin,
-      'Email:',
-      session.user.email
-    );
-
     // 🔥 HOTFIX: role이 undefined인 경우 DB에서 직접 조회
     if (!userRole || userIsAdmin === undefined) {
       console.warn('[Admin Users API] Role/isAdmin is undefined, fetching from DB');
@@ -45,9 +60,8 @@ export async function GET(request: NextRequest) {
         if (dbUser) {
           userRole = dbUser.role || userRole;
           userIsAdmin = dbUser.isAdmin || false;
-          console.log('[Admin Users API] ✅ From DB - Role:', userRole, 'isAdmin:', userIsAdmin);
         } else {
-          console.error('[Admin Users API] ❌ No user found in DB for:', session.user.email);
+          console.error('[Admin Users API] Session user not found');
         }
       } catch (dbError) {
         console.error('[Admin Users API] ❌ DB query failed:', dbError);
@@ -58,12 +72,6 @@ export async function GET(request: NextRequest) {
     const hasAdminAccess =
       userRole === 'admin' || userRole === 'super_admin' || userIsAdmin === true;
     if (!hasAdminAccess) {
-      console.log(
-        '[Admin Users API] Forbidden - insufficient permissions. Role:',
-        userRole,
-        'isAdmin:',
-        userIsAdmin
-      );
       return NextResponse.json(
         {
           error: 'Forbidden',
@@ -78,8 +86,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const roleParam = searchParams.get('role'); // e.g., "expert,examiner"
     const searchQuery = searchParams.get('search');
-    const limit = parseInt(searchParams.get('limit') || '100');
-    const skip = parseInt(searchParams.get('skip') || '0');
+    const listRequestResult = parseListRequest(searchParams, { defaultLimit: 25, maxLimit: 50 });
+    if (listRequestResult.kind === 'invalid') {
+      return NextResponse.json({ error: listRequestResult.message }, { status: 400 });
+    }
+    const { limit, cursor } = listRequestResult.request;
 
     // MongoDB 연결
     const client = await clientPromise;
@@ -103,35 +114,52 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    // 사용자 목록 조회
-    console.log('[Admin Users API] Fetching users with filter:', filter);
+    let queryFilter = filter;
+    if (cursor) {
+      const cursorFilterResult = buildDescendingDateCursorFilter(
+        cursor,
+        'createdAt',
+        (id) => new ObjectId(id)
+      );
+      if (cursorFilterResult.kind === 'invalid') {
+        return NextResponse.json({ error: 'cursor is invalid' }, { status: 400 });
+      }
+      queryFilter = { $and: [filter, cursorFilterResult.filter] };
+    }
+
     const users = await db
       .collection('users')
-      .find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
+      .find(queryFilter)
+      .sort({ createdAt: -1, _id: -1 })
+      .limit(limit + 1)
       .project({
         password: 0, // 비밀번호 제외
         authToken: 0, // 인증 토큰 제외
       })
       .toArray();
 
-    console.log('[Admin Users API] Found users count:', users.length);
-    console.log('[Admin Users API] First user:', users[0]);
-
-    // 전체 개수
-    const total = await db.collection('users').countDocuments(filter);
-    console.log('[Admin Users API] Total users in DB:', total);
-
-    // 각 사용자의 상담 배정 개수 추가
-    const usersWithStats = await Promise.all(
-      users.map(async (user) => {
-        const assignedConsultations = await db
+    const page = takePage<AdminUserDocument>(users, limit, (user) => ({
+      sortValue: new Date(user.createdAt).toISOString(),
+      id: user._id.toString(),
+    }));
+    const userEmails = page.items
+      .map((user) => user.email)
+      .filter((email): email is string => typeof email === 'string' && email.length > 0);
+    const assignedCounts = userEmails.length
+      ? await db
           .collection('consultations')
-          .countDocuments({ assignedStaffId: user.email });
+          .aggregate([
+            { $match: { assignedStaffId: { $in: userEmails } } },
+            { $group: { _id: '$assignedStaffId', count: { $sum: 1 } } },
+          ])
+          .toArray()
+      : [];
+    const assignedCountByEmail = new Map(
+      assignedCounts.map((entry) => [String(entry._id), Number(entry.count)])
+    );
 
-        return {
+    const usersWithStats = page.items.map((user) => {
+      return {
           _id: user._id.toString(),
           email: user.email,
           name: user.name,
@@ -146,17 +174,20 @@ export async function GET(request: NextRequest) {
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
           lastLoginAt: user.lastLoginAt,
-          assignedConsultations,
-        };
-      })
-    );
-
-    return NextResponse.json({
-      users: usersWithStats,
-      total,
-      limit,
-      skip,
+          assignedConsultations: assignedCountByEmail.get(user.email) || 0,
+      };
     });
+
+    return NextResponse.json(
+      {
+        users: usersWithStats,
+        total: null,
+        limit,
+        nextCursor: page.nextCursor,
+        hasMore: page.hasMore,
+      },
+      { headers: { 'Cache-Control': 'private, no-store' } }
+    );
   } catch (error) {
     console.error('Failed to fetch users:', error);
     return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });

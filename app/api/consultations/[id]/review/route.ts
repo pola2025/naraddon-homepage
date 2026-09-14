@@ -35,6 +35,7 @@ export async function GET(
       // 관리자는 모든 리뷰 조회 가능
       const reviews = await db.collection('reviews')
         .find({ consultationId: params.id })
+        .limit(100)
         .toArray();
       return NextResponse.json(reviews);
     } else if (userRole === 'examiner' && consultation.assignedStaffId === userEmail) {
@@ -173,6 +174,7 @@ async function updateExaminerStats(db: any, examinerId: string) {
     // 해당 심사관의 모든 리뷰 조회
     const reviews = await db.collection('reviews')
       .find({ examinerId })
+      .limit(100)
       .toArray();
 
     if (reviews.length === 0) return;

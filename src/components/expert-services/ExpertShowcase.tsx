@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 
 interface Expert {
   _id: string;
@@ -19,13 +18,7 @@ export function ExpertShowcase() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/experts', {
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
-      }
-    })
+    fetch('/api/experts', { cache: 'default' })
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.experts)) {

@@ -1,20 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/auth-options';
 import connectDB from '@/lib/mongodb';
 import NaraddonTubeEntry from '@/models/NaraddonTubeEntry';
+import { isAdmin } from '@/lib/auth/role-check';
+import { buildAscendingCursorFilter, parseListRequest, takePage } from '@/lib/bounded-read';
 
 // API Route를 동적으로 설정 (환경변수 문제 해결)
 export const dynamic = 'force-dynamic';
 
-const DEFAULT_SORT = { sortOrder: 1, createdAt: -1 } as const;
-
-type IncomingVideoPayload = {
-  title?: string;
-  youtubeUrl?: string;
-  url?: string;
-  youtubeId?: string;
-  customThumbnail?: string;
-};
+const DEFAULT_SORT = { sortOrder: 1, _id: 1 } as const;
 
 type NaraddonTubePayload = {
   password?: string;
@@ -73,20 +69,42 @@ export async function GET(request: NextRequest) {
     await connectDB();
 
     const { searchParams } = new URL(request.url);
-    const limitParam = searchParams.get('limit');
     const includeDraft = searchParams.get('includeDraft') === 'true';
+    const listRequestResult = parseListRequest(searchParams, { defaultLimit: 24, maxLimit: 50 });
+    if (listRequestResult.kind === 'invalid') {
+      return NextResponse.json({ message: listRequestResult.message }, { status: 400 });
+    }
+    const { limit, cursor } = listRequestResult.request;
 
-    const query = includeDraft ? {} : { isPublished: true };
-    const limit = limitParam ? Number.parseInt(limitParam, 10) : undefined;
-
-    const entriesQuery = NaraddonTubeEntry.find(query).sort(DEFAULT_SORT).lean();
-    if (limit && !Number.isNaN(limit)) {
-      entriesQuery.limit(limit);
+    if (includeDraft) {
+      const session = await getServerSession(authOptions);
+      if (!session?.user || !isAdmin(session.user)) {
+        return NextResponse.json({ message: '관리자 권한이 필요합니다.' }, { status: 403 });
+      }
     }
 
-    const entries = await entriesQuery;
+    const baseQuery: Record<string, unknown> = includeDraft ? {} : { isPublished: true };
+    const cursorFilter = cursor ? buildAscendingCursorFilter(cursor, 'sortOrder') : null;
+    const query = cursorFilter ? { $and: [baseQuery, cursorFilter] } : baseQuery;
+    const entries = await NaraddonTubeEntry.find(query)
+      .sort(DEFAULT_SORT)
+      .limit(limit + 1)
+      .lean();
+    const page = takePage(entries, limit, (entry) => ({
+      sortValue: Number(entry.sortOrder || 0),
+      id: entry._id.toString(),
+    }));
 
-    return NextResponse.json({ entries });
+    return NextResponse.json(
+      { entries: page.items, nextCursor: page.nextCursor, hasMore: page.hasMore },
+      {
+        headers: {
+          'Cache-Control': includeDraft
+            ? 'private, no-store'
+            : 'public, s-maxage=60, stale-while-revalidate=300',
+        },
+      }
+    );
   } catch (error) {
     console.error('[naraddon-tube][GET]', error);
     return NextResponse.json({ message: '영상 목록을 불러오지 못했습니다.' }, { status: 500 });

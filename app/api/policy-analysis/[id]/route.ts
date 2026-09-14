@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/auth-options';
 import { requirePolicyWriter, handleAuthError } from '@/lib/auth/guards';
 import connectDB from '@/lib/mongodb';
 import PolicyAnalysisPost from '@/models/PolicyAnalysisPost';
 import ExpertExaminer from '@/models/ExpertExaminer';
+import { publicListResponseCache } from '@/lib/list-response-cache';
 
 interface RouteParams {
   params: {
@@ -29,6 +28,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       increaseView ? { $inc: { views: 1 } } : {},
       { new: true }
     ).lean();
+    if (increaseView) {
+      publicListResponseCache.invalidatePrefix('policy-analysis:');
+    }
 
     if (!post) {
       return NextResponse.json({ message: '존재하지 않는 게시글입니다.' }, { status: 404 });
@@ -52,7 +54,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
      * @purpose admin, super_admin, examiner만 정책분석 게시글 수정 가능
      * @context guards.ts의 requirePolicyWriter 사용 (통합된 권한 체계)
      */
-    const user = await requirePolicyWriter();
+    await requirePolicyWriter();
 
     if (!mongoose.Types.ObjectId.isValid(params.id)) {
       return NextResponse.json({ message: '존재하지 않는 게시글입니다.' }, { status: 404 });
@@ -172,6 +174,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     if (!updated) {
       return NextResponse.json({ message: '존재하지 않는 게시글입니다.' }, { status: 404 });
     }
+    publicListResponseCache.invalidatePrefix('policy-analysis:');
 
     return NextResponse.json({ post: updated });
   } catch (error) {
@@ -196,7 +199,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
      * @purpose admin, super_admin, examiner만 정책분석 게시글 삭제 가능
      * @context guards.ts의 requirePolicyWriter 사용 (통합된 권한 체계)
      */
-    const user = await requirePolicyWriter();
+    await requirePolicyWriter();
 
     if (!mongoose.Types.ObjectId.isValid(params.id)) {
       return NextResponse.json({ message: '존재하지 않는 게시글입니다.' }, { status: 404 });
@@ -208,6 +211,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     if (!deleted) {
       return NextResponse.json({ message: '존재하지 않는 게시글입니다.' }, { status: 404 });
     }
+    publicListResponseCache.invalidatePrefix('policy-analysis:');
 
     return NextResponse.json({ message: '삭제되었습니다.' });
   } catch (error) {

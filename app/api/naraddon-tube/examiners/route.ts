@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/auth-options';
 import connectDB from '@/lib/mongodb';
 import ExaminerProfile from '@/models/ExaminerProfile';
+import { isAdmin } from '@/lib/auth/role-check';
+import { parseListRequest } from '@/lib/bounded-read';
 
 // API Route를 동적으로 설정
 export const dynamic = 'force-dynamic';
@@ -87,11 +91,23 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const includeHidden = searchParams.get('includeHidden') === 'true';
     const category = searchParams.get('category');
+    const listRequestResult = parseListRequest(searchParams, { defaultLimit: 24, maxLimit: 50 });
+    if (listRequestResult.kind === 'invalid') {
+      return NextResponse.json({ message: listRequestResult.message }, { status: 400 });
+    }
+    const { limit } = listRequestResult.request;
+
+    if (includeHidden) {
+      const session = await getServerSession(authOptions);
+      if (!session?.user || !isAdmin(session.user)) {
+        return NextResponse.json({ message: '관리자 권한이 필요합니다.' }, { status: 403 });
+      }
+    }
 
     await connectDB();
 
     // 쿼리 조건 설정
-    let query: any = {};
+    const query: any = {};
     if (!includeHidden) {
       query.isPublished = true;
     }
@@ -102,15 +118,26 @@ export async function GET(request: NextRequest) {
     const examiners = await ExaminerProfile
       .find(query)
       .sort({ sortOrder: 1, createdAt: -1 })
+      .limit(limit)
       .lean();
 
     console.log(`[naraddon-tube/examiners] Found ${examiners.length} examiners`);
 
-    return NextResponse.json({
-      success: true,
-      examiners,
-      total: examiners.length
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        examiners,
+        total: null,
+        hasMore: examiners.length === limit,
+      },
+      {
+        headers: {
+          'Cache-Control': includeHidden
+            ? 'private, no-store'
+            : 'public, s-maxage=60, stale-while-revalidate=300',
+        },
+      }
+    );
   } catch (error) {
     console.error('[naraddon-tube/examiners] GET Error:', error);
     return NextResponse.json({

@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { FiCheckCircle } from 'react-icons/fi';
@@ -190,6 +188,9 @@ const PolicyAnalysis = ({ showPolicyNews = true }) => {
   // const [searchTerm, setSearchTerm] = useState(''); // 검색 기능 제거
   const [visiblePosts, setVisiblePosts] = useState(5);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState(null);
+  const [hasMore, setHasMore] = useState(false);
   const [fetchError, setFetchError] = useState('');
   const [showWritePasswordModal, setShowWritePasswordModal] = useState(false);
   const [writePassword, setWritePassword] = useState('');
@@ -197,6 +198,8 @@ const PolicyAnalysis = ({ showPolicyNews = true }) => {
   const [isVerifyingWritePassword, setIsVerifyingWritePassword] = useState(false);
   const [isWriteAuthorized, setIsWriteAuthorized] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const pageRequestRef = useRef(null);
+  const loadedPagesRef = useRef(0);
 
   /**
    * 세션 기반 권한 체크
@@ -276,7 +279,7 @@ const PolicyAnalysis = ({ showPolicyNews = true }) => {
       try {
         // limit와 fields 파라미터 추가 (성능 최적화)
         const response = await fetch('/api/policy-analysis?sort=views&limit=20&fields=minimal', {
-          cache: 'no-store',
+          cache: 'default',
           signal: controller.signal,
         });
 
@@ -291,6 +294,9 @@ const PolicyAnalysis = ({ showPolicyNews = true }) => {
 
         if (isMounted) {
           setPosts(normalized);
+          loadedPagesRef.current = 1;
+          setNextCursor(payload?.nextCursor || null);
+          setHasMore(Boolean(payload?.hasMore && payload?.nextCursor));
         }
       } catch (error) {
         if (error?.name === 'AbortError') {
@@ -313,6 +319,7 @@ const PolicyAnalysis = ({ showPolicyNews = true }) => {
     return () => {
       isMounted = false;
       controller.abort();
+      pageRequestRef.current?.abort();
       // body 클래스 제거 - 주석처리
       // document.body.classList.remove('page-policy-analysis');
     };
@@ -547,8 +554,50 @@ const PolicyAnalysis = ({ showPolicyNews = true }) => {
     router.push(`/policy-analysis/${postId}`);
   };
 
-  const handleLoadMore = () => {
-    setVisiblePosts((prev) => Math.min(prev + 5, filteredPosts.length));
+  const handleLoadMore = async () => {
+    if (visiblePosts < filteredPosts.length) {
+      setVisiblePosts((prev) => Math.min(prev + 5, filteredPosts.length));
+      return;
+    }
+    if (!hasMore || !nextCursor || isLoadingMore || loadedPagesRef.current >= 20) return;
+
+    pageRequestRef.current?.abort();
+    const controller = new AbortController();
+    pageRequestRef.current = controller;
+    setIsLoadingMore(true);
+    try {
+      const params = new URLSearchParams({
+        sort: 'views',
+        limit: '20',
+        fields: 'minimal',
+        cursor: nextCursor,
+      });
+      const response = await fetch(`/api/policy-analysis?${params}`, {
+        cache: 'default',
+        signal: controller.signal,
+      });
+      if (!response.ok) throw new Error('정책분석 글을 더 불러오지 못했습니다.');
+      const payload = await response.json();
+      const normalized = Array.isArray(payload?.posts)
+        ? payload.posts.map((item, index) => normalizePost(item, posts.length + index))
+        : [];
+      setPosts((previousPosts) => {
+        const postsById = new Map(previousPosts.map((post) => [post.id, post]));
+        for (const post of normalized) postsById.set(post.id, post);
+        return Array.from(postsById.values());
+      });
+      loadedPagesRef.current += 1;
+      setNextCursor(payload?.nextCursor || null);
+      setHasMore(Boolean(payload?.hasMore && payload?.nextCursor && loadedPagesRef.current < 20));
+      setVisiblePosts((prev) => prev + 5);
+    } catch (error) {
+      if (error?.name !== 'AbortError') {
+        console.error('[PolicyAnalysis] next page error', error);
+        setFetchError('다음 정책분석 글을 불러오지 못했습니다. 다시 시도해주세요.');
+      }
+    } finally {
+      setIsLoadingMore(false);
+    }
   };
 
   const handleWriteClick = () => {
@@ -750,6 +799,7 @@ const PolicyAnalysis = ({ showPolicyNews = true }) => {
               <i className="fas fa-list"></i> 게시글 목록 <span className="post-count">총 {filteredPosts.length}건</span>
             </h2>
           </div>
+          {fetchError && <div className="policy-analysis__feedback">{fetchError}</div>}
 
           {isLoading && posts.length === 0 ? (
             <div className="policy-analysis__feedback policy-analysis__feedback--loading">
@@ -799,9 +849,9 @@ const PolicyAnalysis = ({ showPolicyNews = true }) => {
                 ))}
               </div>
 
-              {visiblePosts < filteredPosts.length && (
+              {(visiblePosts < filteredPosts.length || hasMore) && (
                 <button className="load-more-btn" onClick={handleLoadMore} type="button">
-                  <i className="fas fa-plus"></i> 더보기
+                  <i className="fas fa-plus"></i> {isLoadingMore ? '불러오는 중...' : '더보기'}
                 </button>
               )}
             </>

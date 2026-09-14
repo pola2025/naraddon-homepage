@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import connectDB from '@/lib/mongodb';
 import BusinessVoiceInterviewVideo from '@/models/BusinessVoiceInterviewVideo';
+import {
+  buildDescendingDateCursorFilter,
+  parseListRequest,
+  takePage,
+} from '@/lib/bounded-read';
 
 function extractYouTubeVideoId(url: string): string | null {
   try {
@@ -49,18 +54,29 @@ export async function GET(request: NextRequest) {
     await connectDB();
 
     const { searchParams } = new URL(request.url);
-    const limitParam = searchParams.get('limit');
-    const limit = limitParam ? Number.parseInt(limitParam, 10) : undefined;
-
-    const query = BusinessVoiceInterviewVideo.find().sort({ createdAt: -1 });
-    if (limit && Number.isFinite(limit)) {
-      query.limit(limit);
+    const listRequestResult = parseListRequest(searchParams, { defaultLimit: 24, maxLimit: 50 });
+    if (listRequestResult.kind === 'invalid') {
+      return NextResponse.json({ message: listRequestResult.message }, { status: 400 });
+    }
+    const { limit, cursor } = listRequestResult.request;
+    const cursorFilterResult = cursor
+      ? buildDescendingDateCursorFilter(cursor, 'createdAt')
+      : { kind: 'valid' as const, filter: {} };
+    if (cursorFilterResult.kind === 'invalid') {
+      return NextResponse.json({ message: 'cursor is invalid' }, { status: 400 });
     }
 
-    const items = await query.lean();
+    const items = await BusinessVoiceInterviewVideo.find(cursorFilterResult.filter)
+      .sort({ createdAt: -1, _id: -1 })
+      .limit(limit + 1)
+      .lean();
+    const page = takePage(items, limit, (item) => ({
+      sortValue: new Date(item.createdAt).toISOString(),
+      id: item._id.toString(),
+    }));
 
     return NextResponse.json({
-      interviews: items.map((item) => ({
+      interviews: page.items.map((item) => ({
         id: item._id.toString(),
         title: item.title,
         youtubeUrl: item.youtubeUrl,
@@ -69,7 +85,9 @@ export async function GET(request: NextRequest) {
         thumbnailUrl: item.thumbnailUrl,
         createdAt: item.createdAt,
       })),
-    });
+      nextCursor: page.nextCursor,
+      hasMore: page.hasMore,
+    }, { headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300' } });
   } catch (error) {
     console.error('[business-voice-interviews][GET]', error);
     return NextResponse.json(

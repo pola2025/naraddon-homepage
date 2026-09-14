@@ -16,20 +16,38 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/auth-options';
 import { requirePolicyWriter , handleAuthError } from '@/lib/auth/guards';
 import connectDB from '@/lib/mongodb';
 import PolicyNewsPost from '@/models/PolicyNewsPost';
+import {
+  buildDescendingDateCursorFilter,
+  parseListRequest,
+  takePage,
+} from '@/lib/bounded-read';
+import { publicListResponseCache } from '@/lib/list-response-cache';
 
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
     const { searchParams } = new URL(request.url);
-    const limitParam = searchParams.get('limit');
     const mainOnly = searchParams.get('mainOnly') === 'true';
     const includeAll = searchParams.get('includeAll') === 'true'; // 관리자용: 임시저장 포함
+    const listRequestResult = parseListRequest(searchParams, { defaultLimit: 24, maxLimit: 100 });
+    if (listRequestResult.kind === 'invalid') {
+      return NextResponse.json({ message: listRequestResult.message }, { status: 400 });
+    }
+    const { limit, cursor } = listRequestResult.request;
+
+    if (includeAll) {
+      try {
+        await requirePolicyWriter();
+      } catch (error) {
+        const authError = handleAuthError(error);
+        if (authError) return authError;
+        throw error;
+      }
+    }
 
     // 기본 쿼리: 임시저장이 아닌 글만 (일반 사용자용)
     // includeAll=true 면 모든 글 조회 (관리자용)
@@ -44,16 +62,42 @@ export async function GET(request: NextRequest) {
     }
     // includeAll=true면 query는 빈 객체 (모든 글 조회)
 
-    const limit = limitParam ? parseInt(limitParam, 10) : undefined;
-
-    const postsQuery = PolicyNewsPost.find(query).sort({ createdAt: -1 });
-    if (limit && !Number.isNaN(limit)) {
-      postsQuery.limit(limit);
+    let queryFilter: Record<string, unknown> = query;
+    if (cursor) {
+      const cursorFilterResult = buildDescendingDateCursorFilter(cursor, 'createdAt');
+      if (cursorFilterResult.kind === 'invalid') {
+        return NextResponse.json({ message: 'cursor is invalid' }, { status: 400 });
+      }
+      queryFilter = { $and: [query, cursorFilterResult.filter] };
     }
 
-    const posts = await postsQuery.lean();
+    const loadPage = async () => {
+      const postsQuery = PolicyNewsPost.find(queryFilter)
+        .sort({ createdAt: -1, _id: -1 })
+        .limit(limit + 1);
+      if (!includeAll) {
+        postsQuery.select('-content');
+      }
+      const posts = await postsQuery.lean();
+      const page = takePage(posts, limit, (post) => ({
+        sortValue: new Date(post.createdAt).toISOString(),
+        id: post._id.toString(),
+      }));
+      return JSON.stringify({ posts: page.items, nextCursor: page.nextCursor, hasMore: page.hasMore });
+    };
+    const cacheKey = `policy-news:${searchParams.toString()}`;
+    const payload = includeAll
+      ? await loadPage()
+      : await publicListResponseCache.getOrLoad(cacheKey, loadPage);
 
-    return NextResponse.json({ posts });
+    return new NextResponse(payload, {
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': includeAll
+          ? 'private, no-store'
+          : 'public, s-maxage=60, stale-while-revalidate=300',
+      },
+    });
   } catch (error) {
     console.error('[policy-news][GET]', error);
     return NextResponse.json({ message: '게시글을 불러오지 못했습니다.' }, { status: 500 });
@@ -121,6 +165,7 @@ export async function POST(request: Request) {
         role: user.role,
       },
     });
+    publicListResponseCache.invalidatePrefix('policy-news:');
 
     // 텔레그램 알림 전송 (비동기로 실행, 실패해도 게시글 작성 진행)
     const { sendTelegramNotification } = await import('@/lib/notifications/telegram');

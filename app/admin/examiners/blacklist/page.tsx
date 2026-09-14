@@ -8,7 +8,7 @@
  * @features 등록, 조회, 수정, 삭제, 메모 추가
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
@@ -58,6 +58,9 @@ export default function ExaminerBlacklistPage() {
   const [entries, setEntries] = useState<BlacklistEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const loadedPages = useRef(0);
+  const activeRequest = useRef<AbortController | null>(null);
 
   // 폼 상태
   const [formData, setFormData] = useState<FormData>(initialFormData);
@@ -89,26 +92,47 @@ export default function ExaminerBlacklistPage() {
   useEffect(() => {
     const allowedRoles = ['examiner', 'admin', 'super_admin'];
     if (session?.user?.role && allowedRoles.includes(session.user.role)) {
-      fetchEntries();
+      void fetchEntries();
     }
+    return () => activeRequest.current?.abort();
   }, [session]);
 
-  const fetchEntries = async (search = '') => {
+  const fetchEntries = async (search = '', cursor: string | null = null, append = false) => {
+    activeRequest.current?.abort();
+    const controller = new AbortController();
+    activeRequest.current = controller;
     try {
       setLoading(true);
-      const url = search
-        ? `/api/examiner/blacklist?search=${encodeURIComponent(search)}`
-        : '/api/examiner/blacklist';
+      const params = new URLSearchParams({ limit: '20' });
+      if (search) params.set('search', search);
+      if (cursor) params.set('cursor', cursor);
 
-      const response = await fetch(url);
+      const response = await fetch(`/api/examiner/blacklist?${params}`, {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
       const data = await response.json();
 
       if (response.ok) {
-        setEntries(data.entries || []);
+        setEntries((previousEntries) => {
+          const entriesById = new Map(
+            (append ? previousEntries : []).map((entry) => [entry._id, entry])
+          );
+          for (const entry of data.entries || []) entriesById.set(entry._id, entry);
+          return Array.from(entriesById.values());
+        });
+        const nextPageCount = append ? loadedPages.current + 1 : 1;
+        loadedPages.current = nextPageCount;
+        setNextCursor(
+          data.pagination?.hasMore && nextPageCount < 20
+            ? data.pagination.nextCursor || null
+            : null
+        );
       } else {
         console.error('Failed to fetch blacklist:', data.error);
       }
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
       console.error('Error fetching blacklist:', error);
     } finally {
       setLoading(false);
@@ -118,7 +142,7 @@ export default function ExaminerBlacklistPage() {
   // 검색 처리
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchEntries(searchQuery);
+    void fetchEntries(searchQuery);
   };
 
   // 등록 처리
@@ -513,6 +537,18 @@ export default function ExaminerBlacklistPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+        {nextCursor && (
+          <div className="mt-4 flex justify-center">
+            <button
+              type="button"
+              onClick={() => void fetchEntries(searchQuery, nextCursor, true)}
+              disabled={loading}
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+            >
+              {loading ? '불러오는 중...' : '다음 20건 불러오기'}
+            </button>
           </div>
         )}
       </div>

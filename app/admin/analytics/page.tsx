@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   PieChart,
   Pie,
@@ -99,6 +99,8 @@ export default function AdminAnalyticsPage() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'custom'>('7d');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
+  const activeRequest = useRef<AbortController | null>(null);
+  const responseCache = useRef(new Map<string, { expiresAt: number; data: Stats }>());
 
   useEffect(() => {
     // custom 모드가 아닐 때만 자동 로드
@@ -143,8 +145,23 @@ export default function AdminAnalyticsPage() {
         return date.toISOString().split('T')[0];
       };
 
+      const cacheKey = `${formatDate(startDate)}:${formatDate(endDate)}`;
+      const cached = responseCache.current.get(cacheKey);
+      if (cached && cached.expiresAt > Date.now()) {
+        responseCache.current.delete(cacheKey);
+        responseCache.current.set(cacheKey, cached);
+        setStats(cached.data);
+        setLoading(false);
+        return;
+      }
+
+      activeRequest.current?.abort();
+      const controller = new AbortController();
+      activeRequest.current = controller;
+
       const response = await fetch(
-        `/api/admin/stats?startDate=${formatDate(startDate)}&endDate=${formatDate(endDate)}`
+        `/api/admin/stats?startDate=${formatDate(startDate)}&endDate=${formatDate(endDate)}`,
+        { cache: 'no-store', signal: controller.signal }
       );
 
       if (!response.ok) {
@@ -152,13 +169,24 @@ export default function AdminAnalyticsPage() {
       }
       const data = await response.json();
       setStats(data);
+      responseCache.current.set(cacheKey, { expiresAt: Date.now() + 30_000, data });
+      while (responseCache.current.size > 4) {
+        const oldestKey = responseCache.current.keys().next().value;
+        if (typeof oldestKey !== 'string') break;
+        responseCache.current.delete(oldestKey);
+      }
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
       console.error('데이터 로드 실패:', error);
       setError('데이터를 불러오는 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => () => activeRequest.current?.abort(), []);
 
   if (loading) {
     return <LoadingSpinner message="상세 통계를 불러오는 중..." fullScreen />;
@@ -278,7 +306,7 @@ export default function AdminAnalyticsPage() {
                     outerRadius={100}
                     paddingAngle={2}
                     dataKey="value"
-                    label={({ name, value }) => `${value.toLocaleString()}회`}
+                    label={({ value }) => `${value.toLocaleString()}회`}
                     labelLine={{ stroke: '#666', strokeWidth: 1 }}
                   >
                     {deviceData.map((entry, index) => (
@@ -338,7 +366,7 @@ export default function AdminAnalyticsPage() {
                     outerRadius={100}
                     paddingAngle={2}
                     dataKey="value"
-                    label={({ name, value }) => `${value.toLocaleString()}회`}
+                    label={({ value }) => `${value.toLocaleString()}회`}
                     labelLine={{ stroke: '#666', strokeWidth: 1 }}
                   >
                     {trafficData.map((entry, index) => (

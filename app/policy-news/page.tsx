@@ -32,43 +32,62 @@ export default function PolicyNewsListPage() {
   const [activeFilter, setActiveFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [error, setError] = useState('');
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const activeRequest = useRef<AbortController | null>(null);
+  const loadedPages = useRef(0);
 
-  // 초기 데이터 로드
-  useEffect(() => {
-    const fetchPosts = async () => {
-      setIsLoading(true);
-      setError('');
+  const fetchPosts = useCallback(async (cursor: string | null = null, append = false) => {
+    activeRequest.current?.abort();
+    const controller = new AbortController();
+    activeRequest.current = controller;
+    append ? setIsLoadingMore(true) : setIsLoading(true);
+    setError('');
 
-      try {
-        const response = await fetch('/api/policy-news?limit=100', {
-          cache: 'no-store',
-        });
+    try {
+      const params = new URLSearchParams({ limit: String(ITEMS_PER_PAGE) });
+      if (cursor) params.set('cursor', cursor);
+      const response = await fetch(`/api/policy-news?${params}`, {
+        cache: 'default',
+        signal: controller.signal,
+      });
 
-        if (!response.ok) {
-          throw new Error('정책소식을 불러오는데 실패했습니다.');
-        }
-
-        const data = await response.json();
-        const posts = Array.isArray(data?.posts) ? data.posts : [];
-        const normalized = posts.map((post: any, index: number) =>
-          normalizePolicyNewsItem(post, index)
-        );
-
-        setAllPosts(normalized);
-      } catch (err) {
-        console.error('[PolicyNewsList] Fetch error:', err);
-        setError('정책소식을 불러오는 중 문제가 발생했습니다.');
-      } finally {
-        setIsLoading(false);
+      if (!response.ok) {
+        throw new Error('정책소식을 불러오는데 실패했습니다.');
       }
-    };
 
-    fetchPosts();
+      const data = await response.json();
+      const posts = Array.isArray(data?.posts) ? data.posts : [];
+      const normalized = posts.map((post: any, index: number) =>
+        normalizePolicyNewsItem(post, index)
+      );
+      setAllPosts((previousPosts) => {
+        const postsById = new Map(
+          (append ? previousPosts : []).map((post) => [post.id, post])
+        );
+        for (const post of normalized) postsById.set(post.id, post);
+        return Array.from(postsById.values());
+      });
+      const nextPageCount = append ? loadedPages.current + 1 : 1;
+      loadedPages.current = nextPageCount;
+      setNextCursor(data.hasMore && nextPageCount < 20 ? data.nextCursor || null : null);
+      setHasMore(Boolean(data.hasMore && data.nextCursor && nextPageCount < 20));
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      console.error('[PolicyNewsList] Fetch error:', err);
+      setError('정책소식을 불러오는 중 문제가 발생했습니다.');
+    } finally {
+      append ? setIsLoadingMore(false) : setIsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void fetchPosts();
+    return () => activeRequest.current?.abort();
+  }, [fetchPosts]);
 
   // 필터 변경 시 게시물 필터링
   useEffect(() => {
@@ -100,28 +119,13 @@ export default function PolicyNewsListPage() {
     }
 
     setFilteredPosts(filtered);
-    setDisplayedPosts(filtered.slice(0, ITEMS_PER_PAGE));
-    setHasMore(filtered.length > ITEMS_PER_PAGE);
+    setDisplayedPosts(filtered);
   }, [allPosts, activeFilter]);
 
-  // 더 로드하기
   const loadMore = useCallback(() => {
-    if (isLoadingMore || !hasMore) return;
-
-    setIsLoadingMore(true);
-
-    setTimeout(() => {
-      const currentLength = displayedPosts.length;
-      const nextPosts = filteredPosts.slice(currentLength, currentLength + ITEMS_PER_PAGE);
-
-      if (nextPosts.length > 0) {
-        setDisplayedPosts((prev) => [...prev, ...nextPosts]);
-      }
-
-      setHasMore(currentLength + nextPosts.length < filteredPosts.length);
-      setIsLoadingMore(false);
-    }, 300);
-  }, [displayedPosts, filteredPosts, hasMore, isLoadingMore]);
+    if (isLoadingMore || !hasMore || !nextCursor) return;
+    void fetchPosts(nextCursor, true);
+  }, [fetchPosts, hasMore, isLoadingMore, nextCursor]);
 
   // Intersection Observer로 무한 스크롤 구현
   useEffect(() => {
@@ -147,7 +151,7 @@ export default function PolicyNewsListPage() {
         observerRef.current.disconnect();
       }
     };
-  }, [hasMore, isLoadingMore, loadMore]);
+  }, [displayedPosts.length, hasMore, isLoadingMore, loadMore]);
 
   // 카드 클릭 핸들러
   const handleCardClick = (id: string) => {
@@ -232,7 +236,7 @@ export default function PolicyNewsListPage() {
 
         {/* 결과 카운트 */}
         <div className="policy-news-result-count">
-          총 <strong>{filteredPosts.length}</strong>건의 정책소식
+          현재 <strong>{filteredPosts.length}</strong>건 표시
         </div>
 
         {/* 카드 그리드 */}
@@ -275,20 +279,19 @@ export default function PolicyNewsListPage() {
               ))}
             </div>
 
-            {/* 무한 스크롤 로딩 트리거 */}
-            <div ref={loadMoreRef} className="policy-news-load-more">
-              {isLoadingMore && (
-                <div className="loading-indicator">
-                  <i className="fas fa-spinner fa-spin"></i>
-                  <span>더 불러오는 중...</span>
-                </div>
-              )}
-              {!hasMore && displayedPosts.length > 0 && (
-                <div className="no-more-posts">모든 정책소식을 확인했습니다.</div>
-              )}
-            </div>
           </>
         )}
+        <div ref={loadMoreRef} className="policy-news-load-more">
+          {isLoadingMore && (
+            <div className="loading-indicator">
+              <i className="fas fa-spinner fa-spin"></i>
+              <span>더 불러오는 중...</span>
+            </div>
+          )}
+          {!hasMore && displayedPosts.length > 0 && (
+            <div className="no-more-posts">모든 정책소식을 확인했습니다.</div>
+          )}
+        </div>
       </div>
     </div>
   );

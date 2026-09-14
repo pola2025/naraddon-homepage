@@ -3,7 +3,19 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { waitUntil } from '@vercel/functions';
 import clientPromise from '@/lib/mongodb-client';
+import { ObjectId } from 'mongodb';
 import { sendInfraMessage } from '@/lib/telegram-infra';
+import {
+  buildDescendingDateCursorFilter,
+  parseListRequest,
+  takePage,
+} from '@/lib/bounded-read';
+
+type ConsultationListDocument = {
+  readonly _id: { toString(): string };
+  readonly createdAt: Date | string;
+  readonly [key: string]: unknown;
+};
 import {
   ConsultationRequest,
   ConsultationStatus,
@@ -474,6 +486,11 @@ export async function GET(request: NextRequest) {
     const phase = searchParams.get('phase');
     const staffId = searchParams.get('staffId');
     const userId = searchParams.get('userId');
+    const listRequestResult = parseListRequest(searchParams, { defaultLimit: 25, maxLimit: 50 });
+    if (listRequestResult.kind === 'invalid') {
+      return NextResponse.json({ error: listRequestResult.message }, { status: 400 });
+    }
+    const { limit, cursor } = listRequestResult.request;
 
     const client = await clientPromise;
     const db = client.db('naraddon');
@@ -495,13 +512,38 @@ export async function GET(request: NextRequest) {
       filter.userEmail = userEmail;
     }
 
+    let queryFilter = filter;
+    if (cursor) {
+      const cursorFilterResult = buildDescendingDateCursorFilter(
+        cursor,
+        'createdAt',
+        (id) => new ObjectId(id)
+      );
+      if (cursorFilterResult.kind === 'invalid') {
+        return NextResponse.json({ error: 'cursor is invalid' }, { status: 400 });
+      }
+      queryFilter = { $and: [filter, cursorFilterResult.filter] };
+    }
+
     const consultations = await db
       .collection('consultations')
-      .find(filter)
-      .sort({ createdAt: -1 })
+      .find(queryFilter)
+      .sort({ createdAt: -1, _id: -1 })
+      .limit(limit + 1)
       .toArray();
+    const page = takePage<ConsultationListDocument>(consultations, limit, (consultation) => ({
+      sortValue: new Date(consultation.createdAt).toISOString(),
+      id: consultation._id.toString(),
+    }));
 
-    return NextResponse.json(consultations);
+    return NextResponse.json(page.items, {
+      headers: {
+        'Cache-Control': 'private, no-store',
+        'X-Has-More': String(page.hasMore),
+        'X-Next-Cursor': page.nextCursor || '',
+        'X-Page-Limit': String(limit),
+      },
+    });
   } catch (error) {
     console.error('Failed to fetch consultations:', error);
     return NextResponse.json({ error: 'Failed to fetch consultations' }, { status: 500 });

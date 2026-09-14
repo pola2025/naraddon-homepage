@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb-client';
+import { handleAuthError, requireAdmin } from '@/lib/auth/guards';
+import { parseAnalyticsDateRange } from '@/lib/bounded-analytics';
 
 /**
  * 시간대별 트래픽 분석 API
@@ -10,19 +12,15 @@ import clientPromise from '@/lib/mongodb-client';
 
 export async function GET(request: NextRequest) {
   try {
+    await requireAdmin();
     const { searchParams } = new URL(request.url);
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
     const type = searchParams.get('type') || 'hourly'; // hourly, daily, heatmap
 
-    // 날짜 범위 설정
-    const dateFilter: any = {};
-    if (startDate) {
-      dateFilter.$gte = new Date(startDate);
+    const dateRange = parseAnalyticsDateRange(searchParams);
+    if (dateRange.kind === 'invalid') {
+      return NextResponse.json({ error: dateRange.message }, { status: 400 });
     }
-    if (endDate) {
-      dateFilter.$lte = new Date(endDate);
-    }
+    const dateFilter = { $gte: dateRange.start, $lte: dateRange.end };
 
     // MongoDB 연결
     const client = await clientPromise;
@@ -194,6 +192,8 @@ export async function GET(request: NextRequest) {
       { status: 400 }
     );
   } catch (error) {
+    const authError = handleAuthError(error);
+    if (authError) return authError;
     console.error('[Analytics/TimeTraffic] Error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch time traffic data' },

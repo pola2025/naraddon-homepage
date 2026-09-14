@@ -32,7 +32,7 @@ export default function AdminShorts() {
   const fetchShorts = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/shorts?all=1');
+      const res = await fetch('/api/shorts?all=1&limit=50', { cache: 'no-store' });
       const data = await res.json();
       setShorts(data.shorts || []);
     } catch (error) {

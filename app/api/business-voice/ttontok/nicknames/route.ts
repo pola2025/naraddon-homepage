@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
 
     const nicknames = await TtontokNickname.find(query)
       .sort({ role: 1, sortOrder: 1, nickname: 1 })
+      .limit(200)
       .lean();
 
     // role별로 그룹화

@@ -4,8 +4,11 @@ import { authOptions } from '@/app/auth-options';
 import clientPromise from '@/lib/mongodb-client';
 import { UAParser } from 'ua-parser-js';
 import { google } from 'googleapis';
+import { parseAnalyticsDateRange } from '@/lib/bounded-analytics';
+import { adminStatsResponseCache } from '@/lib/list-response-cache';
 
 export const dynamic = 'force-dynamic';
+const ANALYTICS_SAMPLE_LIMIT = 5_000;
 
 /**
  * Umami Analytics 클라이언트
@@ -139,8 +142,25 @@ export async function GET(request: NextRequest) {
 
     // 날짜 파라미터 파싱 (쿼리스트링에서)
     const { searchParams } = new URL(request.url);
-    const startDateParam = searchParams.get('startDate');
-    const endDateParam = searchParams.get('endDate');
+    const dateRange = parseAnalyticsDateRange(searchParams);
+    if (dateRange.kind === 'invalid') {
+      return NextResponse.json({ error: dateRange.message }, { status: 400 });
+    }
+    const filterStartDate = new Date(dateRange.start);
+    filterStartDate.setHours(0, 0, 0, 0);
+    const filterEndDate = new Date(dateRange.end);
+    filterEndDate.setHours(23, 59, 59, 999);
+    const cacheKey = `admin-stats:${userRole}:${filterStartDate.toISOString()}:${filterEndDate.toISOString()}`;
+    const cachedPayload = adminStatsResponseCache.get(cacheKey);
+    if (cachedPayload) {
+      return new NextResponse(cachedPayload, {
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Cache-Control': 'private, no-store',
+          'X-Cache': 'HIT',
+        },
+      });
+    }
 
     // MongoDB 연결
     const client = await clientPromise;
@@ -152,14 +172,6 @@ export async function GET(request: NextRequest) {
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
     const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-
-    // 날짜 범위 설정 (URL 파라미터 또는 기본값)
-    const filterEndDate = endDateParam ? new Date(endDateParam) : new Date();
-    filterEndDate.setHours(23, 59, 59, 999); // 종료일의 마지막 시각
-    const filterStartDate = startDateParam
-      ? new Date(startDateParam)
-      : new Date(filterEndDate.getTime() - 7 * 24 * 60 * 60 * 1000); // 기본 7일
-    filterStartDate.setHours(0, 0, 0, 0); // 시작일의 첫 시각
 
     // 고유 방문자 수 집계 헬퍼 (IP 기준 distinct count)
     const countUniqueVisitors = (match: Record<string, unknown>) =>
@@ -238,7 +250,7 @@ export async function GET(request: NextRequest) {
       db.collection('page-visits').countDocuments({ timestamp: { $gte: thisMonth } }),
 
       // 전체 페이지뷰 수
-      db.collection('page-visits').countDocuments(),
+      db.collection('page-visits').estimatedDocumentCount(),
 
       // 오늘 고유 방문자 수 (IP 기준)
       countUniqueVisitors({ timestamp: { $gte: today } }),
@@ -250,7 +262,7 @@ export async function GET(request: NextRequest) {
       countUniqueVisitors({ timestamp: { $gte: thisMonth } }),
 
       // 전체 고유 방문자 수
-      countUniqueVisitors({}),
+      countUniqueVisitors({ timestamp: { $gte: filterStartDate, $lte: filterEndDate } }),
 
       // 방문 기록 상세 (디바이스 및 유입경로 분석용) - 날짜 필터 적용
       db
@@ -261,6 +273,8 @@ export async function GET(request: NextRequest) {
             $lte: filterEndDate,
           },
         })
+        .sort({ timestamp: -1, _id: -1 })
+        .limit(ANALYTICS_SAMPLE_LIMIT)
         .project({ userAgent: 1, referer: 1, pathname: 1, timestamp: 1 })
         .toArray(),
     ]);
@@ -542,7 +556,12 @@ export async function GET(request: NextRequest) {
     // 세션별로 데이터 그룹화
     const sessionData = await db
       .collection('page-visits')
-      .find({ sessionId: { $exists: true, $ne: '' } })
+      .find({
+        sessionId: { $exists: true, $ne: '' },
+        timestamp: { $gte: filterStartDate, $lte: filterEndDate },
+      })
+      .sort({ timestamp: -1, _id: -1 })
+      .limit(ANALYTICS_SAMPLE_LIMIT)
       .project({ sessionId: 1, pageViewCount: 1, timeSpent: 1 })
       .toArray();
 
@@ -589,7 +608,7 @@ export async function GET(request: NextRequest) {
       return `${year}-${month}-${day}`;
     };
 
-    return NextResponse.json({
+    const responseBody = {
       totalUsers,
       totalConsultations,
       pendingConsultations,
@@ -635,6 +654,19 @@ export async function GET(request: NextRequest) {
       period: {
         startDate: formatDate(filterStartDate),
         endDate: formatDate(filterEndDate),
+      },
+      boundedRead: {
+        sampleLimit: ANALYTICS_SAMPLE_LIMIT,
+        truncated: allVisits.length === ANALYTICS_SAMPLE_LIMIT || sessionData.length === ANALYTICS_SAMPLE_LIMIT,
+      },
+    };
+    const serializedPayload = JSON.stringify(responseBody);
+    const payload = await adminStatsResponseCache.getOrLoad(cacheKey, async () => serializedPayload);
+    return new NextResponse(payload, {
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'private, no-store',
+        'X-Cache': 'MISS',
       },
     });
   } catch (error) {

@@ -53,7 +53,7 @@ export default function AdminExaminerDashboards() {
       setLoading(true);
       setError('');
 
-      const response = await fetch('/api/admin/examiners', {
+      const response = await fetch('/api/admin/examiners?limit=50', {
         headers: {
           'x-admin-auth': 'true'
         }
@@ -128,7 +128,7 @@ export default function AdminExaminerDashboards() {
    */
   const filteredAndSortedExaminers = useMemo(() => {
     // 검색 필터링
-    let filtered = examiners.filter((examiner) => {
+    const filtered = examiners.filter((examiner) => {
       const searchLower = searchTerm.toLowerCase();
       return (
         examiner.name.toLowerCase().includes(searchLower) ||

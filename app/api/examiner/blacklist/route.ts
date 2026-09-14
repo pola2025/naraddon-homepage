@@ -8,11 +8,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/auth-options';
 import { requireExaminer, handleAuthError } from '@/lib/auth/guards';
 import connectDB from '@/lib/mongodb';
 import ExaminerBlacklist from '@/models/ExaminerBlacklist';
+import {
+  buildDescendingDateCursorFilter,
+  parseListRequest,
+  takePage,
+} from '@/lib/bounded-read';
 
 /**
  * 중복 체크 함수
@@ -166,8 +169,14 @@ export async function GET(request: NextRequest) {
     // 2. 쿼리 파라미터 파싱
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = parseInt(searchParams.get('limit') || '20', 10);
+    const listRequestResult = parseListRequest(searchParams, { defaultLimit: 20, maxLimit: 50 });
+    if (listRequestResult.kind === 'invalid') {
+      return NextResponse.json({ error: listRequestResult.message }, { status: 400 });
+    }
+    const { limit, cursor } = listRequestResult.request;
+    if (search.length > 80) {
+      return NextResponse.json({ error: 'search must be 80 characters or fewer' }, { status: 400 });
+    }
 
     // 3. DB 연결
     await connectDB();
@@ -176,34 +185,48 @@ export async function GET(request: NextRequest) {
     let query: any = {};
 
     if (search) {
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       query = {
         $or: [
-          { customerName: { $regex: search, $options: 'i' } },
-          { phoneNumber: { $regex: search, $options: 'i' } },
-          { companyName: { $regex: search, $options: 'i' } },
-          { businessNumber: { $regex: search, $options: 'i' } },
+          { customerName: { $regex: escapedSearch, $options: 'i' } },
+          { phoneNumber: { $regex: escapedSearch, $options: 'i' } },
+          { companyName: { $regex: escapedSearch, $options: 'i' } },
+          { businessNumber: { $regex: escapedSearch, $options: 'i' } },
         ],
       };
     }
 
-    // 5. 데이터 조회 (등록일 기준 내림차순)
-    const total = await ExaminerBlacklist.countDocuments(query);
-    const entries = await ExaminerBlacklist.find(query)
-      .sort({ registeredAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean();
+    let queryFilter = query;
+    if (cursor) {
+      const cursorFilterResult = buildDescendingDateCursorFilter(cursor, 'registeredAt');
+      if (cursorFilterResult.kind === 'invalid') {
+        return NextResponse.json({ error: 'cursor is invalid' }, { status: 400 });
+      }
+      queryFilter = { $and: [query, cursorFilterResult.filter] };
+    }
 
-    return NextResponse.json({
-      success: true,
-      entries,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
+    // 5. 데이터 조회 (등록일 기준 내림차순)
+    const entries = await ExaminerBlacklist.find(queryFilter)
+      .sort({ registeredAt: -1, _id: -1 })
+      .limit(limit + 1)
+      .lean();
+    const page = takePage(entries, limit, (entry) => ({
+      sortValue: new Date(entry.registeredAt).toISOString(),
+      id: entry._id.toString(),
+    }));
+
+    return NextResponse.json(
+      {
+        success: true,
+        entries: page.items,
+        pagination: {
+          limit,
+          nextCursor: page.nextCursor,
+          hasMore: page.hasMore,
+        },
       },
-    });
+      { headers: { 'Cache-Control': 'private, no-store' } }
+    );
   } catch (error) {
     console.error('[Blacklist GET Error]', error);
 

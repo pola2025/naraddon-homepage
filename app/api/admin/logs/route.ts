@@ -2,7 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/auth-options';
 import clientPromise from '@/lib/mongodb-client';
+import { ObjectId } from 'mongodb';
 import { AdminAccessLog, AdminActionType, AdminLogSeverity } from '@/types/admin-log.types';
+import {
+  buildDescendingDateCursorFilter,
+  parseListRequest,
+  takePage,
+} from '@/lib/bounded-read';
+
+type AdminLogDocument = {
+  readonly _id: { toString(): string };
+  readonly timestamp: Date | string;
+  readonly [key: string]: unknown;
+};
 
 // GET /api/admin/logs - 관리자 활동 로그 조회
 export async function GET(request: NextRequest) {
@@ -25,8 +37,11 @@ export async function GET(request: NextRequest) {
     const severity = searchParams.get('severity');
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
-    const limit = parseInt(searchParams.get('limit') || '100');
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const listRequestResult = parseListRequest(searchParams, { defaultLimit: 50, maxLimit: 100 });
+    if (listRequestResult.kind === 'invalid') {
+      return NextResponse.json({ error: listRequestResult.message }, { status: 400 });
+    }
+    const { limit, cursor } = listRequestResult.request;
 
     const client = await clientPromise;
     const db = client.db('naraddon');
@@ -47,21 +62,39 @@ export async function GET(request: NextRequest) {
     // super_admin만 접근하므로 이 부분은 실행되지 않음
     // 하지만 안전을 위해 유지
 
+    let queryFilter = filter;
+    if (cursor) {
+      const cursorFilterResult = buildDescendingDateCursorFilter(
+        cursor,
+        'timestamp',
+        (id) => new ObjectId(id)
+      );
+      if (cursorFilterResult.kind === 'invalid') {
+        return NextResponse.json({ error: 'cursor is invalid' }, { status: 400 });
+      }
+      queryFilter = { $and: [filter, cursorFilterResult.filter] };
+    }
+
     const logs = await db.collection('adminLogs')
-      .find(filter)
-      .sort({ timestamp: -1 })
-      .limit(limit)
-      .skip(offset)
+      .find(queryFilter)
+      .sort({ timestamp: -1, _id: -1 })
+      .limit(limit + 1)
       .toArray();
+    const page = takePage<AdminLogDocument>(logs, limit, (log) => ({
+      sortValue: new Date(log.timestamp).toISOString(),
+      id: log._id.toString(),
+    }));
 
-    const total = await db.collection('adminLogs').countDocuments(filter);
-
-    return NextResponse.json({
-      logs,
-      total,
-      limit,
-      offset
-    });
+    return NextResponse.json(
+      {
+        logs: page.items,
+        total: null,
+        limit,
+        nextCursor: page.nextCursor,
+        hasMore: page.hasMore,
+      },
+      { headers: { 'Cache-Control': 'private, no-store' } }
+    );
   } catch (error) {
     console.error('Failed to fetch admin logs:', error);
     return NextResponse.json(

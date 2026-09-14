@@ -8,6 +8,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
+import { handleAuthError, requireAdmin } from '@/lib/auth/guards';
+import { parseAnalyticsDateRange } from '@/lib/bounded-analytics';
 
 /**
  * Umami Analytics 클라이언트
@@ -130,13 +132,14 @@ class GoogleSearchConsoleClient {
  */
 export async function GET(request: NextRequest) {
   try {
+    await requireAdmin();
     const searchParams = request.nextUrl.searchParams;
 
-    // 날짜 파라미터 파싱
-    const endDate = new Date(searchParams.get('endDate') || Date.now());
-    const startDate = new Date(
-      searchParams.get('startDate') || endDate.getTime() - 7 * 24 * 60 * 60 * 1000
-    );
+    const dateRange = parseAnalyticsDateRange(searchParams);
+    if (dateRange.kind === 'invalid') {
+      return NextResponse.json({ error: dateRange.message }, { status: 400 });
+    }
+    const { start: startDate, end: endDate } = dateRange;
 
     // 날짜 포맷 변환
     const formatDate = (date: Date) => {
@@ -200,12 +203,13 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(analyticsData);
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const authError = handleAuthError(error);
+    if (authError) return authError;
     console.error('Analytics API 오류:', error);
     return NextResponse.json(
       {
         error: 'Analytics 데이터 조회 실패',
-        message: error.message,
       },
       { status: 500 }
     );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { AdminAccessLog, AdminActionType, AdminLogSeverity } from '@/types/admin-log.types';
@@ -12,7 +12,6 @@ import {
   FunnelIcon,
   ArrowPathIcon,
   MapPinIcon,
-  ComputerDesktopIcon,
   ClockIcon
 } from '@heroicons/react/24/outline';
 
@@ -30,11 +29,10 @@ export default function AdminLogsPage() {
     endDate: ''
   });
   const [showFilters, setShowFilters] = useState(false);
-  const [pagination, setPagination] = useState({
-    limit: 50,
-    offset: 0,
-    total: 0
-  });
+  const [currentCursor, setCurrentCursor] = useState<string | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [cursorHistory, setCursorHistory] = useState<(string | null)[]>([]);
+  const activeRequest = useRef<AbortController | null>(null);
 
   // 권한 체크 및 페이지 접근 로그
   useEffect(() => {
@@ -55,31 +53,42 @@ export default function AdminLogsPage() {
     // 페이지 접근 로그
     AdminLogger.logPageView('/admin/logs', '관리자 활동 로그');
 
-    fetchLogs();
+    void fetchLogs();
+    return () => activeRequest.current?.abort();
   }, [status, session, router]);
 
-  const fetchLogs = async () => {
+  const fetchLogs = async (
+    cursor: string | null = null,
+    activeFilters = filters
+  ) => {
+    activeRequest.current?.abort();
+    const controller = new AbortController();
+    activeRequest.current = controller;
     setLoading(true);
     try {
       const params = new URLSearchParams({
-        limit: pagination.limit.toString(),
-        offset: pagination.offset.toString(),
+        limit: '50',
         ...Object.fromEntries(
-          Object.entries(filters).filter(([_, value]) => value)
+          Object.entries(activeFilters).filter(([_, value]) => value)
         )
       });
+      if (cursor) params.set('cursor', cursor);
 
-      const response = await fetch(`/api/admin/logs?${params}`);
+      const response = await fetch(`/api/admin/logs?${params}`, {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
       const data = await response.json();
 
       if (response.ok) {
         setLogs(data.logs || []);
-        setPagination(prev => ({
-          ...prev,
-          total: data.total || 0
-        }));
+        setCurrentCursor(cursor);
+        setNextCursor(data.hasMore ? data.nextCursor || null : null);
       }
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
       console.error('Failed to fetch logs:', error);
     } finally {
       setLoading(false);
@@ -91,19 +100,34 @@ export default function AdminLogsPage() {
   };
 
   const handleApplyFilters = () => {
-    setPagination(prev => ({ ...prev, offset: 0 }));
-    fetchLogs();
+    setCursorHistory([]);
+    void fetchLogs(null, filters);
   };
 
   const handleClearFilters = () => {
-    setFilters({
+    const clearedFilters = {
       adminId: '',
       action: '',
       severity: '',
       startDate: '',
       endDate: ''
-    });
-    setPagination(prev => ({ ...prev, offset: 0 }));
+    };
+    setFilters(clearedFilters);
+    setCursorHistory([]);
+    void fetchLogs(null, clearedFilters);
+  };
+
+  const handleNextPage = () => {
+    if (!nextCursor) return;
+    setCursorHistory((previous) => [...previous, currentCursor]);
+    void fetchLogs(nextCursor);
+  };
+
+  const handlePreviousPage = () => {
+    if (cursorHistory.length === 0) return;
+    const previousCursor = cursorHistory.at(-1) || null;
+    setCursorHistory((previous) => previous.slice(0, -1));
+    void fetchLogs(previousCursor);
   };
 
   const getSeverityIcon = (severity: AdminLogSeverity) => {
@@ -184,7 +208,7 @@ export default function AdminLogsPage() {
                 필터 {showFilters ? '숨기기' : '표시'}
               </button>
               <button
-                onClick={fetchLogs}
+                onClick={() => void fetchLogs(currentCursor)}
                 className="flex items-center text-sm text-blue-600 hover:text-blue-800"
               >
                 <ArrowPathIcon className="h-4 w-4 mr-1" />
@@ -377,29 +401,22 @@ export default function AdminLogsPage() {
           </div>
 
           {/* 페이지네이션 */}
-          {pagination.total > pagination.limit && (
+          {(cursorHistory.length > 0 || nextCursor) && (
             <div className="bg-gray-50 px-6 py-4 flex items-center justify-between">
               <div className="text-sm text-gray-700">
-                전체 {pagination.total}건 중 {pagination.offset + 1}-
-                {Math.min(pagination.offset + pagination.limit, pagination.total)}건 표시
+                {cursorHistory.length + 1}페이지 · 페이지당 최대 50건
               </div>
               <div className="flex space-x-2">
                 <button
-                  onClick={() => {
-                    setPagination(prev => ({ ...prev, offset: Math.max(0, prev.offset - prev.limit) }));
-                    fetchLogs();
-                  }}
-                  disabled={pagination.offset === 0}
+                  onClick={handlePreviousPage}
+                  disabled={cursorHistory.length === 0 || loading}
                   className="px-3 py-1 text-sm border rounded-md disabled:opacity-50"
                 >
                   이전
                 </button>
                 <button
-                  onClick={() => {
-                    setPagination(prev => ({ ...prev, offset: prev.offset + prev.limit }));
-                    fetchLogs();
-                  }}
-                  disabled={pagination.offset + pagination.limit >= pagination.total}
+                  onClick={handleNextPage}
+                  disabled={!nextCursor || loading}
                   className="px-3 py-1 text-sm border rounded-md disabled:opacity-50"
                 >
                   다음

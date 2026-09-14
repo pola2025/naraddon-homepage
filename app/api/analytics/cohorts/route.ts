@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb-client';
+import { handleAuthError, requireAdmin } from '@/lib/auth/guards';
+import { parseAnalyticsDateRange } from '@/lib/bounded-analytics';
 
 /**
  * 코호트 & 유지율 분석 API
@@ -10,23 +12,19 @@ import clientPromise from '@/lib/mongodb-client';
 
 export async function GET(request: NextRequest) {
   try {
+    await requireAdmin();
     const { searchParams } = new URL(request.url);
     const cohortBy = searchParams.get('cohortBy') || 'week'; // day, week, month
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
+    const dateRange = parseAnalyticsDateRange(searchParams);
+    if (dateRange.kind === 'invalid') {
+      return NextResponse.json({ error: dateRange.message }, { status: 400 });
+    }
 
     // MongoDB 연결
     const client = await clientPromise;
     const db = client.db('naraddon');
 
-    // 날짜 범위 설정
-    const dateFilter: any = {};
-    if (startDate) {
-      dateFilter.$gte = new Date(startDate);
-    }
-    if (endDate) {
-      dateFilter.$lte = new Date(endDate);
-    }
+    const dateFilter = { $gte: dateRange.start, $lte: dateRange.end };
 
     // 세션별 첫 방문일 찾기
     const firstVisits = await db.collection('page-visits').aggregate([
@@ -159,6 +157,8 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    const authError = handleAuthError(error);
+    if (authError) return authError;
     console.error('[Analytics/Cohorts] Error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch cohort data' },

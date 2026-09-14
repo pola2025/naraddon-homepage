@@ -1,5 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb-client';
+import { ObjectId } from 'mongodb';
+import { handleAuthError, requireAdmin } from '@/lib/auth/guards';
+import { parseAnalyticsDateRange } from '@/lib/bounded-analytics';
+import {
+  buildDescendingDateCursorFilter,
+  parseListRequest,
+  takePage,
+} from '@/lib/bounded-read';
+
+type ConversionDocument = {
+  readonly _id: { toString(): string };
+  readonly timestamp: Date | string;
+  readonly [key: string]: unknown;
+};
 
 /**
  * 전환 이벤트 저장 API
@@ -64,12 +78,19 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
+    await requireAdmin();
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('sessionId');
     const conversionType = searchParams.get('conversionType');
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
-    const limit = parseInt(searchParams.get('limit') || '100', 10);
+    const listRequestResult = parseListRequest(searchParams, { defaultLimit: 50, maxLimit: 100 });
+    if (listRequestResult.kind === 'invalid') {
+      return NextResponse.json({ error: listRequestResult.message }, { status: 400 });
+    }
+    const { limit, cursor } = listRequestResult.request;
+    const dateRange = parseAnalyticsDateRange(searchParams);
+    if (dateRange.kind === 'invalid') {
+      return NextResponse.json({ error: dateRange.message }, { status: 400 });
+    }
 
     // MongoDB 연결
     const client = await clientPromise;
@@ -87,29 +108,41 @@ export async function GET(request: NextRequest) {
       query.conversionType = conversionType;
     }
 
-    if (startDate || endDate) {
-      query.timestamp = {};
-      if (startDate) {
-        query.timestamp.$gte = new Date(startDate);
+    query.timestamp = { $gte: dateRange.start, $lte: dateRange.end };
+    let queryFilter = query;
+    if (cursor) {
+      const cursorFilterResult = buildDescendingDateCursorFilter(
+        cursor,
+        'timestamp',
+        (id) => new ObjectId(id)
+      );
+      if (cursorFilterResult.kind === 'invalid') {
+        return NextResponse.json({ error: 'cursor is invalid' }, { status: 400 });
       }
-      if (endDate) {
-        query.timestamp.$lte = new Date(endDate);
-      }
+      queryFilter = { $and: [query, cursorFilterResult.filter] };
     }
 
     // 전환 이벤트 조회
     const conversions = await conversionsCollection
-      .find(query)
-      .sort({ timestamp: -1 })
-      .limit(limit)
+      .find(queryFilter)
+      .sort({ timestamp: -1, _id: -1 })
+      .limit(limit + 1)
       .toArray();
+    const page = takePage<ConversionDocument>(conversions, limit, (conversion) => ({
+      sortValue: new Date(conversion.timestamp).toISOString(),
+      id: conversion._id.toString(),
+    }));
 
     return NextResponse.json({
       success: true,
-      conversions,
-      total: conversions.length,
+      conversions: page.items,
+      total: null,
+      nextCursor: page.nextCursor,
+      hasMore: page.hasMore,
     });
   } catch (error) {
+    const authError = handleAuthError(error);
+    if (authError) return authError;
     console.error('[Analytics/Conversions] GET Error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch conversions' },

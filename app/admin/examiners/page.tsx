@@ -73,7 +73,7 @@ export default function ExaminersPage() {
   const fetchExaminers = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/admin/examiners');
+      const response = await fetch('/api/admin/examiners?limit=50', { cache: 'no-store' });
 
       if (response.ok) {
         const data = await response.json();

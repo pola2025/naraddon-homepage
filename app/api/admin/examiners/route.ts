@@ -3,6 +3,34 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/auth-options';
 import clientPromise from '@/lib/mongodb-client';
 import { ObjectId } from 'mongodb';
+import { buildAscendingCursorFilter, parseListRequest, takePage } from '@/lib/bounded-read';
+
+type ExaminerDocument = {
+  readonly _id: ObjectId;
+  readonly name?: string;
+  readonly position?: string;
+  readonly companyName?: string;
+  readonly category?: string;
+  readonly specialties?: readonly unknown[];
+  readonly imageUrl?: string;
+  readonly userId?: ObjectId | string;
+  readonly isPublished?: boolean;
+  readonly sortOrder?: number;
+  readonly createdAt?: Date | string;
+  readonly updatedAt?: Date | string;
+  readonly brandPage?: {
+    readonly companyLogo?: unknown;
+    readonly companyIntro?: unknown;
+    readonly useDefaultIntro?: boolean;
+    readonly careers?: readonly unknown[];
+    readonly successCases?: readonly unknown[];
+    readonly contactInfo?: {
+      readonly website?: unknown;
+      readonly consultationHours?: unknown;
+      readonly address?: unknown;
+    };
+  };
+};
 
 export const dynamic = 'force-dynamic';
 
@@ -30,43 +58,47 @@ export async function GET(request: NextRequest) {
     // 관리자만 접근 가능
     if (userRole !== 'admin' && userRole !== 'super_admin') {
       return NextResponse.json({
-        error: 'Forbidden - Admin access required',
-        debug: {
-          currentUserEmail: session.user?.email,
-          currentUserRole: userRole
-        }
+        error: 'Forbidden - Admin access required'
       }, { status: 403 });
     }
 
-    // 심사관 목록 조회 (DB에 실제로 존재하는 데이터만)
+    const { searchParams } = new URL(request.url);
+    const listRequestResult = parseListRequest(searchParams, { defaultLimit: 25, maxLimit: 50 });
+    if (listRequestResult.kind === 'invalid') {
+      return NextResponse.json({ error: listRequestResult.message }, { status: 400 });
+    }
+    const { limit, cursor } = listRequestResult.request;
+    const query = cursor
+      ? buildAscendingCursorFilter(cursor, 'name', (id) => new ObjectId(id))
+      : {};
+
     const examiners = await db.collection('expert-examiners')
-      .find({})
-      .sort({ sortOrder: 1, createdAt: -1 })
+      .find(query)
+      .sort({ name: 1, _id: 1 })
+      .limit(limit + 1)
       .toArray();
-
-    // userId로 users 컬렉션에서 이메일 조회
-    const formattedExaminers = await Promise.all(examiners.map(async (examiner) => {
-      let email = null;
-
-      // userId가 있으면 users 컬렉션에서 이메일 조회
-      if (examiner.userId) {
-        try {
-          // userId가 string이면 ObjectId로 변환, 이미 ObjectId면 그대로 사용
-          const userIdQuery = typeof examiner.userId === 'string'
-            ? new ObjectId(examiner.userId)
-            : examiner.userId;
-
-          const user = await db.collection('users').findOne({ _id: userIdQuery });
-          email = user?.email || null;
-
-          // 디버깅용 로그 (임시)
-          if (!user) {
-            console.log(`[Examiners API] User not found for examiner ${examiner.name}, userId:`, examiner.userId);
-          }
-        } catch (error) {
-          console.error(`[Examiners API] Error fetching user for examiner ${examiner.name}:`, error);
-        }
+    const page = takePage<ExaminerDocument>(examiners, limit, (examiner) => ({
+      sortValue: String(examiner.name || ''),
+      id: examiner._id.toString(),
+    }));
+    const userIds = page.items.flatMap((examiner) => {
+      if (examiner.userId instanceof ObjectId) {
+        return [examiner.userId];
       }
+      if (typeof examiner.userId === 'string' && ObjectId.isValid(examiner.userId)) {
+        return [new ObjectId(examiner.userId)];
+      }
+      return [];
+    });
+    const linkedUsers = userIds.length
+      ? await db.collection('users').find({ _id: { $in: userIds } }).project({ email: 1 }).toArray()
+      : [];
+    const emailByUserId = new Map(
+      linkedUsers.map((user) => [user._id.toString(), typeof user.email === 'string' ? user.email : null])
+    );
+
+    const formattedExaminers = page.items.map((examiner) => {
+      const email = examiner.userId ? emailByUserId.get(examiner.userId.toString()) || null : null;
 
       // 브랜드 페이지 정보 완성도 체크
       const brandPage = examiner.brandPage || {};
@@ -96,12 +128,17 @@ export async function GET(request: NextRequest) {
         createdAt: examiner.createdAt,
         updatedAt: examiner.updatedAt
       };
-    }));
-
-    return NextResponse.json({
-      examiners: formattedExaminers,
-      total: formattedExaminers.length
     });
+
+    return NextResponse.json(
+      {
+        examiners: formattedExaminers,
+        total: null,
+        nextCursor: page.nextCursor,
+        hasMore: page.hasMore,
+      },
+      { headers: { 'Cache-Control': 'private, no-store' } }
+    );
 
   } catch (error) {
     console.error('[Admin Examiners API] Error:', error);

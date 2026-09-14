@@ -28,13 +28,6 @@ interface PolicyAnalysisPost {
   updatedAt: string;
 }
 
-interface Examiner {
-  _id: string;
-  name: string;
-  companyName: string;
-  legacyKey?: string;
-}
-
 export default function AdminPolicyAnalysisPage() {
   const router = useRouter();
 
@@ -47,9 +40,6 @@ export default function AdminPolicyAnalysisPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // 기업심사관 목록 (조회용)
-  const [examiners, setExaminers] = useState<Examiner[]>([]);
-
   // 조회수 조정 관련 상태
   const [showViewsModal, setShowViewsModal] = useState(false);
   const [viewsPost, setViewsPost] = useState<PolicyAnalysisPost | null>(null);
@@ -58,30 +48,7 @@ export default function AdminPolicyAnalysisPage() {
 
   useEffect(() => {
     fetchPosts();
-    fetchExaminers();
   }, []);
-
-  /**
-   * 기업심사관 목록 조회
-   *
-   * @purpose 게시글 작성 시 기업심사관 선택을 위한 목록 가져오기
-   * @context /api/admin/examiners API를 통해 모든 기업심사관 정보 조회
-   */
-  const fetchExaminers = async () => {
-    try {
-      const response = await fetch('/api/admin/examiners', {
-        headers: {
-          'x-admin-auth': 'true'
-        }
-      });
-      const data = await response.json();
-      if (data.examiners) {
-        setExaminers(data.examiners);
-      }
-    } catch (error) {
-      console.error('Error fetching examiners:', error);
-    }
-  };
 
   const fetchPosts = async () => {
     setLoading(true);

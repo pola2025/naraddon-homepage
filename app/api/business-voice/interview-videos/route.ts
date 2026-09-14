@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import BusinessVoiceInterviewVideo from '@/models/BusinessVoiceInterviewVideo';
+import { buildAscendingCursorFilter, parseListRequest, takePage } from '@/lib/bounded-read';
 
 // API Route를 동적으로 설정 (환경변수 문제 해결)
 export const dynamic = 'force-dynamic';
@@ -13,16 +14,33 @@ if (!ADMIN_PASSWORD) {
 }
 
 // GET: 영상 목록 조회
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     await connectDB();
+    const listRequestResult = parseListRequest(request.nextUrl.searchParams, {
+      defaultLimit: 24,
+      maxLimit: 50,
+    });
+    if (listRequestResult.kind === 'invalid') {
+      return NextResponse.json({ success: false, message: listRequestResult.message }, { status: 400 });
+    }
+    const { limit, cursor } = listRequestResult.request;
+    const cursorFilter = cursor ? buildAscendingCursorFilter(cursor, 'sortOrder') : null;
+    const query = cursorFilter
+      ? { $and: [{ isPublished: true }, cursorFilter] }
+      : { isPublished: true };
 
-    const videos = await BusinessVoiceInterviewVideo.find({ isPublished: true })
-      .sort({ sortOrder: 1, createdAt: -1 })
+    const videos = await BusinessVoiceInterviewVideo.find(query)
+      .sort({ sortOrder: 1, _id: 1 })
+      .limit(limit + 1)
       .lean();
+    const page = takePage(videos, limit, (video) => ({
+      sortValue: Number(video.sortOrder || 0),
+      id: video._id.toString(),
+    }));
 
     // YouTube ID 추출 및 썸네일 URL 생성
-    const videosWithThumbnails = videos.map((video) => {
+    const videosWithThumbnails = page.items.map((video) => {
       const youtubeId = extractYouTubeId(video.youtubeUrl);
       const youtubeThumbnail = youtubeId
         ? `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`
@@ -39,7 +57,9 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       videos: videosWithThumbnails,
-    });
+      nextCursor: page.nextCursor,
+      hasMore: page.hasMore,
+    }, { headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300' } });
   } catch (error) {
     console.error('[interview-videos] GET error:', error);
     return NextResponse.json(

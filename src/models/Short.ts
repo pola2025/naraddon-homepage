@@ -44,6 +44,7 @@ const ShortSchema: Schema = new Schema(
 );
 
 ShortSchema.index({ isActive: 1, sortOrder: 1 });
+ShortSchema.index({ isActive: 1, sortOrder: 1, _id: 1 });
 
 const Short: Model<IShort> = mongoose.models.Short || mongoose.model<IShort>('Short', ShortSchema);
 

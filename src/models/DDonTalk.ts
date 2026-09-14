@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IDDonTalk extends Document {
   title: string;
@@ -46,7 +46,10 @@ DDonTalkSchema.virtual('commentCount').get(function() {
 
 // JSON 변환 시 가상 필드 포함
 DDonTalkSchema.set('toJSON', { virtuals: true });
+DDonTalkSchema.index({ createdAt: -1, _id: -1 });
+DDonTalkSchema.index({ likes: -1, _id: -1 });
 
-const DDonTalk = mongoose.models.DDonTalk || mongoose.model<IDDonTalk>('DDonTalk', DDonTalkSchema);
+const DDonTalk: Model<IDDonTalk> =
+  mongoose.models.DDonTalk || mongoose.model<IDDonTalk>('DDonTalk', DDonTalkSchema);
 
 export default DDonTalk;

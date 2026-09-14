@@ -86,17 +86,7 @@ const nextConfig = {
           { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
         ],
       },
-      // 1. API는 항상 캐시 안함
-      {
-        source: '/api/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'no-store, no-cache, must-revalidate',
-          },
-        ],
-      },
-      // 2. Next.js 정적 리소스 영구 캐시 (파일명에 해시 포함)
+      // 1. Next.js 정적 리소스 영구 캐시 (파일명에 해시 포함)
       {
         source: '/_next/static/:path*',
         headers: [
@@ -106,7 +96,7 @@ const nextConfig = {
           },
         ],
       },
-      // 3. HTML 페이지: 5분 캐시 + 백그라운드 갱신
+      // 2. HTML 페이지: 5분 캐시 + 백그라운드 갱신
       // 주의: 이 catch-all은 반드시 미디어 캐시 규칙보다 먼저 와야 함
       // Next.js headers는 동일 헤더키가 여러 규칙에 매칭되면 마지막 것이 적용됨
       {
@@ -115,6 +105,16 @@ const nextConfig = {
           {
             key: 'Cache-Control',
             value: 'public, max-age=300, stale-while-revalidate=86400',
+          },
+        ],
+      },
+      // 3. API 응답은 전체 페이지 공개 캐시 규칙을 덮어씀
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
           },
         ],
       },

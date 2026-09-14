@@ -3,8 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { certifiedExaminers } from '@/data/certifiedExaminers';
 import connectDB from '@/lib/mongodb';
 import ExpertExaminer from '@/models/ExpertExaminer';
+import { buildAscendingCursorFilter, parseListRequest, takePage } from '@/lib/bounded-read';
 
-const SORT_ORDER = { sortOrder: 1, createdAt: -1 } as const;
+const SORT_ORDER = { sortOrder: 1, _id: 1 } as const;
 const DEFAULT_CATEGORY = 'funding';
 const LIST_SPLIT_REGEX = new RegExp('[,\\r\\n]+');
 
@@ -175,6 +176,11 @@ export async function GET(request: NextRequest) {
     const adminPassword = getAdminPassword();
     const { searchParams } = new URL(request.url);
     const includeHidden = searchParams.get('includeHidden') === 'true';
+    const listRequestResult = parseListRequest(searchParams, { defaultLimit: 24, maxLimit: 50 });
+    if (listRequestResult.kind === 'invalid') {
+      return NextResponse.json({ message: listRequestResult.message }, { status: 400 });
+    }
+    const { limit, cursor } = listRequestResult.request;
 
     let query: Record<string, unknown> = { isPublished: true };
     if (includeHidden) {
@@ -192,22 +198,37 @@ export async function GET(request: NextRequest) {
       query = {};
     }
 
-    const examiners = await ExpertExaminer.find(query)
+    const cursorFilter = cursor ? buildAscendingCursorFilter(cursor, 'sortOrder') : null;
+    const queryFilter = cursorFilter ? { $and: [query, cursorFilter] } : query;
+
+    const examiners = await ExpertExaminer.find(queryFilter)
       .sort(SORT_ORDER)
+      .limit(limit + 1)
       .select('-__v')
       .lean({ virtuals: false });
+    const page = takePage(examiners, limit, (examiner) => ({
+      sortValue: Number(examiner.sortOrder || 0),
+      id: examiner._id.toString(),
+    }));
 
     // 중복 제거 최적화: Set 사용
     const seen = new Set<string>();
-    const uniqueExaminers = examiners.filter(examiner => {
+    const uniqueExaminers = page.items.filter(examiner => {
       const id = examiner._id?.toString();
       if (!id || seen.has(id)) return false;
       seen.add(id);
       return true;
     });
 
-    const response = NextResponse.json({ examiners: uniqueExaminers });
-    response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=30');
+    const response = NextResponse.json({
+      examiners: uniqueExaminers,
+      nextCursor: page.nextCursor,
+      hasMore: page.hasMore,
+    });
+    response.headers.set(
+      'Cache-Control',
+      includeHidden ? 'private, no-store' : 'public, s-maxage=60, stale-while-revalidate=300'
+    );
     return response;
   } catch (error) {
     console.error('[expert-services/examiners][GET]', error);

@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/auth-options';
 import clientPromise from '@/lib/mongodb-client';
+import { ObjectId } from 'mongodb';
+import { buildAscendingCursorFilter, parseListRequest, takePage } from '@/lib/bounded-read';
+
+type ExpertDocument = {
+  readonly _id: { toString(): string };
+  readonly name?: string;
+  readonly [key: string]: unknown;
+};
 
 /**
  * GET: 전문가 목록 조회 (관리자 전용)
@@ -38,15 +46,38 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const experts = await db.collection('experts').find({}).sort({ name: 1 }).toArray();
+    const { searchParams } = new URL(request.url);
+    const listRequestResult = parseListRequest(searchParams, { defaultLimit: 25, maxLimit: 50 });
+    if (listRequestResult.kind === 'invalid') {
+      return NextResponse.json({ error: listRequestResult.message }, { status: 400 });
+    }
+    const { limit, cursor } = listRequestResult.request;
+    const query = cursor
+      ? buildAscendingCursorFilter(cursor, 'name', (id) => new ObjectId(id))
+      : {};
+    const experts = await db
+      .collection('experts')
+      .find(query)
+      .sort({ name: 1, _id: 1 })
+      .limit(limit + 1)
+      .toArray();
+    const page = takePage<ExpertDocument>(experts, limit, (expert) => ({
+      sortValue: String(expert.name || ''),
+      id: expert._id.toString(),
+    }));
 
-    return NextResponse.json({
-      success: true,
-      experts: experts.map((expert) => ({
-        ...expert,
-        _id: expert._id.toString(),
-      })),
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        experts: page.items.map((expert) => ({
+          ...expert,
+          _id: expert._id.toString(),
+        })),
+        nextCursor: page.nextCursor,
+        hasMore: page.hasMore,
+      },
+      { headers: { 'Cache-Control': 'private, no-store' } }
+    );
   } catch (error) {
     console.error('Failed to fetch experts:', error);
     return NextResponse.json({ success: false, error: 'Failed to fetch experts' }, { status: 500 });

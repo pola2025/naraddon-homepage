@@ -1,22 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/auth-options';
 import { requirePolicyWriter, handleAuthError } from '@/lib/auth/guards';
 import connectDB from '@/lib/mongodb';
 import PolicyAnalysisPost from '@/models/PolicyAnalysisPost';
 import ExpertExaminer from '@/models/ExpertExaminer';
-import * as crypto from 'crypto';
+import {
+  buildDescendingCursorFilter,
+  buildDescendingDateCursorFilter,
+  parseListRequest,
+  takePage,
+} from '@/lib/bounded-read';
+import { publicListResponseCache } from '@/lib/list-response-cache';
 
 const ALLOWED_SORT_FIELDS: Record<string, Record<string, 1 | -1>> = {
-  newest: { createdAt: -1 },
-  views: { views: -1, createdAt: -1 },
+  newest: { createdAt: -1, _id: -1 },
+  views: { views: -1, _id: -1 },
 };
-
-const ACCESS_COOKIE = 'policy-analysis-access';
-
-const buildCookieValue = (password: string) =>
-  crypto.createHash('sha256').update(password).digest('hex');
 
 export async function GET(request: NextRequest) {
   try {
@@ -26,14 +25,18 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const examinerKey = searchParams.get('examinerKey');
     const examinerName = searchParams.get('examinerName');
-    const rawLimit = searchParams.get('limit');
     const rawSearch = searchParams.get('search');
     const sortKey = searchParams.get('sort') || 'newest';
+    const listRequestResult = parseListRequest(searchParams, { defaultLimit: 20, maxLimit: 100 });
+    if (listRequestResult.kind === 'invalid') {
+      return NextResponse.json({ message: listRequestResult.message }, { status: 400 });
+    }
+    const { limit, cursor } = listRequestResult.request;
 
-    const query: Record<string, unknown> = {};
+    const filters: Record<string, unknown>[] = [];
 
     if (category && category !== 'all') {
-      query.category = category;
+      filters.push({ category });
     }
 
     // examinerKey 또는 examinerName으로 필터링
@@ -46,33 +49,67 @@ export async function GET(request: NextRequest) {
         examinerQuery.push({ 'examiner.name': examinerName });
       }
       if (examinerQuery.length === 1) {
-        Object.assign(query, examinerQuery[0]);
+        filters.push(examinerQuery[0]);
       } else {
-        query.$or = examinerQuery;
+        filters.push({ $or: examinerQuery });
       }
     }
 
     if (rawSearch) {
-      const searchRegex = new RegExp(rawSearch.trim(), 'i');
-      query.$or = [
-        { title: searchRegex },
-        { excerpt: searchRegex },
-        { content: searchRegex },
-        { 'examiner.name': searchRegex },
-        { tags: searchRegex },
-      ];
+      const normalizedSearch = rawSearch.trim();
+      if (normalizedSearch.length > 80) {
+        return NextResponse.json({ message: 'search must be 80 characters or fewer' }, { status: 400 });
+      }
+      if (normalizedSearch) {
+        const escapedSearch = normalizedSearch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const searchRegex = new RegExp(escapedSearch, 'i');
+        filters.push({
+          $or: [
+            { title: searchRegex },
+            { excerpt: searchRegex },
+            { content: searchRegex },
+            { 'examiner.name': searchRegex },
+            { tags: searchRegex },
+          ],
+        });
+      }
     }
 
-    const limit = rawLimit ? Number.parseInt(rawLimit, 10) : undefined;
     const sort = ALLOWED_SORT_FIELDS[sortKey] || ALLOWED_SORT_FIELDS.newest;
-
-    let postsQuery = PolicyAnalysisPost.find(query).sort(sort);
-    if (limit && !Number.isNaN(limit)) {
-      postsQuery = postsQuery.limit(limit);
+    if (cursor) {
+      const cursorFilterResult =
+        sortKey === 'views'
+          ? { kind: 'valid' as const, filter: buildDescendingCursorFilter(cursor, 'views') }
+          : buildDescendingDateCursorFilter(cursor, 'createdAt');
+      if (cursorFilterResult.kind === 'invalid') {
+        return NextResponse.json({ message: 'cursor is invalid' }, { status: 400 });
+      }
+      filters.push(cursorFilterResult.filter);
     }
 
-    const posts = await postsQuery.lean();
-    return NextResponse.json({ posts });
+    const query = filters.length ? { $and: filters } : {};
+    const loadPage = async () => {
+      const posts = await PolicyAnalysisPost.find(query)
+        .sort(sort)
+        .limit(limit + 1)
+        .select('-content -sections -images -attachments')
+        .lean();
+      const page = takePage(posts, limit, (post) => ({
+        sortValue: sortKey === 'views' ? Number(post.views || 0) : new Date(post.createdAt).toISOString(),
+        id: post._id.toString(),
+      }));
+      return JSON.stringify({ posts: page.items, nextCursor: page.nextCursor, hasMore: page.hasMore });
+    };
+    const payload = await publicListResponseCache.getOrLoad(
+      `policy-analysis:${searchParams.toString()}`,
+      loadPage
+    );
+    return new NextResponse(payload, {
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+      },
+    });
   } catch (error) {
     console.error('[policy-analysis][GET]', error);
     return NextResponse.json(
@@ -235,6 +272,7 @@ export async function POST(request: NextRequest) {
         companyName: examiner.companyName || '',
       },
     });
+    publicListResponseCache.invalidatePrefix('policy-analysis:');
 
     console.log('[policy-analysis][POST] Post created successfully:', post._id);
 
@@ -266,9 +304,8 @@ export async function POST(request: NextRequest) {
     const authError = handleAuthError(error);
     if (authError) return authError;
 
-    const errorMessage = error instanceof Error ? error.message : '정책분석 게시글을 저장하는 중 오류가 발생했습니다.';
     return NextResponse.json(
-      { message: errorMessage, error: error instanceof Error ? error.stack : undefined },
+      { message: '정책분석 게시글을 저장하는 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }

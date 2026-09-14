@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 
 export interface IExpert {
   _id?: string;
@@ -59,4 +59,10 @@ const ExpertSchema = new mongoose.Schema<IExpert>(
   }
 );
 
-export default mongoose.models.Expert || mongoose.model<IExpert>('Expert', ExpertSchema);
+ExpertSchema.index({ name: 1, _id: 1 });
+ExpertSchema.index({ isActive: 1, order: 1, _id: 1 });
+
+const Expert: Model<IExpert> =
+  mongoose.models.Expert || mongoose.model<IExpert>('Expert', ExpertSchema);
+
+export default Expert;

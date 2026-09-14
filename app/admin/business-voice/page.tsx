@@ -31,16 +31,6 @@ interface TtontokPost {
   updatedAt: string;
 }
 
-interface NewPost {
-  title: string;
-  content: string;
-  nickname: string;
-  category: string;
-  tags: string[];
-  viewCount: number;
-  likeCount: number;
-}
-
 interface NewReply {
   content: string;
   nickname: string;
@@ -97,7 +87,9 @@ export default function BusinessVoiceAdminPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [currentCursor, setCurrentCursor] = useState<string | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [cursorHistory, setCursorHistory] = useState<(string | null)[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('latest');
   const [newReply, setNewReply] = useState<NewReply>({
@@ -106,7 +98,7 @@ export default function BusinessVoiceAdminPage() {
     role: 'general',
     likeCount: 0
   });
-  const [editingReplies, setEditingReplies] = useState<{[key: string]: TtontokReply}>({});
+  const [, setEditingReplies] = useState<{[key: string]: TtontokReply}>({});
   const [nicknames, setNicknames] = useState<NicknamesData>({
     examiners: [],
     experts: [],
@@ -127,7 +119,7 @@ export default function BusinessVoiceAdminPage() {
     } else {
       fetchQuestions();
     }
-  }, [activeTab, currentPage, selectedCategory, sortBy, qnaPage]);
+  }, [activeTab, currentCursor, selectedCategory, sortBy, qnaPage]);
 
   const fetchNicknames = async () => {
     try {
@@ -146,7 +138,10 @@ export default function BusinessVoiceAdminPage() {
 
     setIsLoading(true);
     try {
-      let url = `/api/business-voice/ttontok?page=${currentPage}&limit=20&sort=${sortBy}`;
+      let url = `/api/business-voice/ttontok?limit=20&sort=${sortBy}`;
+      if (currentCursor) {
+        url += `&cursor=${encodeURIComponent(currentCursor)}`;
+      }
       if (selectedCategory) {
         url += `&category=${selectedCategory}`;
       }
@@ -154,7 +149,7 @@ export default function BusinessVoiceAdminPage() {
       const response = await fetch(url);
       const data = await response.json();
       setPosts(data.items || []);
-      setTotalPages(data.totalPages || 1);
+      setNextCursor(data.hasMore ? data.nextCursor || null : null);
     } catch (error) {
       console.error('게시글 불러오기 실패:', error);
     } finally {
@@ -547,7 +542,12 @@ export default function BusinessVoiceAdminPage() {
             <div className="posts-controls">
               <select
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value);
+                  setCurrentCursor(null);
+                  setCursorHistory([]);
+                  setCurrentPage(1);
+                }}
                 className="category-filter"
               >
                 <option value="">전체 카테고리</option>
@@ -562,7 +562,12 @@ export default function BusinessVoiceAdminPage() {
               </select>
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                onChange={(e) => {
+                  setSortBy(e.target.value);
+                  setCurrentCursor(null);
+                  setCursorHistory([]);
+                  setCurrentPage(1);
+                }}
                 className="sort-filter"
               >
                 <option value="latest">최신순</option>
@@ -631,15 +636,25 @@ export default function BusinessVoiceAdminPage() {
 
           <div className="pagination">
             <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
+              onClick={() => {
+                const previousCursor = cursorHistory.at(-1) || null;
+                setCursorHistory((previous) => previous.slice(0, -1));
+                setCurrentCursor(previousCursor);
+                setCurrentPage((page) => Math.max(1, page - 1));
+              }}
+              disabled={cursorHistory.length === 0}
             >
               이전
             </button>
-            <span>{currentPage} / {totalPages}</span>
+            <span>{currentPage}페이지</span>
             <button
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
+              onClick={() => {
+                if (!nextCursor) return;
+                setCursorHistory((previous) => [...previous, currentCursor]);
+                setCurrentCursor(nextCursor);
+                setCurrentPage((page) => Math.min(20, page + 1));
+              }}
+              disabled={!nextCursor || currentPage >= 20}
             >
               다음
             </button>

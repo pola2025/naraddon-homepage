@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireLogin , handleAuthError } from '@/lib/auth/guards';
 import connectDB from '@/lib/mongodb';
 import DDonTalk from '@/models/DDonTalk';
+import {
+  buildDescendingDateCursorFilter,
+  parseListRequest,
+  takePage,
+} from '@/lib/bounded-read';
 
 // GET: 똔톡 목록 조회
 export async function GET(request: NextRequest) {
@@ -9,17 +14,26 @@ export async function GET(request: NextRequest) {
     await connectDB();
 
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const skip = (page - 1) * limit;
+    const listRequestResult = parseListRequest(searchParams, { defaultLimit: 20, maxLimit: 50 });
+    if (listRequestResult.kind === 'invalid') {
+      return NextResponse.json({ success: false, error: listRequestResult.message }, { status: 400 });
+    }
+    const { limit, cursor } = listRequestResult.request;
+    const cursorFilterResult = cursor
+      ? buildDescendingDateCursorFilter(cursor, 'createdAt')
+      : { kind: 'valid' as const, filter: {} };
+    if (cursorFilterResult.kind === 'invalid') {
+      return NextResponse.json({ success: false, error: 'cursor is invalid' }, { status: 400 });
+    }
 
-    const posts = await DDonTalk.find()
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
+    const posts = await DDonTalk.find(cursorFilterResult.filter)
+      .sort({ createdAt: -1, _id: -1 })
+      .limit(limit + 1)
       .lean();
-
-    const total = await DDonTalk.countDocuments();
+    const page = takePage(posts, limit, (post) => ({
+      sortValue: new Date(post.createdAt).toISOString(),
+      id: post._id.toString(),
+    }));
 
     // 베스트 게시글 선택 (좋아요 수 기준 상위 2개)
     const bestPosts = await DDonTalk.find()
@@ -27,17 +41,19 @@ export async function GET(request: NextRequest) {
       .limit(2)
       .lean();
 
-    return NextResponse.json({
-      success: true,
-      posts: posts,
-      bestPosts: bestPosts,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit)
-      }
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        posts: page.items,
+        bestPosts,
+        pagination: {
+          limit,
+          nextCursor: page.nextCursor,
+          hasMore: page.hasMore,
+        },
+      },
+      { headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=120' } }
+    );
   } catch (error) {
     console.error('DDonTalk 목록 조회 오류:', error);
 

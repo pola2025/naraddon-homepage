@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 
 export interface ITtontokNickname {
   _id?: string;
@@ -44,5 +44,8 @@ TtontokNicknameSchema.index({ role: 1, sortOrder: 1 });
 TtontokNicknameSchema.index({ nickname: 1 });
 TtontokNicknameSchema.index({ isActive: 1 });
 
-export default mongoose.models.TtontokNickname ||
+const TtontokNickname: Model<ITtontokNickname> =
+  mongoose.models.TtontokNickname ||
   mongoose.model<ITtontokNickname>('TtontokNickname', TtontokNicknameSchema);
+
+export default TtontokNickname;

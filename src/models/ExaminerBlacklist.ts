@@ -143,6 +143,7 @@ ExaminerBlacklistSchema.index({
   companyName: 'text',
   businessNumber: 'text',
 });
+ExaminerBlacklistSchema.index({ registeredAt: -1, _id: -1 });
 
 // 모델 생성 (이미 존재하면 기존 모델 사용)
 const ExaminerBlacklist: Model<IExaminerBlacklist> =

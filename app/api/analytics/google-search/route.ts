@@ -8,9 +8,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
+import { handleAuthError, requireAdmin } from '@/lib/auth/guards';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
+    await requireAdmin();
     // 환경변수 확인
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
@@ -79,13 +81,14 @@ export async function GET(request: NextRequest) {
         position: row.position, // 평균 순위
       })),
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const authError = handleAuthError(error);
+    if (authError) return authError;
     console.error('Google Search Console API Error:', error);
 
     return NextResponse.json(
       {
         error: 'Failed to fetch Google Search Console data',
-        details: error.message,
       },
       { status: 500 }
     );

@@ -1,5 +1,32 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb-client';
+import { ObjectId } from 'mongodb';
+import { buildAscendingCursorFilter, parseListRequest, takePage } from '@/lib/bounded-read';
+
+type CertifiedExaminerDocument = {
+  readonly _id: { toString(): string };
+  readonly name?: string;
+  readonly companyName?: string;
+  readonly imageUrl?: string;
+  readonly position?: string;
+  readonly category?: string;
+  readonly specialties?: readonly unknown[];
+  readonly sortOrder?: number;
+  readonly isPublished?: boolean;
+};
+
+type ExaminerActivityDocument = {
+  readonly examinerId: string;
+  readonly activities?: {
+    readonly loginCount?: number;
+    readonly pageVisits?: number;
+    readonly postsCreated?: number;
+    readonly commentsCreated?: number;
+    readonly profileCompletenessScore?: number;
+    readonly lastActiveAt?: Date | string;
+  };
+  readonly totalScore?: number;
+};
 
 export const dynamic = 'force-dynamic';
 
@@ -15,12 +42,26 @@ export const revalidate = 300;
  * @returns 심사관 이름, 회사명, 이미지 URL
  * @performance 인덱스 사용, 5분 캐싱
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   const startTime = Date.now();
 
   try {
     const client = await clientPromise;
     const db = client.db('naraddon');
+    const listRequestResult = parseListRequest(request.nextUrl.searchParams, {
+      defaultLimit: 24,
+      maxLimit: 50,
+    });
+    if (listRequestResult.kind === 'invalid') {
+      return NextResponse.json({ error: listRequestResult.message }, { status: 400 });
+    }
+    const { limit, cursor } = listRequestResult.request;
+    const cursorFilter = cursor
+      ? buildAscendingCursorFilter(cursor, 'sortOrder', (id) => new ObjectId(id))
+      : null;
+    const query = cursorFilter
+      ? { $and: [{ isPublished: true }, cursorFilter] }
+      : { isPublished: true };
 
     // 성능 모니터링: DB 연결 시간
     const dbConnectTime = Date.now() - startTime;
@@ -29,7 +70,9 @@ export async function GET() {
     // isPublished=true인 심사관만 조회 (인덱스 사용)
     const queryStartTime = Date.now();
     const examiners = await db.collection('expert-examiners')
-      .find({ isPublished: true })
+      .find(query)
+      .sort({ sortOrder: 1, _id: 1 })
+      .limit(limit + 1)
       .project({
         name: 1,
         companyName: 1,
@@ -41,6 +84,10 @@ export async function GET() {
         isPublished: 1
       })
       .toArray();
+    const page = takePage<CertifiedExaminerDocument>(examiners, limit, (examiner) => ({
+      sortValue: Number(examiner.sortOrder || 0),
+      id: examiner._id.toString(),
+    }));
 
     const queryTime = Date.now() - queryStartTime;
     console.log(`[Certified Examiners API] Query: ${queryTime}ms`);
@@ -52,7 +99,7 @@ export async function GET() {
      * @context examiner-activities 컬렉션에서 점수 조회
      */
     const activitiesStartTime = Date.now();
-    const examinerIds = examiners.map(e => e._id.toString());
+    const examinerIds = page.items.map(e => e._id.toString());
 
     // 모든 심사관의 활동 점수를 한 번에 조회 (성능 최적화)
     const activitiesData = await db.collection('examiner-activities')
@@ -65,8 +112,8 @@ export async function GET() {
       .toArray();
 
     // examiner ID를 키로 하는 활동 점수 맵 생성
-    const activitiesMap = new Map(
-      activitiesData.map(a => [a.examinerId, a])
+    const activitiesMap = new Map<string, ExaminerActivityDocument>(
+      activitiesData.map((activity) => [activity.examinerId, activity])
     );
 
     const activitiesTime = Date.now() - activitiesStartTime;
@@ -93,7 +140,7 @@ export async function GET() {
     };
 
     // 프론트엔드 형식으로 변환 (활동 점수 포함)
-    const formattedExaminers = examiners.map(examiner => {
+    const formattedExaminers = page.items.map(examiner => {
       const examinerId = examiner._id.toString();
       const activity = activitiesMap.get(examinerId);
 
@@ -136,7 +183,9 @@ export async function GET() {
       {
         success: true,
         examiners: formattedExaminers,
-        total: formattedExaminers.length
+        total: null,
+        nextCursor: page.nextCursor,
+        hasMore: page.hasMore,
       },
       {
         headers: {

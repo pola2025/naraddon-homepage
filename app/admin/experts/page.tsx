@@ -118,8 +118,8 @@ export default function AdminExpertsPage() {
   const fetchData = async () => {
     try {
       const [expertsRes, usersRes] = await Promise.all([
-        fetch('/api/admin/experts'),
-        fetch('/api/admin/users'),
+        fetch('/api/admin/experts?limit=50', { cache: 'no-store' }),
+        fetch('/api/admin/users?limit=50', { cache: 'no-store' }),
       ]);
 
       const expertsData = await expertsRes.json();

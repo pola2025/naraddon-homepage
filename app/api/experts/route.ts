@@ -4,6 +4,7 @@ import { authOptions } from '@/app/auth-options';
 import { isAdmin } from '@/lib/auth/role-check';
 import dbConnect from '@/lib/mongodb';
 import Expert from '@/models/Expert';
+import { buildAscendingCursorFilter, parseListRequest, takePage } from '@/lib/bounded-read';
 
 /**
  * 전문가 관리 API
@@ -93,19 +94,37 @@ export async function GET(request: NextRequest) {
     /* 관리자용 전체 목록은 별도 관리자 API에서 처리 */
     const { searchParams } = new URL(request.url);
     const showAll = searchParams.get('showAll') === 'true';
-    let query: Record<string, unknown> = { isActive: true };
+    const listRequestResult = parseListRequest(searchParams, { defaultLimit: 24, maxLimit: 50 });
+    if (listRequestResult.kind === 'invalid') {
+      return NextResponse.json({ success: false, error: listRequestResult.message }, { status: 400 });
+    }
+    const { limit, cursor } = listRequestResult.request;
+    let baseQuery: Record<string, unknown> = { isActive: true };
+    let showPrivateData = false;
 
     if (showAll) {
       const session = await getServerSession(authOptions);
       const isAdminUser = session?.user ? isAdmin(session.user) : false;
       if (isAdminUser) {
-        query = {};
+        baseQuery = {};
+        showPrivateData = true;
+      } else {
+        return NextResponse.json({ success: false, error: '관리자 권한이 필요합니다.' }, { status: 403 });
       }
     }
 
-    const experts = await Expert.find(query).sort({ order: 1, createdAt: -1 }).select('-__v');
+    const cursorFilter = cursor ? buildAscendingCursorFilter(cursor, 'order') : null;
+    const query = cursorFilter ? { $and: [baseQuery, cursorFilter] } : baseQuery;
+    const experts = await Expert.find(query)
+      .sort({ order: 1, _id: 1 })
+      .limit(limit + 1)
+      .select('-__v');
+    const page = takePage(experts, limit, (expert) => ({
+      sortValue: Number(expert.order || 0),
+      id: expert._id.toString(),
+    }));
 
-    const transformedExperts = experts.map((expert) => {
+    const transformedExperts = page.items.map((expert) => {
       const expertObj = expert.toObject();
       return {
         ...expertObj,
@@ -114,7 +133,21 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    return NextResponse.json({ success: true, experts: transformedExperts });
+    return NextResponse.json(
+      {
+        success: true,
+        experts: transformedExperts,
+        nextCursor: page.nextCursor,
+        hasMore: page.hasMore,
+      },
+      {
+        headers: {
+          'Cache-Control': showPrivateData
+            ? 'private, no-store'
+            : 'public, s-maxage=60, stale-while-revalidate=300',
+        },
+      }
+    );
   } catch (error) {
     console.error('[나라똔:전문가관리] 목록 조회 실패:', error);
     return NextResponse.json({ success: false, error: 'Failed to fetch experts' }, { status: 500 });
@@ -124,7 +157,7 @@ export async function GET(request: NextRequest) {
 /* ───── POST: 전문가 등록 (관리자 전용) ───── */
 export async function POST(request: NextRequest) {
   const auth = await requireAdminSession();
-  if (!auth.ok) return auth.response;
+  if (auth.ok === false) return auth.response;
 
   try {
     let body: Record<string, unknown>;
@@ -160,7 +193,7 @@ export async function POST(request: NextRequest) {
 /* ───── PUT: 전문가 수정 (관리자 전용) ───── */
 export async function PUT(request: NextRequest) {
   const auth = await requireAdminSession();
-  if (!auth.ok) return auth.response;
+  if (auth.ok === false) return auth.response;
 
   try {
     let body: Record<string, unknown>;
@@ -201,7 +234,7 @@ export async function PUT(request: NextRequest) {
 /* ───── DELETE: 전문가 삭제 (관리자 전용) ───── */
 export async function DELETE(request: NextRequest) {
   const auth = await requireAdminSession();
-  if (!auth.ok) return auth.response;
+  if (auth.ok === false) return auth.response;
 
   try {
     const { searchParams } = new URL(request.url);

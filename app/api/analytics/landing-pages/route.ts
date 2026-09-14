@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb-client';
+import { handleAuthError, requireAdmin } from '@/lib/auth/guards';
+import { parseAnalyticsDateRange } from '@/lib/bounded-analytics';
 
 /**
  * 랜딩 페이지 성능 분석 API
@@ -10,19 +12,18 @@ import clientPromise from '@/lib/mongodb-client';
 
 export async function GET(request: NextRequest) {
   try {
+    await requireAdmin();
     const { searchParams } = new URL(request.url);
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
-    const limit = parseInt(searchParams.get('limit') || '20', 10);
+    const limit = Number(searchParams.get('limit') || 20);
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 50) {
+      return NextResponse.json({ error: 'limit must be between 1 and 50' }, { status: 400 });
+    }
 
-    // 날짜 범위 설정
-    const dateFilter: any = {};
-    if (startDate) {
-      dateFilter.$gte = new Date(startDate);
+    const dateRange = parseAnalyticsDateRange(searchParams);
+    if (dateRange.kind === 'invalid') {
+      return NextResponse.json({ error: dateRange.message }, { status: 400 });
     }
-    if (endDate) {
-      dateFilter.$lte = new Date(endDate);
-    }
+    const dateFilter = { $gte: dateRange.start, $lte: dateRange.end };
 
     // MongoDB 연결
     const client = await clientPromise;
@@ -70,10 +71,11 @@ export async function GET(request: NextRequest) {
         // 해당 랜딩 페이지로 시작한 세션 ID들
         const sessions = await db.collection('page-visits')
           .find({ pathname: page.pathname, pageViewCount: 1 })
+          .limit(5000)
           .project({ sessionId: 1 })
           .toArray();
 
-        const sessionIds = [...new Set(sessions.map(s => s.sessionId))];
+        const sessionIds = Array.from(new Set(sessions.map(s => s.sessionId)));
 
         // 전환 수 계산
         const conversions = await db.collection('conversions').countDocuments({
@@ -161,6 +163,8 @@ export async function GET(request: NextRequest) {
       summary,
     });
   } catch (error) {
+    const authError = handleAuthError(error);
+    if (authError) return authError;
     console.error('[Analytics/LandingPages] Error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch landing page data' },

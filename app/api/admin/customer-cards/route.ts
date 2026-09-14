@@ -2,14 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/auth-options';
 import clientPromise from '@/lib/mongodb-client';
+import { ObjectId } from 'mongodb';
+import {
+  buildDescendingDateCursorFilter,
+  parseListRequest,
+  takePage,
+} from '@/lib/bounded-read';
+
+type CustomerCardDocument = {
+  readonly _id: { toString(): string };
+  readonly createdAt: Date | string;
+  readonly [key: string]: unknown;
+};
 import {
   CustomerCard,
   DirectCustomerCardRequest,
   ConsultationStatus,
   ConsultationSource,
   CustomerType,
-  ConsultationPhase,
-  StaffRole
+  ConsultationPhase
 } from '@/types/consultation.types';
 
 // GET /api/admin/customer-cards - 고객카드 목록 조회
@@ -30,6 +41,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const staffId = searchParams.get('staffId');
     const status = searchParams.get('status');
+    const listRequestResult = parseListRequest(searchParams, { defaultLimit: 25, maxLimit: 50 });
+    if (listRequestResult.kind === 'invalid') {
+      return NextResponse.json({ error: listRequestResult.message }, { status: 400 });
+    }
+    const { limit, cursor } = listRequestResult.request;
 
     const client = await clientPromise;
     const db = client.db('naraddon');
@@ -47,12 +63,37 @@ export async function GET(request: NextRequest) {
 
     if (status) filter.status = status;
 
-    const customerCards = await db.collection('customerCards')
-      .find(filter)
-      .sort({ createdAt: -1 })
-      .toArray();
+    let queryFilter = filter;
+    if (cursor) {
+      const cursorFilterResult = buildDescendingDateCursorFilter(
+        cursor,
+        'createdAt',
+        (id) => new ObjectId(id)
+      );
+      if (cursorFilterResult.kind === 'invalid') {
+        return NextResponse.json({ error: 'cursor is invalid' }, { status: 400 });
+      }
+      queryFilter = { $and: [filter, cursorFilterResult.filter] };
+    }
 
-    return NextResponse.json(customerCards);
+    const customerCards = await db.collection('customerCards')
+      .find(queryFilter)
+      .sort({ createdAt: -1, _id: -1 })
+      .limit(limit + 1)
+      .toArray();
+    const page = takePage<CustomerCardDocument>(customerCards, limit, (customerCard) => ({
+      sortValue: new Date(customerCard.createdAt).toISOString(),
+      id: customerCard._id.toString(),
+    }));
+
+    return NextResponse.json(page.items, {
+      headers: {
+        'Cache-Control': 'private, no-store',
+        'X-Has-More': String(page.hasMore),
+        'X-Next-Cursor': page.nextCursor || '',
+        'X-Page-Limit': String(limit),
+      },
+    });
   } catch (error) {
     console.error('Failed to fetch customer cards:', error);
     return NextResponse.json(

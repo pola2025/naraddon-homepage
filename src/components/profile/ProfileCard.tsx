@@ -8,7 +8,6 @@ import {
   BuildingOfficeIcon,
   BriefcaseIcon,
   CalendarIcon,
-  EnvelopeIcon,
   PhoneIcon,
   MapPinIcon,
   CheckBadgeIcon,
@@ -50,8 +49,8 @@ export default function ProfileCard({
   const fetchExaminersAndExperts = async () => {
     try {
       const [examinersRes, expertsRes] = await Promise.all([
-        fetch('/api/admin/examiners'),
-        fetch('/api/admin/experts')
+        fetch('/api/admin/examiners?limit=50', { cache: 'no-store' }),
+        fetch('/api/admin/experts?limit=50', { cache: 'no-store' })
       ]);
 
       if (examinersRes.ok) {

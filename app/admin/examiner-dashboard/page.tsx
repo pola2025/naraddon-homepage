@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 /**
@@ -59,7 +59,6 @@ interface Consultation {
 
 export default function AdminExaminerDashboardPage() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const examinerEmail = searchParams.get('examinerEmail');
 
   const [stats, setStats] = useState<ExaminerStats | null>(null);
@@ -87,7 +86,7 @@ export default function AdminExaminerDashboardPage() {
    */
   const fetchExaminerInfo = async () => {
     try {
-      const response = await fetch('/api/admin/examiners', {
+      const response = await fetch('/api/admin/examiners?limit=50', {
         headers: {
           'x-admin-auth': 'true'
         }

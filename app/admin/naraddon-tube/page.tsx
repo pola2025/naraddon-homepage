@@ -86,7 +86,7 @@ const NaraddonTubeAdminPage: React.FC = () => {
     try {
       setIsLoadingEntries(true);
       setLoadEntriesError(null);
-      const response = await fetch('/api/naraddon-tube?includeDraft=true', { cache: 'no-store' });
+      const response = await fetch('/api/naraddon-tube?includeDraft=true&limit=50', { cache: 'no-store' });
       if (!response.ok) {
         throw new Error('나라똔튜브 데이터를 불러오지 못했어요.');
       }

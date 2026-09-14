@@ -73,6 +73,7 @@ const naraddonTubeEntrySchema = new Schema<INaraddonTubeEntry>(
 
 naraddonTubeEntrySchema.index({ sortOrder: 1, createdAt: -1 });
 naraddonTubeEntrySchema.index({ isPublished: 1 });
+naraddonTubeEntrySchema.index({ isPublished: 1, sortOrder: 1, _id: 1 });
 
 const NaraddonTubeEntry: Model<INaraddonTubeEntry> =
   mongoose.models.NaraddonTubeEntry ||

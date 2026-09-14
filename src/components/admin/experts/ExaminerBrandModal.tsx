@@ -118,7 +118,7 @@ export default function ExaminerBrandModal({
       setIsLoading(true);
       setError('');
       try {
-        const response = await fetch('/api/admin/examiners', { cache: 'no-store' });
+        const response = await fetch('/api/admin/examiners?limit=50', { cache: 'no-store' });
         if (!response.ok) {
           throw new Error('examiner 목록 조회 실패');
         }

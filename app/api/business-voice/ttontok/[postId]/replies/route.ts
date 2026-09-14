@@ -5,6 +5,7 @@ import { requireLogin , handleAuthError } from '@/lib/auth/guards';
 import connectDB from '@/lib/mongodb';
 import TtontokPost from '@/models/TtontokPost';
 import TtontokReply, { TtontokReplyRole } from '@/models/TtontokReply';
+import { parseListRequest } from '@/lib/bounded-read';
 
 const sanitizeContent = (value: unknown) => {
   if (typeof value !== 'string') return '';
@@ -48,11 +49,17 @@ export async function GET(
   }
 
   const { searchParams } = new URL(request.url);
+  const listRequestResult = parseListRequest(searchParams, { defaultLimit: 50, maxLimit: 100 });
+  if (listRequestResult.kind === 'invalid') {
+    return NextResponse.json({ message: listRequestResult.message }, { status: 400 });
+  }
+  const { limit } = listRequestResult.request;
   const sortOrder = (searchParams.get('sort') ?? 'chronological').toLowerCase();
-  const sort = sortOrder === 'recent' ? { createdAt: -1 } : { createdAt: 1 };
+  const sort: Record<string, 1 | -1> = sortOrder === 'recent' ? { createdAt: -1 } : { createdAt: 1 };
 
   const replies = await TtontokReply.find({ postId })
     .sort(sort)
+    .limit(limit)
     .lean();
 
   return NextResponse.json(

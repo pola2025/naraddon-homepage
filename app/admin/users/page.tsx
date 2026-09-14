@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import DataTable, { Column } from '@/components/admin/common/DataTable';
 import ProfileCard from '@/components/profile/ProfileCard';
 import { User, UserRole, UserStatus } from '@/types/user.types';
@@ -8,8 +8,6 @@ import {
   UserGroupIcon,
   FunnelIcon,
   ArrowDownTrayIcon,
-  MagnifyingGlassIcon,
-  PlusIcon,
   TrashIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
@@ -21,6 +19,9 @@ export default function UsersManagementPage() {
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [loadedPages, setLoadedPages] = useState(0);
+  const activeRequest = useRef<AbortController | null>(null);
 
   // 탈퇴 모달 상태
   const [withdrawalModal, setWithdrawalModal] = useState<{
@@ -41,13 +42,22 @@ export default function UsersManagementPage() {
 
   // 실제 사용자 데이터 로드
   useEffect(() => {
-    fetchUsers();
+    void fetchUsers();
+    return () => activeRequest.current?.abort();
   }, []);
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (cursor: string | null = null, append = false) => {
+    activeRequest.current?.abort();
+    const controller = new AbortController();
+    activeRequest.current = controller;
     try {
       setIsLoading(true);
-      const response = await fetch('/api/admin/users');
+      const params = new URLSearchParams({ limit: '25' });
+      if (cursor) params.set('cursor', cursor);
+      const response = await fetch(`/api/admin/users?${params}`, {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -56,9 +66,7 @@ export default function UsersManagementPage() {
       }
 
       const data = await response.json();
-      console.log('[Users Page] API Response:', data);
 
-      // API 응답 구조: { users: [...], total, limit, skip }
       const userList = data.users || [];
 
       // DB 데이터를 User 타입으로 변환
@@ -78,29 +86,27 @@ export default function UsersManagementPage() {
           lastLoginAt: user.lastLoginAt ? new Date(user.lastLoginAt) : undefined
         } as any;
 
-        // 디버깅: 이재호 사용자
-        if (user.name === '이재호' || user.email?.includes('framei')) {
-          console.log('[이재호] API Response:', {
-            name: user.name,
-            email: user.email,
-            role_from_api: user.role,
-            role_formatted: formatted.role,
-            UserRole_ADMIN: UserRole.ADMIN,
-            match: formatted.role === UserRole.ADMIN
-          });
-        }
-
         return formatted;
       });
 
-      // 이름 기준 가나다순 정렬
-      const sortedUsers = formattedUsers.sort((a: any, b: any) =>
-        (a.name || '').localeCompare(b.name || '', 'ko')
-      );
-
-      console.log('[Users Page] Formatted users:', sortedUsers.length);
-      setUsers(sortedUsers);
+      setUsers((previousUsers) => {
+        const usersById = new Map(
+          (append ? previousUsers : []).map((user) => [user.id, user])
+        );
+        for (const user of formattedUsers) {
+          usersById.set(user.id, user);
+        }
+        return Array.from(usersById.values()).sort((a, b) =>
+          (a.name || '').localeCompare(b.name || '', 'ko')
+        );
+      });
+      const nextPageCount = append ? loadedPages + 1 : 1;
+      setLoadedPages(nextPageCount);
+      setNextCursor(data.hasMore && nextPageCount < 20 ? data.nextCursor || null : null);
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
       console.error('Failed to fetch users:', error);
       alert('사용자 목록을 불러오는데 실패했습니다. 콘솔을 확인해주세요.');
     } finally {
@@ -522,13 +528,8 @@ export default function UsersManagementPage() {
           columns={columns}
           onRowClick={(user) => setSelectedUser(user)}
           searchPlaceholder="이름, 이메일, 회사 검색..."
-          pageSize={100}
+          pageSize={25}
           actions={(user) => {
-            // 디버깅: 이재호 사용자의 role 확인
-            if (user.name === '이재호' || user.email?.includes('이재호')) {
-              console.log('[이재호] role:', user.role, 'UserRole.ADMIN:', UserRole.ADMIN, 'match:', user.role === UserRole.ADMIN);
-            }
-
             return (
             <div className="flex items-center gap-2">
               <button
@@ -594,6 +595,19 @@ export default function UsersManagementPage() {
               onRevokeAdmin={handleRevokeAdmin}
             />
           ))}
+        </div>
+      )}
+
+      {nextCursor && (
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={() => void fetchUsers(nextCursor, true)}
+            disabled={isLoading}
+            className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            {isLoading ? '불러오는 중...' : '다음 25명 불러오기'}
+          </button>
         </div>
       )}
 

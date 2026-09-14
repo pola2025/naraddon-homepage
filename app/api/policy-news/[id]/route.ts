@@ -21,6 +21,7 @@ import { authOptions } from '@/app/auth-options';
 import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import PolicyNewsPost from '@/models/PolicyNewsPost';
+import { publicListResponseCache } from '@/lib/list-response-cache';
 import clientPromise from '@/lib/mongodb-client';
 import { ObjectId } from 'mongodb';
 import { isAdmin as checkIsAdmin } from '@/lib/auth/role-check';
@@ -47,6 +48,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       increaseView ? { $inc: { views: 1 } } : {},
       { new: true }
     ).lean();
+    if (increaseView) {
+      publicListResponseCache.invalidatePrefix('policy-news:');
+    }
 
     if (!post) {
       return NextResponse.json({ message: '존재하지 않는 게시글입니다.' }, { status: 404 });
@@ -192,6 +196,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     if (!updated) {
       return NextResponse.json({ message: '존재하지 않는 게시글입니다.' }, { status: 404 });
     }
+    publicListResponseCache.invalidatePrefix('policy-news:');
 
     return NextResponse.json({ post: updated });
   } catch (error) {
@@ -271,6 +276,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     if (!deleted) {
       return NextResponse.json({ message: '존재하지 않는 게시글입니다.' }, { status: 404 });
     }
+    publicListResponseCache.invalidatePrefix('policy-news:');
 
     return NextResponse.json({ message: '삭제되었습니다.' });
   } catch (error) {
