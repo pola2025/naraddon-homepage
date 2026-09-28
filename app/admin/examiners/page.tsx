@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PlusIcon, PencilIcon, TrashIcon, UserIcon, EyeIcon, DocumentArrowDownIcon, GlobeAltIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { exportAndDownloadExaminers } from '@/utils/exportExcel';
 
@@ -43,9 +43,14 @@ interface ActivityScore {
   };
 }
 
+const EXAMINERS_PAGE_LIMIT = 50;
+const MAX_EXAMINER_PAGES = 20;
+
 export default function ExaminersPage() {
   const [examiners, setExaminers] = useState<Examiner[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const activeRequest = useRef<AbortController | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [editingExaminer, setEditingExaminer] = useState<Examiner | null>(null);
@@ -67,29 +72,67 @@ export default function ExaminersPage() {
   });
 
   useEffect(() => {
-    fetchExaminers();
+    void fetchExaminers();
+    return () => {
+      activeRequest.current?.abort();
+      activeRequest.current = null;
+    };
   }, []);
 
   const fetchExaminers = async () => {
+    activeRequest.current?.abort();
+    const controller = new AbortController();
+    activeRequest.current = controller;
+
     try {
       setIsLoading(true);
-      const response = await fetch('/api/admin/examiners?limit=50', { cache: 'no-store' });
+      setLoadError(false);
+      const examinersById = new Map<string, Examiner>();
+      const seenCursors = new Set<string>();
+      let cursor: string | null = null;
 
-      if (response.ok) {
+      for (let page = 0; page < MAX_EXAMINER_PAGES; page += 1) {
+        const params = new URLSearchParams({ limit: String(EXAMINERS_PAGE_LIMIT) });
+        if (cursor) params.set('cursor', cursor);
+
+        const response = await fetch(`/api/admin/examiners?${params}`, {
+          cache: 'no-store',
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error('Failed to fetch examiner page');
+
         const data = await response.json();
-        // 심사관 목록을 이름 기준 가나다순으로 정렬
-        const sortedExaminers = (data.examiners || []).sort((a: Examiner, b: Examiner) =>
-          a.name.localeCompare(b.name, 'ko')
-        );
-        setExaminers(sortedExaminers);
-      } else {
-        alert('심사관 목록을 불러오는데 실패했습니다.');
+        if (!Array.isArray(data.examiners) || typeof data.hasMore !== 'boolean') {
+          throw new Error('Invalid examiner page');
+        }
+        for (const examiner of data.examiners as Examiner[]) {
+          if (!examiner._id) throw new Error('Examiner is missing an id');
+          examinersById.set(examiner._id, examiner);
+        }
+
+        if (!data.hasMore) {
+          setExaminers(Array.from(examinersById.values()).sort((a, b) =>
+            a.name.localeCompare(b.name, 'ko')
+          ));
+          return;
+        }
+        if (typeof data.nextCursor !== 'string' || !data.nextCursor || seenCursors.has(data.nextCursor)) {
+          throw new Error('Invalid or repeated examiner cursor');
+        }
+        seenCursors.add(data.nextCursor);
+        cursor = data.nextCursor;
       }
+
+      throw new Error('Examiner page limit reached');
     } catch (error) {
+      if (controller.signal.aborted) return;
       console.error('Failed to fetch examiners:', error);
-      alert('심사관 목록을 불러오는데 실패했습니다.');
+      setLoadError(true);
     } finally {
-      setIsLoading(false);
+      if (activeRequest.current === controller) {
+        activeRequest.current = null;
+        setIsLoading(false);
+      }
     }
   };
 
@@ -388,6 +431,17 @@ export default function ExaminersPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div role="alert" className="flex flex-col items-center justify-center gap-3 h-64 text-gray-700">
+        <p>심사관 목록을 모두 불러오지 못했습니다.</p>
+        <button type="button" onClick={() => void fetchExaminers()} className="text-blue-600 underline">
+          다시 시도
+        </button>
       </div>
     );
   }
