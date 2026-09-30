@@ -1,7 +1,11 @@
 import { SkeletonHero } from '@/components/loading';
 import Skeleton, { SkeletonCardGrid, SkeletonSection } from '@/components/loading/Skeleton';
 
-/** 메인 페이지 로딩 — 히어로 + 신뢰 카드 + 콘텐츠 블록 구조 반영 */
+/**
+ * 메인 페이지(/home) 로딩 — 히어로 + 신뢰 카드 + 콘텐츠 블록 구조 반영
+ * 2026-09-30 사이트 첫 화면이 인덱스로 바뀌면서 app/loading.tsx 에서 옮겼다.
+ * 루트에 두면 자체 로딩 화면이 없는 모든 페이지(무료 심사 신청 등)로 이동할 때 메인 모양 회색 틀이 떠서 깨진 화면처럼 보인다.
+ */
 export default function Loading() {
   return (
     <div className="animate-fade-in">
