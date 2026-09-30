@@ -244,3 +244,21 @@ body {
     }
   }
 }
+
+/* 페이지 이동 시 새 페이지 내용을 짧게 페이드인한다(app/template.tsx). 2026-09-30
+   backwards 만 써서 끝난 뒤에는 쌓임 맥락이 남지 않게 한다(팝업·고정 버튼 z-index 보호). */
+.route-fade {
+  animation: route-fade-in 0.4s ease-out backwards;
+}
+
+@keyframes route-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-fade {
+    animation: none;
+  }
+}

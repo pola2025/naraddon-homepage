@@ -406,3 +406,20 @@
     border-radius: 10px; /* 카드 전체가 썸네일이므로 모서리 4면 라운딩 */
   }
 }
+
+/* 목록이 준비되면 카드 영역을 페이드인한다(2026-09-30). */
+.policy-news-reveal {
+  animation: policy-news-reveal 0.35s ease-out backwards;
+}
+
+@keyframes policy-news-reveal {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .policy-news-reveal {
+    animation: none;
+  }
+}

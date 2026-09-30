@@ -34,7 +34,7 @@
 
 /* 사이트 공통 레이아웃(src/App.css)은 main 에 헤더 높이만큼 위 여백(80~104px)을 준다.
    인덱스는 헤더를 숨기므로 이 여백을 없앤다. 첫 그림부터 맞도록 body 클래스 대신 :has 로 건다. */
-main:has(> .nx-index-page) {
+main:has(.nx-index-page) {
   padding-top: 0;
   min-height: 0;
 }

@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { normalizePolicyNewsItem } from '@/hooks/usePolicyNews';
-import { PolicyNewsSkeleton } from '@/components/loading/PageSkeletons';
 import { sanitizeImageUrl } from '@/utils/imageUrlSanitizer';
 import './policy-news-list.css';
 
@@ -167,11 +166,10 @@ export default function PolicyNewsListPage() {
     setActiveFilter(filterId);
   };
 
-  // 데이터를 받은 직후 필터·표시 목록이 채워지기 전 한 번의 빈 화면도 스켈레톤으로 이어 준다.
+  // 데이터를 받는 동안(목록이 채워지기 직전 한 번 포함)은 로딩 문구나 빈 목록 안내 없이 자리만 비워 두고,
+  // 목록이 준비되면 카드 영역을 페이드인한다(2026-09-30 중간 화면 없애기 요청).
   const isSettling = activeFilter === 'all' && allPosts.length > 0 && displayedPosts.length === 0;
-  if (isLoading || isSettling) {
-    return <PolicyNewsSkeleton />;
-  }
+  const isPreparing = isLoading || isSettling;
 
   if (error) {
     return (
@@ -232,19 +230,24 @@ export default function PolicyNewsListPage() {
         </div>
 
         {/* 결과 카운트 */}
-        <div className="policy-news-result-count">
+        <div
+          className="policy-news-result-count"
+          style={isPreparing ? { visibility: 'hidden' } : undefined}
+        >
           현재 <strong>{filteredPosts.length}</strong>건 표시
         </div>
 
         {/* 카드 그리드 */}
-        {filteredPosts.length === 0 ? (
-          <div className="policy-news-empty">
+        {isPreparing ? (
+          <div className="policy-news-card-grid" aria-busy="true" style={{ minHeight: '60vh' }} />
+        ) : filteredPosts.length === 0 ? (
+          <div className="policy-news-empty policy-news-reveal">
             <i className="fas fa-inbox"></i>
             <p>해당 카테고리의 정책소식이 없습니다.</p>
           </div>
         ) : (
           <>
-            <div className="policy-news-card-grid">
+            <div className="policy-news-card-grid policy-news-reveal">
               {displayedPosts.map((post) => (
                 <article
                   key={post.id}
