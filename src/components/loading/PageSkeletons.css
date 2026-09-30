@@ -1,0 +1,726 @@
+/**
+ * 페이지별 로딩 스켈레톤
+ *
+ * @purpose 인덱스에서 메뉴로 이동할 때 잠깐 보이는 로딩 화면을 각 페이지 실제 구성과 같은 모양으로 보여 준다
+ * @context 2026-09-30 기존 공통 회색 틀(메인 모양·목록 모양)이 다른 페이지에 쓰여 "깨진 화면"처럼 보인다는 지적으로 새로 만들었다
+ * @decision 사이트 헤더 바로 아래를 고정 위치로 덮는다. 페이지마다 main 위 여백이 달라서(0~104px) 흐름 배치로는 실제 화면과 어긋난다
+ * @note 좌표는 1440px·360px 화면에서 실제 페이지를 실측한 값이다. 헤더 높이: 73 / 69(≤1024) / 61(≤768) / 57(≤480)
+ */
+
+.nxs-root {
+  --nxs-top: 73px;
+  --nxs-bg: #ffffff;
+  --nxs-bone: #e9eef2;
+  --nxs-shine: rgba(255, 255, 255, 0.65);
+  position: fixed;
+  top: var(--nxs-top);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 290;
+  overflow: hidden;
+  background: var(--nxs-bg);
+}
+
+.nxs-root > * {
+  animation: nxs-fade-in 0.18s ease-out both;
+}
+
+.nxs-b {
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--nxs-bone);
+}
+
+.nxs-b::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, var(--nxs-shine), transparent);
+  animation: nxs-shimmer 1.4s ease-in-out infinite;
+}
+
+.nxs-pill {
+  border-radius: 999px;
+}
+
+.nxs-line {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+}
+
+@keyframes nxs-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes nxs-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ── 메인(/home): 어두운 영상 카드 ── */
+.nxs-home-hero {
+  --nxs-bone: rgba(255, 255, 255, 0.16);
+  --nxs-shine: rgba(255, 255, 255, 0.16);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(1200px, calc(100% - 48px));
+  height: 780px;
+  margin: 20px auto 0;
+  padding-top: 180px;
+  overflow: hidden;
+  border-radius: 24px;
+  background: radial-gradient(ellipse at 32% 30%, #4a4843 0%, #2b2a27 45%, #151514 100%);
+}
+
+.nxs-home-l1 {
+  width: min(520px, 80%);
+  height: 48px;
+}
+
+.nxs-home-l2 {
+  width: min(720px, 88%);
+  height: 48px;
+  margin-top: 22px;
+  background: rgba(76, 175, 80, 0.38);
+}
+
+.nxs-home-btns {
+  display: flex;
+  gap: 20px;
+  margin-top: 59px;
+}
+
+.nxs-home-btn1 {
+  width: 173px;
+  height: 58px;
+  background: rgba(76, 175, 80, 0.75);
+}
+
+.nxs-home-btn2 {
+  width: 214px;
+  height: 58px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.nxs-home-ask {
+  width: 190px;
+  height: 20px;
+  margin-top: 71px;
+}
+
+.nxs-home-search {
+  width: min(550px, 90%);
+  height: 56px;
+  margin-top: 21px;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+/* ── 무료 심사 신청: 연두 배경 + 입력 양식 ── */
+.nxs-consult {
+  --nxs-bg: linear-gradient(180deg, #e9f7ef 0%, #f3f9f6 280px, #f8fafc 560px);
+  --nxs-bone: #e2e8ee;
+}
+
+.nxs-consult-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 657fr) minmax(0, 447fr);
+  align-items: start;
+  column-gap: 40px;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 108px 48px 0;
+}
+
+.nxs-card {
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+}
+
+.nxs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nxs-consult-progress {
+  height: 148px;
+  padding: 29px;
+}
+
+.nxs-track {
+  position: relative;
+  height: 6px;
+  margin-top: 22px;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.nxs-track::before {
+  content: '';
+  position: absolute;
+  inset: 0 67% 0 0;
+  border-radius: inherit;
+  background: #bfdbfe;
+}
+
+.nxs-chips {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.nxs-chip-on {
+  background: rgba(59, 130, 246, 0.14);
+}
+
+.nxs-consult-form {
+  height: 556px;
+  margin-top: 32px;
+  padding: 33px;
+}
+
+.nxs-form-head {
+  display: flex;
+  gap: 14px;
+}
+
+.nxs-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.nxs-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 21px 20px;
+  margin-top: 32px;
+}
+
+.nxs-field-label {
+  width: 50px;
+  height: 14px;
+}
+
+.nxs-field-input {
+  width: 100%;
+  height: 54px;
+  margin-top: 18px;
+  border-radius: 14px;
+}
+
+.nxs-field-full {
+  margin-top: 27px;
+}
+
+.nxs-next {
+  width: 115px;
+  height: 53px;
+  margin: 13px 0 0 auto;
+  background: rgba(14, 165, 233, 0.28);
+}
+
+.nxs-consult-summary {
+  height: 483px;
+  padding: 29px;
+}
+
+.nxs-summary-rows {
+  margin-top: 40px;
+}
+
+.nxs-summary-rows .nxs-row {
+  height: 35px;
+}
+
+.nxs-value {
+  width: 40px;
+  height: 14px;
+  background: #eef2f6;
+}
+
+.nxs-consult-info {
+  height: 394px;
+  margin-top: 20px;
+  padding: 29px;
+}
+
+.nxs-hours {
+  width: 100%;
+  height: 81px;
+  margin-top: 30px;
+  border-radius: 14px;
+  background: #f1f5f9;
+}
+
+/* ── 인증심사관: 검은 배경 ── */
+.nxs-exam {
+  --nxs-bg: #0a0a0a;
+  --nxs-bone: rgba(255, 255, 255, 0.08);
+  --nxs-shine: rgba(255, 255, 255, 0.07);
+}
+
+.nxs-exam-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 80px;
+}
+
+.nxs-exam-badge {
+  width: 157px;
+  height: 47px;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  background: rgba(212, 175, 55, 0.07);
+}
+
+.nxs-exam-l1 {
+  width: min(560px, 90%);
+  height: 46px;
+  margin-top: 50px;
+}
+
+.nxs-exam-l2 {
+  width: min(520px, 86%);
+  height: 46px;
+  margin-top: 21px;
+  background: rgba(212, 175, 55, 0.2);
+}
+
+.nxs-exam-l3,
+.nxs-exam-l4 {
+  display: none;
+}
+
+.nxs-exam-sub1 {
+  width: min(380px, 80%);
+  height: 15px;
+  margin-top: 39px;
+}
+
+.nxs-exam-sub2 {
+  width: min(420px, 84%);
+  height: 15px;
+  margin-top: 11px;
+}
+
+.nxs-exam-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px;
+  width: min(1360px, calc(100% - 80px));
+  margin: 133px auto 0;
+}
+
+.nxs-exam-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 14px;
+  height: 540px;
+  padding: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 24px;
+  background: linear-gradient(180deg, #161616 0%, #1c1c1c 100%);
+}
+
+.nxs-exam-name {
+  width: 140px;
+  height: 28px;
+}
+
+.nxs-exam-company {
+  width: 200px;
+  height: 16px;
+}
+
+/* ── 사업자금 뉴스: 제목 + 분류 + 카드 격자 ── */
+.nxs-news {
+  --nxs-bg: #f8fafc;
+  --nxs-bone: #e2e8ee;
+}
+
+.nxs-news-wrap {
+  width: min(1200px, calc(100% - 48px));
+  margin: 0 auto;
+  padding-top: 120px;
+}
+
+.nxs-crumb {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 34px;
+}
+
+.nxs-crumb-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.nxs-news-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 34px;
+}
+
+.nxs-news-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+}
+
+.nxs-news-heading {
+  width: 130px;
+  height: 30px;
+}
+
+.nxs-divider {
+  height: 2px;
+  margin-top: 53px;
+  background: rgba(76, 175, 80, 0.45);
+}
+
+.nxs-filters {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 41px;
+}
+
+.nxs-filters .nxs-b {
+  height: 46px;
+}
+
+.nxs-filter-on {
+  background: rgba(76, 175, 80, 0.55);
+}
+
+.nxs-f1 {
+  width: 76px;
+}
+
+.nxs-f2,
+.nxs-f3 {
+  width: 100px;
+}
+
+.nxs-f4 {
+  width: 113px;
+}
+
+.nxs-count {
+  width: 80px;
+  height: 13px;
+  margin: 28px 0 0 auto;
+}
+
+.nxs-news-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 25px;
+}
+
+.nxs-news-card {
+  overflow: hidden;
+  border: 1px solid #edf1f5;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.nxs-news-thumb {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 0;
+  background: #eef2f6;
+}
+
+.nxs-news-body {
+  height: 103px;
+  padding: 18px;
+}
+
+/* ── 헤더 높이 구간 ── */
+@media (max-width: 1024px) {
+  .nxs-root {
+    --nxs-top: 69px;
+  }
+}
+
+@media (max-width: 768px) {
+  .nxs-root {
+    --nxs-top: 61px;
+  }
+
+  /* 메인 */
+  .nxs-home-hero {
+    width: 100%;
+    height: 640px;
+    margin: 0;
+    padding-top: 106px;
+    border-radius: 0;
+  }
+
+  .nxs-home-l1 {
+    width: 250px;
+    height: 24px;
+  }
+
+  .nxs-home-l2 {
+    width: 300px;
+    height: 24px;
+    margin-top: 10px;
+  }
+
+  .nxs-home-btns {
+    flex-direction: column;
+    gap: 11px;
+    width: calc(100% - 40px);
+    margin-top: 36px;
+  }
+
+  .nxs-home-btn1,
+  .nxs-home-btn2 {
+    width: 100%;
+    height: 46px;
+  }
+
+  .nxs-home-ask {
+    width: 140px;
+    height: 16px;
+    margin-top: 53px;
+  }
+
+  .nxs-home-search {
+    width: calc(100% - 76px);
+    height: 50px;
+    margin-top: 20px;
+  }
+
+  /* 무료 심사 신청 */
+  .nxs-consult-layout {
+    display: block;
+    padding: 64px 20px 0;
+  }
+
+  .nxs-consult-progress {
+    height: 129px;
+    padding: 21px;
+  }
+
+  .nxs-chips {
+    margin-top: 16px;
+  }
+
+  .nxs-chips .nxs-b {
+    height: 25px !important;
+  }
+
+  .nxs-consult-form {
+    height: 575px;
+    margin-top: 24px;
+    padding: 21px;
+  }
+
+  .nxs-circle {
+    width: 36px;
+    height: 36px;
+  }
+
+  .nxs-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 21px;
+  }
+
+  .nxs-field-label {
+    width: 40px;
+    height: 13px;
+  }
+
+  .nxs-field-input {
+    height: 43px;
+    margin-top: 16px;
+  }
+
+  .nxs-field-full {
+    margin-top: 24px;
+  }
+
+  .nxs-next {
+    width: 92px;
+    height: 46px;
+    margin: 29px 0 0 16px;
+  }
+
+  .nxs-consult-summary,
+  .nxs-consult-info {
+    display: none;
+  }
+
+  /* 인증심사관 */
+  .nxs-exam-hero {
+    padding-top: 84px;
+  }
+
+  .nxs-exam-badge {
+    width: 136px;
+    height: 40px;
+  }
+
+  .nxs-exam-l1,
+  .nxs-exam-l2,
+  .nxs-exam-l3,
+  .nxs-exam-l4 {
+    display: block;
+    height: 28px;
+    margin-top: 13px;
+  }
+
+  .nxs-exam-l1 {
+    width: 250px;
+    margin-top: 34px;
+  }
+
+  .nxs-exam-l2 {
+    width: 150px;
+    background: var(--nxs-bone);
+  }
+
+  .nxs-exam-l3 {
+    width: 130px;
+    background: rgba(212, 175, 55, 0.2);
+  }
+
+  .nxs-exam-l4 {
+    width: 260px;
+    background: rgba(212, 175, 55, 0.2);
+  }
+
+  .nxs-exam-sub1 {
+    width: 260px;
+    height: 12px;
+    margin-top: 25px;
+  }
+
+  .nxs-exam-sub2 {
+    width: 230px;
+    height: 12px;
+    margin-top: 10px;
+  }
+
+  .nxs-exam-grid {
+    gap: 8px;
+    width: calc(100% - 36px);
+    margin-top: 128px;
+  }
+
+  .nxs-exam-card {
+    height: 144px;
+    padding: 14px;
+    gap: 8px;
+    border-radius: 6px;
+  }
+
+  .nxs-exam-name {
+    width: 60px;
+    height: 14px;
+  }
+
+  .nxs-exam-company {
+    width: 90px;
+    height: 10px;
+  }
+
+  /* 사업자금 뉴스 */
+  .nxs-news-wrap {
+    width: calc(100% - 32px);
+    padding-top: 128px;
+  }
+
+  .nxs-news-title {
+    margin-top: 30px;
+  }
+
+  .nxs-news-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .nxs-news-heading {
+    width: 110px;
+    height: 24px;
+  }
+
+  .nxs-divider {
+    margin-top: 40px;
+  }
+
+  .nxs-filters {
+    gap: 6px;
+    margin-top: 25px;
+  }
+
+  .nxs-filters .nxs-b {
+    height: 32px;
+  }
+
+  .nxs-f1 {
+    width: 45px;
+  }
+
+  .nxs-f2,
+  .nxs-f3 {
+    width: 64px;
+  }
+
+  .nxs-f4 {
+    width: 74px;
+  }
+
+  .nxs-count {
+    width: 70px;
+    height: 12px;
+    margin-top: 20px;
+  }
+
+  .nxs-news-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 26px;
+  }
+
+  .nxs-news-body {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .nxs-root {
+    --nxs-top: 57px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nxs-b::after,
+  .nxs-root > * {
+    animation: none;
+  }
+}

@@ -149,18 +149,8 @@ export default function CertifiedExaminersPage({
       }
     };
 
-    // 로딩 화면 숨기기
-    const hideLoader = () => {
-      const loader = document.getElementById('loader');
-      if (loader) {
-        setTimeout(() => {
-          loader.classList.add('hidden');
-        }, 1000);
-      }
-    };
-
+    // 2026-09-30 1초 검은 전체 화면 로더를 없앴다. 이동 중 화면은 같은 모양의 스켈레톤(ExaminersSkeleton)이 맡는다.
     createStars();
-    hideLoader();
 
     // 마우스 추적 glow 효과
     const buttons = document.querySelectorAll('.premium-cta');
@@ -207,13 +197,6 @@ export default function CertifiedExaminersPage({
 
   return (
     <div className="certified-examiners-wrapper">
-      {/* Loading Screen */}
-      <div className="loader-wrapper" id="loader">
-        <div className="loader">
-          <div className="loader-ring"></div>
-        </div>
-      </div>
-
       {/* Stars Background */}
       <div className="stars parallax-layer parallax-layer-2" id="stars"></div>
 

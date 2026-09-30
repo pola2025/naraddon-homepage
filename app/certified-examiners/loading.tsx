@@ -1,14 +1,6 @@
-import { SkeletonPageHeader } from '@/components/loading';
-import { SkeletonCardGrid } from '@/components/loading/Skeleton';
+import { ExaminersSkeleton } from '@/components/loading/PageSkeletons';
 
-/** 인증심사관 로딩 — 헤더 + 2열 카드 그리드 */
+/** 인증심사관 로딩 — 검은 배경 히어로·카드 격자 모양의 스켈레톤 */
 export default function Loading() {
-  return (
-    <div className="animate-fade-in">
-      <SkeletonPageHeader />
-      <div className="max-w-[1200px] mx-auto px-6 py-12">
-        <SkeletonCardGrid cols={2} count={6} />
-      </div>
-    </div>
-  );
+  return <ExaminersSkeleton />;
 }

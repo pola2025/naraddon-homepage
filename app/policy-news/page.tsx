@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { normalizePolicyNewsItem } from '@/hooks/usePolicyNews';
+import { PolicyNewsSkeleton } from '@/components/loading/PageSkeletons';
 import { sanitizeImageUrl } from '@/utils/imageUrlSanitizer';
 import './policy-news-list.css';
 
@@ -80,7 +81,10 @@ export default function PolicyNewsListPage() {
       console.error('[PolicyNewsList] Fetch error:', err);
       setError('정책소식을 불러오는 중 문제가 발생했습니다.');
     } finally {
-      append ? setIsLoadingMore(false) : setIsLoading(false);
+      // 중단된 이전 요청이 로딩 상태를 먼저 끄면 빈 목록이 잠깐 보이므로 현재 요청만 상태를 바꾼다.
+      if (activeRequest.current === controller) {
+        append ? setIsLoadingMore(false) : setIsLoading(false);
+      }
     }
   }, []);
 
@@ -163,17 +167,10 @@ export default function PolicyNewsListPage() {
     setActiveFilter(filterId);
   };
 
-  if (isLoading) {
-    return (
-      <div className="policy-news-list-page">
-        <div className="policy-news-list-container">
-          <div className="policy-news-list-loading">
-            <i className="fas fa-spinner fa-spin"></i>
-            <span>정책소식을 불러오는 중...</span>
-          </div>
-        </div>
-      </div>
-    );
+  // 데이터를 받은 직후 필터·표시 목록이 채워지기 전 한 번의 빈 화면도 스켈레톤으로 이어 준다.
+  const isSettling = activeFilter === 'all' && allPosts.length > 0 && displayedPosts.length === 0;
+  if (isLoading || isSettling) {
+    return <PolicyNewsSkeleton />;
   }
 
   if (error) {
