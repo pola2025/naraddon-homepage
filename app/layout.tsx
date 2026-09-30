@@ -10,7 +10,7 @@ import PageVisitTracker from '@/components/analytics/PageVisitTracker';
 import { getOrganizationSchema } from '@/lib/json-ld';
 
 export const metadata: Metadata = {
-  title: "나라똔 - 사업자를 위한 '정책자금 공식 플랫폼'",
+  title: "나라똔 - 대한민국에 단 하나뿐인 '정책자금 공식 플랫폼'",
   description: '인증심사관이 함께하는 가장 믿음직한 동행, 나라똔이 보증하는 사고 책임제',
   keywords:
     '정부정책자금, 정부지원자금, 정부지원금, 정부보조금, 정책자금, 정책지원금, ' +
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: "나라똔 - 사업자를 위한 '정책자금 공식 플랫폼'",
+    title: "나라똔 - 대한민국에 단 하나뿐인 '정책자금 공식 플랫폼'",
     description: '인증심사관이 함께하는 가장 믿음직한 동행, 나라똔이 보증하는 사고 책임제',
     url: 'https://naraddon.com',
     siteName: '나라똔',
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: "나라똔 - 사업자를 위한 '정책자금 공식 플랫폼'",
+    title: "나라똔 - 대한민국에 단 하나뿐인 '정책자금 공식 플랫폼'",
     description: '인증심사관이 함께하는 가장 믿음직한 동행, 나라똔이 보증하는 사고 책임제',
     images: ['/twitter-image.jpg'],
   },
