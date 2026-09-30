@@ -39,18 +39,34 @@ main:has(.nx-index-page) {
   min-height: 0;
 }
 
+/* 세로 배치: 위 여백(::before) / 비율 확대 틀(로고~카드) / 아래 여백(::after) / 푸터.
+   푸터를 뺀 나머지(화면 맨 위~푸터 윗선)의 빈 공간을 위 1 : 아래 2로 나눠, 로고~카드 묶음이
+   그 공간의 중앙보다 위에 온다. 창이 낮으면 두 여백이 0까지 줄어든다(2026-09-30 사용자 지시:
+   푸터 위 공간의 중앙 → 상단 여백을 두 차례 더 줄임, 1:1 → 3:4 → 1:2). */
 .nx-index-page {
   --nx-scale: 1;
   --nx-inverse-scale: 1;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding-top: clamp(16px, 2.5vh, 28px);
+  flex-direction: column;
+  align-items: center;
   background: #fff;
   color: #111;
   font-family: Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+.nx-index-page::before {
+  content: '';
+  flex: 1 1 0;
+}
+
+/* ::after 는 마크업상 푸터 뒤에 생기므로 순서를 바꿔 푸터 위에 둔다. */
+.nx-index-page::after {
+  content: '';
+  flex: 2 1 0;
+  order: 1;
 }
 
 .nx-index-page *,
@@ -68,18 +84,21 @@ main:has(.nx-index-page) {
   cursor: pointer;
 }
 
-/* 데스크톱 비율 확대 틀: 시안의 preview-scale-frame/stage와 같은 방식 */
+/* 데스크톱 비율 확대 틀: 시안의 preview-scale-frame/stage와 같은 방식.
+   높이 315px 는 카드 영역까지의 설계 높이(푸터 제외)다.
+   캔버스 여백이 위 1px·아래 21px 로 달라서, 위에 20px 을 더해 로고 윗선~카드 아랫선이 정중앙에 오게 한다. */
 .nx-frame {
+  margin-top: calc(20px * var(--nx-scale));
   position: relative;
   width: calc(780px * var(--nx-scale));
-  height: calc(367px * var(--nx-scale));
+  height: calc(315px * var(--nx-scale));
   flex: 0 0 auto;
   overflow: visible;
 }
 
 .nx-stage {
   width: 780px;
-  height: 367px;
+  height: 315px;
   transform: scale(var(--nx-scale));
   transform-origin: top left;
 }
@@ -355,15 +374,18 @@ main:has(.nx-index-page) {
   outline-offset: 5px;
 }
 
-/* 인덱스 전용 푸터: 사이트 Footer.js 내용과 같고 글자 8px / #6B716D */
+/* 인덱스 전용 푸터: 사이트 Footer.js 내용과 같고 글자 8px / #6B716D.
+   배경은 화면 가로 전체, 내용은 확대 틀과 같은 배율(zoom)로 카드 폭에 맞춘다. */
 .nx-footer {
-  width: 100%;
+  order: 2;
+  align-self: stretch;
   background: #f6f7f6;
   color: #6b716d;
   border-top: 1px solid #ecefec;
 }
 
 .nx-footer-container {
+  zoom: var(--nx-scale);
   max-width: 664px;
   margin: auto;
   padding: 8px 8px 7px;
@@ -636,7 +658,6 @@ main:has(.nx-index-page) {
 /* 태블릿·모바일: 비율 확대 없이 원래 크기로 흐른다 */
 @media (max-width: 768px) {
   .nx-index-page {
-    display: block;
     padding-top: 0;
   }
 

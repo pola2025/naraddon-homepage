@@ -26,7 +26,9 @@
   width: 100%;
   max-width: 1200px; /* 1200px로 제한 */
   margin: 20px auto; /* 가운데 정렬 + 상하 여백 */
-  min-height: max(620px, calc(100vh - var(--header-height-desktop, 80px) - 40px)); /* 헤더 높이 보정 */
+  /* 헤더 높이 보정. 세로로 긴 모니터에서 정사각형에 가까워지지 않도록 최대 675px(1200px 폭의 16:9)로 제한한다
+     (2026-09-30 사용자 지시: 위아래를 줄여 가로 비율로) */
+  min-height: max(620px, min(calc(100vh - var(--header-height-desktop, 80px) - 40px), 675px));
   overflow: hidden;
   background: #000;
   display: flex;

@@ -29,6 +29,7 @@ import {
  */
 
 const DESIGN_WIDTH = 780;
+// 시안 기준 높이(푸터 포함). 푸터를 틀 밖으로 옮겨도 로고·카드 크기가 그대로이도록 이 값을 유지한다.
 const DESIGN_HEIGHT = 367;
 const MAX_SCALE = 1200 / 624;
 const MOBILE_MAX_WIDTH = 768;
@@ -262,25 +263,26 @@ export default function IndexLanding() {
               </div>
             </section>
           </div>
-
-          <footer className="nx-footer" aria-label="나라똔 사이트 푸터">
-            <div className="nx-footer-container">
-              <div className="nx-footer-details">
-                <p className="nx-footer-company">Company. 나라똔 | Owner. 이서영</p>
-                <p className="nx-footer-company">
-                  Address. 14353 경기도 광명시 일직로 43, B동 14층 | E-mail. jjk-biz@naver.com
-                </p>
-                <p className="nx-footer-company">Tel. 02-6914-5567 Mon-Fri. am10시 – pm5시</p>
-                <p className="nx-copyright">Copyright © NARADDON. All Rights Reserved.</p>
-              </div>
-              <p className="nx-footer-partnership">
-                파트너십 제휴 문의: <a href="mailto:jjk-biz@naver.com">jjk-biz@naver.com</a>
-              </p>
-            </div>
-          </footer>
         </div>
       </div>
       <script dangerouslySetInnerHTML={{ __html: FIT_SCRIPT }} />
+      {/* 푸터는 확대 틀 밖에 두어 화면 맨 아래에 가로 전체 폭으로 붙인다(2026-09-30 사용자 지시).
+          글자 크기는 틀과 같은 배율(zoom)로 맞춘다 */}
+      <footer className="nx-footer" aria-label="나라똔 사이트 푸터">
+        <div className="nx-footer-container">
+          <div className="nx-footer-details">
+            <p className="nx-footer-company">Company. 나라똔 | Owner. 이서영</p>
+            <p className="nx-footer-company">
+              Address. 14353 경기도 광명시 일직로 43, B동 14층 | E-mail. jjk-biz@naver.com
+            </p>
+            <p className="nx-footer-company">Tel. 02-6914-5567 Mon-Fri. am10시 – pm5시</p>
+            <p className="nx-copyright">Copyright © NARADDON. All Rights Reserved.</p>
+          </div>
+          <p className="nx-footer-partnership">
+            파트너십 제휴 문의: <a href="mailto:jjk-biz@naver.com">jjk-biz@naver.com</a>
+          </p>
+        </div>
+      </footer>
       {navLoading && (
         <div className="nx-nav-loading" role="status" aria-live="polite">
           <MotionLoader variant="logo" message="페이지 준비 중" />
