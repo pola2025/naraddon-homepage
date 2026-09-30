@@ -1,0 +1,717 @@
+/**
+ * 나라똔 인덱스(첫 화면) 스타일
+ *
+ * @purpose 2026-09-30 확정한 11차 시안(docs/wireframes/naraddon-index-header-footer-chat-20260930-rev11.html)을 그대로 옮긴다
+ * @context 데스크톱은 780×367 설계 화면을 창 크기에 맞춰 비율 확대(최대 1200/624배)하고, 768px 이하는 원래 크기로 흐른다
+ * @decision 전역 CSS라서 모든 클래스에 nx- 접두어를 붙여 다른 페이지의 .card·.search 등과 충돌하지 않게 한다
+ * @note 시안 조정 패널의 최종값(글자·간격)을 고정값으로 옮겼다. 값 기준은 NEXT_SESSION_naraddon-index-revision-9.md
+ */
+
+/* 검색 안내문 글꼴: 안내 문구 글자만 담은 6KB 파일을 먼저 쓰고, 입력 글자가 생길 때만 나머지(약 800KB)를 받는다. */
+@font-face {
+  font-family: 'NxCafe24Shiningstar';
+  src: url('/fonts/Cafe24Shiningstar-placeholder.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+20, U+ACF5, U+AE08, U+B7AB, U+B97C, U+C0AC, U+C2DD, U+C5C5, U+C704, U+C790, U+C815, U+CC45,
+    U+D3FC, U+D50C, U+D55C;
+}
+
+@font-face {
+  font-family: 'NxCafe24Shiningstar';
+  src: url('/fonts/Cafe24Shiningstar-rest.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+D, U+21-7E, U+A0, U+A5, U+2C7, U+2018-2019, U+201C-201D, U+2025-2026, U+20A9, U+20AB,
+    U+2605-2606, U+2661, U+2665, U+3131-3163, U+AC00-ACF4, U+ACF6-AE07, U+AE09-B7AA, U+B7AC-B97B,
+    U+B97D-C0AB, U+C0AD-C2DC, U+C2DE-C5C4, U+C5C6-C703, U+C705-C78F, U+C791-C814, U+C816-CC44,
+    U+CC46-D3FB, U+D3FD-D50B, U+D50D-D55B, U+D55D-D7A3, U+FF01-FF5D, U+FFE3, U+FFE5-FFE6;
+}
+
+/* 사이트 공통 레이아웃(src/App.css)은 main 에 헤더 높이만큼 위 여백(80~104px)을 준다.
+   인덱스는 헤더를 숨기므로 이 여백을 없앤다. 첫 그림부터 맞도록 body 클래스 대신 :has 로 건다. */
+main:has(> .nx-index-page) {
+  padding-top: 0;
+  min-height: 0;
+}
+
+.nx-index-page {
+  --nx-scale: 1;
+  --nx-inverse-scale: 1;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: clamp(16px, 2.5vh, 28px);
+  background: #fff;
+  color: #111;
+  font-family: Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.nx-index-page *,
+.nx-index-page *::before,
+.nx-index-page *::after {
+  box-sizing: border-box;
+}
+
+.nx-index-page button,
+.nx-index-page input {
+  font: inherit;
+}
+
+.nx-index-page button {
+  cursor: pointer;
+}
+
+/* 데스크톱 비율 확대 틀: 시안의 preview-scale-frame/stage와 같은 방식 */
+.nx-frame {
+  position: relative;
+  width: calc(780px * var(--nx-scale));
+  height: calc(367px * var(--nx-scale));
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
+.nx-stage {
+  width: 780px;
+  height: 367px;
+  transform: scale(var(--nx-scale));
+  transform-origin: top left;
+}
+
+.nx-canvas {
+  position: relative;
+  width: min(100%, 664px);
+  margin: 0 auto;
+  padding: 1px 20px 21px;
+  overflow: visible;
+  background: radial-gradient(circle at 50% 10%, rgba(35, 169, 63, 0.025), transparent 34%), #fff;
+}
+
+/* 로고 영역: 아이콘–타이틀 9px */
+.nx-brand {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+}
+
+.nx-brand-mark {
+  width: 45px;
+  height: 38px;
+  overflow: hidden;
+}
+
+.nx-brand-mark img {
+  display: block;
+  width: 47px;
+  height: auto;
+  transform: translate(-2px, -2px);
+}
+
+.nx-brand-name {
+  margin: 4px 0 0;
+  font-family: Pretendard, sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 1px;
+  color: #111;
+}
+
+/* 검색창: 로고 영역 하단–검색창 16px */
+.nx-search {
+  width: min(100%, 448px);
+  height: 38px;
+  margin: 16px auto 0;
+  padding: 0 16px 0 24px;
+  border: 1.5px solid #128b2a;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #3f4541;
+  background: rgba(255, 255, 255, 0.92);
+  transition:
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.nx-search:focus-within {
+  border-color: #07952a;
+  box-shadow: 0 0 0 7px rgba(17, 151, 45, 0.1);
+}
+
+.nx-search-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  text-align: center;
+  font-family: 'NxCafe24Shiningstar', 'Malgun Gothic', sans-serif !important;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: #a0a0a0;
+}
+
+.nx-search-input::placeholder {
+  color: #a0a0a0;
+  opacity: 1;
+}
+
+.nx-search-submit {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: #078521;
+}
+
+.nx-search-submit svg {
+  width: 23px;
+  height: 23px;
+  flex: 0 0 auto;
+  color: #078521;
+}
+
+/* 카드 4개: 검색창 하단–카드 24px, 카드 사이 10px */
+.nx-cards {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: 10px;
+  row-gap: 10px;
+  margin-top: 24px;
+}
+
+.nx-card {
+  position: relative;
+  container-type: inline-size;
+  aspect-ratio: 146 / 172;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #e5ebe7;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 9px 22px rgba(23, 45, 30, 0.07);
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  --i1: #12812c;
+  --i2: #22a53c;
+  --i3: #4ec45e;
+  --ip: #ffffff;
+  --il: #ccd6cf;
+  --im: #c4ccc7;
+  --is: rgba(24, 60, 34, 0.13);
+  transition:
+    transform 0.26s cubic-bezier(0.22, 0.61, 0.36, 1),
+    border-color 0.26s ease,
+    box-shadow 0.26s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.nx-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(145deg, #0b8b2c 0%, #0ca131 55%, #087f28 100%);
+  opacity: 0;
+  transition: opacity 0.26s ease;
+}
+
+.nx-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.nx-card.nx-primary {
+  border-color: transparent;
+  box-shadow: 0 15px 30px rgba(15, 132, 43, 0.22);
+  --i1: #2f9f43;
+  --i2: #5ec86d;
+  --i3: #8ee09a;
+  --ip: #ffffff;
+  --il: #aeb9b1;
+  --im: #c4ccc7;
+  --is: rgba(0, 40, 12, 0.22);
+}
+
+.nx-card.nx-primary::before {
+  opacity: 1;
+}
+
+/* 카드 상단–소제목 15px, 소제목 10px / #108B2A */
+.nx-label {
+  display: block;
+  flex: 0 0 auto;
+  margin: 15px 14px 0;
+  color: #108b2a;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.035em;
+  white-space: nowrap;
+  transition: color 0.26s ease;
+}
+
+/* 소제목–타이틀 3px, 타이틀 13px / #050505 */
+.nx-title {
+  display: block;
+  flex: 0 0 auto;
+  margin: 3px 14px 0;
+  color: #050505;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.055em;
+  white-space: nowrap;
+  transition: color 0.26s ease;
+}
+
+.nx-card.nx-primary .nx-label,
+.nx-card.nx-primary .nx-title {
+  color: #fff;
+}
+
+/* 타이틀–아이콘 15px, 아이콘–카드 하단 15px. 남은 높이를 아이콘이 채운다. */
+.nx-card > .nx-icon {
+  position: relative;
+  display: block;
+  flex: 1 1 0;
+  min-height: 0;
+  height: 0;
+  width: 70cqw;
+  max-width: 70cqw;
+  align-self: center;
+  margin: 15px auto 15px;
+  object-fit: contain;
+}
+
+@media (hover: hover) {
+  .nx-card:hover {
+    border-color: transparent;
+    box-shadow: 0 20px 38px rgba(15, 132, 43, 0.28);
+    transform: translateY(-6px);
+    --i1: #2f9f43;
+    --i2: #5ec86d;
+    --i3: #8ee09a;
+    --ip: #ffffff;
+    --il: #aeb9b1;
+    --im: #c4ccc7;
+    --is: rgba(0, 40, 12, 0.22);
+  }
+
+  .nx-card:hover::before {
+    opacity: 1;
+  }
+
+  .nx-card:hover .nx-label,
+  .nx-card:hover .nx-title {
+    color: #fff;
+  }
+
+  .nx-cards:has(.nx-card:hover) .nx-card.nx-primary:not(:hover) {
+    border-color: #e5ebe7;
+    box-shadow: 0 9px 22px rgba(23, 45, 30, 0.07);
+    --i1: #12812c;
+    --i2: #22a53c;
+    --i3: #4ec45e;
+    --ip: #ffffff;
+    --il: #ccd6cf;
+    --im: #c4ccc7;
+    --is: rgba(24, 60, 34, 0.13);
+  }
+
+  .nx-cards:has(.nx-card:hover) .nx-card.nx-primary:not(:hover)::before {
+    opacity: 0;
+  }
+
+  .nx-cards:has(.nx-card:hover) .nx-card.nx-primary:not(:hover) .nx-label {
+    color: #108b2a;
+  }
+
+  .nx-cards:has(.nx-card:hover) .nx-card.nx-primary:not(:hover) .nx-title {
+    color: #050505;
+  }
+}
+
+.nx-card:focus-visible,
+.nx-search-submit:focus-visible {
+  outline: 5px solid rgba(10, 139, 42, 0.28);
+  outline-offset: 5px;
+}
+
+/* 인덱스 전용 푸터: 사이트 Footer.js 내용과 같고 글자 8px / #6B716D */
+.nx-footer {
+  width: 100%;
+  background: #f6f7f6;
+  color: #6b716d;
+  border-top: 1px solid #ecefec;
+}
+
+.nx-footer-container {
+  max-width: 664px;
+  margin: auto;
+  padding: 8px 8px 7px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: start;
+}
+
+.nx-footer-details {
+  min-width: 0;
+}
+
+.nx-footer-company,
+.nx-copyright,
+.nx-footer-partnership {
+  margin: 0;
+  color: #6b716d;
+  font-size: 8px;
+  letter-spacing: 0;
+}
+
+.nx-footer-company {
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.nx-footer-company + .nx-footer-company {
+  margin-top: 1px;
+}
+
+.nx-copyright {
+  margin-top: 3px;
+  line-height: 1.35;
+}
+
+.nx-footer-partnership {
+  padding-top: 1px;
+  font-weight: 500;
+  line-height: 1.55;
+  white-space: nowrap;
+}
+
+.nx-footer-partnership a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 챗봇: 말풍선 없이 원형 버튼만. 네이버 녹색 #03C75A. 카드 오른쪽 바깥, 카드 하단 높이 */
+.nx-chat-entry {
+  --chat-size: 34px;
+  position: absolute;
+  z-index: 30;
+  right: -66px;
+  bottom: -16px;
+  width: max-content;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.nx-chat-button {
+  display: grid;
+  place-items: center;
+  width: var(--chat-size);
+  height: var(--chat-size);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #03c75a;
+  box-shadow: 0 2px 7px rgba(3, 120, 55, 0.25);
+  color: #fff;
+}
+
+.nx-chat-button:hover {
+  background: #02b350;
+}
+
+.nx-chat-button svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 상담창은 확대 틀 안에 있으므로 역배율로 실제 크기를 유지한다. */
+.nx-chat-panel {
+  position: absolute;
+  right: 0;
+  bottom: 44px;
+  width: min(360px, calc(100vw - 32px));
+  overflow: hidden;
+  border: 1px solid #dce2de;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 18px 48px rgba(28, 45, 34, 0.2);
+  color: #171a18;
+  transform: scale(var(--nx-inverse-scale));
+  transform-origin: bottom right;
+}
+
+.nx-chat-panel[hidden] {
+  display: none;
+}
+
+.nx-chat-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 52px;
+  padding: 0 12px 0 16px;
+  border-bottom: 1px solid #e5e9e6;
+}
+
+.nx-chat-panel-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.nx-chat-panel-close {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #6d746f;
+}
+
+.nx-chat-panel-close:hover {
+  background: #f0f2f1;
+  color: #262a27;
+}
+
+.nx-chat-panel-close svg {
+  width: 17px;
+  height: 17px;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.nx-chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 260px;
+  min-height: 190px;
+  overflow-y: auto;
+  padding: 14px;
+  background: #f6f8f6;
+}
+
+.nx-chat-message {
+  max-width: 90%;
+  padding: 12px 14px;
+  border-radius: 15px;
+  font-size: 14px;
+  line-height: 1.55;
+  letter-spacing: -0.015em;
+}
+
+.nx-chat-message p {
+  margin: 0;
+  white-space: pre-line;
+}
+
+.nx-chat-message-assistant {
+  align-self: flex-start;
+  border-bottom-left-radius: 5px;
+  background: #22252a;
+  color: #fff;
+}
+
+.nx-chat-message-user {
+  align-self: flex-end;
+  border-bottom-right-radius: 5px;
+  background: #dff3e4;
+  color: #183d22;
+}
+
+.nx-chat-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: #383b40;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+}
+
+.nx-chat-cta:hover {
+  background: #4a4d53;
+  color: #fff;
+}
+
+.nx-chat-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid #e5e9e6;
+  background: #fff;
+}
+
+.nx-chat-input {
+  min-width: 0;
+  height: 42px;
+  padding: 0 13px;
+  border: 1px solid #cfd6d1;
+  border-radius: 10px;
+  outline: 0;
+  color: #171a18;
+  background: #fff;
+  font-size: 13px;
+}
+
+.nx-chat-input:focus {
+  border-color: #158b31;
+  box-shadow: 0 0 0 3px rgba(21, 139, 49, 0.11);
+}
+
+.nx-chat-send {
+  min-width: 58px;
+  height: 42px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 10px;
+  background: #128b2a;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.nx-chat-send:hover {
+  background: #0d7421;
+}
+
+/* 태블릿·모바일: 비율 확대 없이 원래 크기로 흐른다 */
+@media (max-width: 768px) {
+  .nx-index-page {
+    display: block;
+    padding-top: 0;
+  }
+
+  .nx-frame {
+    width: 100%;
+    height: auto;
+  }
+
+  .nx-stage {
+    width: 100%;
+    height: auto;
+    transform: none;
+  }
+
+  .nx-canvas {
+    padding: 4px 12px 21px;
+  }
+
+  .nx-search {
+    padding: 0 14px 0 20px;
+  }
+
+  .nx-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .nx-footer-container {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .nx-footer-partnership {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 520px) {
+  .nx-canvas {
+    padding: 2px 12px 21px;
+  }
+
+  .nx-brand {
+    height: 38px;
+  }
+
+  .nx-brand-mark {
+    width: 42px;
+    height: 35px;
+  }
+
+  .nx-brand-mark img {
+    width: 44px;
+  }
+
+  .nx-search {
+    height: 36px;
+    padding: 0 11px 0 18px;
+  }
+
+  .nx-search-input {
+    text-align: left;
+  }
+
+  .nx-card {
+    border-radius: 14px;
+  }
+
+  .nx-footer-container {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .nx-chat-entry {
+    --chat-size: 54px;
+    position: fixed;
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .nx-chat-panel {
+    bottom: 64px;
+    width: min(336px, calc(100vw - 24px));
+  }
+
+  .nx-chat-messages {
+    max-height: 310px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nx-card,
+  .nx-card::before,
+  .nx-label,
+  .nx-title,
+  .nx-search {
+    transition: none;
+  }
+}

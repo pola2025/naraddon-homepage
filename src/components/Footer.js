@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import './Footer.css';
 import {
   LEGAL_BUSINESS_INFO,
@@ -11,6 +12,7 @@ import {
 } from '@/lib/legalContent';
 
 const Footer = () => {
+  const pathname = usePathname();
   const [legalModal, setLegalModal] = useState(null);
   const [partnershipModal, setPartnershipModal] = useState(false);
   const [partnershipForm, setPartnershipForm] = useState({
@@ -80,6 +82,11 @@ const Footer = () => {
     }
   };
 
+  // 인덱스(/)는 자체 푸터를 쓰므로 사이트 푸터를 숨긴다(모든 훅 호출 뒤에서 분기).
+  if (pathname === '/') {
+    return null;
+  }
+
   return (
     <>
       {/* 파트너십 제휴문의 - 푸터 위 오른쪽 */}
@@ -148,7 +155,7 @@ const Footer = () => {
             <div className="footer-menu">
               <h4 className="footer-title">서비스</h4>
               <ul className="footer-list footer-list-grid">
-                <li><Link href="/">나라똔</Link></li>
+                <li><Link href="/home">나라똔</Link></li>
                 <li><Link href="/policy-analysis">정책분석</Link></li>
                 <li><Link href="/business-voice">사업자 목소리</Link></li>
                 <li><Link href="/certified-examiners">인증 기업심사관</Link></li>

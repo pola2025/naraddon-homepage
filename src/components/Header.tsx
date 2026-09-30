@@ -25,7 +25,7 @@ type NavItem = {
 type Viewport = 'desktop' | 'tablet' | 'mobile';
 
 const PRIMARY_NAV: NavItem[] = [
-  { href: '/', label: '나라똔' }, // 메인 페이지는 인트로 없이 바로 접근
+  { href: '/home', label: '나라똔' }, // 메인 페이지(/home). 사이트 첫 화면(/)은 인덱스
   { href: '/policy-news', label: '정책 알리미' },
   // { href: "/business-voice", label: "사업자 목소리" }, // 임시 숨김 처리
   { href: '/certified-examiners', label: '인증 기업심사관' },
@@ -184,6 +184,12 @@ export default function Header() {
     </Link>
   );
 
+  // 인덱스(/)는 자체 로고·푸터를 가진 단독 첫 화면이라 사이트 헤더를 숨긴다.
+  // 헤더는 레이아웃에 남아 페이지 이동 후에도 재사용되므로 모든 훅 호출 뒤에서 분기한다.
+  if (pathname === '/') {
+    return null;
+  }
+
   return (
     <>
       <header className={clsx(styles.header, isScrolled && styles.scrolled)}>
@@ -207,7 +213,7 @@ export default function Header() {
           </button>
 
           <div className={styles.brand}>
-            <Link href="/?intro=true" className={styles.brandLink}>
+            <Link href="/" className={styles.brandLink}>
               {!logoError ? (
                 <img
                   src={LOGO_URL}
