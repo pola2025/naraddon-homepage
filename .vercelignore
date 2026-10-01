@@ -4,3 +4,13 @@ node_modules
 .env*.local
 .omx
 NEXT_SESSION_*.md
+.env*
+.workspace
+.worktrees
+.omo
+docs/wireframes
+docs/reports
+diagnostics
+SESSION_HANDOFF_*
+*_세션핸드오프.md
+KakaoTalk_*.png

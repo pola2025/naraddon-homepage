@@ -718,7 +718,7 @@ main:has(.nx-index-page) {
   }
 
   .nx-search-input {
-    text-align: left;
+    text-align: center;
   }
 
   .nx-card {
