@@ -2,6 +2,7 @@
 
 import { FormEvent, MouseEvent, useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { MotionLoader } from '@/components/loading';
 import './IndexLanding.css';
@@ -11,7 +12,6 @@ import {
   ClipboardIcon,
   CloseIcon,
   MonitorIcon,
-  NewsIcon,
   SearchIcon,
 } from './IndexIcons';
 
@@ -26,6 +26,9 @@ import {
  * @note 챗봇은 질문에 답하지 않는다. 어떤 질문이든 고정 안내와 1차 무료 심사 신청 버튼만 보여 준다
  * @note 메뉴 이동이 0.4초를 넘기면 기존 로고 로더(MotionLoader logo)를 전체 화면으로 보여 준다(2026-09-30 A안).
  *       빨리 넘어가면 아무것도 보이지 않고, 새 페이지가 준비되면 이 화면이 사라지며 페이드인으로 이어진다
+ * @note 13차: 12차 기준에서 오른쪽 인터뷰 카드와 하단 최신 사업자금 소식 3개만 추가·변경한다
+ * @note 16차(2026-10-06 반영): 14차~16차 수정값은 전부 IndexLanding.css 에 있다. 마크업은 푸터 파트너십 줄의
+ *       "제휴" 글자만 따로 감쌌다. 모바일(520px 이하)에서는 그 글자를 숨겨 "파트너십 문의"로 보여 준다
  */
 
 const DESIGN_WIDTH = 780;
@@ -53,7 +56,9 @@ type ChatMessage = {
   withApplication?: boolean;
 };
 
-export default function IndexLanding() {
+export type IndexNewsItem = { id: string; title: string };
+
+export default function IndexLanding({ latestNews = [] }: { latestNews?: IndexNewsItem[] }) {
   const router = useRouter();
   const pageRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLInputElement>(null);
@@ -189,10 +194,18 @@ export default function IndexLanding() {
                 <strong className="nx-title">인증심사관 확인</strong>
                 <BadgeIcon />
               </Link>
-              <Link className="nx-card" href="/policy-news" onClick={startNavLoading}>
-                <span className="nx-label">아는 만큼 보이는</span>
-                <strong className="nx-title">사업자금 뉴스</strong>
-                <NewsIcon />
+              <Link className="nx-card" href="/business-voice" onClick={startNavLoading}>
+                <span className="nx-label">사업의 전환점을 만난</span>
+                <strong className="nx-title">실제 인터뷰</strong>
+                <span className="nx-icon nx-interview-icon" aria-hidden="true">
+                  <Image
+                    className="nx-interview-asset"
+                    src="/images/index/interview-microphone-20261001.png"
+                    alt=""
+                    fill
+                    sizes="(max-width: 768px) 50vw, 260px"
+                  />
+                </span>
               </Link>
 
               <div className="nx-chat-entry">
@@ -265,6 +278,45 @@ export default function IndexLanding() {
           </div>
         </div>
       </div>
+      <section className="nx-news-shell" aria-label="최신 사업자금 소식">
+        <div className="nx-news-inner">
+          <h2 className="nx-news-heading">
+            <span className="nx-news-megaphone" aria-hidden="true">
+              <Image
+                className="nx-news-megaphone-asset"
+                src="/images/index/news-megaphone-20261001.png"
+                alt=""
+                fill
+                sizes="(max-width: 768px) 36px, 64px"
+              />
+            </span>
+            사업자금 소식
+          </h2>
+          <ul className="nx-news-list">
+            {latestNews.length ? (
+              latestNews.slice(0, 3).map((post) => (
+                <li key={post.id}>
+                  <Link
+                    href={`/policy-news/${post.id}`}
+                    onClick={startNavLoading}
+                    title={post.title}
+                  >
+                    {post.title}
+                  </Link>
+                </li>
+              ))
+            ) : (
+              <li className="nx-news-empty">최신 소식은 전체보기에서 확인해 주세요.</li>
+            )}
+          </ul>
+          <Link className="nx-news-all" href="/policy-news" onClick={startNavLoading}>
+            전체보기
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M5 12h14m-6-6 6 6-6 6" />
+            </svg>
+          </Link>
+        </div>
+      </section>
       <script dangerouslySetInnerHTML={{ __html: FIT_SCRIPT }} />
       {/* 푸터는 확대 틀 밖에 두어 화면 맨 아래에 가로 전체 폭으로 붙인다(2026-09-30 사용자 지시).
           글자 크기는 틀과 같은 배율(zoom)로 맞춘다 */}
@@ -278,8 +330,10 @@ export default function IndexLanding() {
             <p className="nx-footer-company">Tel. 02-6914-5567 Mon-Fri. am10시 – pm5시</p>
             <p className="nx-copyright">Copyright © NARADDON. All Rights Reserved.</p>
           </div>
+          {/* "제휴 "는 모바일에서만 숨긴다(CSS 520px 이하). PC·태블릿 문구는 "파트너십 제휴 문의" 그대로다 */}
           <p className="nx-footer-partnership">
-            파트너십 제휴 문의: <a href="mailto:jjk-biz@naver.com">jjk-biz@naver.com</a>
+            파트너십 <span className="nx-footer-partnership-pc-only">제휴 </span>문의:{' '}
+            <a href="mailto:jjk-biz@naver.com">jjk-biz@naver.com</a>
           </p>
         </div>
       </footer>
