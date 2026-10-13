@@ -12,7 +12,7 @@ import {
   MapPinIcon,
   CheckBadgeIcon,
   PencilIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 
 interface ProfileCardProps {
@@ -27,6 +27,58 @@ interface ProfileCardProps {
   className?: string;
 }
 
+const LIST_PAGE_LIMIT = 50;
+const MAX_LIST_PAGES = 20;
+
+type LinkableProfile = { _id: string; name?: string; companyName?: string };
+
+/**
+ * 관리자 목록 API 를 마지막 페이지까지 읽어 전체 항목을 가나다순으로 돌려준다
+ *
+ * @purpose 등급 변경 모달의 선택 목록에 등록된 심사관·전문가를 빠짐없이 표시
+ * @context 목록 API 는 한 번에 최대 50명만 응답한다. 첫 페이지만 읽으면 이름순 51번째 이후
+ *          심사관이 선택 목록에서 빠져 계정을 연결할 수 없다 (2026-10-13 유현서·윤성일 사례)
+ * @decision 중간 페이지가 실패하면 예외를 던진다. 일부만 담긴 목록을 전체처럼 보여주면
+ *           같은 누락이 다시 드러나지 않은 채 반복되기 때문
+ * @note 반복 횟수는 MAX_LIST_PAGES 로 제한한다 (최대 1,000명)
+ */
+const fetchAllListItems = async (endpoint: string, key: 'examiners' | 'experts') => {
+  const itemsById = new Map<string, LinkableProfile>();
+  const seenCursors = new Set<string>();
+  let cursor: string | null = null;
+
+  for (let page = 0; page < MAX_LIST_PAGES; page += 1) {
+    const params = new URLSearchParams({ limit: String(LIST_PAGE_LIMIT) });
+    if (cursor) params.set('cursor', cursor);
+
+    const response = await fetch(`${endpoint}?${params}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Failed to fetch ${key} page`);
+
+    const data = await response.json();
+    if (!Array.isArray(data[key])) throw new Error(`Invalid ${key} page`);
+    for (const item of data[key] as LinkableProfile[]) {
+      itemsById.set(item._id, item);
+    }
+
+    if (!data.hasMore) {
+      return Array.from(itemsById.values()).sort((a, b) =>
+        (a.name || '').localeCompare(b.name || '', 'ko')
+      );
+    }
+    if (
+      typeof data.nextCursor !== 'string' ||
+      !data.nextCursor ||
+      seenCursors.has(data.nextCursor)
+    ) {
+      throw new Error(`Invalid or repeated ${key} cursor`);
+    }
+    seenCursors.add(data.nextCursor);
+    cursor = data.nextCursor;
+  }
+
+  throw new Error(`${key} page limit reached`);
+};
+
 export default function ProfileCard({
   user,
   mode,
@@ -36,7 +88,7 @@ export default function ProfileCard({
   onStatusChange,
   onUpgradeToAdmin,
   onRevokeAdmin,
-  className = ''
+  className = '',
 }: ProfileCardProps) {
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
@@ -45,33 +97,23 @@ export default function ProfileCard({
   const [selectedExaminerId, setSelectedExaminerId] = useState<string>('');
   const [selectedExpertId, setSelectedExpertId] = useState<string>('');
 
-  // 심사관/전문가 목록 불러오기
+  // 심사관/전문가 목록 불러오기 (한쪽이 실패해도 다른 쪽 목록은 그대로 표시)
   const fetchExaminersAndExperts = async () => {
-    try {
-      const [examinersRes, expertsRes] = await Promise.all([
-        fetch('/api/admin/examiners?limit=50', { cache: 'no-store' }),
-        fetch('/api/admin/experts?limit=50', { cache: 'no-store' })
-      ]);
+    const [examinersResult, expertsResult] = await Promise.allSettled([
+      fetchAllListItems('/api/admin/examiners', 'examiners'),
+      fetchAllListItems('/api/admin/experts', 'experts'),
+    ]);
 
-      if (examinersRes.ok) {
-        const examinersData = await examinersRes.json();
-        // 이름 기준 가나다순 정렬
-        const sortedExaminers = (examinersData.examiners || []).sort((a: any, b: any) =>
-          (a.name || '').localeCompare(b.name || '', 'ko')
-        );
-        setExaminers(sortedExaminers);
-      }
+    if (examinersResult.status === 'fulfilled') {
+      setExaminers(examinersResult.value);
+    } else {
+      console.error('Failed to fetch examiners:', examinersResult.reason);
+    }
 
-      if (expertsRes.ok) {
-        const expertsData = await expertsRes.json();
-        // 이름 기준 가나다순 정렬
-        const sortedExperts = (expertsData.experts || []).sort((a: any, b: any) =>
-          (a.name || '').localeCompare(b.name || '', 'ko')
-        );
-        setExperts(sortedExperts);
-      }
-    } catch (error) {
-      console.error('Failed to fetch examiners/experts:', error);
+    if (expertsResult.status === 'fulfilled') {
+      setExperts(expertsResult.value);
+    } else {
+      console.error('Failed to fetch experts:', expertsResult.reason);
     }
   };
 
@@ -81,7 +123,7 @@ export default function ProfileCard({
     console.log('Role change submit:', {
       selectedRole,
       selectedExaminerId,
-      selectedExpertId
+      selectedExpertId,
     });
 
     if (selectedRole === UserRole.EXAMINER && selectedExaminerId) {
@@ -182,10 +224,14 @@ export default function ProfileCard({
             <h3 className="text-xl font-bold text-gray-900">{user.name}</h3>
             <p className="text-sm text-gray-500">{user.email}</p>
             <div className="flex items-center gap-2 mt-2">
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(user.role)}`}>
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(user.role)}`}
+              >
                 {getRoleLabel(user.role)}
               </span>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColor(user.status)}`}>
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColor(user.status)}`}
+              >
                 {getStatusLabel(user.status)}
               </span>
             </div>
@@ -252,7 +298,10 @@ export default function ProfileCard({
                   <span className="text-gray-600">전문분야:</span>
                   <div className="mt-1 flex flex-wrap gap-1">
                     {user.profile.specialty.map((spec, index) => (
-                      <span key={index} className="inline-block px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded">
+                      <span
+                        key={index}
+                        className="inline-block px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded"
+                      >
                         {spec}
                       </span>
                     ))}
@@ -277,9 +326,7 @@ export default function ProfileCard({
           <span className="ml-2 text-gray-900">
             {(() => {
               const date = new Date(user.createdAt);
-              return isNaN(date.getTime())
-                ? '날짜 정보 없음'
-                : date.toLocaleDateString('ko-KR');
+              return isNaN(date.getTime()) ? '날짜 정보 없음' : date.toLocaleDateString('ko-KR');
             })()}
           </span>
         </div>
@@ -291,9 +338,7 @@ export default function ProfileCard({
             <span className="ml-2 text-gray-900">
               {(() => {
                 const date = new Date(user.lastLoginAt);
-                return isNaN(date.getTime())
-                  ? '날짜 정보 없음'
-                  : date.toLocaleDateString('ko-KR');
+                return isNaN(date.getTime()) ? '날짜 정보 없음' : date.toLocaleDateString('ko-KR');
               })()}
             </span>
           </div>
@@ -316,9 +361,7 @@ export default function ProfileCard({
               </button>
             )}
             {onStatusChange && (
-              <button
-                className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
+              <button className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                 상태 변경
               </button>
             )}
@@ -348,7 +391,10 @@ export default function ProfileCard({
       {showRoleModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75" onClick={() => setShowRoleModal(false)} />
+            <div
+              className="fixed inset-0 bg-gray-500 bg-opacity-75"
+              onClick={() => setShowRoleModal(false)}
+            />
 
             <div className="relative bg-white rounded-lg max-w-md w-full p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">회원 등급 변경</h3>
