@@ -1,6 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import {
+  prepareUploadImage,
+  compressionNotice,
+  uploadErrorMessage,
+  UPLOAD_COMPRESSION_NOTICE,
+  UPLOAD_RECOMMENDED_MB,
+} from '@/lib/image/prepareUploadImage';
 
 /**
  * 브랜드 페이지 회사소개 편집 컴포넌트
@@ -68,9 +75,8 @@ export default function BrandIntroEditor({
       }
 
       console.log('[BrandIntroEditor] Parsed existing content:', {
-        companyName: companyText
+        companyName: companyText,
       });
-
     } catch (error) {
       console.error('[BrandIntroEditor] Failed to parse existing HTML:', error);
     }
@@ -103,27 +109,24 @@ export default function BrandIntroEditor({
    *
    * @purpose 회사 로고 이미지를 Cloudflare R2에 업로드
    * @context 사용자 요청: "로고는 직접 올리면 반영 안올리면 미반영"
+   * @decision 2026-10-16 권장 용량(3MB) 초과 파일은 업로드 전 강제 압축
+   *   - 5MB 로고가 Vercel 4.5MB 한도에 걸려 JSON 파싱 오류가 났던 문제 대응
+   *   - 이미지 여부·원본 최대 용량 검사도 prepareUploadImage 가 담당
+   *   - JPG 외에는 PNG 로 인코딩해 투명 배경을 유지 (서버가 400px 로 다시 리사이즈)
    */
   const handleLogoUpload = async (file: File) => {
     if (!file) return;
 
-    // 파일 크기 체크 (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('파일 크기는 5MB 이하여야 합니다.');
-      return;
-    }
-
-    // 이미지 파일 타입 체크
-    if (!file.type.startsWith('image/')) {
-      alert('이미지 파일만 업로드 가능합니다.');
-      return;
-    }
-
     try {
       setUploadingLogo(true);
 
+      const prepared = await prepareUploadImage(file, {
+        maxWidthOrHeight: 800,
+        fileType: file.type === 'image/jpeg' ? 'image/jpeg' : 'image/png',
+      });
+
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('image', prepared.file);
 
       // 심사관 브랜드 로고 업로드 API 사용 (examiner와 admin 권한 허용)
       const response = await fetch('/api/examiner/brand/upload-logo', {
@@ -132,16 +135,22 @@ export default function BrandIntroEditor({
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('[Logo Upload] Error:', errorData);
-        throw new Error(errorData.error || '로고 업로드에 실패했습니다.');
+        // 413 은 Vercel 이 보내는 평문이라 JSON 파싱이 실패할 수 있음
+        const errorData = await response.json().catch(() => ({}));
+        console.error('[Logo Upload] Error:', response.status, errorData);
+        throw new Error(
+          uploadErrorMessage(response.status, errorData.error || '로고 업로드에 실패했습니다.')
+        );
       }
 
       const data = await response.json();
       if (data.success && data.imageUrl) {
         setLocalLogo(data.imageUrl);
         onChange(localIntro, localUseDefault, data.imageUrl);
-        alert('로고가 업로드되었습니다.\n\n⚠️ 페이지 상단의 "저장" 버튼을 클릭해야 반영됩니다!');
+        const notice = compressionNotice(prepared);
+        alert(
+          `로고가 업로드되었습니다.\n\n${notice ? `${notice}\n\n` : ''}⚠️ 페이지 상단의 "저장" 버튼을 클릭해야 반영됩니다!`
+        );
       } else {
         throw new Error(data.error || '업로드 URL을 받지 못했습니다.');
       }
@@ -217,7 +226,8 @@ export default function BrandIntroEditor({
           회사 로고 (선택사항)
         </h3>
         <p className="text-sm text-gray-600 mb-4">
-          로고를 업로드하면 브랜드 페이지에 표시됩니다. 업로드하지 않으면 나라똔 기본 로고가 표시됩니다.
+          로고를 업로드하면 브랜드 페이지에 표시됩니다. 업로드하지 않으면 나라똔 기본 로고가
+          표시됩니다.
         </p>
 
         {/* 로고 업로드 후 저장 안내 - 로고가 있을 때만 표시 */}
@@ -227,11 +237,10 @@ export default function BrandIntroEditor({
               <i className="fas fa-exclamation text-white text-sm"></i>
             </div>
             <div>
-              <p className="font-semibold text-amber-800">
-                로고가 업로드되었습니다!
-              </p>
+              <p className="font-semibold text-amber-800">로고가 업로드되었습니다!</p>
               <p className="text-sm text-amber-700 mt-1">
-                변경사항을 저장하려면 <span className="font-bold underline">페이지 상단의 "저장" 버튼</span>을 클릭하세요.
+                변경사항을 저장하려면{' '}
+                <span className="font-bold underline">페이지 상단의 "저장" 버튼</span>을 클릭하세요.
               </p>
             </div>
           </div>
@@ -272,9 +281,10 @@ export default function BrandIntroEditor({
                   업로드 중...
                 </span>
               ) : (
-                '권장: PNG (투명 배경) 또는 JPG, 최대 5MB'
+                `권장: PNG (투명 배경) 또는 JPG, ${UPLOAD_RECOMMENDED_MB}MB 이하`
               )}
             </p>
+            <p className="text-xs text-gray-500 mt-1">{UPLOAD_COMPRESSION_NOTICE}</p>
             {localLogo && (
               <button
                 type="button"
@@ -320,9 +330,7 @@ export default function BrandIntroEditor({
 
             {/* 회사 소개 */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                소개 내용
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">소개 내용</label>
               <textarea
                 value={mainIntro}
                 onChange={(e) => setMainIntro(e.target.value)}

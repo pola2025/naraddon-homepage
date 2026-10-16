@@ -1,7 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { compressImage } from '@/lib/image/imageCompressor';
+import {
+  prepareUploadImage,
+  compressionNotice,
+  UPLOAD_COMPRESSION_NOTICE,
+  UPLOAD_RECOMMENDED_MB,
+} from '@/lib/image/prepareUploadImage';
 
 /**
  * 정보 이미지 편집기 (deferred upload)
@@ -10,7 +15,8 @@ import { compressImage } from '@/lib/image/imageCompressor';
  * @decision
  *   - 파일 선택 시 R2 업로드 안 함 → 상단 "저장" 버튼 클릭 시에만 업로드
  *     (사용자가 선택 후 저장 안 하면 R2에 고아 파일 안 생김)
- *   - 선택 직후 클라이언트에서 WebP 사전 압축 (1920px / Q85 / 3.5MB) 후 부모에 File 전달
+ *   - 선택 직후 클라이언트에서 WebP 사전 압축 (1920px / Q85) 후 부모에 File 전달
+ *   - 2026-10-16 권장 용량 3MB 초과 시 품질·해상도를 단계적으로 낮춰 3MB 이하를 보장 (prepareUploadImage)
  *   - 프리뷰는 blob URL로 즉시 표시 (사용자에게 로딩 노출 안 함)
  *   - 실제 업로드 로딩은 상단 "저장" 버튼에서 표현됨
  */
@@ -53,36 +59,26 @@ export default function InfoImageEditor({
   const handleImageSelect = async (file: File) => {
     if (!file) return;
 
-    // 원본 한도 (20MB)
-    if (file.size > 20 * 1024 * 1024) {
-      alert(
-        `파일이 너무 큽니다.\n원본 ${(file.size / 1024 / 1024).toFixed(1)}MB → 최대 20MB까지 가능합니다.`
-      );
-      return;
-    }
-    if (!file.type.startsWith('image/')) {
-      alert('이미지 파일만 선택 가능합니다.');
-      return;
-    }
-
     try {
       setCompressing(true);
 
       // 클라이언트 사전 WebP 압축 — 저장 시 빠른 업로드 + Vercel 4.5MB 한도 회피
-      const compressed = await compressImage(file, {
-        maxSizeMB: 3.5,
+      // 이미지 여부·원본 최대 용량(20MB) 검사도 prepareUploadImage 가 담당
+      const prepared = await prepareUploadImage(file, {
         maxWidthOrHeight: 1920,
-        quality: 0.85,
         fileType: 'image/webp',
       });
 
       console.log('[InfoImage] pre-compressed (not uploaded yet)', {
-        originalMB: (compressed.originalSize / 1024 / 1024).toFixed(2),
-        compressedMB: (compressed.compressedSize / 1024 / 1024).toFixed(2),
-        ratio: `${compressed.compressionRatio.toFixed(1)}%`,
+        originalMB: (prepared.originalSize / 1024 / 1024).toFixed(2),
+        finalMB: (prepared.finalSize / 1024 / 1024).toFixed(2),
+        compressed: prepared.compressed,
       });
 
-      onPendingFileChange(compressed.file);
+      onPendingFileChange(prepared.file);
+
+      const notice = compressionNotice(prepared);
+      if (notice) alert(notice);
     } catch (err) {
       console.error('[InfoImage] compress error:', err);
       alert(err instanceof Error ? err.message : '이미지 처리 실패');
@@ -116,9 +112,11 @@ export default function InfoImageEditor({
               제품/서비스 소개, 회사 연혁, 비전 등을 이미지로 표현할 수 있습니다.
               <br />
               <strong>
-                최대 20MB · 자동 WebP 압축 · 페이지 상단 &quot;저장&quot; 버튼 클릭 시에만
+                권장 {UPLOAD_RECOMMENDED_MB}MB 이하 · 페이지 상단 &quot;저장&quot; 버튼 클릭 시에만
                 적용됩니다.
               </strong>
+              <br />
+              {UPLOAD_COMPRESSION_NOTICE}
             </p>
           </div>
         </div>
@@ -194,7 +192,7 @@ export default function InfoImageEditor({
               정보 이미지를 선택하세요
               <br />
               <span className="text-sm text-gray-500">
-                최대 20MB · JPG/PNG/WebP · 자동 WebP 압축
+                권장 {UPLOAD_RECOMMENDED_MB}MB 이하 · JPG/PNG/WebP
               </span>
             </p>
 
@@ -227,7 +225,7 @@ export default function InfoImageEditor({
 
         <p className="mt-2 text-sm text-gray-500">
           <i className="fas fa-lightbulb text-yellow-500 mr-1"></i>
-          권장: 가로 1200px 이상의 고해상도 이미지 (자동 압축됨)
+          권장: 가로 1200px 이상, {UPLOAD_RECOMMENDED_MB}MB 이하 이미지
         </p>
       </div>
 

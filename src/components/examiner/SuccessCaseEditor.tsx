@@ -2,6 +2,19 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import {
+  prepareUploadImage,
+  compressionNotice,
+  uploadErrorMessage,
+  UPLOAD_COMPRESSION_NOTICE,
+  UPLOAD_RECOMMENDED_MB,
+} from '@/lib/image/prepareUploadImage';
+
+/**
+ * 썸네일 업로드 전 강제 압축 옵션
+ * @decision 2026-10-16 권장 용량(3MB) 초과 파일만 압축. 서버가 600x600 JPEG 로 다시 자르므로 JPEG 1600px 이면 충분
+ */
+const THUMBNAIL_UPLOAD_OPTIONS = { maxWidthOrHeight: 1600, fileType: 'image/jpeg' };
 
 /**
  * 성공케이스 편집 컴포넌트 (게시판 형태)
@@ -154,20 +167,13 @@ export default function SuccessCaseEditor({ successCases, onChange }: SuccessCas
   const handleNewCaseThumbnailUpload = async (file: File) => {
     if (!file) return;
 
-    if (file.size > 10 * 1024 * 1024) {
-      alert('파일 크기는 10MB 이하여야 합니다.');
-      return;
-    }
-
-    if (!file.type.startsWith('image/')) {
-      alert('이미지 파일만 업로드 가능합니다.');
-      return;
-    }
-
     try {
       setUploading(true);
+      // 이미지 여부·원본 최대 용량 검사 + 권장 용량 초과 시 강제 압축
+      const prepared = await prepareUploadImage(file, THUMBNAIL_UPLOAD_OPTIONS);
+
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('image', prepared.file);
       formData.append('type', 'success-case-thumbnail');
 
       const response = await fetch('/api/examiner/brand/upload-success-thumbnail', {
@@ -176,13 +182,14 @@ export default function SuccessCaseEditor({ successCases, onChange }: SuccessCas
       });
 
       if (!response.ok) {
-        throw new Error('이미지 업로드에 실패했습니다.');
+        throw new Error(uploadErrorMessage(response.status, '이미지 업로드에 실패했습니다.'));
       }
 
       const data = await response.json();
       if (data.success && data.imageUrl) {
         setNewCase({ ...newCase, thumbnail: data.imageUrl });
-        alert('썸네일이 업로드되었습니다.');
+        const notice = compressionNotice(prepared);
+        alert(`썸네일이 업로드되었습니다.${notice ? `\n\n${notice}` : ''}`);
       } else {
         throw new Error(data.error || '업로드 실패');
       }
@@ -204,24 +211,15 @@ export default function SuccessCaseEditor({ successCases, onChange }: SuccessCas
   const handleImageUpload = async (index: number, file: File) => {
     if (!file) return;
 
-    // 파일 크기 체크 (10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      alert('파일 크기는 10MB 이하여야 합니다.');
-      return;
-    }
-
-    // 이미지 파일 타입 체크
-    if (!file.type.startsWith('image/')) {
-      alert('이미지 파일만 업로드 가능합니다.');
-      return;
-    }
-
     try {
       setUploading(true);
       setUploadingIndex(index);
 
+      // 이미지 여부·원본 최대 용량 검사 + 권장 용량 초과 시 강제 압축
+      const prepared = await prepareUploadImage(file, THUMBNAIL_UPLOAD_OPTIONS);
+
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('image', prepared.file);
       formData.append('type', 'success-case-thumbnail'); // 성공케이스 썸네일 타입
 
       const response = await fetch('/api/examiner/brand/upload-success-thumbnail', {
@@ -230,13 +228,14 @@ export default function SuccessCaseEditor({ successCases, onChange }: SuccessCas
       });
 
       if (!response.ok) {
-        throw new Error('이미지 업로드에 실패했습니다.');
+        throw new Error(uploadErrorMessage(response.status, '이미지 업로드에 실패했습니다.'));
       }
 
       const data = await response.json();
       if (data.success && data.imageUrl) {
         updateSuccessCase(index, 'thumbnail', data.imageUrl);
-        alert('썸네일이 업로드되었습니다.');
+        const notice = compressionNotice(prepared);
+        alert(`썸네일이 업로드되었습니다.${notice ? `\n\n${notice}` : ''}`);
       } else {
         throw new Error(data.error || '업로드 실패');
       }
@@ -267,7 +266,8 @@ export default function SuccessCaseEditor({ successCases, onChange }: SuccessCas
       <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <p className="text-sm text-blue-800">
           <i className="fas fa-info-circle mr-2"></i>
-          성공케이스를 게시판 형태로 작성하세요. 1:1 비율의 썸네일 이미지를 업로드하면 자동으로 크롭됩니다.
+          성공케이스를 게시판 형태로 작성하세요. 1:1 비율의 썸네일 이미지를 업로드하면 자동으로
+          크롭됩니다.
         </p>
       </div>
 
@@ -316,7 +316,9 @@ export default function SuccessCaseEditor({ successCases, onChange }: SuccessCas
                   onClick={() => toggleEdit(index)}
                   className="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors"
                 >
-                  <i className={`fas ${editingIndex === index ? 'fa-chevron-up' : 'fa-edit'} mr-1`}></i>
+                  <i
+                    className={`fas ${editingIndex === index ? 'fa-chevron-up' : 'fa-edit'} mr-1`}
+                  ></i>
                   {editingIndex === index ? '닫기' : '수정'}
                 </button>
                 <button
@@ -366,18 +368,17 @@ export default function SuccessCaseEditor({ successCases, onChange }: SuccessCas
                               업로드 중...
                             </span>
                           ) : (
-                            '권장: 정사각형 이미지 (1:1 비율), 최대 10MB'
+                            `권장: 정사각형 이미지 (1:1 비율), ${UPLOAD_RECOMMENDED_MB}MB 이하`
                           )}
                         </p>
+                        <p className="text-xs text-gray-500 mt-1">{UPLOAD_COMPRESSION_NOTICE}</p>
                       </div>
                     </div>
                   </div>
 
                   {/* 제목 */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      제목 *
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">제목 *</label>
                     <input
                       type="text"
                       value={successCase.title}
@@ -403,9 +404,7 @@ export default function SuccessCaseEditor({ successCases, onChange }: SuccessCas
 
                   {/* 내용 */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      내용 *
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">내용 *</label>
                     <textarea
                       value={successCase.content}
                       onChange={(e) => updateSuccessCase(index, 'content', e.target.value)}
@@ -444,8 +443,7 @@ export default function SuccessCaseEditor({ successCases, onChange }: SuccessCas
       {isCreating ? (
         <div className="border border-blue-300 rounded-lg p-6 bg-blue-50">
           <h3 className="text-lg font-semibold mb-4 text-gray-900">
-            <i className="fas fa-plus-circle mr-2 text-blue-600"></i>
-            새 성공케이스 작성
+            <i className="fas fa-plus-circle mr-2 text-blue-600"></i>새 성공케이스 작성
           </h3>
           <div className="space-y-4">
             {/* 썸네일 업로드 */}
@@ -483,18 +481,17 @@ export default function SuccessCaseEditor({ successCases, onChange }: SuccessCas
                         업로드 중...
                       </span>
                     ) : (
-                      '권장: 정사각형 이미지 (1:1 비율), 최대 10MB'
+                      `권장: 정사각형 이미지 (1:1 비율), ${UPLOAD_RECOMMENDED_MB}MB 이하`
                     )}
                   </p>
+                  <p className="text-xs text-gray-500 mt-1">{UPLOAD_COMPRESSION_NOTICE}</p>
                 </div>
               </div>
             </div>
 
             {/* 제목 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                제목 *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">제목 *</label>
               <input
                 type="text"
                 value={newCase.title}
@@ -520,9 +517,7 @@ export default function SuccessCaseEditor({ successCases, onChange }: SuccessCas
 
             {/* 내용 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                내용 *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">내용 *</label>
               <textarea
                 value={newCase.content}
                 onChange={(e) => setNewCase({ ...newCase, content: e.target.value })}
@@ -558,8 +553,7 @@ export default function SuccessCaseEditor({ successCases, onChange }: SuccessCas
           onClick={startCreating}
           className="w-full px-6 py-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
         >
-          <i className="fas fa-plus-circle mr-2"></i>
-          새 성공케이스 작성
+          <i className="fas fa-plus-circle mr-2"></i>새 성공케이스 작성
         </button>
       )}
 
@@ -568,7 +562,8 @@ export default function SuccessCaseEditor({ successCases, onChange }: SuccessCas
         <div className="p-8 text-center bg-gray-50 rounded-lg">
           <i className="fas fa-trophy text-4xl text-gray-300 mb-4"></i>
           <p className="text-gray-600">
-            아직 추가된 성공케이스가 없습니다.<br />
+            아직 추가된 성공케이스가 없습니다.
+            <br />
             "새 성공케이스 작성" 버튼을 클릭하여 성공케이스를 작성하세요.
           </p>
         </div>
