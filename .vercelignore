@@ -14,3 +14,5 @@ diagnostics
 SESSION_HANDOFF_*
 *_세션핸드오프.md
 KakaoTalk_*.png
+backups
+.codegraph
